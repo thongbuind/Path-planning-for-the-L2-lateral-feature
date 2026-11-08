@@ -450,10 +450,10 @@ button { font: inherit; color: inherit; }
   --region-line: #9D90EC;
   --region-bg: #F2F0FEED;
 }
-.card.diagram { width: auto; display: flex; flex-direction: column; gap: 6px; }
+.card.diagram { width: 800px; display: flex; flex-direction: column; gap: 6px; }
 .card.diagram .doc-title { font-size: 24px; }
 .diagram-body { display: block; margin: 10px 0 4px; color: var(--text-2); }
-.diagram-body svg { display: block; max-width: none; }
+.diagram-body svg { display: block; max-width: 100%; height: auto; }
 .diagram-error { color: var(--warn); font-weight: 600; }
 .region-label {
   margin: 0;
