@@ -1,0 +1,181 @@
+/* Nhận xét nằm ngoài vùng Markdown có thể chỉnh sửa. */
+.review-marks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.review-mark-line { position: absolute; height: 2px; background: #8B75F3; opacity: .65; }
+.review-marker {
+  position: absolute;
+  pointer-events: auto;
+  min-width: 36px;
+  min-height: 28px;
+  padding: 2px 8px;
+  border: 1px solid #D8CDFD;
+  border-radius: 999px;
+  background: #F2EEFF;
+  color: #4830BB;
+  box-shadow: var(--shadow-1);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.review-marker:hover { background: #E7DEFF; }
+
+.review-button,
+.review-list-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 4px 10px;
+  border: 1px solid var(--glass-line);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.review-button:hover, .review-list-item:hover { background: var(--surface-1); }
+.review-button:disabled { cursor: wait; opacity: .6; }
+.review-button[hidden] { display: none; }
+.review-button.review-primary { background: var(--violet); color: #FFF; }
+.review-button.review-primary:hover { background: #4B2DDF; }
+
+.review-prompt {
+  position: fixed;
+  z-index: 31;
+  padding: 7px 12px;
+  border: 1px solid #35278C;
+  border-radius: 10px;
+  background: #38288F;
+  color: #FFF;
+  box-shadow: var(--shadow-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.review-prompt:hover { background: #4731B0; }
+
+.review-panel {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 24px));
+  max-height: min(620px, calc(100dvh - 92px));
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg);
+  box-shadow: var(--shadow-2);
+}
+.review-panel[hidden] { display: none; }
+.review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hair);
+}
+.review-head h2 { margin: 0; font-size: 16px; }
+.review-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.review-close:hover { background: var(--surface-1); }
+.review-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+
+.review-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.review-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
+.review-nav:empty { display: none; }
+.review-quote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--violet);
+  border-radius: 0 8px 8px 0;
+  background: var(--surface-1);
+  color: #48484A;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.review-hint { margin: 8px 0; color: var(--text-2); }
+.review-entry { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--hair); }
+.review-entry-head { display: flex; align-items: center; justify-content: space-between; }
+.review-entry-head strong { color: var(--violet); }
+.review-text { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.review-list-item {
+  width: 100%;
+  display: block;
+  margin-bottom: 6px;
+  text-align: left;
+  color: var(--violet);
+}
+.review-list-quote {
+  display: block;
+  color: var(--text-2);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-form {
+  flex: none;
+  margin: 0 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-1);
+}
+.review-form:focus-within { border-color: var(--violet-ring); }
+.review-form textarea, .review-export {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 var(--font-sans);
+  resize: vertical;
+}
+.review-form textarea { max-height: 150px; outline: 0; }
+.review-export { min-height: 150px; max-height: 220px; margin: 10px 0; border: 1px solid var(--line); }
+.review-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 0 8px 8px; }
+.review-status { margin: 0 14px 10px; color: var(--text-2); font-size: 12px; }
+.review-status:empty { margin: 0; }
+
+@media (max-width: 600px) {
+  .review-panel { left: 12px !important; top: auto !important; bottom: 12px; }
+  .review-form textarea { font-size: 16px; }
+}
+
+@media print {
+  .review-marks, #review-list, .review-prompt, .review-panel { display: none !important; }
+}
+
+/* Nhận xét đã xong: chỉ hiện khi bật "Xem nhận xét đã xong". */
+.review-entry-tools { display: inline-flex; gap: 6px; }
+.review-entry.review-done .review-text,
+.review-list-item.review-done .review-list-quote { color: var(--text-2, #6B6B7B); }
+.review-entry.review-done .review-entry-head strong { color: #2E7D4F; }
+.review-list-item.review-done { opacity: .75; }
+.review-marker.review-done { background: #EAF6EE; border-color: #BFE3CB; color: #2E7D4F; }
+.review-resolution { margin: 6px 0 0; padding: 6px 8px; border-radius: 8px; background: #EAF6EE; color: #22553A; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
