@@ -580,15 +580,45 @@
   function layoutRegions() {
     var padding = 42;
     var header = 108;
+    var regions = {};
     regionLayer.querySelectorAll(".map-region").forEach(function (frame) {
       var nodes = world.querySelectorAll('.card[data-region="' + frame.dataset.region + '"]');
       var bounds = boundsOf(nodes);
       frame.hidden = !bounds;
       if (!bounds) return;
-      frame.style.left = bounds.minX - padding + "px";
-      frame.style.top = bounds.minY - header + "px";
-      frame.style.width = bounds.maxX - bounds.minX + 2 * padding + "px";
-      frame.style.height = bounds.maxY - bounds.minY + header + padding + "px";
+      regions[frame.dataset.region] = {
+        frame: frame,
+        left: bounds.minX - padding,
+        right: bounds.maxX + padding,
+        top: bounds.minY - header,
+        bottom: bounds.maxY + padding
+      };
+    });
+
+    var { docs, vehicle, simulation, dynamics } = regions;
+    if (docs && vehicle && simulation && dynamics) {
+      // Research chiếm cả hai hàng. Hàng sơ đồ nằm dưới phần mềm trên xe và giả lập.
+      docs.top = vehicle.top = simulation.top = Math.min(docs.top, vehicle.top, simulation.top);
+      vehicle.left = dynamics.left = Math.min(vehicle.left, dynamics.left);
+      simulation.right = dynamics.right = Math.max(simulation.right, dynamics.right);
+      docs.bottom = dynamics.bottom = Math.max(docs.bottom, dynamics.bottom);
+
+      var upperBottom = Math.max(vehicle.bottom, simulation.bottom);
+      var gap = Math.min(vehicle.left - docs.right, simulation.left - vehicle.right, dynamics.top - upperBottom);
+      if (gap >= 0) {
+        docs.right = vehicle.left - gap;
+        vehicle.right = simulation.left - gap;
+        upperBottom = dynamics.top - gap;
+      }
+      vehicle.bottom = simulation.bottom = upperBottom;
+    }
+
+    Object.values(regions).forEach(function (region) {
+      var style = region.frame.style;
+      style.left = region.left + "px";
+      style.top = region.top + "px";
+      style.width = region.right - region.left + "px";
+      style.height = region.bottom - region.top + "px";
     });
   }
 
