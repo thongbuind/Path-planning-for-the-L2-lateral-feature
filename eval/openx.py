@@ -17,6 +17,7 @@ from sim.faults.lane import LaneFault
 from sim.scenario import Scenario
 from sim.vehicle.profiles import PROFILES
 from sim.world.road import Segment
+from sim.world.traffic import TrafficSpec
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / 'benchmark' / 'schema'
@@ -274,29 +275,43 @@ def load_scenario(path, overrides=None):
     if root.findall('.//Story') or root.findall('.//GlobalAction') or root.findall('.//CatalogReference'):
         raise ValueError('stories, global actions and catalog references are unsupported')
     objects = root.findall('./Entities/ScenarioObject')
-    if len(objects) != 1 or objects[0].get('name') != 'Ego':
-        raise ValueError('only one Ego entity is supported')
-    properties = {p.get('name'): p.get('value') for p in root.findall('./Entities/ScenarioObject/Vehicle/Properties/Property')}
-    if set(properties) != {'pp:adapter', 'pp:profile', 'pp:acc', 'pp:hwa_request_s', 'pp:hold_until_hwa'}:
+    if not objects or objects[0].get('name') != 'Ego' or len({o.get('name') for o in objects}) != len(objects):
+        raise ValueError('Ego must be the first entity; entity names must be unique')
+    properties = {p.get('name'): p.get('value') for p in objects[0].findall('./Vehicle/Properties/Property')}
+    required = {'pp:adapter', 'pp:profile', 'pp:acc', 'pp:hwa_request_s', 'pp:hold_until_hwa'}
+    if not required <= set(properties) <= required | {'pp:camera_view_m'}:
         raise ValueError('unsupported or missing simulator properties')
     if properties.get('pp:adapter') != 'single-ego-v1':
         raise ValueError('missing pp:adapter single-ego-v1')
     if properties['pp:profile'] not in PROFILES or properties['pp:acc'] not in ('off', 'on', 'ignore_limits'):
         raise ValueError('unknown profile or ACC mode')
-    privates = root.findall('./Storyboard/Init/Actions/Private')
-    if len(privates) != 1 or privates[0].get('entityRef') != 'Ego':
-        raise ValueError('expected Ego initial actions')
-    actions = privates[0].findall('PrivateAction')
-    if len(actions) != 2 or actions[0].find('TeleportAction') is None or actions[1].find('LongitudinalAction/SpeedAction') is None:
-        raise ValueError('only initial teleport and absolute speed are supported')
-    position = root.find('.//TeleportAction/Position/RoadPosition')
-    speed = root.find('.//SpeedActionTarget/AbsoluteTargetSpeed')
+    privates = {p.get('entityRef'): p for p in root.findall('./Storyboard/Init/Actions/Private')}
+    if set(privates) != {o.get('name') for o in objects}:
+        raise ValueError('every entity needs exactly one Private with its initial actions')
+    def initial(name):
+        actions = privates[name].findall('PrivateAction')
+        if len(actions) != 2 or actions[0].find('TeleportAction') is None or actions[1].find('LongitudinalAction/SpeedAction') is None:
+            raise ValueError('only initial teleport and absolute speed are supported')
+        pos = actions[0].find('TeleportAction/Position/RoadPosition')
+        spd = actions[1].find('LongitudinalAction/SpeedAction/SpeedActionTarget/AbsoluteTargetSpeed')
+        dyn = actions[1].find('LongitudinalAction/SpeedAction/SpeedActionDynamics')
+        if pos is None or spd is None or pos.get('roadId') != '1':
+            raise ValueError('road position and absolute speed required')
+        if dyn is None or dyn.get('dynamicsShape') != 'step' or dyn.get('dynamicsDimension') != 'time' or number(dyn.get('value')) != 0:
+            raise ValueError('only instantaneous initial speed supported')
+        return pos, spd
+    position, speed = initial('Ego')
+    traffic = []
+    for i, obj in enumerate(objects[1:], start=1):
+        pos, spd = initial(obj.get('name'))
+        dims = obj.find('./Vehicle/BoundingBox/Dimensions')
+        if obj.find('./Vehicle/Properties') is not None or dims is None:
+            raise ValueError('traffic vehicles need a bounding box and no simulator properties')
+        traffic.append(TrafficSpec(i, number(pos.get('s')), number(pos.get('t')), number(spd.get('value')),
+                                   number(dims.get('length')), number(dims.get('width'))))
     stop = root.find('./Storyboard/StopTrigger/ConditionGroup/Condition/ByValueCondition/SimulationTimeCondition')
-    if position is None or speed is None or stop is None or position.get('roadId') != '1':
-        raise ValueError('road position, absolute speed and time stop required')
-    dynamics = root.find('.//SpeedActionDynamics')
-    if dynamics is None or dynamics.get('dynamicsShape') != 'step' or dynamics.get('dynamicsDimension') != 'time' or number(dynamics.get('value')) != 0:
-        raise ValueError('only instantaneous initial speed supported')
+    if stop is None:
+        raise ValueError('time stop required')
     groups = root.findall('./Storyboard/StopTrigger/ConditionGroup')
     conditions = root.findall('./Storyboard/StopTrigger/ConditionGroup/Condition')
     if len(groups) != 1 or len(conditions) != 1 or conditions[0].get('conditionEdge') != 'none' or number(conditions[0].get('delay')) != 0:
@@ -325,9 +340,13 @@ def load_scenario(path, overrides=None):
         start_s=number(position.attrib['s']), start_offset_m=number(position.attrib['t']),
         start_heading_rad=number(orientation.attrib['h']), hold_until_hwa=hold == 'true',
         acc=properties['pp:acc'], lane_faults=faults,
+        camera_view_m=number(properties.get('pp:camera_view_m', 80.0)),
+        traffic=tuple(traffic),
         notes={'description': params.get('description', '')})
     if not 2.5 <= width <= 5.5 or not 0 <= scenario.speed_mps <= 130 / 3.6 + 1e-10:
         raise ValueError('lane width or speed outside benchmark ODD')
+    if not 10.0 <= scenario.camera_view_m <= 80.0:
+        raise ValueError('camera view outside 10..80 m')
     if scenario.duration_s <= 0 or not 0 <= scenario.hwa_request_s <= scenario.duration_s:
         raise ValueError('invalid scenario time')
     if not 0 <= scenario.start_s < sum(s.length for s in segments):
@@ -355,8 +374,9 @@ def scenario_xml(params, fault=False):
     node(axles, 'RearAxle', maxSteering=0, wheelDiameter=.65, trackWidth=1.6, positionX=0, positionZ=.325)
     properties = node(vehicle, 'Properties')
     node(properties, 'Property', name='pp:adapter', value='single-ego-v1')
-    for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa'):
-        node(properties, 'Property', name='pp:' + key, value='$' + key)
+    for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa', 'camera_view_m'):
+        if key in params:
+            node(properties, 'Property', name='pp:' + key, value='$' + key)
     story = node(root, 'Storyboard')
     actions = node(node(story, 'Init'), 'Actions')
     if fault:

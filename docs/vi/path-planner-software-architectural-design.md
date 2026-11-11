@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.4 |
+| Phiên bản | 1.5 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -144,7 +144,7 @@ Trạng thái là `active_function`. Mỗi ô ghi trạng thái kế tiếp và 
 | Bám tâm làn | Bám reference line qua ba lớp ở mục 4.1 | PP-SWR-050, 051 |
 | Cua gắt hơn aysmax | Path cong ít hơn đường thật, a_y ≥ aysmax − `epsilon_ay`; bật `lateral_limit_reached` theo `delta_ay`, `T_flag`; gửi `v_max` cho khối dọc để giảm tốc trước cua | PP-SWR-005 đến 007, 151; target 008, 064 |
 | Đưa xe về giữa khi vừa bật | Đoạn quintic dài `T_recenter`, vẫn ở HWA | PP-SWR-052; target 002, 053 |
-| Dời tâm khi có xe lớn | Gán vật thể vào làn bằng reference line. Bắt đầu khi TTC tới lúc ngang hàng ≤ `ttc_offset_start`; trả về `t_offset_hold` sau khi đuôi xe lớn qua. Mất ObjectList thì đưa offset về 0 | PP-SWR-055, 058, 140; target 059 |
+| Dời tâm khi có xe lớn | Gán vật thể vào làn bằng reference line. Bắt đầu khi TTC tới lúc ngang hàng ≤ `ttc_offset_start`; trả về `t_offset_hold` sau khi đuôi xe lớn qua. Mất ObjectList thì đưa offset về 0 | PP-SWR-055, 056, 058, 140; target 059 |
 | Độ lớn offset | Công thức ngay dưới bảng (PP-ADR-008) | PP-SWR-051, 055, 056; target 057 |
 | Xe khác cắt vào làn | Không phải ELK. Phần ngang dời tâm theo cùng công thức; khối dọc chọn xe đó làm mục tiêu | PP-SWR-055, 056 |
 | Làn hẹp | Cùng công thức; khoảng trống nhỏ thì offset tự về 0; không đủ khoảng trống thì báo `lane_too_narrow` | PP-SWR-063 |
@@ -152,9 +152,18 @@ Trạng thái là `active_function`. Mỗi ô ghi trạng thái kế tiếp và 
 **Offset dời tâm, áp cho mọi bề rộng làn và bề rộng xe.**
 
 - Khoảng trống mỗi bên khi ở tâm: s = (W_làn − W_xe) / 2, với W_xe là `vehicle_width` của VehicleConfig.
-- Khoảng hở mỗi bên: từ thân xe tới vật gần nhất phía đó (xe ở làn bên, rào chắn, mép đường). Bên trống thì tới biên làn của reference line, không tới mép đường thô, để làn mở rộng không kéo xe về phía đó.
-- Giới hạn offset: o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)).
-- Offset: o = (khoảng hở phải − khoảng hở trái) / 2, cắt trong [−o_lim, o_lim]. Dấu của o luôn về phía khoảng hở lớn hơn (PP-SWR-056).
+- Khoảng hở tới xe lớn mỗi bên g_T, g_P: từ thân xe ở tâm làn tới mép gần nhất của xe lớn phía đó. Bên không có xe lớn thì không có g; biên làn và mép đường không kéo xe về phía đó.
+- Phần thiếu: h = max(0, `gap_truck_min` − g).
+- Offset, o dương là sang trái:
+
+| Xe lớn | o |
+|---|---|
+| Chỉ bên phải | + h_P |
+| Chỉ bên trái | − h_T |
+| Hai bên, có ít nhất một h > 0 | (g_T − g_P) / 2 |
+| Không có, hoặc hai bên đều đủ khoảng hở | 0 |
+
+- Giới hạn offset: o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)); o cắt trong [−o_lim, o_lim]. Mọi dòng của bảng dời ra xa xe lớn có khoảng hở nhỏ nhất (PP-SWR-056).
 
 ### 6.1 Interface với khối dọc {#acc-stub}
 
@@ -290,6 +299,7 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `k_jump` | σ | 3 | 2–5 | ≥ 0 | PP-SWR-121, 122 |
 | `T_confirm` | s | 1,0 | 0,5–2,0 | ≥ 0 | PP-SWR-060, 061 |
 | `offset_max` | m | 0,3 | 0–0,5 | ≥ 0 | PP-SWR-055; target 057 |
+| `gap_truck_min` | m | 1,5 | 1,0–2,0 | > 0 | PP-SWR-055, 056; target 057 |
 | `dlc_offset_min` | m | 0,3 | 0–0,5 | ≥ 0 (PP-SWR-051) | Target 057 |
 | `ttc_offset_start` | s | 3,0 | 2,0–4,0 | ≥ 0 | PP-SWR-058 |
 | `t_offset_hold` | s | 1,0 | 0–2,0 | ≥ 0 | Target 059 |
@@ -346,3 +356,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.2 | 2026-11-10 | Mục 4.2: planner tự tính trạng thái ngang (PP-ADR-014) |
 | 1.3 | 2026-11-11 | Truy vết của `lateral_limit_reached`, `delta_ay`, `T_flag` theo SRS 1.3 |
 | 1.4 | 2026-11-11 | Thêm mục 6.2 chiến lược tốc độ trong cua (R171 5.3.7.1.3) và mục 8.3 bậc suy giảm (R79 Annex 6, 3.4.3), gom từ các mục đã có |
+| 1.5 | 2026-11-11 | T8: offset theo khoảng hở tới xe lớn và `gap_truck_min` (PP-ADR-008 mới); thêm `gap_truck_min` |

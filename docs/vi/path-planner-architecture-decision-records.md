@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ADR` |
-| Phiên bản | 1.2 |
+| Phiên bản | 1.3 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-10 |
+| Cập nhật | 2026-11-11 |
 
 ## 1. Purpose and scope {#adr-scope}
 
@@ -43,7 +43,7 @@
 | PP-ADR-005 | Dùng chung một hàm tính trạng thái ngang với khối Chức năng ADAS |
 | PP-ADR-006 | Planner tự kiểm tính nhất quán của đường biên |
 | PP-ADR-007 | Ba lớp chống nhiễu dựa trên path cũ |
-| PP-ADR-008 | Offset dời tâm theo cân bằng khoảng hở, giới hạn theo khoảng trống thật |
+| PP-ADR-008 | Offset dời tâm theo khoảng hở tới xe lớn, giới hạn theo khoảng trống thật |
 | PP-ADR-009 | Bám path cũ tối đa `T_coast` rồi báo path không hợp lệ |
 | PP-ADR-010 | Lateral Controller bù trễ sau planner |
 | PP-ADR-011 | Planner suy tâm làn từ vạch làn bên và mép đường |
@@ -123,14 +123,14 @@
 | Hệ quả | Được: path êm dưới nhiễu mà không làm lại việc của lane model. Mất: phản ứng chậm hơn khi làn đổi thật; Software Qualification Test Specification đo cả hai mặt |
 | Liên quan | PP-SWR-120; target PP-SWR-050; Software Architectural Design mục 4.1 |
 
-### PP-ADR-008 Offset dời tâm theo cân bằng khoảng hở, giới hạn theo khoảng trống thật {#adr-008}
+### PP-ADR-008 Offset dời tâm theo khoảng hở tới xe lớn, giới hạn theo khoảng trống thật {#adr-008}
 
 | Mục | Nội dung |
 |---|---|
 | Bối cảnh | HWA dời tâm khi có xe lớn ở làn bên (đề bài). Path không được dịch về phía làn mở rộng (mentor). Planner phải chạy cho mọi bề rộng làn 2,5–5,5 m và mọi xe rộng tới 2,5 m |
-| Phương án | A) Khoảng hở tới mép đường thô, offset cố định ±0,3 m. B) Cân bằng khoảng hở hai bên, bên trống lấy biên làn của reference line; giới hạn offset tính từ khoảng trống thật |
-| Quyết định | B. o = (khoảng hở phải − khoảng hở trái) / 2, cắt trong ±o_lim, o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_làn − W_xe) / 2 |
-| Hệ quả | Được: không dịch về phía làn mở rộng; hai bên có vật thì offset tự về 0; đúng với mọi làn và mọi xe, không có ca trái với PP-SWR-051. Mất: phụ thuộc chất lượng reference line; làn hẹp với xe rộng thì gần như không dời được |
+| Phương án | A) Khoảng hở tới mép đường thô, offset cố định ±0,3 m. B) Cân bằng khoảng hở hai bên, bên trống lấy biên làn của reference line. C) Dời ra xa xe lớn phần khoảng hở còn thiếu so với `gap_truck_min`; xe lớn ở cả hai bên thì cân bằng hai khoảng hở. B và C đều giới hạn offset theo khoảng trống thật |
+| Quyết định | C (2026-11-11, thay B). Công thức ở Software Architectural Design mục 6; o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_làn − W_xe) / 2. B bị bỏ vì xe lớn ở giữa làn bên thì khoảng hở tới nó lớn hơn khoảng hở tới biên làn: B không dời, hoặc dời về phía xe lớn |
+| Hệ quả | Được: luôn dời ra xa xe lớn, càng gần càng dời nhiều; không dịch về phía làn mở rộng; xe lớn ở hai bên thì đứng giữa; đúng với mọi làn và mọi xe, không có ca trái với PP-SWR-051. Mất: thêm calibration `gap_truck_min`; phụ thuộc chất lượng reference line; làn hẹp với xe rộng thì gần như không dời được |
 | Liên quan | PP-SWR-051, 055, 056, 060, 062; target 057; Software Architectural Design mục 6 |
 
 ### PP-ADR-009 Bám path cũ tối đa `T_coast` rồi báo path không hợp lệ {#adr-009}
@@ -200,3 +200,4 @@
 | 1.0 | 2026-11-10 | Refactor thành Architecture Decision Records, baseline BL1. Mọi quyết định là đã quyết; PP-ADR-008 giới hạn offset theo khoảng trống thật; PP-ADR-009 dùng `T_coast` ≤ 1 s; thêm PP-ADR-012; bỏ nhãn trạng thái và việc mở |
 | 1.1 | 2026-11-10 | Thêm PP-ADR-013: planner là thư viện C11 có API C, tách adapter theo nền tảng |
 | 1.2 | 2026-11-10 | Thêm PP-ADR-014: planner tự tính trạng thái ngang; PP-ADR-005 bị thay |
+| 1.3 | 2026-11-11 | PP-ADR-008 chọn C thay B: dời theo khoảng hở tới xe lớn so với `gap_truck_min` |

@@ -1,0 +1,128 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="S3" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S3.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="21.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S3" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Xe tải 2,5 m ở làn phải chậm hơn 5 m/s" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="80.0" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-3.5" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="truck_length_m" value="12.0" />
+            <ParameterAssignment parameterRef="truck_width_m" value="2.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="44.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S3" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Xe tải chậm hơn 2 m/s" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="80.0" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-3.5" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="23.0" />
+            <ParameterAssignment parameterRef="truck_length_m" value="12.0" />
+            <ParameterAssignment parameterRef="truck_width_m" value="2.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="13.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S3" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Xe tải chậm hơn 10 m/s" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="80.0" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-3.5" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="15.0" />
+            <ParameterAssignment parameterRef="truck_length_m" value="12.0" />
+            <ParameterAssignment parameterRef="truck_width_m" value="2.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="21.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S3" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Xe tải chậm hơn 5 m/s, cách vạch 0,1 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="80.0" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-3.1" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="truck_length_m" value="12.0" />
+            <ParameterAssignment parameterRef="truck_width_m" value="2.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="21.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S3" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Xe tải chậm hơn 5 m/s, lấn vạch 0,3 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="80.0" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-2.7" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="truck_length_m" value="12.0" />
+            <ParameterAssignment parameterRef="truck_width_m" value="2.5" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

@@ -23,6 +23,26 @@
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="90 km/h, R = 200 m (a_y cua 3,1 m/s²)" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1ba.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="80.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="13" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1b" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, R = 200 m ngay sau đỉnh dốc, camera thấy 40 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1ba.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="40.0" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
@@ -41,6 +61,7 @@
             <ParameterAssignment parameterRef="variant" value="b" />
             <ParameterAssignment parameterRef="description" value="90 km/h, R = 150 m (a_y cua 4,2 m/s²)" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1bb.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="80.0" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
@@ -59,6 +80,7 @@
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="110 km/h, R = 300 m (a_y cua 3,1 m/s²)" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1bc.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="80.0" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
@@ -77,6 +99,7 @@
             <ParameterAssignment parameterRef="variant" value="e" />
             <ParameterAssignment parameterRef="description" value="90 km/h, R = 200 m, clothoid 60 m" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1be.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="80.0" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
@@ -95,6 +118,7 @@
             <ParameterAssignment parameterRef="variant" value="f" />
             <ParameterAssignment parameterRef="description" value="90 km/h, R = 230 m, a_y = 2.72 m/s^2" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1bf.xodr" />
+            <ParameterAssignment parameterRef="camera_view_m" value="80.0" />
           </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>

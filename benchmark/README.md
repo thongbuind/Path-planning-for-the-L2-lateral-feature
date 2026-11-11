@@ -33,9 +33,9 @@ Thay `smoke` bằng `regression` hoặc `full` để sinh hai bộ còn lại. `
 
 | Bộ | Cách chọn | Profile | Seed | Lượt chạy hiện tại |
 |---|---|---|---|---|
-| Smoke | Mọi neo đã hỗ trợ | VP-0 | 1 | 55 (0,3 giờ mô phỏng) |
-| Regression | Neo và biên | VP-0…VP-5 | 1, 2 | 1.428 (10,1 giờ mô phỏng) |
-| Full | Neo, biên, pairwise, Latin hypercube | VP-0…VP-5 | 1; riêng F01: 1…10 | 3.540 (29,0 giờ mô phỏng) |
+| Smoke | Mọi neo đã hỗ trợ | VP-0 | 1 | 69 (0,4 giờ mô phỏng) |
+| Regression | Neo và biên | VP-0…VP-5 | 1, 2 | 1.788 (12,8 giờ mô phỏng) |
+| Full | Neo, biên, pairwise, Latin hypercube | VP-0…VP-5 | 1; riêng F01: 1…10 | 4.032 (33,4 giờ mô phỏng) |
 
 Ca lỗi chạy trên hai đường chủ: S1a (cua nhẹ) và S1c (cua chạm aysmax), như M1. Mã ca lỗi ghi đường chủ, ví dụ `F06-e-S1c-VP-0-<hash>`.
 
@@ -63,10 +63,11 @@ S14 luôn có cả ACC đọc và bỏ qua LateralLimits. `eval.suite` chạy `-
 | Vehicle `Properties`, `pp:adapter=single-ego-v1` | Nhận diện contract của adapter |
 | `pp:profile` | Vehicle profile simulator; file cụ thể cập nhật bề rộng, wheelbase và khối lượng của Vehicle |
 | `pp:acc` | `off`, `on`, `ignore_limits` như simulator hiện có |
+| `pp:camera_view_m` | Tầm nhìn của camera [m], mặc định 80; tuỳ chọn |
 | `pp:hwa_request_s`, `pp:hold_until_hwa` | Thời điểm yêu cầu HWA và giữ offset/góc đến khi HWA bắt đầu |
 | `CustomCommandAction type="pp:lane_fault:v1"` | JSON có `kind`, `start_s`, `duration_s`, `lines`, `value`, `sigma_c0`, `sigma_c1`; áp dụng theo thời điểm chụp frame; duration −1 là tới cuối ca |
 | `lane_width_m`, `curvature_scale`, `direction` | Bộ sinh dựng lại `.xodr` với số cụ thể; OpenDRIVE không chứa biểu thức `$parameter` |
 
 Các phần mở rộng cần adapter tương ứng khi chuyển sang simulator khác. Qua XSD chứng minh đúng cấu trúc, không chứng minh các simulator khác tự hiểu HWA, ACC hay bơm lỗi của dự án.
 
-Các ca chưa được simulator hỗ trợ được giữ ngoài manifest: S1b-d (đỉnh dốc/tầm nhìn 40 m), S14-b/c/d (xe khác/mất LongitudinalPlan), F04-e (làn mở rộng). Loại biên khác, Q1 và các kịch bản chưa có trong phạm vi chuyển đổi này không được tính là đã phủ. Bộ full là đầy đủ theo các nguồn đã triển khai ở trên, không phải toàn bộ bảng kịch bản của tài liệu.
+Các ca chưa được simulator hỗ trợ được giữ ngoài manifest: S14-b/c/d (xe khác/mất LongitudinalPlan), F03-e (giữa lúc ELK), F04-e (làn mở rộng). S1b-d dùng `pp:camera_view_m` = 40: đường phẳng, camera thấy 40 m suốt ca. Loại biên khác, Q1 và các kịch bản chưa có trong phạm vi chuyển đổi này không được tính là đã phủ. Bộ full là đầy đủ theo các nguồn đã triển khai ở trên, không phải toàn bộ bảng kịch bản của tài liệu.
