@@ -1,0 +1,12 @@
+# Interface Control Document 5.4 (#state-estimator). State Estimator -> Planner, 50 Hz.
+icd: "5.4"
+constants:
+  VEHICLE_STATE_TIMEOUT_US: {type: uint64, value: 60000}
+  VEHICLE_STATE_MAX_AGE_US: {type: uint64, value: 30000}
+structs:
+  VehicleStateEstimate:
+    fields:
+      - {name: header, type: Header, doc: "stamp_us = estimation time"}
+      - {name: lateral_velocity, type: float32, unit: m/s, doc: "v_y at the rear axle centre"}
+      - {name: lateral_velocity_variance, type: float32, unit: m^2/s^2}
+      - {name: slip_angle, type: float32, unit: rad}

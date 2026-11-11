@@ -81,10 +81,13 @@
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16v-4M12 16V8M17 16v-7"/></svg>'
   };
   var ICON_ARROW = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  var ICON_DOCUMENT = '<svg viewBox="0 0 30 36" aria-hidden="true">' +
+    '<path d="M5 2h13l8 8v22a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/>' +
+    '<path d="M18 2v8h8M8 14h13M8 18h9" fill="none"/></svg>';
 
   // Thẻ báo cáo là liên kết tới trang riêng.
-  function renderDocCard(c) {
-    var b = el("a", "card doc");
+  function renderDocCard(c, number) {
+    var b = el("a", c.main ? "card doc doc-main" : "card doc");
     b.href = reportHref(c.doc);
     b.dataset.id = c.id;
     b.dataset.region = c.region || "docs";
@@ -92,20 +95,15 @@
     b.style.top = c.y + "px";
 
     var head = el("span", "doc-head");
-    head.appendChild(el("span", "doc-kicker", tr(c.eyebrow)));
-    if (c.docNo) head.appendChild(el("span", "doc-no", c.docNo));
+    head.appendChild(el("span", "doc-no", String(number).padStart(2, "0")));
+    head.appendChild(el("span", "doc-title", tr(c.title)));
+    if (c.status) head.appendChild(el("span", "doc-status", tr(c.status)));
     b.appendChild(head);
 
-    b.appendChild(el("span", "doc-title", tr(c.title)));
     if (c.summary) b.appendChild(el("span", "doc-sub", tr(c.summary)));
 
     b.appendChild(el("span", "doc-toc"));
     b.appendChild(el("span", "doc-versions"));
-
-    var foot = el("span", "doc-foot");
-    foot.appendChild(el("span", "doc-file", mdName(c)));
-    if (c.status) foot.appendChild(el("span", "doc-status", tr(c.status)));
-    b.appendChild(foot);
 
     world.appendChild(b);
   }
@@ -113,28 +111,37 @@
   // Khi chạy cục bộ, bản gốc tiếng Việt đồng bộ qua API. Bản xuất đọc hai file Markdown tĩnh.
   var page = document.getElementById("doc-page");
   var backLink = document.getElementById("report-back");
+  var reportCatalog = document.getElementById("report-catalog");
+  var reportIndexBack = document.getElementById("report-index-back");
   var viewerVersions = document.getElementById("doc-versions");
   var saveNote = document.getElementById("doc-save");
   var POLL_MS = 1500;
   var SERVE_URL = "http://127.0.0.1:8770/";
+  var HOME_PATH = "home/";
+  var DOCUMENTS_PATH = "technical-documents/";
+  var localFile = location.protocol === "file:";
   var requestedDoc = route.get("doc");
 
   if (page && requestedDoc) {
-    var mergedReport = docCards().find(function (c) { return c.mergedFrom?.doc === requestedDoc; });
-    if (mergedReport) {
+    var redirectedReport = docCards().find(function (c) {
+      return [].concat(c.renamedFrom || []).indexOf(requestedDoc) >= 0 || c.mergedFrom?.doc === requestedDoc;
+    });
+    if (redirectedReport) {
       var destination = new URL(location.href);
-      destination.searchParams.set("doc", mergedReport.doc);
-      if (!destination.hash) destination.hash = mergedReport.mergedFrom.section;
+      destination.searchParams.set("doc", redirectedReport.doc);
+      if (!destination.hash && redirectedReport.mergedFrom?.doc === requestedDoc) {
+        destination.hash = redirectedReport.mergedFrom.section;
+      }
       location.replace(destination);
       return;
     }
   }
 
-  // Mở thẳng index.html (file://) thì không đọc, ghi được md. Nếu serve.py đang chạy, chuyển sang nó.
-  if (location.protocol === "file:" && !staticSite) {
+  // Khi mở file HTML trực tiếp, chuyển sang serve.py nếu server đang chạy.
+  if (localFile && !staticSite) {
     fetch(SERVE_URL + "api/ping", { cache: "no-store" })
       .then(function (r) {
-        if (r.ok) location.replace(SERVE_URL + (page ? "report.html" : "") + location.search + location.hash);
+        if (r.ok) location.replace(SERVE_URL + (page ? DOCUMENTS_PATH : HOME_PATH) + location.search + location.hash);
       })
       .catch(function () { /* serve.py chưa chạy: trang tài liệu sẽ hướng dẫn */ });
   }
@@ -150,6 +157,7 @@
   var reviews = currentDoc && window.SpecReviews.mount({
     page: page,
     docId: currentDoc.doc,
+    draftDoc: [].concat(currentDoc.renamedFrom || [])[0],
     mergedDraftDoc: currentDoc.mergedFrom?.doc,
     staticSite: staticSite,
     tr: tr,
@@ -180,12 +188,12 @@
     var params = new URLSearchParams();
     if (doc) params.set("doc", doc);
     params.set("lang", language);
-    return "report.html?" + params.toString() + (section ? "#" + section : "");
+    return DOCUMENTS_PATH + (localFile ? "index.html" : "") + "?" + params.toString() + (section ? "#" + section : "");
   }
 
-  // Liên kết theo mục luôn mở bản gốc tiếng Việt của Research.
+  // Liên kết theo mục dùng cùng ngôn ngữ với tài liệu.
   function docLanguage(c) {
-    return language === "en" && !st(c.doc, "en").missing && !(c === currentDoc && location.hash) ? "en" : "vi";
+    return language === "en" && !st(c.doc, "en").missing ? "en" : "vi";
   }
 
   function mdName(c) { return "docs/" + docLanguage(c) + "/" + c.doc + ".md"; }
@@ -297,22 +305,31 @@
   }
 
   function fillDocToc(c) {
-    var toc = world?.querySelector('.card[data-id="' + c.id + '"] .doc-toc');
+    var toc = (world || reportCatalog)?.querySelector('[data-id="' + c.id + '"] .doc-toc');
     if (!toc) return;
     toc.textContent = "";
-    var s = st(c.doc, docLanguage(c));
+    var lang = docLanguage(c);
+    var s = st(c.doc, lang);
     if (s.md == null) {
-      toc.appendChild(el("span", "doc-toc-label", s.ok === null ? tr("Đang tải…") : tr("Không đọc được {file}", { file: mdName(c) })));
+      var source = world ? mdName(c) : tr(c.title);
+      toc.appendChild(el("span", "doc-toc-label", s.ok === null ? tr("Đang tải…") : tr("Không đọc được {file}", { file: source })));
       return;
     }
     var heads = s.md.split("\n").map(window.DocMD.heading).filter(function (h) { return h && h.level === 2; });
     if (!heads.length) return;
     toc.appendChild(el("span", "doc-toc-label", tr("Mục lục")));
+    var links = world ? toc : toc.appendChild(el("div", "report-toc-links"));
     heads.forEach(function (h, i) {
-      var row = el("span", "doc-toc-row");
+      var row = el(world ? "span" : "a", "doc-toc-row");
+      var href = reportHref(c.doc, h.id || null);
+      // Bấm một dòng mục lục thì mở thẳng mục đó (xử lý ở pointerup của bản đồ).
+      if (world) row.dataset.href = href;
+      else row.href = href;
+      row.lang = lang;
+      row.title = h.title.replace(/[*`\\]/g, "");
       row.appendChild(el("span", "doc-toc-no", String(i + 1).padStart(2, "0")));
       row.appendChild(el("span", "doc-toc-name", h.title.replace(/^\d+\.\s*/, "").replace(/[*`\\]/g, "")));
-      toc.appendChild(row);
+      links.appendChild(row);
     });
   }
 
@@ -326,6 +343,138 @@
     if (heading && page.contains(heading)) heading.scrollIntoView();
   }
 
+  // Bảng trong trang tài liệu: cột ngắn không xuống dòng, tên code dài ngắt ở dấu _ . [ /,
+  // mỗi bảng chỉ hiện 2 hàng đầu, các hàng còn lại mở bằng nút "Xem thêm" dưới bảng.
+  // Nội dung trong ô luôn hiện đủ. Nút không có chữ (nhãn lấy từ data-label) và mang
+  // data-ui, nên không lọt vào md khi lưu và không làm lệch vị trí neo của nhận xét.
+  var TIGHT_CELL_CHARS = 18, VISIBLE_ROWS = 2, ID_COLUMN_EM = 6.2;
+  function breakCode(code) {
+    var text = code.textContent;
+    if (text.length < 16 || code.querySelector("wbr")) return;
+    code.textContent = "";
+    text.split(/(?<=[_.\[\/])/).forEach(function (part, i) {
+      if (i) code.appendChild(document.createElement("wbr"));
+      code.appendChild(document.createTextNode(part));
+    });
+  }
+  // Cột ngắn lấy đúng độ rộng cần; phần còn lại chia cho các cột chữ theo lượng chữ trung bình,
+  // để cột nhiều chữ nhất (thường là cột Yêu cầu hay Nội dung) rộng nhất.
+  function sizeColumns(table) {
+    var rows = Array.prototype.slice.call(table.rows);
+    var group = table.querySelector(":scope > colgroup");
+    if (group) group.textContent = "";
+    var head = rows[0], width = table.clientWidth;
+    if (!width || !head) return;
+    var body = rows.length > 1 ? rows.slice(1) : rows;
+    var columns = Math.max.apply(null, rows.map(function (r) { return r.cells.length; }));
+    var tightWidth = 0, weights = [], total = 0;
+    for (var k = 0; k < columns; k++) {
+      var cell = head.cells[k];
+      if (!cell) { weights.push(0); continue; }
+      if (cell.classList.contains("cell-id")) {
+        tightWidth += ID_COLUMN_EM * parseFloat(getComputedStyle(cell).fontSize);
+        weights.push(-1);
+        continue;
+      }
+      if (cell.classList.contains("cell-tight")) { tightWidth += cell.offsetWidth; weights.push(0); continue; }
+      var sum = 0;
+      body.forEach(function (r) { if (r.cells[k]) sum += r.cells[k].textContent.trim().length; });
+      var w = Math.sqrt(Math.max(12, Math.min(160, sum / body.length)));
+      weights.push(w);
+      total += w;
+    }
+    if (!total && weights.indexOf(-1) < 0) return;
+    var free = Math.max(width - tightWidth, width * 0.4);
+    group = group || table.insertBefore(document.createElement("colgroup"), table.firstChild);
+    weights.forEach(function (w) {
+      var col = document.createElement("col");
+      if (w < 0) col.style.width = ID_COLUMN_EM + "em";
+      else if (w) col.style.width = (100 * Math.max(90, free * w / total) / width).toFixed(1) + "%";
+      group.appendChild(col);
+    });
+  }
+  function tableToggle(table) {
+    var b = table.nextElementSibling;
+    if (!b || !b.classList.contains("table-more")) return null;
+    var hidden = Math.max(0, table.tBodies[0] ? table.tBodies[0].rows.length - VISIBLE_ROWS : 0);
+    var label = table.classList.contains("table-collapsed") ? tr("Xem thêm {n} hàng", { n: hidden }) : tr("Thu gọn");
+    b.setAttribute("data-label", label);
+    b.setAttribute("aria-label", label);
+    b.setAttribute("aria-expanded", String(!table.classList.contains("table-collapsed")));
+    return b;
+  }
+  // Mã như PP-SWR-013, SG-01, VP-1 không được ngắt ở dấu gạch nối.
+  var ID_TOKEN = /\b(?:PP-(?:SWR|ASM|ADR)-\d{3}|[A-Z]{1,3}-\d{1,3}[a-z]?)\b/g;
+  function keepIdsTogether(cell) {
+    var walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT), nodes = [];
+    while (walker.nextNode()) {
+      ID_TOKEN.lastIndex = 0;
+      if (ID_TOKEN.test(walker.currentNode.nodeValue)) nodes.push(walker.currentNode);
+    }
+    nodes.forEach(function (node) {
+      if (node.parentNode.classList?.contains("nowrap") || node.parentNode.closest("code")) return;
+      var text = node.nodeValue, frag = document.createDocumentFragment(), last = 0;
+      text.replace(ID_TOKEN, function (m, at) {
+        if (at > last) frag.appendChild(document.createTextNode(text.slice(last, at)));
+        var span = document.createElement("span");
+        span.className = "nowrap";
+        span.textContent = m;
+        frag.appendChild(span);
+        last = at + m.length;
+        return m;
+      });
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+  function enhanceTables(root) {
+    root.querySelectorAll("table").forEach(function (table) {
+      var rows = Array.prototype.slice.call(table.rows);
+      if (!rows.length) return;
+      var columns = Math.max.apply(null, rows.map(function (r) { return r.cells.length; }));
+      // Bảng chật: nhiều cột và nhiều chữ mỗi hàng. Chỉ khi đó mới cho cột ID ngắt dòng.
+      var textPerRow = rows.slice(1).reduce(function (n, r) { return n + r.textContent.trim().length; }, 0) / Math.max(1, rows.length - 1);
+      var crowded = columns >= 4 && textPerRow > 60;
+      for (var k = 0; k < columns; k++) {
+        // Cột ID được ngắt ở dấu gạch nối (PP-SWR- / 001) để cột hẹp lại.
+        if (rows[0].cells[k] && rows[0].cells[k].textContent.trim() === "ID" && crowded) {
+          rows.forEach(function (r) { r.cells[k]?.classList.add("cell-id"); });
+          continue;
+        }
+        var longest = 0;
+        rows.forEach(function (r) { if (r.cells[k]) longest = Math.max(longest, r.cells[k].textContent.trim().length); });
+        if (longest <= TIGHT_CELL_CHARS) rows.forEach(function (r) { r.cells[k]?.classList.add("cell-tight"); });
+      }
+      table.querySelectorAll("td:not(.cell-tight) code").forEach(breakCode);
+      table.querySelectorAll("td:not(.cell-tight):not(.cell-id)").forEach(keepIdsTogether);
+      var body = table.tBodies[0];
+      if (!body || body.rows.length <= VISIBLE_ROWS) return;
+      table.classList.add("table-collapsed");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "table-more";
+      b.setAttribute("data-ui", "");
+      b.contentEditable = "false";
+      table.after(b);
+      tableToggle(table);
+    });
+    requestAnimationFrame(function () { layoutTables(root); });
+  }
+  // Chạy khi trang đã hiện: cần độ rộng thật để chia cột.
+  function layoutTables(root) { root.querySelectorAll("table").forEach(sizeColumns); }
+  function toggleTable(table) {
+    table.classList.toggle("table-collapsed");
+    tableToggle(table);
+    sizeColumns(table);
+  }
+  var tableResizeTimer = null;
+  window.addEventListener("resize", function () {
+    if (!page) return;
+    clearTimeout(tableResizeTimer);
+    tableResizeTimer = setTimeout(function () { layoutTables(page); }, 150);
+  });
+  document.fonts?.ready.then(function () { if (page) layoutTables(page); });
+
   function showPage(c, reloaded) {
     var lang = docLanguage(c);
     var s = st(c.doc, lang);
@@ -335,6 +484,7 @@
     setSaveNote("", "");
     if (pageVersion) {
       page.innerHTML = window.DocMD.toHtml(pageVersion.md);
+      enhanceTables(page);
       page.lang = lang;
       reviews.documentChanged(lang, true);
       if (lang !== language) setSaveNote(tr("Đang xem bản gốc tiếng Việt · chỉ đọc"));
@@ -351,10 +501,10 @@
       return;
     }
     page.appendChild(el("p", null, tr("Không đọc được {file}", { file: mdName(c) })));
-    if (location.protocol === "file:" && !staticSite) {
-      var path = decodeURIComponent(location.pathname).replace(/\/[^/]*$/, "");
+    if (localFile && !staticSite) {
+      var path = decodeURIComponent(new URL("serve.py", document.baseURI).pathname);
       page.appendChild(el("p", null, tr("Chạy lệnh sau trong Terminal rồi mở {url}.", { url: SERVE_URL })));
-      page.appendChild(el("code", null, 'python3 "' + path + '/serve.py"'));
+      page.appendChild(el("code", null, 'python3 "' + path + '"'));
     }
   }
 
@@ -446,7 +596,7 @@
     var records = loadVersionRecords();
     var docs = currentDoc ? [currentDoc] : docCards();
     var jobs = docs.map(function (c) { return syncDocPair(c, records); });
-    if (world) jobs.push(refreshDiagrams());
+    if (world) jobs.push(refreshDiagrams(records));
     return Promise.all(jobs);
   }
 
@@ -466,24 +616,37 @@
     b.appendChild(el("span", "doc-title", tr(c.title)));
     if (c.summary) b.appendChild(el("span", "doc-sub", tr(c.summary)));
     b.appendChild(el("span", "diagram-body", tr("Đang tải sơ đồ…")));
-    var cta = el("span", "card-cta", tr("Xem bảng chi tiết trong Research"));
+    var cta = el("span", "card-cta", tr("Xem bảng chi tiết trong tài liệu"));
     cta.insertAdjacentHTML("beforeend", ICON_ARROW);
     b.appendChild(cta);
     world.appendChild(b);
   }
 
-  // Sơ đồ luôn đọc bản tiếng Việt, là bản gốc của bảng.
-  function refreshDiagrams() {
+  // Sơ đồ đọc dữ liệu từ bản gốc và lấy nhãn từ bản dịch đã đối chiếu.
+  function refreshDiagrams(records) {
     if (!window.SpecDiagrams) return Promise.resolve();
     return Promise.all(diagramCards().map(function (c) {
-      return loadDoc(c.doc, "vi").then(function () {
+      return Promise.all([loadDoc(c.doc, "vi"), language === "en" && loadDoc(c.doc, "en"), records]).then(function () {
         var card = world.querySelector('.card[data-id="' + c.id + '"]');
         var body = card && card.querySelector(".diagram-body");
-        var md = st(c.doc, "vi").md;
-        if (!body || !md || card._diagramMd === md) return;
-        card._diagramMd = md;
-        var out = window.SpecDiagrams.render(c.diagram, md, { section: c.section, lanes: c.lanes, tr: tr });
-        if (out.node) body.replaceChildren(out.node);
+        var vi = st(c.doc, "vi");
+        var en = st(c.doc, "en");
+        var record = versionRecords?.[c.doc];
+        var translation = language === "en" && vi.ok && en.ok && vi.revision && en.revision &&
+          vi.revision === record?.vi && en.revision === record?.en ? en.md : null;
+        if (!body || !vi.md || (card._diagramMd === vi.md && card._diagramTranslation === translation)) return;
+        card._diagramMd = vi.md;
+        card._diagramTranslation = translation;
+        var out = window.SpecDiagrams.render(c.diagram, vi.md, {
+          section: c.section, lanes: c.lanes, own: c.own, translation: translation, tr: tr
+        });
+        if (out.node) {
+          body.replaceChildren(out.node);
+          // Bản dịch chưa đối chiếu với bảng gốc thì sơ đồ dùng nhãn tiếng Việt; nói rõ cho người đọc.
+          if (language === "en" && !out.translated) {
+            body.appendChild(el("span", "diagram-note", tr("Nhãn đang hiện bằng tiếng Việt vì bản dịch chưa cập nhật theo bảng gốc.")));
+          }
+        }
         else body.replaceChildren(el("span", "diagram-error", tr("Không vẽ được sơ đồ: {reason}", { reason: out.error })));
       });
     }));
@@ -505,18 +668,31 @@
   });
   // Lưu bản đang sửa trước khi mở báo cáo được liên kết.
   page?.addEventListener("click", function (e) {
-    var link = e.target.closest('a[href^="report.html?"]');
+    var more = e.target.closest(".table-more");
+    if (more) { e.preventDefault(); toggleTable(more.previousElementSibling); return; }
+    var link = e.target.closest("a[href]");
     if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    afterDocSaved(function () { location.assign(link.href); });
+    var href = link.getAttribute("href");
+    if (/^(?:report\.html|technical-documents\/(?:index\.html)?)\?/.test(href)) {
+      e.preventDefault();
+      afterDocSaved(function () { location.assign(link.href); });
+    } else if (href.charAt(0) === "#") {
+      e.preventDefault();
+      location.hash = href;
+    } else if (page.isContentEditable) {
+      // Trong vùng contenteditable, trình duyệt không tự mở link khi bấm.
+      e.preventDefault();
+      window.open(link.href, "_blank", "noopener");
+    }
   });
   if (currentDoc) window.addEventListener("hashchange", scrollToSection);
 
-  // Lưu bản tiếng Việt trước khi bấm liên kết về bản đồ.
-  backLink?.addEventListener("click", function (e) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (!dirty && !saving)) return;
+  // Lưu bản tiếng Việt trước khi chuyển tài liệu hoặc về bản đồ.
+  document.getElementById("report-navigation")?.addEventListener("click", function (e) {
+    var link = e.target.closest("a[href]");
+    if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (!dirty && !saving)) return;
     e.preventDefault();
-    afterDocSaved(function () { location.assign(backLink.href); });
+    afterDocSaved(function () { location.assign(link.href); });
   });
   if (currentDoc && !staticSite) {
     window.addEventListener("beforeunload", function (e) {
@@ -527,8 +703,9 @@
   }
 
   function renderCards() {
+    var reportNumber = -1; // Tài liệu đầu tiên (Báo cáo cho mentor) mang số 00.
     cards.forEach(function (c) {
-      if (c.kind === "doc") { renderDocCard(c); return; }
+      if (c.kind === "doc") { renderDocCard(c, ++reportNumber); return; }
       if (c.kind === "diagram") { renderDiagramCard(c); return; }
       var b = el("a", "card" + (c.group ? " " + c.group : ""));
       b.href = reportHref(c.research.doc, c.research.section);
@@ -545,7 +722,7 @@
 
       b.appendChild(el("span", "card-title", tr(c.title)));
       b.appendChild(el("span", "card-summary", tr(c.summary)));
-      var cta = el("span", "card-cta", tr("Đọc trong Research"));
+      var cta = el("span", "card-cta", tr("Đọc trong tài liệu"));
       cta.insertAdjacentHTML("beforeend", ICON_ARROW);
       b.appendChild(cta);
       world.appendChild(b);
@@ -597,7 +774,7 @@
 
     var { docs, vehicle, simulation, dynamics } = regions;
     if (docs && vehicle && simulation && dynamics) {
-      // Research chiếm cả hai hàng. Hàng sơ đồ nằm dưới phần mềm trên xe và giả lập.
+      // Tài liệu kỹ thuật chiếm cả hai hàng. Hàng sơ đồ nằm dưới phần mềm trên xe và giả lập.
       docs.top = vehicle.top = simulation.top = Math.min(docs.top, vehicle.top, simulation.top);
       vehicle.left = dynamics.left = Math.min(vehicle.left, dynamics.left);
       simulation.right = dynamics.right = Math.max(simulation.right, dynamics.right);
@@ -771,13 +948,14 @@
     if (!bounds) return;
     var width = bounds.maxX - bounds.minX, height = bounds.maxY - bounds.minY;
     var r = viewport.getBoundingClientRect();
-    var padTop = 76, padBottom = 32, pad = 32;
-    var availW = r.width - pad * 2, availH = r.height - padTop - padBottom;
+    var pad = 32;
+    var padRight = r.right - languageSwitch.getBoundingClientRect().left + 12;
+    var availW = r.width - pad - padRight, availH = r.height - pad * 2;
     var k = clampK(Math.min(1, availW / width, availH / height));
     var target = {
       k: k,
       x: pad + (availW - width * k) / 2 - bounds.minX * k,
-      y: padTop + (availH - height * k) / 2 - bounds.minY * k
+      y: pad + (availH - height * k) / 2 - bounds.minY * k
     };
     if (animate) animateTo(target, 260);
     else { view = target; apply(); }
@@ -822,6 +1000,7 @@
   viewport?.addEventListener("pointerdown", function (e) {
     if (e.button !== 0 && e.pointerType === "mouse") return;
     var hit = e.target.closest(".card, .edge-label, .region-link");
+    var tocRow = e.target.closest(".doc-toc-row[data-href]");
     if (hit?.href && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) return;
     var r = viewport.getBoundingClientRect();
     pointers.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top });
@@ -830,7 +1009,7 @@
     if (pointers.size === 1) {
       drag = {
         startX: e.clientX, startY: e.clientY, viewX: view.x, viewY: view.y, moved: false,
-        hit: hit
+        hit: hit, href: tocRow ? tocRow.dataset.href : hit?.href
       };
     } else if (pointers.size === 2) {
       var m = midpoint();
@@ -878,8 +1057,8 @@
       return;
     }
     if (pointers.size === 0) {
-      if (drag && !drag.moved && drag.hit && e.type === "pointerup") {
-        location.assign(drag.hit.href);
+      if (drag && !drag.moved && drag.hit && drag.href && e.type === "pointerup") {
+        location.assign(new URL(drag.href, document.baseURI));
       }
       drag = null;
       viewport.classList.remove("is-panning");
@@ -910,32 +1089,73 @@
   document.getElementById("zoom-out")?.addEventListener("click", function () { zoomBy(0.8); });
   document.getElementById("zoom-fit")?.addEventListener("click", function () { fit(true); });
 
+  function fitReportCatalog() {
+    var viewport = document.documentElement;
+    var header = reportCatalog.previousElementSibling;
+    var scale = Math.min(1, viewport.clientWidth / reportCatalog.offsetWidth,
+      (viewport.clientHeight - header.offsetHeight) / reportCatalog.offsetHeight);
+    viewport.style.setProperty("--report-scale", Math.max(0.01, scale));
+  }
+
   function renderReport() {
-    backLink.href = "index.html?lang=" + language;
-    document.title = tr(currentDoc ? currentDoc.title : "Báo cáo Research");
+    backLink.href = HOME_PATH + (localFile ? "index.html" : "") + "?lang=" + language;
+    document.title = tr(currentDoc ? currentDoc.title : "Technical Documents");
     if (currentDoc) {
+      reportIndexBack.href = reportHref();
+      reportIndexBack.hidden = false;
       showPage(currentDoc);
       renderDocVersions(currentDoc);
       return poll();
     }
 
-    page.classList.add("report-index");
-    page.replaceChildren(el("h1", null, tr("Báo cáo Research")));
+    document.documentElement.classList.add("report-overview");
+    page.parentElement.hidden = true;
+    reportCatalog.hidden = false;
+    var docs = docCards();
+    var masthead = el("header", "report-masthead");
+    var heading = el("div");
+    var project = el("p", "report-project", "G1 / Path Planner");
+    project.lang = "en";
+    heading.append(project, el("h1", null, tr("Technical Documents")));
+    var count = el("p", "report-catalog-count", String(docs.length).padStart(2, "0") + " documents");
+    count.lang = "en";
+    masthead.append(heading, count);
+    reportCatalog.replaceChildren(masthead);
     if (requestedDoc !== null) {
-      page.appendChild(el("p", null, tr("Không tìm thấy báo cáo.")));
-      return;
+      reportCatalog.appendChild(el("p", "report-notice", tr("Không tìm thấy báo cáo.")));
     }
-    page.appendChild(el("p", null, tr("Nguồn chính thức cho yêu cầu, thiết kế, interface và đánh giá của G1.")));
-    var list = el("ul", "report-list");
-    docCards().forEach(function (c) {
-      var row = el("li");
-      var link = el("a", null, tr(c.title));
+    var core = el("section", "report-group");
+    var reference = el("section", "report-group");
+    var coreGrid = el("ul", "report-grid");
+    var referenceGrid = el("ul", "report-grid");
+    core.append(el("h2", "report-group-title", "Overview & Design"), coreGrid);
+    reference.append(el("h2", "report-group-title", "Reference & Verification"), referenceGrid);
+    core.firstElementChild.lang = reference.firstElementChild.lang = "en";
+    docs.forEach(function (c, i) {
+      var item = el("li", c.main ? "report-tile report-tile-main" : "report-tile");
+      item.dataset.id = c.id;
+      var link = el("a", "report-tile-link");
       link.href = reportHref(c.doc);
-      row.appendChild(link);
-      if (c.summary) row.appendChild(el("p", null, tr(c.summary)));
-      list.appendChild(row);
+      var marker = el("span", "report-document");
+      marker.insertAdjacentHTML("beforeend", ICON_DOCUMENT);
+      marker.appendChild(el("span", "report-number", String(i).padStart(2, "0")));
+      link.append(marker, el("h3", null, tr(c.title)));
+      link.insertAdjacentHTML("beforeend", ICON_ARROW);
+      item.appendChild(link);
+      var toc = el("nav", "doc-toc");
+      toc.setAttribute("aria-label", tr("Mục lục") + " · " + tr(c.title));
+      item.appendChild(toc);
+      (c.main ? coreGrid : referenceGrid).appendChild(item);
     });
-    page.appendChild(list);
+    reportCatalog.append(core, reference);
+    docs.forEach(fillDocToc);
+    fitReportCatalog();
+    var lang = language;
+    return Promise.all(docs.map(function (c) {
+      return loadDoc(c.doc, lang).then(function () {
+        if (lang === "en" && st(c.doc, "en").missing) return loadDoc(c.doc, "vi");
+      }).then(function () { fillDocToc(c); });
+    }));
   }
 
   function renderLanguage() {
@@ -978,6 +1198,10 @@
 
   var initialLanguage = language;
   var initialDocs = renderLanguage();
+  if (reportCatalog && !currentDoc) {
+    new ResizeObserver(fitReportCatalog).observe(reportCatalog);
+    window.addEventListener("resize", fitReportCatalog);
+  }
   if (world) {
     fit(false);
     // Mục lục tải xong có thể làm thẻ cao hơn. Căn lại nếu người dùng chưa đổi góc nhìn.

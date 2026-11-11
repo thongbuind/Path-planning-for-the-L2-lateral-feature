@@ -78,7 +78,7 @@
   function githubRepository() {
     const configured = document.querySelector('meta[name="github-repository"]')?.content.trim();
     const owner = /^([a-z\d-]+)\.github\.io$/i.exec(location.hostname)?.[1];
-    const projectPath = location.pathname.split("/").filter(Boolean).slice(0, -1)[0];
+    const projectPath = new URL(document.baseURI).pathname.split("/").filter(Boolean)[0];
     const repo = configured || (owner ? owner + "/" + (projectPath || owner + ".github.io") : "");
     return /^[a-z\d][a-z\d-]{0,38}\/(?!\.{1,2}$)[a-z\d_.-]{1,100}$/i.test(repo) ? repo : "";
   }
@@ -89,7 +89,7 @@
     return fence + "text\n" + text + "\n" + fence;
   }
 
-  function mount({ page, docId, mergedDraftDoc, staticSite, tr, reportTitle, revision }) {
+  function mount({ page, docId, draftDoc = docId, mergedDraftDoc, staticSite, tr, reportTitle, revision }) {
     const listButton = document.getElementById("review-list");
     const prompt = document.getElementById("review-prompt");
     const marks = document.getElementById("review-marks");
@@ -101,9 +101,13 @@
     const input = document.getElementById("review-input");
     const saveButton = document.getElementById("review-save");
     const cancelEdit = document.getElementById("review-cancel-edit");
+    const severityInput = document.getElementById("review-severity");
+    // Mức độ của nhận xét: Lớn, Nhỏ, Câu hỏi. Nhận xét cũ chưa có mức độ thì không hiện nhãn.
+    const SEVERITY_LABELS = { major: "Lớn", minor: "Nhỏ", question: "Câu hỏi" };
+    const severityText = item => SEVERITY_LABELS[item.severity] ? " · " + tr(SEVERITY_LABELS[item.severity]) : "";
     const status = document.getElementById("review-status");
-    const storagePrefix = "spec-web.reviews:" + new URL(".", location.href).pathname + ":";
-    const storageKey = storagePrefix + docId;
+    const storagePrefix = "spec-web.reviews:" + new URL(".", document.baseURI).pathname + ":";
+    const storageKey = storagePrefix + draftDoc;
     const endpoint = "api/reviews/" + encodeURIComponent(docId);
 
     let reviews = [];
@@ -143,7 +147,7 @@
     }
 
     function readDrafts() {
-      const data = readStoredDrafts(docId);
+      const data = readStoredDrafts(draftDoc);
       if (!mergedDraftDoc) return data;
 
       let merged;
@@ -390,6 +394,7 @@
       if (busy) return;
       editing = item;
       input.value = item.body;
+      if (severityInput) severityInput.value = item.severity || "minor";
       setStatus("");
       renderPanel();
       input.focus();
@@ -475,7 +480,7 @@
         if (!reviews.length) content.appendChild(el("p", "review-hint", tr("Chưa có nhận xét. Bôi chọn một đoạn để bắt đầu.")));
         else if (!shown.length) content.appendChild(el("p", "review-hint", tr("Mọi nhận xét đã xong.")));
         for (const item of shown) {
-          const label = "#" + item.number + " · " + item.anchor.language.toUpperCase() + (isDone(item) ? " · " + tr("Đã xong") : "");
+          const label = "#" + item.number + " · " + item.anchor.language.toUpperCase() + severityText(item) + (isDone(item) ? " · " + tr("Đã xong") : "");
           const row = button(label, "review-list-item" + (isDone(item) ? " review-done" : ""));
           row.appendChild(el("span", "review-list-quote", item.anchor.excerpt));
           row.addEventListener("click", () => showReview(item));
@@ -492,7 +497,7 @@
         for (const item of visibleReviews().filter(item => samePassage(item.anchor, activeAnchor, text))) {
           const entry = el("section", "review-entry" + (isDone(item) ? " review-done" : ""));
           const head = el("div", "review-entry-head");
-          head.appendChild(el("strong", null, "#" + item.number + (isDone(item) ? " · " + tr("Đã xong") : "")));
+          head.appendChild(el("strong", "review-severity-" + (item.severity || "none"), "#" + item.number + severityText(item) + (isDone(item) ? " · " + tr("Đã xong") : "")));
           const tools = el("span", "review-entry-tools");
           const doneButton = button(isDone(item) ? tr("Mở lại") : tr("Đã xong"));
           doneButton.addEventListener("click", () => setDone(item, !isDone(item)));
@@ -529,6 +534,10 @@
         } else {
           if (!current) throw new Error("review_missing");
           let changed = false;
+          if (payload.severity && current.severity !== payload.severity) {
+            current.severity = payload.severity;
+            changed = true;
+          }
           if ("body" in payload && current.body !== payload.body) {
             if (current.version !== payload.version) {
               const error = new Error("review_changed");
@@ -556,7 +565,7 @@
     function issueBody() {
       const sections = [tr("Báo cáo") + " " + reportTitle()];
       if (location.protocol === "https:") {
-        const reportUrl = new URL("report.html", location.href);
+        const reportUrl = new URL("technical-documents/", document.baseURI);
         reportUrl.searchParams.set("doc", docId);
         sections.push(reportUrl.href);
       }
@@ -572,6 +581,7 @@
           "## #" + item.number + " · " + anchor.language.toUpperCase(),
           "`" + file + "` · " + tr("Vị trí ký tự {offset}", { offset: anchor.start }) + version,
           "**" + tr("Đoạn trích") + "**\n\n" + fenced(anchor.excerpt),
+          "**" + tr("Mức độ") + "**: " + tr(SEVERITY_LABELS[item.severity] || "Nhỏ"),
           "**" + tr("Nhận xét") + "**\n\n" + fenced(item.body)
         );
       }
@@ -635,8 +645,9 @@
       const body = input.value.trim();
       if (!body || busy) return;
       const create = !editing;
-      const payload = create ? { id: draftId, anchor: activeAnchor, body } :
-        { id: editing.id, version: editing.version, body };
+      const severity = severityInput ? severityInput.value : "minor";
+      const payload = create ? { id: draftId, anchor: activeAnchor, body, severity } :
+        { id: editing.id, version: editing.version, body, severity };
       busy = true;
       ++requestVersion;
       saveButton.disabled = closeButton.disabled = cancelEdit.disabled = input.readOnly = true;
@@ -645,6 +656,7 @@
         const data = await persist(payload, create);
         loadError = "";
         setReviews(data);
+        if (severityInput) severityInput.value = "minor";
       } catch (error) {
         if (error.review) {
           editing = error.review;

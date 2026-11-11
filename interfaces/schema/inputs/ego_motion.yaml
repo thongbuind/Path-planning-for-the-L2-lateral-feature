@@ -1,0 +1,16 @@
+# Interface Control Document 5.5 (#ego-motion). Function call, answered in the same cycle.
+icd: "5.5"
+constants:
+  EGO_MOTION_WINDOW_US: {type: uint64, value: 500000, doc: "t1, t2 within the last 0.5 s"}
+structs:
+  EgoMotionRequest:
+    fields:
+      - {name: t1_us, type: uint64, unit: us}
+      - {name: t2_us, type: uint64, unit: us}
+  EgoMotionResponse:
+    doc: "True motion of base_link from t1 to t2, lateral slip included, in base_link at t1"
+    fields:
+      - {name: valid, type: bool, doc: "False for example when the wheels slip"}
+      - {name: dx, type: float32, unit: m}
+      - {name: dy, type: float32, unit: m}
+      - {name: dyaw, type: float32, unit: rad}

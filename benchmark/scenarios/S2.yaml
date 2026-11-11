@@ -1,0 +1,43 @@
+# S2 HWA bật khi xe lệch tâm (Software Qualification Test Specification section 5).
+# Defaults of section 5: lane 3.5 m, profile VP-0; 90 km/h (Euro NCAP LSS speeds, section 5).
+# Offset and heading hold until HWA starts driving (test specification section 5): the car
+# slides along the lane at that offset and heading, then is released.
+# Offset positive = left of the centre; heading positive = to the left.
+id: S2
+title: HWA bật khi xe lệch tâm
+defaults:
+  lane_width_m: 3.5
+  profile: VP-0
+  speed_kmh: 90
+  hwa_request_s: 0.0
+  hold_until_hwa: true
+  start_s_m: 10.0
+  duration_s: 10
+  road:
+    - {straight: 600}
+variants:
+  a:
+    description: lệch 0,2 m, góc 0°
+    start_offset_m: 0.2
+    start_heading_deg: 0.0
+  b:
+    description: lệch 0,4 m, góc 1° hướng vào tâm
+    start_offset_m: 0.4
+    start_heading_deg: -1.0
+  c:
+    description: lệch 0,5 m, góc 2° hướng ra ngoài
+    start_offset_m: 0.5
+    start_heading_deg: 2.0
+  d:
+    description: lệch 0,4 m phía ngoài cua trái R = 500 m
+    start_offset_m: -0.4
+    start_heading_deg: 0.0
+    road:
+      - {arc: 600, radius: 500}
+  e:
+    description: lệch 0,5 m ở 130 km/h
+    speed_kmh: 130
+    start_offset_m: 0.5
+    start_heading_deg: 0.0
+    road:
+      - {straight: 800}

@@ -1,0 +1,30 @@
+# Interface Control Document 5.3 (#can). Chassis CAN after the receive layer:
+# SI units, valid = Qualifier VALID, CRC and counter correct. No DBC layout here.
+icd: "5.3"
+constants:
+  IMU_TIMEOUT_US: {type: uint64, value: 30000}
+  STEERING_TIMEOUT_US: {type: uint64, value: 30000}
+  SPEED_TIMEOUT_US: {type: uint64, value: 60000}
+enums:
+  Direction:
+    values: {FORWARD: 0, REVERSE: 1, STANDSTILL: 2}
+structs:
+  ImuSignals:
+    doc: "IMU_Data, 10 ms; filtered; stamp = receive time"
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: yaw_rate_rps, type: float32, unit: rad/s}
+      - {name: accel_x_mps2, type: float32, unit: m/s^2}
+      - {name: accel_y_mps2, type: float32, unit: m/s^2}
+  SteeringSignals:
+    doc: "SAS_Steering, 10 ms; positive to the left"
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: steering_wheel_angle_rad, type: float32, unit: rad}
+      - {name: steering_wheel_rate_rps, type: float32, unit: rad/s}
+  SpeedSignals:
+    doc: "ESC_Speed, 20 ms"
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: speed_mps, type: float32, unit: m/s}
+      - {name: direction, type: Direction}

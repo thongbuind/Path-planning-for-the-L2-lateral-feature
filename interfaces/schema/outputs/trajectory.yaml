@@ -1,0 +1,23 @@
+# Interface Control Document 6.1 (#trajectory). Planner -> Lateral Controller, 40 Hz.
+icd: "6.1"
+constants:
+  TRAJECTORY_POINTS: {type: uint, value: 31}
+  TRAJECTORY_STEP_S: {type: float, value: 0.1}
+  TRAJECTORY_HORIZON_S: {type: float, value: 3.0}
+  TRAJECTORY_TIMEOUT_US: {type: uint64, value: 75000}
+structs:
+  TrajectoryPoint:
+    fields:
+      - {name: time_from_start, type: float32, unit: s}
+      - {name: pose, type: Pose2D, doc: "base_link at header.stamp_us; yaw = path tangent (direction of travel), not body heading"}
+      - {name: longitudinal_velocity_mps, type: float32, unit: m/s}
+      - {name: lateral_velocity_mps, type: float32, unit: m/s, doc: "d_dot against the reference line, not body v_y"}
+      - {name: acceleration_mps2, type: float32, unit: m/s^2}
+      - {name: heading_rate_rps, type: float32, unit: rad/s}
+      - {name: curvature, type: float32, unit: 1/m}
+      - {name: front_wheel_angle_rad, type: float32, unit: rad}
+      - {name: rear_wheel_angle_rad, type: float32, unit: rad, doc: "Always 0"}
+  Trajectory:
+    fields:
+      - {name: header, type: Header, doc: "stamp_us = t0, frame BASE_LINK"}
+      - {name: points, type: TrajectoryPoint, count: TRAJECTORY_POINTS}

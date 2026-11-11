@@ -1,0 +1,26 @@
+# Interface Control Document 5.6 (#function-requests). ADAS function block -> Planner, 40 Hz.
+icd: "5.6"
+constants:
+  FUNCTIONS: {type: uint, value: 3, doc: "requests[3]: HWA, LKA, ELK"}
+  FUNCTION_REQUESTS_TIMEOUT_US: {type: uint64, value: 75000}
+  FUNCTION_REQUESTS_MAX_AGE_US: {type: uint64, value: 45000}
+enums:
+  RequestState:
+    values: {OFF: 0, UNAVAILABLE: 1, STANDBY: 2, REQUEST: 3, FAULT: 4}
+  ElkReason:
+    values: {NONE: 0, SOLID_LINE: 1, ROAD_EDGE: 2, ONCOMING: 3, OVERTAKING: 4}
+  CancelReason:
+    values: {NONE: 0, DRIVER_OVERRIDE: 1, INDICATOR: 2, SPEED: 3, LANE_QUALITY: 4, ESC: 5, FAULT: 6}
+structs:
+  FunctionRequest:
+    fields:
+      - {name: state, type: RequestState}
+      - {name: side, type: Side, doc: "Drift side; HWA uses NONE"}
+      - {name: tlc, type: float32, unit: s, doc: "Computed by the ADAS function block; HWA ignores it"}
+      - {name: elk_reason, type: ElkReason, doc: "Log only"}
+      - {name: cancel_reason, type: CancelReason, doc: "Log only"}
+  FunctionRequests:
+    fields:
+      - {name: header, type: BasicHeader, doc: "stamp_us = send time"}
+      - {name: requests, type: FunctionRequest, count: FUNCTIONS}
+      - {name: driver_override, type: bool}

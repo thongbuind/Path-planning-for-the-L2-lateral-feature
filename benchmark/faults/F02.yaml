@@ -1,0 +1,12 @@
+# F02 c0 jump, không có cờ (Software Qualification Test Specification section 6). PP-SWR-121.
+# The whole lane model shifts (every line), no flag (PP-ASM-009). Fault at 4 s: HWA steady
+# on the straight of S1. Shapes as in the test specification: a to c hold 1 s then return;
+# d lasts one frame (50 ms); e holds to the end.
+id: F02
+title: c0 jump, không có cờ
+levels:
+  a: {kind: c0_jump, value: 0.3, start_s: 4.0, duration_s: 1.0}
+  b: {kind: c0_jump, value: 0.6, start_s: 4.0, duration_s: 1.0}
+  c: {kind: c0_jump, value: 1.0, start_s: 4.0, duration_s: 1.0}
+  d: {kind: c0_jump, value: 0.6, start_s: 4.0, duration_s: 0.05}
+  e: {kind: c0_jump, value: 0.6, start_s: 4.0}

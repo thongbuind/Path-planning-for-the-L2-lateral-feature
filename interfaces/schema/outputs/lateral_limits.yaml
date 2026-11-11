@@ -1,0 +1,9 @@
+# Interface Control Document 6.3 (#lateral-limits). Planner -> longitudinal block.
+icd: "6.3"
+structs:
+  LateralLimits:
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: v_max, type: float32, unit: m/s}
+      - {name: distance, type: float32, unit: m, doc: "Distance to the point of kappa_max"}
+      - {name: lateral_limit_reached, type: bool, doc: "Same value as PathStatus of the same cycle"}

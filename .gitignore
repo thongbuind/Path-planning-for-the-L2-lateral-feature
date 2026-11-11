@@ -18,3 +18,6 @@ __pycache__/
 /spec-web/data/review-comments/
 /spec-web/dist/
 /spec-web/.dist-*/
+tmp_mini_pitching/
+/build/
+.vscode/

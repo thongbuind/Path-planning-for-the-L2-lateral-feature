@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản đồ yêu cầu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1 class="visually-hidden" data-i18n>Bản đồ yêu cầu</h1>
+
+<div id="language-switch" class="language-switch" role="group" aria-label="Ngôn ngữ" data-i18n-aria>
+  <button type="button" lang="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button>
+  <button type="button" lang="en" aria-label="English" aria-pressed="false">EN</button>
+</div>
+
+<main id="viewport" class="viewport" tabindex="0" aria-label="Bản đồ yêu cầu. Kéo để di chuyển, cuộn để phóng to thu nhỏ." data-i18n-aria>
+  <div id="world" class="world"></div>
+</main>
+
+<div class="zoom" role="group" aria-label="Điều khiển thu phóng" data-i18n-aria>
+  <button type="button" id="zoom-in" aria-label="Phóng to" data-i18n-aria>
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+  </button>
+  <output id="zoom-level" aria-live="polite">100%</output>
+  <button type="button" id="zoom-out" aria-label="Thu nhỏ" data-i18n-aria>
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12"/></svg>
+  </button>
+  <button type="button" id="zoom-fit" aria-label="Đưa tất cả thẻ vào khung nhìn" data-i18n-aria>
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>
+  </button>
+</div>
+
+<script src="cards.js"></script>
+<script src="en/strings.js"></script>
+<script src="docmd.js"></script>
+<script src="diagrams.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

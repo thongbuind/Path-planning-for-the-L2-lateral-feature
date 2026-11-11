@@ -1,0 +1,20 @@
+# Interface Control Document 5.7 (#longitudinal-plan). Longitudinal block -> Planner, 40 Hz.
+icd: "5.7"
+constants:
+  LONGITUDINAL_PLAN_POINTS: {type: uint, value: 31, doc: "Same 0.1 s grid as Trajectory"}
+  LONGITUDINAL_PLAN_TIMEOUT_US: {type: uint64, value: 75000}
+  LONGITUDINAL_PLAN_MAX_AGE_US: {type: uint64, value: 45000}
+enums:
+  LongitudinalMode:
+    values: {OFF: 0, CRUISE: 1, FOLLOW: 2, CURVE_LIMIT: 3}
+structs:
+  LongitudinalPoint:
+    fields:
+      - {name: v, type: float32, unit: m/s}
+      - {name: a, type: float32, unit: m/s^2}
+  LongitudinalPlan:
+    fields:
+      - {name: header, type: Header}
+      - {name: mode, type: LongitudinalMode}
+      - {name: points, type: LongitudinalPoint, count: LONGITUDINAL_PLAN_POINTS}
+      - {name: target_id, type: uint32, doc: "0 when no target"}

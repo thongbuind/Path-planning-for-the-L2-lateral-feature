@@ -1,67 +1,11 @@
 <!doctype html>
-<html lang="vi" class="report-page">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="github-repository" content="">
-<title>Báo cáo Research</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="reviews.css">
+<title>Technical Documents</title>
+<script>
+  location.replace((location.protocol === "file:" ? "technical-documents/index.html" : "technical-documents/") + location.search + location.hash);
+</script>
 </head>
-<body>
-<header class="report-header">
-  <a id="report-back" class="report-back" href="index.html">
-    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6M6 10h10"/></svg>
-    <span data-i18n>Bản đồ yêu cầu</span>
-  </a>
-  <div class="report-controls">
-    <button type="button" id="report-fit" class="report-fit" aria-label="Vừa chiều ngang" aria-pressed="false" aria-controls="doc-page" data-i18n-aria hidden>
-      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4v12M17 4v12M5.5 10h9M8 7.5 5.5 10 8 12.5m4-5 2.5 2.5-2.5 2.5"/></svg>
-      <span class="report-fit-label" data-i18n>Vừa chiều ngang</span>
-    </button>
-    <div id="language-switch" class="language-switch" role="group" aria-label="Ngôn ngữ" data-i18n-aria>
-      <button type="button" lang="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button>
-      <button type="button" lang="en" aria-label="English" aria-pressed="false">EN</button>
-    </div>
-  </div>
-</header>
-<main class="doc-desk">
-  <div class="doc-toolbar">
-    <p id="doc-versions" class="doc-versions" role="status"></p>
-    <button type="button" id="review-list" class="review-button" aria-controls="review-panel" aria-expanded="false" hidden></button>
-  </div>
-  <article id="doc-page" class="doc-page" contenteditable="false" spellcheck="false">
-    <h1>Báo cáo Research</h1>
-  </article>
-  <div id="review-marks" class="review-marks"></div>
-</main>
-<p id="doc-save" class="doc-save" aria-live="polite"></p>
-
-<button type="button" id="review-prompt" class="review-prompt" aria-controls="review-panel" data-i18n hidden>Nhận xét</button>
-<aside id="review-panel" class="review-panel" role="dialog" aria-labelledby="review-title" hidden>
-  <header class="review-head">
-    <h2 id="review-title"></h2>
-    <button type="button" id="review-close" class="review-close" aria-label="Đóng" data-i18n-aria>
-      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10m0-10L5 15"/></svg>
-    </button>
-  </header>
-  <div id="review-content" class="review-content"></div>
-  <form id="review-form" class="review-form" hidden>
-    <textarea id="review-input" aria-label="Nội dung nhận xét" data-i18n-aria maxlength="6000" rows="3" required></textarea>
-    <div class="review-actions">
-      <button type="button" id="review-cancel-edit" class="review-button" data-i18n hidden>Hủy chỉnh sửa</button>
-      <button type="submit" id="review-save" class="review-button review-primary"></button>
-    </div>
-  </form>
-  <p id="review-status" class="review-status" role="status"></p>
-</aside>
-
-<script src="cards.js"></script>
-<script src="en/strings.js"></script>
-<script src="docmd.js"></script>
-<script src="reviews.js"></script>
-<script src="app.js"></script>
-</body>
+<body><a href="technical-documents/index.html">Technical Documents</a></body>
 </html>

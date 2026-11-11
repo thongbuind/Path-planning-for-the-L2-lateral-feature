@@ -1,0 +1,24 @@
+# Interface Control Document 5.2 (#perception). Perception -> Planner, 20 Hz.
+icd: "5.2"
+constants:
+  MAX_OBJECTS: {type: uint, value: 32}
+  OBJECT_LIST_TIMEOUT_US: {type: uint64, value: 150000}
+  OBJECT_LIST_MAX_AGE_US: {type: uint64, value: 250000}
+structs:
+  Object:
+    doc: "Object centre in base_link at measurement time; velocity over ground"
+    fields:
+      - {name: id, type: uint32, doc: "Stable across frames"}
+      - {name: x, type: float32, unit: m}
+      - {name: y, type: float32, unit: m}
+      - {name: vx, type: float32, unit: m/s}
+      - {name: vy, type: float32, unit: m/s}
+      - {name: heading, type: float32, unit: rad, doc: "Angle of the velocity vector"}
+      - {name: length, type: float32, unit: m}
+      - {name: width, type: float32, unit: m}
+      - {name: existence_probability, type: float32, unit: "0..1"}
+  ObjectList:
+    fields:
+      - {name: header, type: Header}
+      - {name: num_objects, type: uint8, doc: "0..32 entries used"}
+      - {name: objects, type: Object, count: MAX_OBJECTS}

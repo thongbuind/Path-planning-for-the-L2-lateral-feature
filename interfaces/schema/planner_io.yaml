@@ -1,0 +1,27 @@
+# Interface Control Document section 4, "Contract gọi hàm của planner": what pp_step takes and gives.
+icd: "4"
+constants:
+  PLANNER_PERIOD_US: {type: uint64, value: 25000}
+enums:
+  InitResult:
+    doc: "Result of pp_init"
+    values: {OK: 0, BAD_ARGUMENT: 1, BAD_VEHICLE_CONFIG: 2, BAD_CALIBRATION: 3}
+structs:
+  PlannerInputs:
+    doc: "Newest message of each input with its receive time (rx_us), or not received yet"
+    fields:
+      - {name: t0_us, type: uint64, unit: us, doc: "Cycle tick"}
+      - {name: lane_model, type: LaneModel, received: true}
+      - {name: object_list, type: ObjectList, received: true}
+      - {name: imu, type: ImuSignals, received: true}
+      - {name: steering, type: SteeringSignals, received: true}
+      - {name: speed, type: SpeedSignals, received: true}
+      - {name: vehicle_state, type: VehicleStateEstimate, received: true}
+      - {name: function_requests, type: FunctionRequests, received: true}
+      - {name: longitudinal_plan, type: LongitudinalPlan, received: true}
+  PlannerOutputs:
+    doc: "Outputs of one cycle; each with a flag whether it is sent"
+    fields:
+      - {name: trajectory, type: Trajectory, sent: true}
+      - {name: path_status, type: PathStatus, sent: true}
+      - {name: lateral_limits, type: LateralLimits, sent: true}

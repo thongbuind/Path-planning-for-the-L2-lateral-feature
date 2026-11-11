@@ -1,6 +1,6 @@
 # spec-web: bản đồ yêu cầu
 
-Đề bài G1 nằm ở `docs/reference/G1_Path_Planning.pdf` tính từ thư mục G1. Báo cáo Research là nguồn chính thức cho yêu cầu, thiết kế, interface và giả lập G1. Bản đồ cho biết các khối làm gì, nối với nhau ra sao và mở đúng mục Research. Prototype nằm ở `../src/`.
+Đề bài G1 nằm ở `docs/reference/G1_Path_Planning.pdf` tính từ thư mục G1. Bộ tài liệu kỹ thuật (Technical Documents) là nguồn chính thức cho yêu cầu, thiết kế, interface và giả lập. Bản đồ cho biết các khối làm gì, nối với nhau ra sao và mở đúng mục của tài liệu. Prototype nằm ở `../src/`.
 
 ## Mở
 
@@ -19,8 +19,8 @@ các file tài liệu `.md`. Mở thẳng `index.html` thì bản đồ vẫn xe
 - Di chuyển bản đồ: kéo chuột, kéo một ngón, hoặc lướt hai ngón cùng nhau trên trackpad.
 - Phóng to, thu nhỏ quanh con trỏ: chụm hai ngón, lăn bánh xe chuột, hoặc giữ Ctrl/Cmd rồi cuộn.
 - Nút góc phải: phóng to, thu nhỏ, đưa tất cả thẻ vào khung. Khi bản đồ đang được focus: phím `+`, `-`, `0` và các phím mũi tên.
-- Bấm thẻ phần mềm, giả lập hoặc nhãn đường nối để mở mục tương ứng trong Research.
-- Bấm **Báo cáo Research** để mở danh sách. Bấm thẻ báo cáo để mở URL riêng, ví dụ `report.html?doc=chuc-nang-adas&lang=vi`. Liên kết **Bản đồ yêu cầu** đưa về bản đồ.
+- Bấm thẻ phần mềm, giả lập hoặc nhãn đường nối để mở mục tương ứng trong tài liệu.
+- Bấm **Technical Documents** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Home** đưa về bản đồ tại `home/`.
 
 ## Chuẩn bị bản tĩnh cho GitHub Pages
 
@@ -63,33 +63,33 @@ SPEC_WEB_GITHUB_REPOSITORY=owner/repo node spec-web/build-static.cjs
 
 Soạn và chỉnh sửa bản tiếng Việt trước, sau đó cập nhật bản dịch tiếng Anh tương ứng.
 
-- Giao diện và bản đồ lấy tiếng Việt từ `index.html`, `app.js` và `cards.js`. Trong `en/strings.js`, khoá là nguyên văn tiếng Việt, giá trị là bản dịch. Khi sửa câu gốc, cập nhật cả khoá và giá trị. Giữ nguyên tên trường, ID, kiểu dữ liệu và đơn vị.
-- Từ thư mục G1, tài liệu tiếng Việt nằm ở `docs/vi/<id>.md`. Bản tiếng Anh tương ứng nằm ở `docs/en/<id>.md` và mở ở chế độ chỉ đọc. Cập nhật bản dịch sau khi bản gốc đổi. Link tới một mục Research mở bản gốc tiếng Việt. Khi dùng giao diện EN mà báo cáo chưa có bản dịch, web mở bản tiếng Việt và ghi rõ ngôn ngữ đang xem.
+- Giao diện và bản đồ lấy tiếng Việt từ `home/index.html`, `app.js` và `cards.js`. Trong `en/strings.js`, khoá là nguyên văn tiếng Việt, giá trị là bản dịch. Khi sửa câu gốc, cập nhật cả khoá và giá trị. Giữ nguyên tên trường, ID, kiểu dữ liệu và đơn vị.
+- Từ thư mục G1, tài liệu tiếng Việt nằm ở `docs/vi/<id>.md`. Bản tiếng Anh tương ứng nằm ở `docs/en/<id>.md` và mở ở chế độ chỉ đọc. Cập nhật bản dịch sau khi bản gốc đổi và giữ cùng ID mục ở cả hai bản. Mục lục và liên kết tới từng mục dùng ngôn ngữ đã chọn. Khi dùng giao diện EN mà báo cáo chưa có bản dịch, web mở bản tiếng Việt và ghi rõ ngôn ngữ đang xem.
 
 ### Phiên bản tài liệu
 
 Thẻ và trình xem hiển thị mã phiên bản hiện tại của cả hai file. Mỗi mã là tám ký tự đầu của SHA-256 tính từ file đã lưu. Hai ngôn ngữ có mã riêng. Trạng thái **Khớp bản đã đối chiếu** xuất hiện khi cả hai mã đầy đủ trùng với cặp đã ghi nhận trong `docs/en/versions.json`.
 
-Sau khi cập nhật và kiểm tra bản tiếng Anh theo bản tiếng Việt, chạy lệnh sau từ thư mục dự án để ghi nhận cặp mới. Thay `chuc-nang-adas` bằng ID tài liệu cần xác nhận.
+Sau khi cập nhật và kiểm tra bản tiếng Anh theo bản tiếng Việt, chạy lệnh sau từ thư mục dự án để ghi nhận cặp mới. Thay `adas-function-specification` bằng ID tài liệu cần xác nhận.
 
 ```sh
-python3 spec-web/confirm-translation.py chuc-nang-adas
+python3 spec-web/confirm-translation.py adas-function-specification
 ```
 
 Sửa bản Việt sẽ báo **Cần cập nhật EN**. Nếu chỉ sửa bản Anh, web báo **Cần đối chiếu EN** cho đến khi cặp mới được ghi nhận. Trạng thái phản ánh cặp file đã được người biên soạn kiểm tra.
 
 ## Thêm thẻ hoặc đường dữ liệu
 
-Viết chi tiết vào báo cáo Research trước. Mục cần dẫn tới dùng tiêu đề có ID cố định, ví dụ `## EgoMotionQuery {#ego-motion}`. ID được giữ khi sửa báo cáo trên web.
+Viết chi tiết vào tài liệu kỹ thuật trước. Mục cần dẫn tới dùng tiêu đề có ID cố định, ví dụ `## EgoMotionQuery {#ego-motion}`. ID được giữ khi sửa báo cáo trên web.
 
 - Thẻ khối trong `SPEC_CARDS` có `x`, `y`, tên, một câu về vai trò và `research: { doc, section }`. `doc` là ID báo cáo, `section` là ID của mục.
 - Đường dữ liệu trong `SPEC_EDGES` có `from`, `to`, `label` và `research: { doc, section }`. Các trường, đơn vị và trạng thái của interface nằm trong báo cáo được liên kết.
-- Dịch nhãn hiển thị trong `en/strings.js`. Khi bản đồ và tài liệu vênh nhau, sửa bản đồ theo Research.
+- Dịch nhãn hiển thị trong `en/strings.js`. Khi bản đồ và tài liệu vênh nhau, sửa bản đồ theo tài liệu.
 
 ## Tài liệu
 
 Thẻ có `kind: "doc"` vẽ như một trang giấy. Bản gốc của tài liệu Chức năng ADAS là
-`docs/vi/chuc-nang-adas.md` và bản dịch là `docs/en/chuc-nang-adas.md` (tính từ thư mục G1). Bản gốc đồng bộ hai chiều:
+`docs/vi/adas-function-specification.md` và bản dịch là `docs/en/adas-function-specification.md` (tính từ thư mục G1). Bản gốc đồng bộ hai chiều:
 
 - Sửa trên web cục bộ: mở bản VI bằng `serve.py` và gõ thẳng lên trang báo cáo. Sau 0,7 s web đổi
   trang sang Markdown và ghi vào file md. Khi đổi ngôn ngữ hoặc bấm **Bản đồ yêu cầu**, web lưu thay đổi đang chờ trước.
@@ -100,15 +100,15 @@ Markdown được hỗ trợ: `#`–`###`, đoạn văn, `-` và `1.`, bảng ki
 link. Ô bảng chỉ ghi "đã chốt", "đề bài", "đề xuất" hoặc "cần chốt" hiện thành nhãn màu. Lưu từ web sẽ
 viết lại md theo một kiểu chuẩn (ví dụ bảng `| a | b |`), nội dung không đổi.
 
-Để thêm tài liệu, tạo `docs/vi/<id>.md` rồi thêm thẻ với `kind: "doc"` và `doc: "<id>"` trong `cards.js`. Khi có bản dịch, đặt tại `docs/en/<id>.md`.
+Để thêm tài liệu, tạo `docs/vi/<id>.md` rồi thêm thẻ với `kind: "doc"` và `doc: "<id>"` trong `cards.js`. Đổi tên tài liệu thì ghi ID cũ vào `renamedFrom` (một ID hoặc danh sách ID) để link cũ tự chuyển sang ID mới. Khi có bản dịch, đặt tại `docs/en/<id>.md`.
 
 | File | Vai trò |
 |---|---|
-| `cards.js` | Tên, vị trí, mô tả ngắn và link Research |
+| `cards.js` | Tên, vị trí, mô tả ngắn và link tới tài liệu |
 | `en/strings.js` | Bản dịch giao diện, thẻ và đường dữ liệu |
 | `../docs/en/*.md` | Bản dịch tài liệu Markdown |
 | `app.js` | Pan, zoom, vẽ bản đồ và mở báo cáo |
-| `report.html` | Danh sách và trang đọc báo cáo |
+| `technical-documents/index.html` | Danh sách và trang đọc báo cáo |
 | `build-static.cjs` | Tạo bản tĩnh trong `dist/` |
 | `docmd.js` | Chuyển Markdown ↔ HTML cho trang tài liệu |
 | `serve.py` | Server tĩnh, đọc và ghi file tài liệu `.md` |

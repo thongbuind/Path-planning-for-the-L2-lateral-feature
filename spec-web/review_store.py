@@ -77,6 +77,9 @@ def validate_anchor(anchor):
     }
 
 
+SEVERITIES = {"major", "minor", "question"}  # Lớn, Nhỏ, Câu hỏi
+
+
 def save_review(project, doc_id, payload, create):
     if not isinstance(payload, dict):
         raise ReviewError(400, "invalid_review")
@@ -86,12 +89,14 @@ def save_review(project, doc_id, payload, create):
     has_body = create or "body" in payload
     resolved = payload.get("resolved")
     resolution = payload.get("resolution")
+    severity = payload.get("severity")
     if (
         not isinstance(review_id, str) or not re.fullmatch(r"[0-9a-f]{32}", review_id)
         or (has_body and (not isinstance(body, str) or len(body) > 6000 or not body.strip()))
         or (resolved is not None and type(resolved) is not bool)
         or (resolution is not None and (not isinstance(resolution, str) or len(resolution) > 2000))
-        or (not create and not has_body and resolved is None)
+        or (severity is not None and severity not in SEVERITIES)
+        or (not create and not has_body and resolved is None and severity is None)
     ):
         raise ReviewError(400, "invalid_review")
     body = body.strip() if has_body else None
@@ -119,6 +124,7 @@ def save_review(project, doc_id, payload, create):
                 "version": 1,
                 "anchor": anchor,
                 "body": body,
+                "severity": severity or "minor",
                 "createdAt": timestamp,
                 "updatedAt": timestamp,
             }
@@ -140,6 +146,9 @@ def save_review(project, doc_id, payload, create):
                     review["resolvedAt"] = timestamp
                 else:
                     review.pop("resolvedAt", None)
+                changed = True
+            if severity is not None and review.get("severity") != severity:
+                review["severity"] = severity
                 changed = True
             if resolution is not None and review.get("resolution") != resolution.strip():
                 review["resolution"] = resolution.strip()
@@ -172,8 +181,8 @@ def resolve_reviews(project, doc_id, numbers, resolved=True, resolution=None):
 
 if __name__ == "__main__":
     # Dùng từ dòng lệnh, ví dụ:
-    #   python3 spec-web/review_store.py resolve chuc-nang-adas 1 5 6 --note "Đã sửa trong bản mới"
-    #   python3 spec-web/review_store.py reopen chuc-nang-adas 3
+    #   python3 spec-web/review_store.py resolve adas-functions 1 5 6 --note "Đã sửa trong bản mới"
+    #   python3 spec-web/review_store.py reopen adas-functions 3
     import argparse
 
     parser = argparse.ArgumentParser(description="Đánh dấu nhận xét đã xong hoặc mở lại")

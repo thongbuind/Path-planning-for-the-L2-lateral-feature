@@ -1,0 +1,46 @@
+# S1b HWA cua gắt hơn aysmax (Software Qualification Test Specification section 5).
+# Defaults of section 5: lane 3.5 m, profile VP-0. Curves turn left.
+# Speed is held by the scenario (no stand-in ACC yet), so the car leaves the lane in the
+# arc; S1b judges the path and the flags (PP-SWR-001, 005 to 007), not the lane keeping.
+# Variant d (R = 200 m behind a crest, camera sees 40 m) needs a vertical profile: later.
+# Clothoid length 100 m (test specification section 5), 60 m in e.
+id: S1b
+title: HWA cua gắt hơn aysmax
+defaults:
+  lane_width_m: 3.5
+  profile: VP-0
+  hwa_request_s: 1.0
+  start_s_m: 10.0
+variants:
+  a:
+    description: 90 km/h, R = 200 m (a_y cua 3,1 m/s²)
+    speed_kmh: 90
+    duration_s: 13
+    road:
+      - {straight: 150}
+      - {clothoid: 100, radius_end: 200}
+      - {arc: 200, radius: 200}
+  b:
+    description: 90 km/h, R = 150 m (a_y cua 4,2 m/s²)
+    speed_kmh: 90
+    duration_s: 13
+    road:
+      - {straight: 150}
+      - {clothoid: 100, radius_end: 150}
+      - {arc: 200, radius: 150}
+  c:
+    description: 110 km/h, R = 300 m (a_y cua 3,1 m/s²)
+    speed_kmh: 110
+    duration_s: 12
+    road:
+      - {straight: 150}
+      - {clothoid: 100, radius_end: 300}
+      - {arc: 250, radius: 300}
+  e:
+    description: 90 km/h, R = 200 m, clothoid 60 m
+    speed_kmh: 90
+    duration_s: 13
+    road:
+      - {straight: 150}
+      - {clothoid: 60, radius_end: 200}
+      - {arc: 250, radius: 200}
