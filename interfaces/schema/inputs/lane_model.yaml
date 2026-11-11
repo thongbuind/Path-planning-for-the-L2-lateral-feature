@@ -1,0 +1,53 @@
+# Interface Control Document 5.1 (#lane-model). Lane Model -> Planner, 20 Hz.
+icd: "5.1"
+constants:
+  LANE_LINES: {type: uint, value: 4, doc: "lines[4]: L2, L1, R1, R2"}
+  ROAD_EDGES: {type: uint, value: 2, doc: "road_edges[2]: left, right"}
+  LANE_MODEL_TIMEOUT_US: {type: uint64, value: 150000}
+  LANE_MODEL_MAX_AGE_US: {type: uint64, value: 250000}
+enums:
+  LineType:
+    values: {DASHED: 0, SOLID: 1, DOUBLE: 2, UNKNOWN: 3}
+  LineStatus:
+    values: {MEASURED: 0, PREDICTED: 1, LOST: 2}
+  RoadEdgeType:
+    values: {CURB: 0, GRASS_GRAVEL: 1, BARRIER: 2, GUARDRAIL: 3, WALL: 4, UNKNOWN: 5}
+  LaneWidthSource:
+    values: {MEASURED: 0, REMEMBERED: 1}
+structs:
+  LaneLine:
+    doc: "y(x) = c0 + c1 x + c2 x^2 + c3 x^3 in base_link at capture time"
+    fields:
+      - {name: c0, type: float32, unit: m}
+      - {name: c1, type: float32, unit: "-"}
+      - {name: c2, type: float32, unit: 1/m}
+      - {name: c3, type: float32, unit: 1/m^2}
+      - {name: variance, type: float32, count: 4, doc: "Variance of c0..c3"}
+      - {name: view_range_start, type: float32, unit: m}
+      - {name: view_range_end, type: float32, unit: m}
+      - {name: confidence, type: float32, unit: "0..1"}
+      - {name: type, type: LineType}
+      - {name: crossable, type: bool}
+      - {name: status, type: LineStatus}
+      - {name: predicted_duration, type: float32, unit: s}
+  RoadEdge:
+    fields:
+      - {name: c0, type: float32, unit: m}
+      - {name: c1, type: float32, unit: "-"}
+      - {name: c2, type: float32, unit: 1/m}
+      - {name: c3, type: float32, unit: 1/m^2}
+      - {name: variance, type: float32, count: 4}
+      - {name: view_range_start, type: float32, unit: m}
+      - {name: view_range_end, type: float32, unit: m}
+      - {name: confidence, type: float32, unit: "0..1"}
+      - {name: type, type: RoadEdgeType}
+      - {name: status, type: LineStatus}
+      - {name: predicted_duration, type: float32, unit: s}
+  LaneModel:
+    fields:
+      - {name: header, type: Header, doc: "stamp_us = capture time"}
+      - {name: lines, type: LaneLine, count: LANE_LINES}
+      - {name: road_edges, type: RoadEdge, count: ROAD_EDGES}
+      - {name: lane_width, type: float32, unit: m}
+      - {name: lane_width_source, type: LaneWidthSource}
+      - {name: lane_change, type: Side, doc: "Set after Lane Model re-indexed the lines to the new lane"}

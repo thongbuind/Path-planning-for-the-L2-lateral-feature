@@ -179,3 +179,7 @@
 .review-list-item.review-done { opacity: .75; }
 .review-marker.review-done { background: #EAF6EE; border-color: #BFE3CB; color: #2E7D4F; }
 .review-resolution { margin: 6px 0 0; padding: 6px 8px; border-radius: 8px; background: #EAF6EE; color: #22553A; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.review-severity { margin-right: auto; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: inherit; font: inherit; font-size: 13px; }
+.review-severity-major { color: var(--warn); }
+.review-severity-question { color: var(--violet); }

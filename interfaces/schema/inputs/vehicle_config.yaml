@@ -1,0 +1,15 @@
+# Interface Control Document 5.8 (#vehicle-config). Read once at start-up.
+icd: "5.8"
+constants:
+  MAX_VEHICLE_WIDTH_M: {type: float, value: 2.5, doc: "Including mirrors, QCVN 09:2015/BGTVT 2.1.1.1 b"}
+structs:
+  VehicleConfig:
+    doc: "Only source of vehicle parameters"
+    fields:
+      - {name: wheelbase, type: float32, unit: m}
+      - {name: rear_axle_to_cg, type: float32, unit: m}
+      - {name: vehicle_width, type: float32, unit: m, doc: "Including mirrors"}
+      - {name: steering_ratio, type: float32, unit: "-"}
+      - {name: max_wheel_angle, type: float32, unit: rad}
+      - {name: max_steering_wheel_rate, type: float32, unit: rad/s}
+      - {name: actuator_delay, type: float32, unit: s, doc: "Nominal EPS delay"}

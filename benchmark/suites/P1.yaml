@@ -1,0 +1,59 @@
+# P1 Calibration sweep of T2, T5 and the lateral-limit flag (Software Qualification Test
+# Specification 7). Each parameter in turn over its sweep range (Software Architectural
+# Design 11, Software Detailed Design 15), the others at their start value; then a combined
+# sweep around the best set. Chosen on the tuning set, scored on the test set (other
+# variants and seeds). Ranking: Software Qualification Test Specification 9.
+id: P1
+title: Quét calibration T2, T5 và cờ giới hạn
+parameters:
+  k_jump: [2, 3, 4, 5]
+  T_confirm: [0.5, 1.0, 1.5, 2.0]
+  T_coast: [0.5, 0.75, 1.0]
+  q_kappa: [1.0e-10, 1.0e-9, 1.0e-8]
+  sigma_kappa_min: [5.0e-5, 1.0e-4, 2.0e-4, 5.0e-4]
+  T_flag: [0.15, 0.2, 0.3, 0.5]
+  delta_ay: [0.1, 0.2, 0.3, 0.4]
+
+# What each run judges, after the Kiểm chứng column of the Software Requirements
+# Specification (1.3): `always` for every run, then the scenario's list, or the fault's
+# list when a fault is injected. Targets are ranked, requirements pass or fail.
+scope:
+  always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050, PP-SWR-008]
+  S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  F01: [PP-SWR-003]                     # PP-SWR-120: jerk limit and 100 to 102
+  F02: []                               # PP-SWR-121: 100 to 102
+  F04: [PP-SWR-051, PP-SWR-050]         # PP-SWR-123: 051 and 100 to 102
+  F06: [PP-SWR-125]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1b, a]
+    - [S1b, e]
+    - [S2, b]
+    - [S1, a, F01, c]
+    - [S1, a, F02, a]
+    - [S1, a, F02, e]
+    - [S1, a, F06, a]
+    - [S1, a, F06, e]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1b, b]
+    - [S1b, c]
+    - [S2, a]
+    - [S2, d]
+    - [S2, e]
+    - [S1, a, F01, b]
+    - [S1, a, F02, b]
+    - [S1, a, F02, c]
+    - [S1, a, F02, d]
+    - [S1, a, F04, a]
+    - [S1, a, F04, d]
+    - [S1, a, F06, b]
+    - [S1, a, F06, c]
+    - [S1, a, F06, d]

@@ -1,0 +1,10 @@
+# F04 Mất một vạch (Software Qualification Test Specification section 6). PP-SWR-050, 123.
+# Fault at 4 s (HWA steady on the straight of S1), until the end.
+# e (during a lane width change) needs a widening lane: later.
+id: F04
+title: Mất một vạch
+levels:
+  a: {kind: lose_line, lines: [1], start_s: 4.0}                # L1, ngay
+  b: {kind: lose_line, lines: [2], start_s: 4.0}                # R1, ngay
+  c: {kind: fade_line, lines: [1], value: 2.0, start_s: 4.0}    # L1, độ tin về 0 trong 2 s
+  d: {kind: fade_line, lines: [2], value: 2.0, start_s: 4.0}    # R1, độ tin về 0 trong 2 s

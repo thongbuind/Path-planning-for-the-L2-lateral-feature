@@ -1,0 +1,31 @@
+# Interface Control Document section 4 (#header): conventions shared by every message.
+icd: "4"
+constants:
+  COUNTER_MODULO: {type: uint, value: 256, doc: "uint8 counter wraps 0-255"}
+enums:
+  FrameId:
+    doc: "frame_id, uint8 enum"
+    values: {BASE_LINK: 0}
+  Side:
+    doc: "Side of the ego lane, uint8 enum"
+    values: {NONE: 0, LEFT: 1, RIGHT: 2}
+structs:
+  Header:
+    doc: "Header of pub/sub messages that carry a frame"
+    fields:
+      - {name: stamp_us, type: uint64, unit: us, doc: "Time the data describes, sender clock (gPTP)"}
+      - {name: counter, type: uint8, doc: "+1 per send, wraps at 256"}
+      - {name: valid, type: bool, doc: "Validity of the whole message"}
+      - {name: frame_id, type: FrameId, doc: "BASE_LINK: rear axle centre, x forward, y left, z up"}
+  BasicHeader:
+    doc: "Header without frame_id (PathStatus, LateralLimits, FunctionRequests, chassis signals)"
+    fields:
+      - {name: stamp_us, type: uint64, unit: us}
+      - {name: counter, type: uint8}
+      - {name: valid, type: bool}
+  Pose2D:
+    doc: "Planar pose (Interface Control Document 6.1)"
+    fields:
+      - {name: x, type: float32, unit: m}
+      - {name: y, type: float32, unit: m}
+      - {name: yaw, type: float32, unit: rad}

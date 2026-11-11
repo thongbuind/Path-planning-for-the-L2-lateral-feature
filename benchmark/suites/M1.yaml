@@ -1,0 +1,21 @@
+# M1 Coverage matrix: every scenario variant that exists, with and without the stand-in
+# ACC reading LateralLimits, on every vehicle profile (Software Qualification Test
+# Specification 4.4, 8.3), two seeds; plus the lane-model faults on a gentle and a
+# limit curve. Judged with the scope of P1 (Kiểm chứng column of the SRS).
+id: M1
+title: Ma trận phủ rộng
+profiles: [VP-0, VP-1, VP-2, VP-3, VP-4, VP-5]
+seeds: [1, 2]
+blocks:
+  - acc: ["off", "on"]
+    runs: [[S1, a], [S1, b], [S1, c], [S1, d], [S1, e],
+           [S2, a], [S2, b], [S2, c], [S2, d], [S2, e]]
+  - acc: ["ignore_limits", "on"]
+    runs: [[S1b, a], [S1b, b], [S1b, c], [S1b, e], [S14, a]]
+  - acc: ["on"]
+    profiles: [VP-0, VP-5]
+    runs: [[S1, a, F01, c], [S1, a, F02, a], [S1, a, F02, e], [S1, a, F04, a], [S1, a, F06, a],
+           [S1, c, F01, c], [S1, c, F02, a], [S1, c, F04, a], [S1, c, F06, e]]
+scope_from: P1
+extra_scope:
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-051]

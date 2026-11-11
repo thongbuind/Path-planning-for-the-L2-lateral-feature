@@ -31,9 +31,10 @@ EN_DOCUMENT = re.compile(r"/en/(versions\.json|[a-z0-9][a-z0-9-]{0,63}\.md)")
 MAX_BODY = 2 * 1024 * 1024
 MAX_REVIEW_BODY = 64 * 1024
 STATIC_ROOT = Path(ROOT).resolve()
-STATIC_FILES = {
+STATIC_PATHS = {
     "index.html", "report.html", "style.css", "reviews.css",
     "app.js", "cards.js", "docmd.js", "diagrams.js", "reviews.js",
+    "home", "home/index.html", "technical-documents", "technical-documents/index.html",
 }
 
 
@@ -66,7 +67,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not target.is_relative_to(STATIC_ROOT):
             return self.send_error(404)
         parts = target.relative_to(STATIC_ROOT).parts
-        if parts and not (parts[0] in {"en", "dist"} or (len(parts) == 1 and parts[0] in STATIC_FILES)):
+        if parts and parts[0] not in {"en", "dist"} and "/".join(parts) not in STATIC_PATHS:
             return self.send_error(404)
         return super().send_head()
 

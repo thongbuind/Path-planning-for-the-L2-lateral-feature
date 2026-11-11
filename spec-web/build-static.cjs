@@ -22,11 +22,13 @@ try {
     fs.copyFileSync(path.join(site, file), path.join(staging, file));
   }
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
-  for (const file of ["index.html", "report.html"]) {
+  for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html"]) {
     const html = fs.readFileSync(path.join(site, file), "utf8")
       .replace("<html ", "<html data-static ")
       .replace('<meta name="github-repository" content="">', '<meta name="github-repository" content="' + repository + '">');
-    fs.writeFileSync(path.join(staging, file), html);
+    const destination = path.join(staging, file);
+    fs.mkdirSync(path.dirname(destination), { recursive: true });
+    fs.writeFileSync(destination, html);
   }
   for (const { doc } of reports) {
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(doc)) throw new Error("ID báo cáo không hợp lệ: " + doc);

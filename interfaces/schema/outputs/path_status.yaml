@@ -1,0 +1,18 @@
+# Interface Control Document 6.2 (#path-status). Planner -> ADAS function block, Lateral Controller.
+icd: "6.2"
+constants:
+  PATH_STATUS_TIMEOUT_US: {type: uint64, value: 75000}
+enums:
+  ActiveFunction:
+    values: {NONE: 0, HWA: 1, LKA: 2, ELK: 3}
+  InterventionPhase:
+    values: {NONE: 0, ACTIVE: 1, COMPLETED: 2}
+structs:
+  PathStatus:
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: path_valid, type: bool}
+      - {name: active_function, type: ActiveFunction, doc: "NONE when path_valid is false"}
+      - {name: intervention_phase, type: InterventionPhase}
+      - {name: lateral_limit_reached, type: bool}
+      - {name: lane_too_narrow, type: bool}

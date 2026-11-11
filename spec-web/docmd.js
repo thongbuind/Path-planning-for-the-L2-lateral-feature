@@ -168,6 +168,7 @@
     node.childNodes.forEach(function (n) {
       if (n.nodeType === 3) { out += escText(n.nodeValue.replace(/\u00a0/g, " ").replace(/\s+/g, " "), ctx.table); return; }
       if (n.nodeType !== 1) return;
+      if (n.hasAttribute("data-ui")) return; // phần tử chỉ để hiển thị (ví dụ nút Xem thêm), không ghi vào md
       var t = n.tagName.toLowerCase();
       if (n.classList.contains("tag")) { out += n.getAttribute("data-md") || n.textContent; return; }
       if (t === "br") { out += ctx.table ? " " : "  \n"; return; }
@@ -237,7 +238,7 @@
         if (t.trim()) blocks.push(escBlockStart(t.trim()));
         return;
       }
-      if (n.nodeType !== 1) return;
+      if (n.nodeType !== 1 || n.hasAttribute("data-ui")) return;
       var t = n.tagName.toLowerCase();
       var hm = /^h([1-6])$/.exec(t);
       if (hm) {
