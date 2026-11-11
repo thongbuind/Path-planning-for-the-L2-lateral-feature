@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-MR` |
-| Phiên bản | 1.0 |
+| Phiên bản | 1.1 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-10 |
+| Cập nhật | 2026-11-11 |
 
 ## 1. Purpose and scope {#summary-scope}
 
@@ -32,7 +32,7 @@
 | Cờ c0 jump | Planner tự kiểm tính nhất quán của biên ở hai thang; dùng chung cho nhảy vạch, nhận nhầm vạch, làn mở rộng | Dựa vào cờ của lane model | 006 |
 | Mất vạch làn mình | Suy tâm làn từ vạch làn bên, mép đường đủ tin; chỉ HWA dùng | Bám path cũ 1s rồi báo không hợp lệ; lane model tự dựng | 011 |
 | Không còn biên nào | Bám path cũ tối đa 1 s rồi báo không hợp lệ | 0,5 s; 2 s; 3 s | 009 |
-| Dời tâm khi có xe lớn | Cân bằng khoảng hở; giới hạn offset theo khoảng trống thật, đúng cho mọi làn và mọi xe | Offset cố định ±0,3 m | 008 |
+| Dời tâm khi có xe lớn | Dời ra xa phần khoảng hở còn thiếu so với `gap_truck_min`; giới hạn offset theo khoảng trống thật, đúng cho mọi làn và mọi xe | Offset cố định ±0,3 m; cân bằng khoảng hở | 008 |
 | Nhiễu và continuity | Bắt đầu từ path cũ, giới hạn tốc độ đổi tham chiếu, phạt jerk; chiếu path về ngưỡng liên tục | Lọc lại cảm biến trong planner | 004, 007 |
 | Calibration | Một bộ cho mọi xe; planner chỉ biết xe qua VehicleConfig | Mỗi xe một bộ | 012 |
 
@@ -87,3 +87,4 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
 | 1.0 | 2026-11-10 | Viết lại thành Technical Summary cho bộ tài liệu kỹ thuật BL1 |
+| 1.1 | 2026-11-11 | Dời tâm theo PP-ADR-008 mới |

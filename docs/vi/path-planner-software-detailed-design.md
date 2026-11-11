@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.4 |
+| Phiên bản | 1.6 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -149,9 +149,9 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 |---|---|---|
 | A. Quintic theo thời lượng | d(t) bậc 5 từ trạng thái đầu tới (d mục tiêu, 0, 0) trong T. Chưa đạt `ay_add_max_hwa`, `jerk_target_hwa` thì tăng T theo bước 0,25 s tới `T_max`; giới hạn cứng do T10 cắt | `T_max` |
 | B. Lấy mẫu Frenet | Sinh quintic với d cuối trong d mục tiêu ± `d_sample_span` bước `d_sample_step`, T trong `T_set`. Bỏ path vượt giới hạn hoặc ra khỏi corridor. Chọn path có J = `w_jerk`·∫d⃛² + `w_time`·T + `w_dev`·(d cuối − d mục tiêu)² + `w_cons`·∫(d − d_cũ)² nhỏ nhất | `d_sample_span`, `d_sample_step`, `T_set`, `w_jerk`, `w_time`, `w_dev`, `w_cons` |
-| C. QP | Biến d_k tại 31 điểm. Cực tiểu Σ `w_jerk`·(Δ³d_k)² + `w_dev`·(d_k − d mục tiêu)² với ràng buộc: trạng thái đầu cố định; d_k trong corridor; trị tuyệt đối của a_y thêm vào và jerk trong giới hạn của chức năng (tuyến tính hoá theo v(t)). Không có nghiệm thì nới corridor, rồi chuyển sang T10 | `w_jerk`, `w_dev` |
+| C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); |a_y| ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất HWA. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ thích nghi, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định, warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
 
-Mọi kỹ thuật cùng dùng T2 đến T6, T8 đến T11; chỉ T7 khác nhau, nên Software Qualification Test Specification so sánh được trên cùng điều kiện.
+Mọi kỹ thuật cùng dùng T2 đến T6, T8 đến T11; chỉ T7 khác nhau, nên Software Qualification Test Specification so sánh được trên cùng điều kiện. Kỹ thuật chọn lúc build (`PP_T7` = `quintic` hoặc `qp`, ghi trong `pp_version()`); bản giao chỉ giữ kỹ thuật được chọn ở PP-TS-003.
 
 ## 11. T8 Offset {#dd-t8}
 
@@ -159,9 +159,9 @@ Mọi kỹ thuật cùng dùng T2 đến T6, T8 đến T11; chỉ T7 khác nhau,
 |---|---|
 | 1 | Gán vật thể vào làn theo biên của reference line. Xe lớn: bề rộng ≥ 2,3 m (Software Requirements Specification mục 4) |
 | 2 | Bắt đầu khi TTC tới lúc ngang hàng với xe lớn ≤ `ttc_offset_start`; kết thúc `t_offset_hold` sau khi đuôi xe lớn đã qua đầu xe mình |
-| 3 | Khoảng hở mỗi bên: từ thân xe (± `vehicle_width`/2 quanh tâm làn) tới mép gần nhất của vật phía đó trong cửa sổ ngang hàng; bên trống thì tới biên làn của reference line |
-| 4 | s = (w − `vehicle_width`) / 2. o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)) |
-| 5 | o = (khoảng hở phải − khoảng hở trái) / 2, cắt trong [−o_lim, o_lim]; đổi o tối đa `ref_rate` mỗi giây |
+| 3 | Khoảng hở tới xe lớn mỗi bên: từ thân xe (± `vehicle_width`/2 quanh tâm làn) tới mép gần nhất của xe lớn phía đó trong cửa sổ ngang hàng; nhiều xe thì lấy nhỏ nhất; giữ giá trị cuối trong `t_offset_hold` |
+| 4 | s = (w − `vehicle_width`) / 2. o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)). Phần thiếu h = max(0, `gap_truck_min` − khoảng hở) |
+| 5 | o theo bảng ở Software Architectural Design mục 6 (một bên: h ra xa; hai bên: cân bằng), o dương là sang trái, cắt trong [−o_lim, o_lim]; đổi o tối đa `ref_rate` mỗi giây |
 | 6 | ObjectList không hợp lệ: o về 0 với cùng tốc độ (PP-SWR-140) |
 
 ## 12. T9 Arbitration {#dd-t9}
@@ -220,7 +220,15 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | `recenter_done` | m | 0,1 | 0,05–0,2 | T7 |
 | `d_sample_span`, `d_sample_step` | m | 0,3; 0,05 | 0,2–0,5; 0,025–0,1 | T7 B |
 | `T_set` | s | 1,5 đến 4,0, bước 0,5 | — | T7 B |
-| `w_jerk`, `w_time`, `w_dev`, `w_cons` | — | 1; 0,1; 1; 1 | 0,1–10 mỗi trọng số | T7 B, C |
+| `w_jerk`, `w_time`, `w_dev`, `w_cons` | — | 1; 0,1; 1; 1 | 0,1–10 mỗi trọng số | T7 B |
+| `qp_w_jerk`, `qp_w_dev`, `qp_T_ramp` | —; —; s | 1; 0,3; 1,0 | 0,3–3; 0,1–3; 0,5–2 | T7 C |
+| `qp_w_term_d`, `qp_w_term_v` | — | 10; 10 | 0–50 | T7 C |
+| `qp_w_comfort`, `qp_w_corridor` | — | 5; 500 | 1–50; 100–5000 | T7 C |
+| `qp_w_cont` | — | 200 | 0–2000 | T7 C |
+| `qp_a_comfort` | m/s² | 2,0 | 0–2,5 (0 là phạt thẳng a_y²) | T7 C |
+| `qp_ay_margin` | — | 1,0 | 0,95–1,0 | T7 C |
+| `qp_corridor_margin` | m | 0,3 | 0,1–0,5 | T7 C |
+| `qp_iters`, `qp_rho0` | — | 150; 1,0 | 75–300; 0,1–10 | T7 C |
 
 ## Revision history {#revision-history}
 
@@ -232,3 +240,5 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.2 | 2026-11-10 | T6 là hàm riêng của planner (PP-ADR-014) |
 | 1.3 | 2026-11-11 | Ghi chú từ lần cài đặt đầu: `pp_math.c` và số học double; T2 bộ nhớ biên, nhận thay đổi qua `T_confirm`, bám reference line cũ cả khi lane model không hợp lệ; T4 nội suy Hermite, trộn trên điểm Cartesian; T5 sàn phương sai camera, chỉ cập nhật khi có frame mới, khớp lại c2, c3; T7 thời điểm bắt đầu và kết thúc đưa về giữa, `ay_add_max_hwa` và `jerk_target_hwa` là mục tiêu; T10 cắt cả điểm 0, chừa biên float32, cờ và LateralLimits lấy độ cong lớn hơn; thêm `sigma_kappa_min`, `recenter_done` |
 | 1.4 | 2026-11-11 | T2: thay đổi chỉ được nhận khi vị trí mới ổn định suốt `T_confirm`; sau khi nhận, biên quay về vị trí cũ trong `T_confirm` thì nhận ngay |
+| 1.5 | 2026-11-11 | T7 C viết lại thành QP hợp nhất dạng nén, giải bằng ADMM (PP-TS-003); calibration của T7 C; kỹ thuật chọn lúc build |
+| 1.6 | 2026-11-11 | T7 C: liên tục với path cũ thành chi phí `qp_w_cont`, T4 vẫn trộn; a_y theo công thức của T11; dải a_y của PP-SWR-006; ràng buộc jerk; ρ theo khối hàng; `qp_ay_margin` 1,0. T8: offset theo khoảng hở tới xe lớn và `gap_truck_min`; T7 C dời path cũ theo phần offset vừa đổi |

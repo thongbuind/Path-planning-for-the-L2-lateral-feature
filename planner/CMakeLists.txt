@@ -21,12 +21,23 @@ add_custom_command(
     DEPENDS ${PP_CALIBRATION_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/calibration/gen_calibration.py
     COMMENT "Generating calibration from ${PP_CALIBRATION_FILE}")
 
+# T7 technique chosen at build time (research/README.md step 3; PP-TS-003): quintic (A) or qp (C).
+set(PP_T7 "quintic" CACHE STRING "T7 path generation technique: quintic or qp")
+set_property(CACHE PP_T7 PROPERTY STRINGS quintic qp)
+if(PP_T7 STREQUAL "qp")
+    set(PP_T7_DEFINES PP_T7_QP)
+elseif(PP_T7 STREQUAL "quintic")
+    set(PP_T7_DEFINES "")
+else()
+    message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
+endif()
+
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()")
 
@@ -43,7 +54,9 @@ set(PP_UNIT_SOURCES
     src/stitching.c
     src/feasibility.c
     src/lateral_state.c
+    src/offset.c
     src/generators/quintic.c
+    src/generators/qp.c
     src/arbitration.c
     src/output.c)
 set(PP_PRIVATE_INCLUDES ${PP_INTERFACES_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${PP_GENERATED_DIR})
@@ -56,6 +69,7 @@ add_library(pp_planner SHARED
 target_include_directories(pp_planner PRIVATE ${PP_PRIVATE_INCLUDES})
 target_compile_options(pp_planner PRIVATE ${PP_WARNINGS})
 add_dependencies(pp_planner pp_build_info)
+target_compile_definitions(pp_planner PRIVATE ${PP_T7_DEFINES})
 if(NOT APPLE)
     target_link_libraries(pp_planner PRIVATE m)
 endif()
@@ -65,7 +79,7 @@ option(PP_BUILD_TESTS "Build the C unit tests of the planner units" ON)
 if(PP_BUILD_TESTS)
     enable_testing()
     set(PP_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/planner/c)
-    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output test_stitching test_feasibility test_step test_version)
+    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output test_stitching test_feasibility test_step test_version test_qp test_offset)
         add_executable(${name} ${PP_TEST_DIR}/${name}.c src/pp_planner.c ${PP_UNIT_SOURCES}
                        ${PP_GENERATED_DIR}/pp_calibration.c)
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})

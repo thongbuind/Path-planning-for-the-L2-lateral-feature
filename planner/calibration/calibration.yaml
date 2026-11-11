@@ -30,6 +30,7 @@ parameters:
   k_jump:           {value: 3, unit: sigma, min: 0, source: "PP-SWR-121, 122"}
   T_confirm:        {value: 1.0, unit: s, min: 0, source: "PP-SWR-060, 061"}
   offset_max:       {value: 0.3, unit: m, min: 0, source: "PP-SWR-055"}
+  gap_truck_min:    {value: 1.5, unit: m, gt: 0, source: "PP-SWR-055, 056"}
   dlc_offset_min:   {value: 0.3, unit: m, min: 0, source: "PP-SWR-051"}
   ttc_offset_start: {value: 3.0, unit: s, min: 0, source: "PP-SWR-058"}
   t_offset_hold:    {value: 1.0, unit: s, min: 0, source: "Software Architectural Design 11"}
@@ -47,3 +48,20 @@ parameters:
   # HWA recentering ends within this lateral offset; same 0.1 m as target PP-SWR-053.
   recenter_done:    {value: 0.1, unit: m, gt: 0, source: "nhóm tự thống nhất; PP-SWR-053; T7"}
   cont_margin:      {value: 0.9, unit: "-", gt: 0, max: 1, source: "Software Detailed Design 15; T4"}
+  # T7 technique C, unified QP (Software Detailed Design 10, 15; PP-TS-003). Weights are
+  # dimensionless; start values from the prototype in PP-TS-003.
+  qp_w_jerk:          {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_dev:           {value: 0.3, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_T_ramp:          {value: 1.0, unit: s, gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_term_d:        {value: 10.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_term_v:        {value: 10.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_comfort:       {value: 5.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_corridor:      {value: 500.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_cont:          {value: 200.0, unit: "-", min: 0, source: "PP-SWR-100; T7 C"}
+  # 0 turns the comfort term into a plain a_y^2 penalty (PP-TS-003 V2).
+  qp_a_comfort:       {value: 2.0, unit: m/s^2, min: 0, max: 2.5, source: "PP-SWR-001; T7 C"}
+  # Hard a_y limit of the QP as a share of aysmax; T10 still checks the exact path.
+  qp_ay_margin:       {value: 1.0, unit: "-", gt: 0, max: 1, source: "PP-SWR-001; T7 C"}
+  qp_corridor_margin: {value: 0.3, unit: m, min: 0, source: "PP-SWR-051; T7 C"}
+  qp_iters:           {value: 150, unit: "-", min: 1, source: "PP-SWR-015; T7 C"}
+  qp_rho0:            {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}

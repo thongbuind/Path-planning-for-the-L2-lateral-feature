@@ -18,6 +18,7 @@
     <ParameterDeclaration name="variant" parameterType="string" value="a" />
     <ParameterDeclaration name="description" parameterType="string" value="90 km/h, R = 200 m (a_y cua 3,1 m/s²)" />
     <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S1ba.xodr" />
+    <ParameterDeclaration name="camera_view_m" parameterType="double" value="80.0" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -41,6 +42,7 @@
           <Property name="pp:acc" value="$acc" />
           <Property name="pp:hwa_request_s" value="$hwa_request_s" />
           <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:camera_view_m" value="$camera_view_m" />
         </Properties>
       </Vehicle>
     </ScenarioObject>

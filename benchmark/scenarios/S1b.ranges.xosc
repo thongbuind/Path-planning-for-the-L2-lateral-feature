@@ -42,6 +42,12 @@
           <Range lowerLimit="0.6666666666666666" upperLimit="1.3333333333333333" />
         </DistributionRange>
       </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="camera_view_m">
+        <DistributionSet>
+          <Element value="40.0" />
+          <Element value="80.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
     </Deterministic>
   </ParameterValueDistribution>
 </OpenSCENARIO>

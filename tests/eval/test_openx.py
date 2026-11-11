@@ -36,7 +36,7 @@ def test_all_old_fault_values_preserved():
 
 
 def test_unknown_anchor_rejected():
-    with pytest.raises(KeyError): loader.load('S1b', 'd')
+    with pytest.raises(KeyError): loader.load('S1b', 'z')
     with pytest.raises(KeyError): loader.load_fault('F04', 'e')
 
 

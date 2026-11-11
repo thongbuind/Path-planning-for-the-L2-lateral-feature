@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.4 |
+| Phiên bản | 1.5 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -77,6 +77,8 @@
 | DTLE | Khoảng cách từ mép ngoài lốp tới mép trong của vạch, nhỏ nhất trong một lần can thiệp; âm là đã vượt vạch (Euro NCAP) |
 | Khoảng trống mỗi bên | (bề rộng làn thật − bề rộng xe kể cả gương) / 2 |
 | Xe lớn | Vật thể ở làn bên kề, bề rộng ≥ 2,3 m |
+| Ngang hàng | Phần dọc của xe lớn chồng lên thân xe |
+| Khoảng hở tới xe lớn | Khoảng cách ngang từ thân xe (kể cả gương), khi xe ở tâm làn thật, tới mép gần nhất của xe lớn |
 | Điều kiện kết thúc | DLC ≥ 0 ở cả hai phía; trị tuyệt đối của v_lat ≤ `v_lat_end`; trị tuyệt đối của góc lệch so với hướng làn ≤ `heading_end`; a_y thêm vào ≤ `ay_add_end` |
 
 ## 5. Operating conditions (ODD) {#req-odd}
@@ -126,6 +128,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | `T_coast` | Thời gian bám path cũ khi không còn biên làn đủ tin | 0–1 s | Analysis: lệch dead reckoning 0,06 m sau 1 s (Software Architectural Design Appendix A.4) |
 | `free_space_min` | Khoảng trống tối thiểu mỗi bên để HWA khả dụng | ≥ 0 m | PP-SWR-051 |
 | `epsilon_ay` | Mức a_y của path được thấp hơn aysmax khi a_y cần vượt aysmax | 0–2,5 m/s² | — |
+| `gap_truck_min` | Khoảng hở tới xe lớn mà dưới mức đó HWA dời tâm | > 0 m | — |
 | `v_lat_end`, `heading_end`, `ay_add_end` | Ngưỡng của điều kiện kết thúc | ≥ 0 | — |
 | `T_end_hold` | Thời gian điều kiện kết thúc phải giữ liên tục trước khi báo COMPLETED | ≥ 0 s | — |
 
@@ -182,8 +185,8 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-051 | Trong khi HWA đang lái, a_y cần lớn nhất ≤ aysmax và khoảng trống mỗi bên ≥ `free_space_min`, DLC ở cả hai phía phải ≥ 0 | Test, vòng kín: S1 | Regulatory, SG-01 | R79 5.6.2.1.1 |
 | PP-SWR-052 | Khi HWA bắt đầu lái lúc xe lệch tâm làn tới 0,5 m, chức năng đang lái phải giữ là HWA trong suốt đoạn đưa về giữa | Test: S2 | Functional | nhóm tự thống nhất |
 | PP-SWR-054 | Trong khi HWA ở REQUEST và tốc độ xe trong khoảng 0–60 km/h, planner phải tiếp tục gửi path hợp lệ cho HWA | Test: S11 | Functional | nhóm tự thống nhất |
-| PP-SWR-055 | Trong khi có xe lớn ở làn bên kề và khoảng hở phía bên kia lớn hơn, path phải lệch khỏi tâm làn thật về phía bên kia | Test: S3, S3b, S15 | Functional | đề bài |
-| PP-SWR-056 | Trong khi dời tâm, path không được dời về phía có khoảng hở nhỏ hơn | Test: S3b, S15 | Safety, SG-01 | mentor |
+| PP-SWR-055 | Trong khi một xe lớn ngang hàng ở làn bên kề có khoảng hở tới xe lớn < `gap_truck_min` và làn bên kia không có xe lớn ngang hàng, path phải lệch khỏi tâm làn thật về phía xa xe lớn | Test: S3 | Functional | đề bài |
+| PP-SWR-056 | Trong khi có xe lớn ngang hàng với khoảng hở tới xe lớn < `gap_truck_min`, path không được lệch khỏi tâm làn thật về phía xe lớn có khoảng hở nhỏ nhất | Test: S3, S3b, S15 | Safety, SG-01 | mentor |
 | PP-SWR-058 | Khi xe lớn ở làn bên kề đang tới gần, path phải bắt đầu dời trước lúc xe lớn tới ngang hàng | Test: S3 | Functional | đề bài |
 
 ### 8.5 HWA: làn thay đổi và ODD {#req-hwa-lane-change}
@@ -302,7 +305,7 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | PP-SWR-016 | Phân vị 99 % của thời gian tính mỗi chu kỳ nên nhỏ | Test: mọi kịch bản | Performance | nhóm tự thống nhất |
 | PP-SWR-064 | Thời gian từ lúc `lateral_limit_reached` bật tới lúc a_y cần tại vị trí xe vượt aysmax nên dài | Test: S1b | Performance | nhóm tự thống nhất |
 | PP-SWR-053 | Thời gian từ lúc HWA bắt đầu lái (xe lệch tâm tới 0,5 m) tới lúc lệch ngang ≤ 0,1 m nên ngắn | Test: S2 | Performance | nhóm tự thống nhất |
-| PP-SWR-057 | Khoảng cách ngang nhỏ nhất từ thân xe tới vật ở hai bên trong lúc dời tâm nên lớn | Test: S3b, S15 | Performance | nhóm tự thống nhất |
+| PP-SWR-057 | Khoảng cách ngang nhỏ nhất từ thân xe tới vật ở hai bên trong lúc dời tâm nên lớn | Test: S3, S3b, S15 | Performance | nhóm tự thống nhất |
 | PP-SWR-059 | Thời gian từ lúc đuôi xe lớn qua tới lúc lệch ngang ≤ 0,1 m nên ngắn | Test: S3 | Performance | nhóm tự thống nhất |
 | PP-SWR-081 | Thời gian từ lúc LKA bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S4 | Performance | nhóm tự thống nhất |
 | PP-SWR-082 | Thời gian từ lúc ELK bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S5, S6, S7, S8, S8b (d, e) | Performance | nhóm tự thống nhất |
@@ -318,3 +321,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.2 | 2026-11-11 | PP-SWR-006 chỉ xét đoạn 0–1 s của path. Lý do: ở tầm xa, đa thức bậc 3 của lane model đọc thấp độ cong của clothoid ngắn (6–11 % ở 72 m), nên không planner nào đảm bảo được; xe chỉ chạy theo phần gần, phần xa được lập lại mỗi chu kỳ |
 | 1.3 | 2026-11-11 | PP-SWR-007 lấy mốc của R79: cờ phải đang bật khi lốp trước bắt đầu đè vạch. Lý do: câu cũ đo bằng chính calibration parameter `T_flag`, tăng `T_flag` là đạt. PP-SWR-008 chuyển thành performance target; thêm target PP-SWR-064 (thời gian báo trước); bỏ `delta_ay`, `T_flag` khỏi mục 7; ghi lại nguồn của PP-SWR-006 và `epsilon_ay` |
 | 1.4 | 2026-11-11 | PP-SWR-051 chỉ áp dụng khi khoảng trống mỗi bên ≥ `free_space_min`. Lý do: ODD cho làn 2,5 m với xe rộng 2,5 m (PP-SWR-062), khi đó không xe nào giữ được DLC ≥ 0; hành vi đúng là báo `lane_too_narrow` (PP-SWR-063) để HWA không khả dụng. Các requirement dựa vào PP-SWR-051 (122, 123, 135 đến 139, 148) kế thừa điều kiện này |
+| 1.5 | 2026-11-11 | PP-SWR-055, 056 viết lại theo khoảng hở tới xe lớn và `gap_truck_min`; thêm định nghĩa Ngang hàng, Khoảng hở tới xe lớn; thêm `gap_truck_min` vào mục 7. Lý do: câu cũ so khoảng hở tới xe lớn với khoảng hở tới biên làn, nên xe lớn ở giữa làn bên thì không dời hoặc dời về phía xe lớn |

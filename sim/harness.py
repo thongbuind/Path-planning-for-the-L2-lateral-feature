@@ -43,6 +43,9 @@ from sim.sensors import chassis, lane_camera, state_estimator
 from sim.sensors.chassis import ChassisSensors, restamp
 from sim.sensors.ego_motion import EgoMotion
 from sim.sensors.lane_camera import CameraPose, LaneCamera
+from sim.sensors import object_sensor
+from sim.sensors.object_sensor import ObjectSensor
+from sim.world.traffic import Traffic
 from sim.sensors.state_estimator import StateEstimator
 from sim.stand_ins import scripted
 from sim.stand_ins.eps import Eps
@@ -124,8 +127,10 @@ class Harness:
         if self._holding:
             self._place_held()
         self.controller = LateralController(self.vehicle_config, self.profile.understeer_gradient)
-        self.camera = LaneCamera(self.road)
+        self.camera = LaneCamera(self.road, view_end_m=scenario.camera_view_m)
         self.lane_faults = LaneFaultInjector(scenario.lane_faults, self.rngs["lane_camera"])
+        self.traffic = Traffic(self.road, scenario.traffic)
+        self.objects = ObjectSensor(self.rngs["perception"])
         self.chassis = ChassisSensors()
         self.estimator = StateEstimator()
         self.ego_motion = EgoMotion()
@@ -139,6 +144,7 @@ class Harness:
 
         self.ch = {
             "lane_model": Channel("lane_model", latency_us=lane_camera.LATENCY_US),
+            "object_list": Channel("object_list", latency_us=object_sensor.LATENCY_US),
             "imu": Channel("imu", on_deliver=restamp),
             "steering": Channel("steering", on_deliver=restamp),
             "speed": Channel("speed", on_deliver=restamp),
@@ -184,6 +190,9 @@ class Harness:
         sched.add_physics(self._physics)
         sched.add_sensor("lane_camera", lane_camera.PERIOD_US, self._camera, phase(lane_camera.PERIOD_US))
         sched.add_sensor("imu", chassis.IMU_PERIOD_US, self._imu, phase(chassis.IMU_PERIOD_US))
+        if self.scenario.traffic:
+            sched.add_sensor("object_sensor", object_sensor.PERIOD_US, self._objects,
+                             phase(object_sensor.PERIOD_US))
         sched.add_sensor("steering", chassis.STEERING_PERIOD_US, self._steering,
                          phase(chassis.STEERING_PERIOD_US))
         sched.add_sensor("speed", chassis.SPEED_PERIOD_US, self._speed, phase(chassis.SPEED_PERIOD_US))
@@ -247,6 +256,11 @@ class Harness:
         msg = self.camera.capture(now_us, CameraPose(x, y, yaw, self._s_hint))
         self.ch["lane_model"].publish(self.lane_faults.apply(msg), now_us)
 
+    def _objects(self, now_us: int) -> None:
+        msg = self.objects.capture(now_us, self.vehicle.rear_axle(), self.vehicle.v_x,
+                                   self.traffic.at(now_us * 1e-6))
+        self.ch["object_list"].publish(msg, now_us)
+
     def _imu(self, now_us: int) -> None:
         st = self.vehicle.state
         self.ch["imu"].publish(self.chassis.imu(now_us, st.r, 0.0, self.vehicle.a_y), now_us)
@@ -280,6 +294,7 @@ class Harness:
         inputs = PlannerInputs(
             t0_us=now_us,
             lane_model=ch["lane_model"].latest,
+            object_list=ch["object_list"].latest,
             imu=ch["imu"].latest,
             steering=ch["steering"].latest,
             speed=ch["speed"].latest,

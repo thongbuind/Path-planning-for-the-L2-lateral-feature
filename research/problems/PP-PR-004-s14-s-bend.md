@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, cần tái hiện chính thức |
+| Trạng thái | Mở, đã tìm nguyên nhân; chờ PP-TS-005 |
 | Mở ngày | 2026-11-11 |
 | Requirement cần kiểm tra | PP-SWR-051, 100; kiểm tra thêm PP-SWR-006, 007 |
 | Tái hiện | `python3 -m eval.runner S14 e --acc on --seed 1` và `--acc ignore_limits`; VP-0 |
@@ -27,14 +27,25 @@ Lần chạy nháp `build/suites/smoke-20261111-1425` (VP-0, seed 1), sau khi s�
 
 ## 2. Nguyên nhân
 
+Đã phân tích bằng hình học thuần (không cần planner): khớp đa thức bậc 3 lên vạch thật trên 0–80 m, như camera mô phỏng (Software Qualification Test Specification 4.5), tại từng vị trí xe dọc cua chữ S.
 
-Chưa phân tích. Giả thuyết mạnh nhất: cua chữ S của R171 có hai cung ngược chiều rất ngắn (57,1 m và 5,1 m) trong tầm nhìn 80 m; đa thức bậc 3 của lane model không biểu diễn được, nên độ cong path sai (khớp với nhận xét của Chalmers về đa thức bậc 3; xem `docs/reference/standards/`). Kiểm trước: sai số giữa vạch của lane model và vạch thật dọc cua chữ S, rồi độ cong T5. Chưa quy cho ACC: ACC đã giảm đúng tốc độ.
+| Vị trí xe s | Độ cong tại xe, lane model | Độ cong thật | Sai vị trí vạch 0–30 m |
+|---|---|---|---|
+| 200 m | +0,00275 | +0,00127 | 0,068 m |
+| 240 m | −0,00129 | +0,00101 | 0,113 m |
+| 250 m | −0,00293 | +0,00010 | 0,113 m |
+| 260 m | −0,00355 | −0,00092 | 0,059 m |
+
+- Đa thức bậc 3 không biểu diễn được hai cung ngược chiều ngắn (57,1 m và 5,1 m) trong cùng tầm nhìn; sai lớn nhất ở hai đầu cửa sổ khớp, gồm cả ngay tại xe.
+- Ở s = 240–250 m độ cong tại xe sai cả dấu. Ở 30 m/s, sai 0,003 1/m là sai 2,7 m/s² a_y.
+- Đây là giới hạn của interface lane model dạng đa thức (SOTIF), không phải lỗi của ACC hay của adapter ASAM. Không sửa camera mô phỏng sau khi thấy kết quả.
 
 ## 3. Cách sửa
 
-Chưa chọn. Giữ nguyên kịch bản và tiêu chí trong lúc xác nhận. Không sửa riêng cơ chế cho S14e.
+Có nhiều cách, mở PP-TS-005. QP hợp nhất (PP-TS-003) không sửa được vì vẫn dựa trên reference line sai.
 
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+| 20261111-1443-suite-regression-ef8bf4b | Tái hiện trên mốc V0: S14e trượt PP-SWR-051 (24 lần) và 100 (18 lần), cả 6 profile |

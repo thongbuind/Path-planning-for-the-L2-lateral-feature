@@ -22,8 +22,10 @@ scope:
   S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050, PP-SWR-008]
   S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
   S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S3: [PP-SWR-055, PP-SWR-056, PP-SWR-058, PP-SWR-057, PP-SWR-059]
   F01: [PP-SWR-003]                     # PP-SWR-120: jerk limit and 100 to 102
   F02: []                               # PP-SWR-121: 100 to 102
+  F03: [PP-SWR-051, PP-SWR-050]         # PP-SWR-122: 051 and 100 to 102; target 050
   F04: [PP-SWR-051, PP-SWR-050]         # PP-SWR-123: 051 and 100 to 102
   F06: [PP-SWR-125]
 

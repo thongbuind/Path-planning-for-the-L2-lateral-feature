@@ -9,7 +9,7 @@
 
 #define T0 (10000000ULL)
 
-static uint64_t memory[4096];
+static uint64_t memory[8192];   /* 64 KB; the state is about 37 KB with the T7 C workspace */
 
 static const pp_vehicle_config_t VP0 = {2.9F, 1.45F, 1.9F, 15.0F, 0.61F, 6.0F, 0.05F};
 

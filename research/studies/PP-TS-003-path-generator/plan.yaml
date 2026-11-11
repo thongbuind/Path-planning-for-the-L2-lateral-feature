@@ -1,0 +1,21 @@
+# Evaluation plan of PP-TS-003 (research/README.md, step 2). Not locked: waiting for review.
+id: PP-TS-003
+locked: null
+suite: P1               # tuning and test runs of benchmark/suites/P1.yaml, its seeds and scope
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-002: 0.05
+variants:
+  V0:
+    description: Quintic theo thời lượng (T7 A), T4 trộn, T10 cắt
+    calibration: {}
+    cmake: {PP_T7: quintic}
+  V1:
+    description: QP hợp nhất (T7 C), phạt a_y vượt 2,0 m/s²
+    calibration: {}
+    cmake: {PP_T7: qp}
+  V2:
+    description: QP hợp nhất (T7 C), phạt thẳng a_y² (qp_a_comfort = 0)
+    calibration: {qp_a_comfort: 0.0}
+    cmake: {PP_T7: qp}

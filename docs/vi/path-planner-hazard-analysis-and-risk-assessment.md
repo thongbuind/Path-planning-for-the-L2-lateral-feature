@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-HARA` |
-| Phiên bản | 1.1 |
+| Phiên bản | 1.2 |
 | Trạng thái | Chờ confirmation review |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-10 |
+| Cập nhật | 2026-11-11 |
 
 ## 1. Purpose and scope {#safety-scope}
 
@@ -156,7 +156,7 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | TC-04 | Đỉnh dốc che tầm nhìn trước cua | Thấy cua muộn | Giới hạn a_y; báo `lateral_limit_reached`, khối dọc giảm tốc | S1b |
 | TC-05 | Cua gắt hơn aysmax | Path bị cắt, xe ra sát vạch | Như TC-04 | S1b |
 | TC-06 | Đường ướt, μ = 0,5 | Lốp bám kém hơn giới hạn a_y | Giới hạn a_y của ELK 4,0 m/s² dưới mức bám 4,9 m/s² | S12 |
-| TC-07 | Xe lớn ở làn bên, làn hẹp, vật ở hai bên | Dời tâm sai hướng hoặc quá sát | Cân bằng khoảng hở; offset giới hạn theo khoảng trống thật | S3, S3b, S15 |
+| TC-07 | Xe lớn ở làn bên, làn hẹp, vật ở hai bên | Dời tâm sai hướng hoặc quá sát | Dời ra xa xe lớn theo khoảng hở tới nó; hai bên có xe lớn thì đứng giữa; offset giới hạn theo khoảng trống thật | S3, S3b, S15 |
 | TC-08 | Tắc đường, tốc độ thấp | Path chỉ phủ đoạn ngắn | HWA tiếp tục; LKA, ELK không khả dụng | S11 |
 | TC-09 | Gió ngang, đường nghiêng ngang | Xe trôi dù path đúng | Vòng kín của Lateral Controller; LKA can thiệp | S4 |
 | TC-10 | Mất mọi biên làn kéo dài | Dead reckoning tích luỹ sai | Bám path cũ tối đa 1 s rồi path không hợp lệ | F05 |
@@ -198,3 +198,4 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 |---|---|---|
 | 1.0 | 2026-11-10 | Viết lại thành HARA gửi phòng an toàn. Item definition tự đọc được; thêm operational situation, S, E, C, ASIL, safe state, FTTI đề xuất; tách HE-08 cho ELK; thêm TC-13; thêm safety mechanism và open points |
 | 1.1 | 2026-11-10 | Thêm cách tính E theo tần suất; ghi nguồn FTTI của SG-04, SG-05; safe state của SG-01 không thả mô-men đột ngột; tách open points, thêm câu hỏi về S của HE-03, HE-06; sửa lập luận ASIL của HE-05 |
+| 1.2 | 2026-11-11 | TC-07 theo cách dời tâm mới (PP-ADR-008) |

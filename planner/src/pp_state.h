@@ -8,6 +8,8 @@
 
 #include "curvature.h"
 #include "feasibility.h"
+#include "generators/qp.h"
+#include "offset.h"
 #include "pp_calibration.h"
 #include "pp_types.h"
 #include "reference_line.h"
@@ -34,6 +36,8 @@ typedef struct {
     pp_curvature_t curv;            /* T5 estimate */
     bool t5_has_stamp;              /* Capture stamp of the last frame T5 used */
     uint64_t t5_stamp_us;
+    pp_qp_ws_t qp;                  /* T7 technique C: warm start between cycles */
+    pp_offset_state_t offset;       /* T8 */
 } pp_state_t;
 
 #endif /* PP_STATE_H */

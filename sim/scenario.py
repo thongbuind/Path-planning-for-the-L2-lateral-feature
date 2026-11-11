@@ -5,6 +5,7 @@ turned into this; sim/ never reads the benchmark itself (README import rules).
 from dataclasses import dataclass, field
 
 from sim.faults.lane import LaneFault
+from sim.world.traffic import TrafficSpec
 from sim.world.road import Segment
 
 
@@ -27,4 +28,8 @@ class Scenario:
     # speed_mps; 'ignore_limits' runs the stand-in ACC without LateralLimits; 'on' reads them.
     # speed_mps is the ACC set speed when the ACC runs.
     acc: str = "off"
+    # Range the lane camera sees [m] (Software Qualification Test Specification 4.5: 80 m).
+    # Shorter for S1b d, where a crest hides the curve.
+    camera_view_m: float = 80.0
+    traffic: tuple[TrafficSpec, ...] = ()  # Other vehicles (section 4.5, 5)
     notes: dict = field(default_factory=dict)

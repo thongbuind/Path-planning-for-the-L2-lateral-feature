@@ -17,9 +17,11 @@
 #include "arbitration.h"
 #include "curvature.h"
 #include "feasibility.h"
+#include "generators/qp.h"
 #include "generators/quintic.h"
 #include "input_check.h"
 #include "lateral_state.h"
+#include "offset.h"
 #include "latency.h"
 #include "output.h"
 #include "pp_build_info.h"
@@ -116,6 +118,7 @@ pp_init_result_t pp_init(void *state, size_t state_size,
 /* Newest message of each input that passed the input check, or NULL. */
 typedef struct {
     const pp_lane_model_t *lane_model;
+    const pp_object_list_t *object_list;
     const pp_speed_signals_t *speed;
     const pp_imu_signals_t *imu;
     const pp_vehicle_state_estimate_t *vehicle_state;
@@ -132,6 +135,11 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
                         in->lane_model.rx_us, in->lane_model.message.header.stamp_us, t0,
                         PP_LANE_MODEL_TIMEOUT_US, PP_LANE_MODEL_MAX_AGE_US)) {
         out->lane_model = &in->lane_model.message;
+    }
+    if (pp_input_usable(in->object_list.present, in->object_list.message.header.valid,
+                        in->object_list.rx_us, in->object_list.message.header.stamp_us, t0,
+                        PP_OBJECT_LIST_TIMEOUT_US, PP_OBJECT_LIST_MAX_AGE_US)) {
+        out->object_list = &in->object_list.message;
     }
     if (pp_input_usable(in->speed.present, in->speed.message.header.valid, in->speed.rx_us,
                         in->speed.message.header.stamp_us, t0, PP_SPEED_TIMEOUT_US,
@@ -235,8 +243,10 @@ static void update_recentering(pp_state_t *s, const pp_function_requests_t *requ
         s->recentering = false;
     }
 }
+#ifndef PP_T7_QP
 static bool generate_hwa(const pp_state_t *s, const pp_reference_line_t *ref,
                          const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
+                         double d_target,
                          pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                          pp_ref_samples_t *samples)
 {
@@ -250,7 +260,7 @@ static bool generate_hwa(const pp_state_t *s, const pp_reference_line_t *ref,
     for (uint32_t i = 0U; (i < PP_T_MAX_STEPS) && !done; i++) {
         pp_lateral_path_t lateral;
         pp_path_check_t check;
-        ok = pp_generate_quintic(start, 0.0, duration, &lateral);
+        ok = pp_generate_quintic(start, d_target, duration, &lateral);
         done = !ok;
         if (ok) {
             pp_output_points(ref, &lateral, speed, wheelbase, points, samples);
@@ -263,6 +273,54 @@ static bool generate_hwa(const pp_state_t *s, const pp_reference_line_t *ref,
     }
     return ok;
 }
+#else
+/*
+ * T7 technique C and T11 (generators/qp.h): one QP per cycle. Corridor from the lane width
+ * this cycle; continuity with the previous path whenever T4 started from it, at the points
+ * of the old path within the observed range of the new reference line.
+ */
+static bool generate_hwa_qp(pp_state_t *s, const pp_reference_line_t *ref,
+                            const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
+                            const pp_old_path_t *old, bool from_old, double d_target,
+                            pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
+                            pp_ref_samples_t *samples)
+{
+    const pp_calibration_t *cal = s->cal;
+    pp_qp_problem_t pb;
+    pp_lateral_path_t lateral;
+    pp_ref_walker_t walker;
+    pp_ref_point_t r;
+    (void)memset(&pb, 0, sizeof(pb));
+    pb.start = *start;
+    pb.d_target = d_target;
+    pb.ay_limit = PP_AYSMAX * (double)cal->qp_ay_margin;
+    pb.jerk_limit = 0.9 * PP_JERK_MAX_HWA;                  /* margin for T10, PP-SWR-003 */
+    const double half = fmax(0.0, (0.5 * ref->width) - (0.5 * (double)s->vehicle.vehicle_width)
+                                  - (double)cal->qp_corridor_margin);
+    pp_ref_walk_begin(&walker, ref, &r);
+    for (size_t k = 0U; k < PP_QP_N; k++) {
+        const size_t idx = k + 1U;
+        pp_ref_walk_to(&walker, speed->s[idx], &r);
+        pb.v[k] = speed->v[idx];
+        pb.kappa[k] = r.kappa;
+        pb.dkappa[k] = r.dkappa;
+        pb.d_max[k] = half;
+        pb.d_min[k] = -half;
+        pp_path_sample_t sample;
+        if (from_old && old->valid && pp_stitch_sample_old(old, (double)idx * PP_GRID_STEP_S, &sample)
+            && (sample.x <= ref->view_end)) {
+            pp_ref_point_t foot;
+            pp_ref_project(ref, sample.x, sample.y, &foot, &pb.d_old[k]);
+            pb.has_old[k] = isfinite(pb.d_old[k]);
+        }
+    }
+    const bool ok = pp_generate_qp(&s->qp, cal, &pb, &lateral);
+    if (ok) {
+        pp_output_points(ref, &lateral, speed, (double)s->vehicle.wheelbase, points, samples);
+    }
+    return ok;
+}
+#endif
 
 /* Ego-motion since the previous cycle, for the T2 memory and the T5 prior. */
 static bool cycle_motion(pp_state_t *s, uint64_t t0_us, pp_ego_motion_fn ego_motion,
@@ -320,6 +378,8 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
     if (!forward) {
         pp_reference_memory_reset(&s->ref_mem);
         pp_curvature_reset(&s->curv);
+        pp_qp_reset(&s->qp);
+        pp_offset_reset(&s->offset);
     } else {
         const double dt = (double)PP_PLANNER_PERIOD_US / PP_US_PER_S;
         const double v = (double)in->speed->speed_mps;
@@ -355,12 +415,25 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
             pp_path_check_t check;
             pp_ref_walk_begin(&walker, &out->ref, &foot);
             pp_lateral_state(&foot, v, v_y, yaw_rate, &measured);                  /* T6 */
-            (void)pp_stitch_start(&old, &out->ref, &measured, s->cal, &start);    /* T4 step 2 */
+            const bool from_old = pp_stitch_start(&old, &out->ref, &measured, s->cal, &start); /* T4 step 2 */
             update_recentering(s, in->function_requests, measured.d);
+            /* T8: offset from a large vehicle in an adjacent lane; car front and rear
+             * approximated from the wheelbase (VehicleConfig has no length). */
+            const double wheelbase_m = (double)s->vehicle.wheelbase;
+            const double offset = pp_offset_update(&s->offset, in->object_list, &out->ref, v,
+                                                   (double)s->vehicle.vehicle_width,
+                                                   wheelbase_m + 1.0, -1.0, s->cal, dt);
             pp_speed_profile(in->longitudinal_plan, t0_us, v, &speed);
             /* HWA lane keeping: target d = 0, T8 Offset not yet (Software Detailed Design 10). */
-            out->path_valid = generate_hwa(s, &out->ref, &start, &speed, out->points,
-                                           &out->samples);                         /* T7, T11 */
+#ifdef PP_T7_QP
+            /* Continuity is a cost of the QP; T4 steps 4, 5 still guarantee it. */
+            out->path_valid = generate_hwa_qp(s, &out->ref, &start, &speed, &old, from_old, offset,
+                                              out->points, &out->samples);         /* T7 C, T11 */
+#else
+            (void)from_old;
+            out->path_valid = generate_hwa(s, &out->ref, &start, &speed, offset, out->points,
+                                           &out->samples);                         /* T7 A, T11 */
+#endif
             if (out->path_valid) {
                 const double wheelbase = (double)s->vehicle.wheelbase;
                 (void)pp_stitch_blend(&old, s->cal, wheelbase, out->points);  /* T4 steps 4, 5 */

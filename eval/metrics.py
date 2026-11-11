@@ -5,8 +5,8 @@ Only what the planner sends (Trajectory, PathStatus, LateralLimits), its compute
 and the delivered calibration values that requirements point to are used, together
 with the simulator's ground truth. Nothing inside the planner is read.
 
-Covered so far: PP-SWR-001, 003, 005, 006, 007, 009, 010, 051, 052, 063, 100 to 102, 116, 117,
-150; targets PP-SWR-002, 008, 016, 050, 053, 064, 125. A criterion with no situation to judge in a run is reported as
+Covered so far: PP-SWR-001, 003, 005, 006, 007, 009, 010, 051, 052, 055, 056, 058, 063, 100 to 102,
+116, 117, 150; targets PP-SWR-002, 008, 016, 050, 053, 057, 059, 064, 125. A criterion with no situation to judge in a run is reported as
 not applicable. Information only: a_y and jerk on the vehicle as R79 Annex 8, 2.4 measures them
 (r79_vehicle), until a requirement points to it.
 """
@@ -19,6 +19,7 @@ import numpy as np
 from eval.calibration import requirement_parameters
 from interfaces import ActiveFunction, TRAJECTORY_STEP_S
 from sim.harness import PlannerCycle, RunLog
+from sim.world.traffic import Traffic
 
 AYSMAX = 2.5  # [m/s^2] PP-SWR-001
 JERK_MAX_HWA = 5.0  # [m/s^3] PP-SWR-003
@@ -31,6 +32,8 @@ CENTRED_M = 0.1  # PP-SWR-053: centred when the lateral offset is within 0.1 m
 RECENTER_MAX_M = 0.5  # PP-SWR-052: HWA starts with the car up to 0.5 m off centre
 TRUTH_STEP = 10  # Ground truth samples (1 ms) per offset sample, 10 ms
 GRID_STEP_S = float(TRAJECTORY_STEP_S)
+BIG_VEHICLE_WIDTH_M = 2.3  # Software Requirements Specification 4, "Xe lớn"
+BODY_OVERHANG_M = 1.0  # Software Qualification Test Specification 8.1: car body = rear axle - 1 m .. front axle + 1 m
 
 # a_y and jerk measured on the vehicle as R79 Annex 8, 2.4 prescribes (Software Qualification
 # Test Specification 5.1). Reported as information; no requirement points to it yet.
@@ -100,6 +103,10 @@ class _Truth:
         i = int(np.clip(np.searchsorted(self.t, t_us), 0, len(self.t) - 1))
         return tuple(self.rear[i])
 
+    def front_at(self, t_us: int) -> tuple[float, float, float]:
+        i = int(np.clip(np.searchsorted(self.t, t_us), 0, len(self.t) - 1))
+        return tuple(self.front[i])
+
 
 def _to_world(pose, x, y, yaw):
     px, py, pyaw = pose
@@ -152,6 +159,67 @@ def _continuity(prev: PlannerCycle, cur: PlannerCycle, truth: _Truth) -> tuple[f
     lateral = -np.sin(yawn) * (fx - xn) + np.cos(yawn) * (fy - yn)
     return (float(np.max(np.abs(lateral))), float(np.max(np.abs(_wrap(fyaw - yawn)))),
             float(np.max(np.abs(ko - kn))))
+
+
+@dataclass
+class _BigVehicles:
+    """PP-SWR-055, 056, 058 and targets 057, 059 (Software Requirements Specification 4: Xe lớn,
+    Ngang hàng, Khoảng hở tới xe lớn). Offsets are of the path, 0-1 s mean, against the
+    true centre, positive away from the big vehicle with the smallest gap."""
+
+    away_055: float = np.inf  # Smallest offset away while 055 applies
+    toward_056: float = -np.inf  # Largest offset toward the nearest big vehicle while 056 applies
+    away_058: float | None = None  # Offset away when an approaching big vehicle becomes abreast
+    clearance_057: float = np.inf  # Smallest true clearance from the car body while abreast
+    return_059: float | None = None  # From the end of abreast to the car within 0.1 m of centre
+
+
+def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> _BigVehicles | None:
+    road, w = log.road, log.road.lane_width
+    specs = [sp for sp in log.scenario.traffic
+             if sp.width >= BIG_VEHICLE_WIDTH_M and w / 2 < abs(sp.d) < 1.5 * w]
+    if not specs:
+        return None
+    traffic = Traffic(road, tuple(specs))
+    half_car = 0.5 * log.vehicle_width
+    n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
+    out = _BigVehicles()
+    s_hint = None
+    was_abreast = None
+    end_us = None
+    for c, p in zip(cycles, paths):
+        rear, front = truth.rear_at(c.t0_us), truth.front_at(c.t0_us)
+        pr = road.project(rear[0], rear[1], s_hint)
+        s_hint = pr.s
+        pf = road.project(front[0], front[1], s_hint)
+        body = (pr.s - BODY_OVERHANG_M, pf.s + BODY_OVERHANG_M)
+        gaps = {1: np.inf, -1: np.inf}
+        for v in traffic.at(c.t0_us * 1e-6):
+            if v.s + 0.5 * v.length >= body[0] and v.s - 0.5 * v.length <= body[1]:
+                side = 1 if v.d > 0 else -1
+                gaps[side] = min(gaps[side], abs(v.d) - 0.5 * v.width - half_car)
+                for d_car in (pr.d, pf.d):
+                    out.clearance_057 = min(out.clearance_057,
+                                            abs(v.d - d_car) - 0.5 * v.width - half_car)
+        abreast = bool(np.isfinite(gaps[1]) or np.isfinite(gaps[-1]))
+        if was_abreast and not abreast and _hwa(c):
+            end_us = c.t0_us
+        if end_us is not None and out.return_059 is None and abs(pr.d) <= CENTRED_M:
+            out.return_059 = (c.t0_us - end_us) * 1e-6
+        if p is not None and _hwa(c) and abreast:
+            near = 1 if gaps[1] < gaps[-1] else -1
+            offset_away = -near * float(np.mean(p.d[:n_window]))
+            one_side = not np.isfinite(gaps[-near])
+            if gaps[near] < gap_min:
+                out.toward_056 = max(out.toward_056, -offset_away)
+                if one_side:
+                    out.away_055 = min(out.away_055, offset_away)
+                    if was_abreast is False:
+                        out.away_058 = offset_away if out.away_058 is None else min(out.away_058, offset_away)
+        was_abreast = abreast if _hwa(c) else None
+    if end_us is not None and out.return_059 is None:
+        out.return_059 = float("inf")
+    return out
 
 
 @dataclass
@@ -433,6 +501,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                 ratio = float(np.max(np.abs(p.d[far])) / np.max(np.abs(wrong)))
                 curvature_ratio = max(curvature_ratio, ratio)
 
+    # PP-SWR-055, 056, 058; targets 057, 059: big vehicle in an adjacent lane.
+    big = _big_vehicles(log, cycles, paths, truth, cal["gap_truck_min"])
+
     compute_ms = np.array([c.compute_ns for c in cycles]) * 1e-6
     hwa_requested = [c for c in cycles if c.t0_us >= log.scenario.hwa_request_s * 1e6]
     any_hwa = bool(np.any(hwa))
@@ -462,6 +533,16 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   "= 0", late_007 == 0, applicable=crossings > 0),
         Criterion("PP-SWR-052", "HWA giữ suốt đoạn đưa về giữa", float(kept_052), "= 1",
                   kept_052, applicable=judged_052),
+        Criterion("PP-SWR-055", "Lệch path về phía xa xe lớn, 0–1 s, nhỏ nhất khi khoảng hở < gap_truck_min [m]",
+                  big.away_055 if big else float("nan"), "> 0", bool(big and big.away_055 > 0.0),
+                  applicable=bool(big and np.isfinite(big.away_055))),
+        Criterion("PP-SWR-056", "Lệch path về phía xe lớn gần nhất, 0–1 s, lớn nhất khi khoảng hở < gap_truck_min [m]",
+                  big.toward_056 if big else float("nan"), "<= 0", bool(big and big.toward_056 <= 0.0),
+                  applicable=bool(big and np.isfinite(big.toward_056))),
+        Criterion("PP-SWR-058", "Lệch path về phía xa xe lớn lúc xe lớn tới ngang hàng [m]",
+                  big.away_058 if big and big.away_058 is not None else float("nan"), "> 0",
+                  bool(big and big.away_058 is not None and big.away_058 > 0.0),
+                  applicable=bool(big and big.away_058 is not None)),
         Criterion("PP-SWR-100", "Lệch ngang giữa hai path liên tiếp [m]", cont[0],
                   f"<= {CONTINUITY_LATERAL_M}", cont[0] <= CONTINUITY_LATERAL_M),
         Criterion("PP-SWR-101", "Lệch hướng giữa hai path liên tiếp [rad]", cont[1],
@@ -485,6 +566,12 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Target("PP-SWR-016", "Thời gian tính p99", float(np.percentile(compute_ms, 99)), "ms"),
         Target("PP-SWR-016", "Thời gian tính lớn nhất", float(np.max(compute_ms)), "ms"),
     ]
+    if big is not None and np.isfinite(big.clearance_057):
+        targets.append(Target("PP-SWR-057", "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng",
+                              big.clearance_057, "m"))
+    if big is not None and big.return_059 is not None:
+        targets.append(Target("PP-SWR-059", "Thời gian từ lúc hết ngang hàng tới lúc lệch ≤ 0,1 m",
+                              big.return_059, "s"))
     if leads:
         targets.insert(0, Target("PP-SWR-064", "Thời gian báo trước nhỏ nhất (âm là báo muộn)",
                                  float(min(leads)), "s"))
