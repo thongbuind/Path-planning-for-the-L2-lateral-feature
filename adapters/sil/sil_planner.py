@@ -52,7 +52,16 @@ def load_library(path: Path | None = None) -> ctypes.CDLL:
     lib.pp_step.argtypes = [ctypes.c_void_p, ctypes.POINTER(pp_ctypes.PlannerInputsC),
                             _EGO_MOTION_FN, ctypes.c_void_p,
                             ctypes.POINTER(pp_ctypes.PlannerOutputsC)]
+    if hasattr(lib, "pp_version"):  # libraries built before pp_version() lack it
+        lib.pp_version.restype = ctypes.c_char_p
+        lib.pp_version.argtypes = []
     return lib
+
+
+def library_version(path: Path | None = None) -> str | None:
+    """Identification string of a built library (pp_version()), None if it has none."""
+    lib = load_library(path)
+    return lib.pp_version().decode("ascii") if hasattr(lib, "pp_version") else None
 
 
 class SilPlanner:

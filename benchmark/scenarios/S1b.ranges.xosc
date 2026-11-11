@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="S1b" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S1b.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="lane_width_m">
+        <DistributionRange stepWidth="0.5">
+          <Range lowerLimit="2.5" upperLimit="5.5" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="speed_mps">
+        <DistributionRange stepWidth="2.7777777777777777">
+          <Range lowerLimit="2.7777777777777777" upperLimit="36.11111111111111" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="direction">
+        <DistributionSet>
+          <Element value="-1.0" />
+          <Element value="1.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="profile">
+        <DistributionSet>
+          <Element value="VP-0" />
+          <Element value="VP-1" />
+          <Element value="VP-2" />
+          <Element value="VP-3" />
+          <Element value="VP-4" />
+          <Element value="VP-5" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="acc">
+        <DistributionSet>
+          <Element value="off" />
+          <Element value="on" />
+          <Element value="ignore_limits" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="curvature_scale">
+        <DistributionRange stepWidth="0.16666666666666666">
+          <Range lowerLimit="0.6666666666666666" upperLimit="1.3333333333333333" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

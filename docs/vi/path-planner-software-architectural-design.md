@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.3 |
+| Phiên bản | 1.4 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -163,6 +163,18 @@ Ngang và dọc là hai khối, trao đổi ràng buộc (PP-ADR-001). Schema �
 - Planner gửi LateralLimits: `v_max` theo độ cong lớn nhất trong tầm nhìn và khoảng cách tới đó, để khối dọc giảm tốc trước cua.
 - Path dùng v(t), a(t) của LongitudinalPlan chu kỳ trước. Mất hoặc quá timeout thì dùng tốc độ hiện tại không đổi, gia tốc 0; path vẫn hợp lệ (PP-SWR-153 đến 155).
 
+### 6.2 Chiến lược tốc độ trong cua {#curve-strategy}
+
+Theo R171 5.3.7.1.1.1 (tốc độ phải chỉnh theo độ cong) và 5.3.7.1.3 (chiến lược chọn tốc độ phải được mô tả). Phần khối dọc là hành vi khối dọc chạy thử (Software Qualification Test Specification 4.7); khối dọc thật phải cho hành vi tương đương.
+
+| Pha | Bắt đầu khi | Tốc độ | Path planner | Khối dọc | Requirement |
+|---|---|---|---|---|---|
+| Đường thẳng, cua nhẹ | `v_max` ≥ tốc độ hiện tại | Cao | Bám tâm làn; gửi `v_max` và khoảng cách tới chỗ cong nhất mỗi chu kỳ | Theo tốc độ đặt hoặc xe trước | PP-SWR-150 đến 152 |
+| Thấy cua | `v_max` < tốc độ hiện tại | Giảm | Như pha trước; path dùng v(t) của LongitudinalPlan | Giảm tốc theo đường bao, tới chỗ cong nhất với tốc độ ≤ v_max·√(1 − 0,3 / aysmax) | PP-SWR-151 đến 153 |
+| Trong cua | Xe tới đoạn cong nhất | Thấp | Bám tâm làn, a_y ≤ aysmax, jerk ≤ 5 m/s³ | Giữ tốc độ dưới đường bao | PP-SWR-001, 003 |
+| Chạm giới hạn | a_y cần > aysmax: thấy cua muộn hoặc giảm tốc không kịp | Giữ | Path cong ít hơn đường thật, a_y ≥ aysmax − `epsilon_ay`; bật `lateral_limit_reached`, cờ đã bật khi lốp trước đè vạch | Không tăng tốc khi cờ bật | PP-SWR-005 đến 007 |
+| Ra cua | a_y cần lớn nhất < aysmax | Tăng | Tắt `lateral_limit_reached` | Tăng tốc về tốc độ đặt | Target PP-SWR-008 |
+
 ## 7. LKA và ELK path {#design-intervention}
 
 | Việc | LKA | ELK | Liên quan |
@@ -205,6 +217,18 @@ Ngang và dọc là hai khối, trao đổi ràng buộc (PP-ADR-001). Schema �
 | FunctionRequests | Coi cả ba chức năng tắt | PP-SWR-145 |
 | LongitudinalPlan | Tốc độ hiện tại không đổi, gia tốc 0 | PP-SWR-154, 155 |
 | VehicleConfig thiếu lúc khởi động | Không gửi Trajectory | PP-SWR-146 |
+
+### 8.3 Bậc suy giảm {#degradation}
+
+Gom mục 8.1, 8.2 theo mức chức năng còn lại (R79 Annex 6, 3.4.3: (a) chạy với một phần hệ thống, (c) bỏ chức năng cấp cao). Mỗi bậc chỉ xuống khi điều kiện ở cột "Khi" đúng; điều kiện hết thì trở lại bậc trên.
+
+| Bậc | Khi | Hệ thống làm gì | Chức năng còn | Tài xế | Requirement |
+|---|---|---|---|---|---|
+| 0 | Hai vạch làn mình đủ tin, mọi input bắt buộc hợp lệ | Tâm làn từ hai vạch | HWA, LKA, ELK | — | — |
+| 1 | Mất một vạch làn mình | Vạch còn lại cộng bề rộng nhớ được | HWA; LKA, ELK ở phía còn vạch | — | PP-SWR-123 |
+| 2 | Mất hai vạch làn mình, còn vạch làn bên hoặc mép đường đủ tin | Suy tâm làn từ biên đó | HWA | — | PP-SWR-147, 148 |
+| 3 | Không còn biên làn đủ tin | Bám path cũ tối đa `T_coast` | Chức năng đang lái | — | PP-SWR-124 |
+| 4 | Hết `T_coast`; hoặc IMU, tốc độ, góc lái, ego-motion không hợp lệ | `path_valid = false`; Lateral Controller và EPS giảm mô-men về 0 theo dốc | Không | Yêu cầu cầm lái | PP-SWR-124, 142, 143 |
 
 ## 9. Limits, continuity, feasibility {#design-limits}
 
@@ -321,3 +345,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.1 | 2026-11-10 | Cycle sequence dòng 5: PathStatus cũng gửi tới Lateral Controller, khớp Interface Control Document 1.1 |
 | 1.2 | 2026-11-10 | Mục 4.2: planner tự tính trạng thái ngang (PP-ADR-014) |
 | 1.3 | 2026-11-11 | Truy vết của `lateral_limit_reached`, `delta_ay`, `T_flag` theo SRS 1.3 |
+| 1.4 | 2026-11-11 | Thêm mục 6.2 chiến lược tốc độ trong cua (R171 5.3.7.1.3) và mục 8.3 bậc suy giảm (R79 Annex 6, 3.4.3), gom từ các mục đã có |

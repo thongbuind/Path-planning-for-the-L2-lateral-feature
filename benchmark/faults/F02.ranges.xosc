@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="F02" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="F02.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="fault_kind">
+        <DistributionSet>
+          <Element value="c0_jump" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_start_s">
+        <DistributionSet>
+          <Element value="4.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_duration_s">
+        <DistributionSet>
+          <Element value="1.0" />
+          <Element value="0.05" />
+          <Element value="-1.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_lines">
+        <DistributionSet>
+          <Element value="[0, 1, 2, 3]" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_value">
+        <DistributionSet>
+          <Element value="0.3" />
+          <Element value="0.6" />
+          <Element value="1.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_sigma_c0">
+        <DistributionSet>
+          <Element value="0.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_sigma_c1">
+        <DistributionSet>
+          <Element value="0.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

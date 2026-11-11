@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.5 |
+| Phiên bản | 1.6 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -92,6 +92,7 @@
 | `pp_state_size` | Trước khởi tạo | — | Số byte vùng nhớ trạng thái |
 | `pp_init` | Một lần lúc khởi động | Vùng nhớ trạng thái, VehicleConfig | Kết quả khởi tạo. Sai VehicleConfig hoặc calibration ngoài giới hạn thì planner không gửi Trajectory (PP-SWR-146) |
 | `pp_step` | Mỗi chu kỳ 25 ms, tại t0 | t0; với mỗi input: message mới nhất và `rx_us`, hoặc chưa nhận; hàm EgoMotionQuery | Trajectory, PathStatus, LateralLimits, mỗi output kèm cờ có gửi hay không |
+| `pp_version` | Bất cứ lúc nào | — | Chuỗi định danh bản build: phiên bản, commit mã nguồn, mã bộ calibration (R79 Annex 6 3.3.5) |
 
 Interface được định nghĩa một lần trong `interfaces/schema/` của mã nguồn. Từ đó sinh header C cho planner và kiểu Python cho simulator; cùng định nghĩa dùng được để sinh file `.msg`.
 
@@ -267,3 +268,4 @@ Stamp là thời điểm ước lượng.
 | 1.3 | 2026-11-10 | Trajectory: `pose.yaw` là hướng tiếp tuyến của path, không phải hướng thân xe; `lateral_velocity_mps` là ḋ so với reference line |
 | 1.4 | 2026-11-11 | EgoMotionQuery: `dx`, `dy` là chuyển động thật của `base_link`, kể cả trượt ngang |
 | 1.5 | 2026-11-11 | PathStatus `lateral_limit_reached`: trỏ theo SRS 1.3 |
+| 1.6 | 2026-11-11 | Contract gọi hàm: thêm `pp_version` để định danh bản build |

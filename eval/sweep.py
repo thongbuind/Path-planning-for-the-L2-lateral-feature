@@ -8,8 +8,9 @@ changes one parameter at a time; phase 2 combines the best values; the best set 
 start set are then scored on the test set. Ranking follows section 9: requirements first,
 then safety targets, then comfort targets.
 
-Writes build/sweep/<suite>/: one folder per set (calibration.yaml, build/, result.json)
-and summary.md.
+Writes build/sweep/<suite>/: one folder per set (calibration.yaml, build/, result.json),
+summary.md, results.json and manifest.json. --record makes it an official run
+(research/README.md).
 """
 
 import argparse
@@ -24,7 +25,7 @@ from pathlib import Path
 import yaml
 
 from eval import calibration as cal_io
-from eval import loader
+from eval import loader, provenance
 
 ROOT = Path(__file__).resolve().parents[1]
 SUITE_DIR = ROOT / "benchmark" / "suites"
@@ -40,7 +41,8 @@ JERK = "PP-SWR-003"
 @dataclass(frozen=True)
 class CalSet:
     name: str
-    values: dict  # parameter -> value, in the units of calibration.yaml
+    values: dict       # parameter -> value, in the units of calibration.yaml
+    cmake: tuple = ()  # (cache entry, value) pairs for build-time choices (trade studies)
 
 
 def load_suite(suite_id: str) -> dict:
@@ -78,16 +80,17 @@ def _build(cal_set: CalSet, folder: Path) -> Path:
     build = folder / "build"
     subprocess.run(["cmake", "-S", str(ROOT / "planner"), "-B", str(build),
                     f"-DPP_CALIBRATION_FILE={cal_file}", "-DPP_BUILD_TESTS=OFF",
-                    "-DPP_BUILD_LAYOUT_PROBE=OFF", "-DCMAKE_BUILD_TYPE=Release"],
+                    "-DPP_BUILD_LAYOUT_PROBE=OFF", "-DCMAKE_BUILD_TYPE=Release"]
+                   + [f"-D{key}={value}" for key, value in cal_set.cmake],
                    check=True, capture_output=True)
     subprocess.run(["cmake", "--build", str(build)], check=True, capture_output=True)
     return build / LIB_NAME
 
 
-def run_set(suite_id: str, cal_set: CalSet, which: str) -> dict:
+def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None) -> dict:
     """Builds the set and runs one part of the suite ('tuning' or 'test'); in a worker."""
     suite = load_suite(suite_id)
-    folder = SWEEP_DIR / suite_id / cal_set.name.replace("=", "_")
+    folder = (root or SWEEP_DIR / suite_id) / cal_set.name.replace("=", "_")
     lib = _build(cal_set, folder)
     os.environ["PP_PLANNER_LIB"] = str(lib)
     # Imported after the library is chosen.
@@ -112,8 +115,8 @@ def run_set(suite_id: str, cal_set: CalSet, which: str) -> dict:
             values[JERK] = next(c.value for c in result.criteria if c.id == JERK)
             runs.append({"run": scenario.name, "seed": seed, "failed": failed, "values": values})
     summary = summarise(runs)
-    out = {"set": cal_set.name, "values": cal_set.values, "part": which, "summary": summary,
-           "runs": runs}
+    out = {"set": cal_set.name, "values": cal_set.values, "cmake": dict(cal_set.cmake),
+           "part": which, "library": str(lib), "summary": summary, "runs": runs}
     (folder / f"{which}.json").write_text(json.dumps(out, indent=2, ensure_ascii=False),
                                           encoding="utf-8")
     return out
@@ -170,10 +173,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("suite", help="Suite id in benchmark/suites, e.g. P1")
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--record", action="store_true",
+                        help="Official run: clean working tree; copy to research/runs")
     args = parser.parse_args()
     suite = load_suite(args.suite)
     out_dir = SWEEP_DIR / args.suite
     out_dir.mkdir(parents=True, exist_ok=True)
+    manifest = provenance.make("sweep", args.suite, {"jobs": args.jobs})
+    if args.record:
+        provenance.preflight(manifest)
 
     with ProcessPoolExecutor(max_workers=args.jobs) as pool:
         sets = one_at_a_time(suite)
@@ -199,7 +207,19 @@ def main() -> None:
         if r["summary"]["failed_ids"]:
             lines.append(f"- {r['part']} {r['set']}: " + ", ".join(r["summary"]["failed_ids"]))
     (out_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out_dir / "results.json").write_text(json.dumps(tuning + test, indent=1, ensure_ascii=False),
+                                          encoding="utf-8")
+    manifest["libraries"] = [provenance.library_info(Path(lib))
+                             for lib in sorted({r["library"] for r in tuning + test})]
+    manifest["best"] = {"set": best["set"], "values": best["values"]}
+    provenance.write(manifest, out_dir)
     print(f"Summary: {out_dir / 'summary.md'}", flush=True)
+    if args.record:
+        failed = sum(r["summary"]["failed"] for r in test)
+        dest = provenance.record(manifest, {"summary.md": out_dir / "summary.md",
+                                            "results.json": out_dir / "results.json"},
+                                 f"Tốt nhất trên bộ chỉnh: {best['set']}; trượt trên bộ kiểm: {failed}")
+        print(f"Recorded: {dest}", flush=True)
 
 
 if __name__ == "__main__":

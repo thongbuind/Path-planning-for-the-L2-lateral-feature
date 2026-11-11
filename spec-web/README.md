@@ -82,7 +82,7 @@ Sửa bản Việt sẽ báo **Cần cập nhật EN**. Nếu chỉ sửa bản 
 
 Viết chi tiết vào tài liệu kỹ thuật trước. Mục cần dẫn tới dùng tiêu đề có ID cố định, ví dụ `## EgoMotionQuery {#ego-motion}`. ID được giữ khi sửa báo cáo trên web.
 
-- Thẻ khối trong `SPEC_CARDS` có `x`, `y`, tên, một câu về vai trò và `research: { doc, section }`. `doc` là ID báo cáo, `section` là ID của mục.
+- Thẻ khối trong `SPEC_CARDS` có tên, một câu về vai trò và `research: { doc, section }`. `doc` là ID báo cáo, `section` là ID của mục. Tọa độ `x`, `y` đặt các khối trên xe có đường nối. Các vùng tài liệu, SIL và sơ đồ xếp thẻ theo thứ tự khai báo.
 - Đường dữ liệu trong `SPEC_EDGES` có `from`, `to`, `label` và `research: { doc, section }`. Các trường, đơn vị và trạng thái của interface nằm trong báo cáo được liên kết.
 - Dịch nhãn hiển thị trong `en/strings.js`. Khi bản đồ và tài liệu vênh nhau, sửa bản đồ theo tài liệu.
 

@@ -3,9 +3,10 @@
     python3 -m eval.matrix M1 --jobs 2
 
 Runs every (scenario, variant[, fault], longitudinal mode, profile, seed) of a suite in
-benchmark/suites and writes build/matrix/<suite>/summary.md and runs.json. Each run is
-judged with the scope of the named sweep suite (Kiểm chứng column of the SRS); all other
-criteria are reported as information.
+benchmark/suites and writes build/matrix/<suite>/summary.md, runs.json and manifest.json.
+Each run is judged with the scope of the named sweep suite (Kiểm chứng column of the SRS);
+all other criteria are reported as information. --record makes it an official run
+(research/README.md).
 """
 
 import argparse
@@ -17,12 +18,13 @@ from pathlib import Path
 
 import yaml
 
-from eval import loader, sweep
+from eval import loader, provenance, sweep
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "matrix"
 INFO = ("vehicle_offset_max_m", "ay_need_at_car_max", "speed_min_mps", "decel_max_mps2",
-        "offset_at_hwa_start_m")
+        "offset_at_hwa_start_m", "ay_vehicle_r79_max", "ay_vehicle_r79_over_sustained_s",
+        "jerk_vehicle_r79_max", "ay_vehicle_r79_within_limits")
 
 
 def expand(suite: dict) -> list[dict]:
@@ -85,7 +87,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("suite")
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--record", action="store_true",
+                        help="Official run: clean working tree, library from HEAD; copy to research/runs")
     args = parser.parse_args()
+    from adapters.sil.sil_planner import library_path
+    manifest = provenance.make("matrix", args.suite, {"jobs": args.jobs})
+    manifest["libraries"] = [provenance.library_info(library_path())]
+    if args.record:
+        provenance.preflight(manifest)
     suite = yaml.safe_load((sweep.SUITE_DIR / f"{args.suite}.yaml").read_text(encoding="utf-8"))
     jobs = expand(suite)
     print(f"{len(jobs)} runs", flush=True)
@@ -97,7 +106,15 @@ def main() -> None:
     failed = [r for r in results if r["failed"]]
     head = [f"# Matrix {args.suite}", "", f"{len(results)} runs; {len(failed)} with an in-scope failure.", ""]
     (out / "summary.md").write_text("\n".join(head + summary(results)) + "\n", encoding="utf-8")
+    provenance.write(manifest, out)
     print(f"{len(failed)} runs with in-scope failures; summary: {out / 'summary.md'}", flush=True)
+    if args.record:
+        other = sum(1 for r in results if r["failed_out_of_scope"])
+        dest = provenance.record(manifest, {"summary.md": out / "summary.md",
+                                            "results.json": out / "runs.json"},
+                                 f"{len(results)} lần chạy; {len(failed)} trượt trong phạm vi; "
+                                 f"{other} có trượt ngoài phạm vi")
+        print(f"Recorded: {dest}", flush=True)
 
 
 if __name__ == "__main__":

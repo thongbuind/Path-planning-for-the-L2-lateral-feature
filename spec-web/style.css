@@ -160,11 +160,9 @@ button { font: inherit; color: inherit; }
 /* Thẻ tài liệu (deliverable): một trang giấy dọc, góc vuông, góc gấp, có tờ lót phía sau,
    chữ đầu dạng mono và mục lục. Khác hẳn thẻ khối phần mềm để không nhầm là một module. */
 .card.doc {
-  width: 300px;
   color: inherit;
   text-decoration: none;
-  min-height: 400px;
-  padding: 26px 26px 20px;
+  padding: 18px 20px 16px;
   display: flex;
   flex-direction: column;
   border-radius: 3px;
@@ -404,24 +402,24 @@ button { font: inherit; color: inherit; }
 
 .report-page.report-overview, .report-overview body { height: 100%; min-height: 0; overflow: clip; background: #F5F5F2; }
 .report-overview {
-  --report-catalog-width: clamp(1120px, 100vw, 1440px);
-  --report-catalog-gutter: 24px;
+  --report-catalog-width: clamp(1120px, 100vw, 1760px);
+  --report-catalog-gutter: clamp(12px, 2.4vw, 36px);
 }
 .report-overview .report-header {
-  padding-block: 2px;
+  padding-block: 4px;
   padding-inline: max(8px, calc((100% - (var(--report-catalog-width) - 2 * var(--report-catalog-gutter)) * var(--report-scale, 1)) / 2));
 }
 .report-catalog {
   width: var(--report-catalog-width);
   margin: 0 auto;
-  padding: 18px var(--report-catalog-gutter) 12px;
+  padding: 18px var(--report-catalog-gutter);
   zoom: var(--report-scale, 1);
 }
 .report-masthead { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .report-project, .report-catalog-count { margin: 0; font: 600 11px var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
 .report-project { color: var(--violet); margin-bottom: 4px; }
 .report-catalog-count { color: var(--text-2); padding: 6px 0; white-space: nowrap; }
-.report-catalog h1 { margin: 0; font: 700 38px/1.05 Georgia, "Times New Roman", serif; letter-spacing: -0.04em; }
+.report-catalog h1 { margin: 0; font: 700 clamp(26px, 4vw, 38px)/1.05 Georgia, "Times New Roman", serif; letter-spacing: -0.04em; }
 .report-notice { color: var(--warn); }
 .report-group + .report-group { margin-top: 14px; }
 .report-group-title {
@@ -436,18 +434,23 @@ button { font: inherit; color: inherit; }
 }
 .report-group-title::after { content: ""; flex: 1; height: 1px; background: #DCDFD9; }
 .report-grid {
+  --catalog-columns: 5;
+  --tile-gap: 12px;
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
-  gap: 10px;
+  gap: var(--tile-gap);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+:where(.report-group + .report-group) .report-grid { --catalog-columns: 4; }
 .report-tile {
   --tile-accent: #225F56;
   --tile-tint: #EAF4EF;
-  flex: 1 1 0;
+  flex: 1 1 calc((100% - (var(--catalog-columns) - 1) * var(--tile-gap)) / var(--catalog-columns));
   min-width: 0;
+  container-type: inline-size;
   padding: 10px 11px 12px;
   border: 1px solid #DEE0DB;
   border-radius: 9px;
@@ -455,9 +458,6 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 2px 4px #20241B08;
 }
 .report-tile-main { --tile-accent: var(--violet); --tile-tint: var(--violet-tint); }
-.report-tile:has(.report-toc-links > :nth-child(10)) { flex-grow: 1.38; }
-.report-tile:has(.report-toc-links > :nth-child(12)) { flex-grow: 1.52; }
-.report-tile:has(.report-toc-links > :nth-child(15)) { flex-grow: 1.7; }
 .report-tile-link {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -508,15 +508,17 @@ button { font: inherit; color: inherit; }
 .report-tile .doc-toc { display: block; margin: 6px 0 0; padding-top: 6px; }
 .report-tile .doc-toc-label { display: block; margin-bottom: 4px; }
 .report-tile .doc-toc:has(.report-toc-links) .doc-toc-label { display: none; }
-.report-toc-links:has(> :nth-child(12)) { columns: 2; column-gap: 8px; }
+@container (min-width: 290px) {
+  .report-toc-links:has(> :nth-child(10)) { columns: 2; column-gap: 12px; }
+}
 .report-toc-links .doc-toc-row {
   break-inside: avoid;
   align-items: baseline;
   gap: 5px;
   margin: 0;
-  padding: 1px 3px;
-  font-size: 12.5px;
-  line-height: 1.26;
+  padding: 2px 4px;
+  font-size: 13px;
+  line-height: 1.35;
   text-decoration: none;
 }
 .report-toc-links .doc-toc-no { color: var(--tile-accent); font-size: 11px; }
@@ -575,7 +577,7 @@ button { font: inherit; color: inherit; }
   --region-line: #7AA5DA;
   --region-bg: #EAF3FDDC;
   position: absolute;
-  padding: 20px 38px;
+  padding: 20px 28px;
   border: 4px solid var(--region-line);
   border-radius: 30px;
   background: var(--region-bg);
@@ -591,12 +593,33 @@ button { font: inherit; color: inherit; }
   --region-line: #C59551;
   --region-bg: #FFF4E2ED;
 }
-.map-region[data-region="dynamics"] {
+.map-region[data-region="strategy"] {
   --region-accent: #3F2BB8;
   --region-line: #9D90EC;
   --region-bg: #F2F0FEED;
 }
-.card.diagram { width: 800px; display: flex; flex-direction: column; gap: 6px; }
+.map-region[data-region="safety"] {
+  --region-accent: #9A1F3D;
+  --region-line: #E3A0B0;
+  --region-bg: #FDF0F3ED;
+}
+.map-region[data-region="dynamics"] {
+  --region-accent: #34495E;
+  --region-line: #A3B1C2;
+  --region-bg: #F1F4F7ED;
+}
+/* The System (R79 Annex 6, 3.3.1): khung con trong vùng phần mềm trên xe. */
+.map-region[data-region="system"] {
+  --region-accent: #5B3DF5;
+  --region-line: #9D90EC;
+  --region-bg: #5B3DF50A;
+  padding: 14px 24px;
+  border-width: 3px;
+  border-style: dashed;
+  border-radius: 24px;
+}
+.map-region[data-region="system"] .region-label { position: absolute; right: 24px; bottom: 12px; font-size: 22px; }
+.card.diagram { display: flex; flex-direction: column; gap: 6px; }
 .card.diagram .doc-title { font-size: 24px; }
 .diagram-body { display: block; margin: 10px 0 4px; color: var(--text-2); }
 .diagram-body svg { display: block; max-width: 100%; height: auto; }
@@ -727,10 +750,18 @@ button { font: inherit; color: inherit; }
   pointer-events: none;
 }
 
-/* ---------- Màn hình hẹp ---------- */
+/* ---------- Bố cục theo kích thước màn hình ---------- */
+@media (min-width: 1200px) {
+  .report-tile { flex-basis: 0; }
+  .report-tile:has(.report-toc-links > :nth-child(10)) { flex-grow: 1.25; }
+  .report-tile:has(.report-toc-links > :nth-child(12)) { flex-grow: 1.65; }
+  .report-tile:has(.report-toc-links > :nth-child(15)) { flex-grow: 1.95; }
+}
+
 @media (max-width: 720px) and (orientation: portrait) {
-  .report-overview { --report-catalog-width: 760px; --report-catalog-gutter: 14px; }
-  .report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-overview { --report-catalog-width: 680px; }
+  .report-grid { --catalog-columns: 3; }
+  :where(.report-group + .report-group) .report-grid { --catalog-columns: 2; }
 }
 
 @media (max-width: 640px) {

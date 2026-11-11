@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="S1" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S1.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, clothoid vào cung R = 1000 m (a_y cua 0,6 m/s²)" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="24" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, clothoid vào cung R = 500 m (a_y cua 1,25 m/s²)" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1b.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="22" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, clothoid vào cung R = 250 m (a_y cua 2,5 m/s², chạm aysmax)" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1c.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="30" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, cua chữ S, R = 500 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1d.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="36.11111111111111" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="22" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="130 km/h, clothoid vào cung R = 1000 m (a_y cua 1,3 m/s²)" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1e.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="30" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="f" />
+            <ParameterAssignment parameterRef="description" value="R171 Annex 4 4.2.4.1: S-bend 787 m / 374 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1f.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="22" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="variant" value="g" />
+            <ParameterAssignment parameterRef="description" value="90 km/h, R = 300 m, 83% aysmax" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1g.xodr" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

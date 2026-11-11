@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.3 |
+| Phiên bản | 1.4 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -179,7 +179,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
-| PP-SWR-051 | Trong khi HWA đang lái và a_y cần lớn nhất ≤ aysmax, DLC ở cả hai phía phải ≥ 0 | Test, vòng kín: S1 | Regulatory, SG-01 | R79 5.6.2.1.1 |
+| PP-SWR-051 | Trong khi HWA đang lái, a_y cần lớn nhất ≤ aysmax và khoảng trống mỗi bên ≥ `free_space_min`, DLC ở cả hai phía phải ≥ 0 | Test, vòng kín: S1 | Regulatory, SG-01 | R79 5.6.2.1.1 |
 | PP-SWR-052 | Khi HWA bắt đầu lái lúc xe lệch tâm làn tới 0,5 m, chức năng đang lái phải giữ là HWA trong suốt đoạn đưa về giữa | Test: S2 | Functional | nhóm tự thống nhất |
 | PP-SWR-054 | Trong khi HWA ở REQUEST và tốc độ xe trong khoảng 0–60 km/h, planner phải tiếp tục gửi path hợp lệ cho HWA | Test: S11 | Functional | nhóm tự thống nhất |
 | PP-SWR-055 | Trong khi có xe lớn ở làn bên kề và khoảng hở phía bên kia lớn hơn, path phải lệch khỏi tâm làn thật về phía bên kia | Test: S3, S3b, S15 | Functional | đề bài |
@@ -317,3 +317,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.1 | 2026-11-10 | Thêm PP-ASM-019: nền tảng đích chưa biết, planner chỉ cần trình biên dịch C11 |
 | 1.2 | 2026-11-11 | PP-SWR-006 chỉ xét đoạn 0–1 s của path. Lý do: ở tầm xa, đa thức bậc 3 của lane model đọc thấp độ cong của clothoid ngắn (6–11 % ở 72 m), nên không planner nào đảm bảo được; xe chỉ chạy theo phần gần, phần xa được lập lại mỗi chu kỳ |
 | 1.3 | 2026-11-11 | PP-SWR-007 lấy mốc của R79: cờ phải đang bật khi lốp trước bắt đầu đè vạch. Lý do: câu cũ đo bằng chính calibration parameter `T_flag`, tăng `T_flag` là đạt. PP-SWR-008 chuyển thành performance target; thêm target PP-SWR-064 (thời gian báo trước); bỏ `delta_ay`, `T_flag` khỏi mục 7; ghi lại nguồn của PP-SWR-006 và `epsilon_ay` |
+| 1.4 | 2026-11-11 | PP-SWR-051 chỉ áp dụng khi khoảng trống mỗi bên ≥ `free_space_min`. Lý do: ODD cho làn 2,5 m với xe rộng 2,5 m (PP-SWR-062), khi đó không xe nào giữ được DLC ≥ 0; hành vi đúng là báo `lane_too_narrow` (PP-SWR-063) để HWA không khả dụng. Các requirement dựa vào PP-SWR-051 (122, 123, 135 đến 139, 148) kế thừa điều kiện này |

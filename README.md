@@ -10,7 +10,7 @@ Bộ tài liệu kỹ thuật trong `docs/vi/` là nguồn chính thức. Code l
 | `planner/` | Sản phẩm, black box. Thư viện C11 có API C (PP-ADR-013) | C11 |
 | `adapters/sil/` | Cầu nối simulator Python với thư viện planner (ctypes) | Python |
 | `sim/` | Môi trường test: lập lịch, đồng hồ, CAN, thế giới, mô hình xe, cảm biến, khối chạy thử, cơ chế bơm lỗi, log | Python + numpy |
-| `benchmark/` | Bài thi: kịch bản, danh mục lỗi, bộ chỉnh và bộ kiểm, seed. Chỉ có dữ liệu | YAML |
+| `benchmark/` | Bài thi: kịch bản, danh mục lỗi, bộ chỉnh và bộ kiểm, seed. Chỉ có dữ liệu | ASAM XML; bộ chạy JSON/YAML |
 | `eval/` | Người chấm: chạy bài thi, tiêu chí đạt, chỉ số, xếp hạng, báo cáo | Python |
 | `tests/` | Test của code (unit, integration). Không phải benchmark | Python, C |
 
@@ -27,7 +27,7 @@ planner/
   CMakeLists.txt
 adapters/sil/        build và gọi libpp_planner
 sim/                 runtime/ can/ world/ vehicle/ sensors/ stand_ins/ faults/ logging/ harness.py
-benchmark/           scenarios/ faults/ suites/ seeds.yaml
+benchmark/           scenarios/ faults/ roads/ suites/ schema/
 eval/                loader, runner, criteria, metrics, flexibility, ranking, report
 tests/               interfaces/ planner/ sim/ eval/ test_import_rules.py
 ```
@@ -70,4 +70,19 @@ cmake -S planner -B build/planner && cmake --build build/planner
 (cd build/planner && ctest)            # C unit test của từng unit (tests/planner/c)
 python3 -m pytest
 python3 -m eval.runner S1 a --seed 1   # một kịch bản vòng kín SIL; kết quả ở build/runs/
+python3 -m eval.matrix M1 --jobs 2     # ma trận phủ rộng; build/matrix/M1/
+python3 -m eval.sweep P1 --jobs 2      # quét calibration; build/sweep/P1/
+python3 -m eval.study PP-TS-003        # các phương án của một trade study; build/study/
+```
+
+Thêm `--record` để thành lần chạy chính thức: cần cây làm việc sạch và thư viện build từ đúng commit (`pp_version()`); kết quả chép vào `research/runs/`. Quy trình ở `research/README.md`.
+
+## Kịch bản ASAM và ba bộ chạy
+
+Kịch bản S1, S1b, S2, S14 và lỗi F01, F02, F04, F06 dùng `.xosc`; đường dùng `.xodr`. Mỗi kịch bản có file neo và file dải tham số. Cài dependency trong `requirements.txt`; cách sinh smoke, regression, full và chạy tuần tự trên SIL ở [benchmark/README.md](benchmark/README.md).
+
+```bash
+python3 -m eval.validate benchmark
+python3 -m eval.generate smoke
+python3 -m eval.suite build/concrete/smoke/manifest.json
 ```

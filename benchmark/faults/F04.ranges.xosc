@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="F04" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="F04.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="fault_kind">
+        <DistributionSet>
+          <Element value="lose_line" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_start_s">
+        <DistributionSet>
+          <Element value="4.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_duration_s">
+        <DistributionSet>
+          <Element value="-1.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_lines">
+        <DistributionSet>
+          <Element value="[1]" />
+          <Element value="[2]" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_value">
+        <DistributionSet>
+          <Element value="0.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_sigma_c0">
+        <DistributionSet>
+          <Element value="0.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="fault_sigma_c1">
+        <DistributionSet>
+          <Element value="0.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

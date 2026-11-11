@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenDRIVE>
+  <header revMajor="1" revMinor="8" name="ego lane reference" version="1.0" />
+  <road name="three lanes" length="800.0" id="1" junction="-1" rule="RHT">
+    <planView>
+      <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="150.0">
+        <line />
+      </geometry>
+      <geometry s="150.0" x="150.0" y="0.0" hdg="0.0" length="100.0">
+        <spiral curvStart="0.0" curvEnd="0.002" />
+      </geometry>
+      <geometry s="250.0" x="249.900046285614" y="3.3309531383958815" hdg="0.1" length="150.0">
+        <arc curvature="0.002" />
+      </geometry>
+      <geometry s="400.0" x="394.6925091165252" y="40.30253877596623" hdg="0.4" length="100.0">
+        <spiral curvStart="0.002" curvEnd="1e-12" />
+      </geometry>
+      <geometry s="500.0" x="483.9599916704776" y="85.27398588577171" hdg="0.50000000005" length="100.0">
+        <spiral curvStart="1e-12" curvEnd="-0.002" />
+      </geometry>
+      <geometry s="600.0" x="573.2274742215016" y="130.2454330015631" hdg="0.40000000010000003" length="200.0">
+        <arc curvature="-0.002" />
+      </geometry>
+    </planView>
+    <lanes>
+      <laneOffset s="0" a="5.25" b="0" c="0" d="0" />
+      <laneSection s="0">
+        <center>
+          <lane id="0" type="none" level="false">
+            <roadMark sOffset="0" type="solid" weight="standard" color="white" width="0.15" />
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="broken" weight="standard" color="white" width="0.15" />
+          </lane>
+          <lane id="-2" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="broken" weight="standard" color="white" width="0.15" />
+          </lane>
+          <lane id="-3" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="solid" weight="standard" color="white" width="0.15" />
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+  </road>
+</OpenDRIVE>

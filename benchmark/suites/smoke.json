@@ -1,0 +1,39 @@
+{
+  "id": "smoke",
+  "scenarios": [
+    "S1",
+    "S1b",
+    "S2",
+    "S14"
+  ],
+  "faults": [
+    "F01",
+    "F02",
+    "F04",
+    "F06"
+  ],
+  "methods": [
+    "anchor"
+  ],
+  "profiles": [
+    "VP-0"
+  ],
+  "seeds": [
+    1
+  ],
+  "noise_seeds": [
+    1
+  ],
+  "lhs_count": 24,
+  "sampling_seed": 20261111,
+  "fault_hosts": [
+    [
+      "S1",
+      "a"
+    ],
+    [
+      "S1",
+      "c"
+    ]
+  ]
+}

@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="S2" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S2.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="lane_width_m">
+        <DistributionRange stepWidth="0.5">
+          <Range lowerLimit="2.5" upperLimit="5.5" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="speed_mps">
+        <DistributionRange stepWidth="2.7777777777777777">
+          <Range lowerLimit="2.7777777777777777" upperLimit="36.11111111111111" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="direction">
+        <DistributionSet>
+          <Element value="-1.0" />
+          <Element value="1.0" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="profile">
+        <DistributionSet>
+          <Element value="VP-0" />
+          <Element value="VP-1" />
+          <Element value="VP-2" />
+          <Element value="VP-3" />
+          <Element value="VP-4" />
+          <Element value="VP-5" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="acc">
+        <DistributionSet>
+          <Element value="off" />
+          <Element value="on" />
+          <Element value="ignore_limits" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="start_offset_m">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="-0.5" upperLimit="0.5" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="start_heading_rad">
+        <DistributionRange stepWidth="0.017453292519943295">
+          <Range lowerLimit="-0.03490658503988659" upperLimit="0.03490658503988659" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

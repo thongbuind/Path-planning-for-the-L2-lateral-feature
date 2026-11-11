@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-11T00:00:00Z" description="S14" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S14.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="13" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S14" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="như S1b a (90 km/h, R = 200 m)" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S14a.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="36.11111111111111" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="22" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S14" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="S1f at 130 km/h; R171 S-bend" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S14e.xodr" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

@@ -5,9 +5,10 @@ Only what the planner sends (Trajectory, PathStatus, LateralLimits), its compute
 and the delivered calibration values that requirements point to are used, together
 with the simulator's ground truth. Nothing inside the planner is read.
 
-Covered so far: PP-SWR-001, 003, 005, 006, 007, 009, 010, 051, 052, 100 to 102, 116, 117,
+Covered so far: PP-SWR-001, 003, 005, 006, 007, 009, 010, 051, 052, 063, 100 to 102, 116, 117,
 150; targets PP-SWR-002, 008, 016, 050, 053, 064, 125. A criterion with no situation to judge in a run is reported as
-not applicable.
+not applicable. Information only: a_y and jerk on the vehicle as R79 Annex 8, 2.4 measures them
+(r79_vehicle), until a requirement points to it.
 """
 
 from dataclasses import asdict, dataclass, field
@@ -30,6 +31,16 @@ CENTRED_M = 0.1  # PP-SWR-053: centred when the lateral offset is within 0.1 m
 RECENTER_MAX_M = 0.5  # PP-SWR-052: HWA starts with the car up to 0.5 m off centre
 TRUTH_STEP = 10  # Ground truth samples (1 ms) per offset sample, 10 ms
 GRID_STEP_S = float(TRAJECTORY_STEP_S)
+
+# a_y and jerk measured on the vehicle as R79 Annex 8, 2.4 prescribes (Software Qualification
+# Test Specification 5.1). Reported as information; no requirement points to it yet.
+R79_FILTER_ORDER = 4  # Annex 8, 2.4: fourth order Butterworth
+R79_FILTER_HZ = 0.5  # Annex 8, 2.4: cut-off frequency
+R79_MIN_RATE_HZ = 100.0  # Annex 8, 2.4: sampling rate at least
+R79_AY_TABLE_MAX = 3.0  # 5.6.2.1.3, Table 1, M1: maximum specified aysmax
+R79_AY_MARGIN = 0.3  # 5.6.2.1.1: may exceed aysmax by not more than 0.3 m/s^2
+R79_AY_SHORT_FACTOR = 1.4  # 5.6.2.1.1: by not more than 40 per cent ...
+R79_AY_SHORT_S = 2.0  # ... for time periods of not more than 2 s
 
 
 @dataclass
@@ -191,6 +202,58 @@ def _flag_lead(t_event_s: float, t_s: np.ndarray, flags: np.ndarray) -> float:
     return -float(t_s[max(i, 0) + later[0]] - t_event_s) if len(later) else -float("inf")
 
 
+def r79_vehicle(t_s: np.ndarray, a_y: np.ndarray, active: np.ndarray, aysmax: float = AYSMAX) -> dict:
+    """Lateral acceleration and jerk at the CG as R79 Annex 8, 2.4 measures them.
+
+    `a_y` is the raw ground-truth lateral acceleration at the CG (body frame; the vehicle
+    model has no roll, so nothing needs removing). Filtered over the whole run with a
+    causal fourth order Butterworth low-pass at 0.5 Hz, started in steady state; jerk is the
+    0.5 s moving average of the time derivative of the filtered signal. Maxima and
+    durations count only samples where `active` (HWA drives). Limits of R79 5.6.2.1.1:
+    above aysmax + 0.3 only for periods of at most 2 s, never above the short limit.
+    """
+    from scipy.signal import butter, sosfilt, sosfilt_zi
+
+    sustained = min(aysmax + R79_AY_MARGIN, R79_AY_TABLE_MAX)
+    short = min(R79_AY_SHORT_FACTOR * aysmax, R79_AY_TABLE_MAX + R79_AY_MARGIN)
+    out = {"ay_vehicle_r79_max": None, "ay_vehicle_r79_over_sustained_s": None,
+           "jerk_vehicle_r79_max": None, "ay_vehicle_r79_within_limits": None,
+           "ay_vehicle_r79_limits": [sustained, short, R79_AY_SHORT_S]}
+    if len(t_s) < 2 or not np.any(active):
+        return out
+    dt = float(np.median(np.diff(t_s)))
+    rate = 1.0 / dt
+    if rate < R79_MIN_RATE_HZ:
+        raise ValueError(f"ground truth at {rate:.0f} Hz, R79 Annex 8 2.4 needs >= {R79_MIN_RATE_HZ:.0f} Hz")
+    sos = butter(R79_FILTER_ORDER, R79_FILTER_HZ, btype="low", fs=rate, output="sos")
+    filtered, _ = sosfilt(sos, a_y, zi=sosfilt_zi(sos) * a_y[0])
+    n = max(1, round(JERK_WINDOW_S / dt))
+    jerk = np.diff(filtered) / dt
+    csum = np.concatenate(([0.0], np.cumsum(jerk)))
+    window = (csum[n:] - csum[:-n]) / n if len(jerk) >= n else np.array([np.mean(jerk)])
+    # A window ends at sample i + n of the signal; judge it where HWA drives at its end.
+    window_active = active[n:n + len(window)] if len(jerk) >= n else active[-1:]
+    over = active & (np.abs(filtered) > sustained)
+    longest = run = 0
+    for flag in over:
+        run = run + 1 if flag else 0
+        longest = max(longest, run)
+    ay_max = float(np.max(np.abs(filtered[active])))
+    out.update({
+        "ay_vehicle_r79_max": ay_max,
+        "ay_vehicle_r79_over_sustained_s": longest * dt,
+        "jerk_vehicle_r79_max": float(np.max(np.abs(window[window_active]))) if np.any(window_active) else 0.0,
+        "ay_vehicle_r79_within_limits": bool(ay_max <= short and longest * dt <= R79_AY_SHORT_S),
+    })
+    return out
+
+
+def _hwa_at(times_s: np.ndarray, cycle_t_s: np.ndarray, hwa: np.ndarray) -> np.ndarray:
+    """Ground-truth samples at which the latest planner cycle had HWA driving."""
+    idx = np.searchsorted(cycle_t_s, times_s, side="right") - 1
+    return (idx >= 0) & hwa[np.clip(idx, 0, len(hwa) - 1)]
+
+
 def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result:
     """`calibration`: values of the build under test that requirements point to; by
     default read from the delivered calibration data set."""
@@ -301,8 +364,13 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
 
-    # PP-SWR-051: DLC on the true lane at the front axle while HWA drives, a_y needed <= aysmax.
-    judged_051 = hwa & (need_max <= AYSMAX)
+    # PP-SWR-051: DLC on the true lane at the front axle while HWA drives, a_y needed <= aysmax
+    # and the true free space each side >= free_space_min (SRS 1.4). Below it, PP-SWR-063.
+    free_space = (log.road.lane_width - log.vehicle_width) / 2.0
+    lane_wide_enough = free_space >= cal["free_space_min"]
+    judged_051 = hwa & (need_max <= AYSMAX) & lane_wide_enough
+    narrow_flags = [bool(c.path_status.lane_too_narrow) for c in cycles if _valid(c)]
+    narrow_share = float(np.mean(narrow_flags)) if narrow_flags else float("nan")
     dlc_left = dlc_right = np.inf
     offset_max = 0.0
     s_hint = None
@@ -377,6 +445,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   float(flag_same), "= 1", flag_same),
         Criterion("PP-SWR-051", "DLC nhỏ nhất so với làn thật [m]", dlc_min, ">= 0",
                   dlc_min >= 0.0, applicable=bool(np.any(judged_051))),
+        Criterion("PP-SWR-063", "Tỉ lệ chu kỳ có path hợp lệ báo lane_too_narrow khi khoảng trống thật < free_space_min",
+                  narrow_share, "= 1", narrow_share == 1.0,
+                  applicable=bool(not lane_wide_enough and narrow_flags)),
         Criterion("PP-SWR-001", "a_y lớn nhất của path, HWA [m/s²]", ay_max, f"<= {AYSMAX}",
                   ay_max <= AYSMAX, applicable=any_hwa),
         Criterion("PP-SWR-003", "Jerk ngang lớn nhất của path, HWA [m/s³]", jerk_max,
@@ -434,7 +505,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         "speed_min_mps": float(min(log.speed)) if log.speed else None,
         "decel_max_mps2": (float(-min(np.diff(log.speed)) / 1e-3) if len(log.speed) > 1 else None),
         "vehicle_offset_max_m": offset_max,
+        "free_space_each_side_m": free_space,
         "calibration": cal,
         "compute_time_note": "Đồng hồ thật của máy, gồm cả adapter SIL (ctypes)",
     }
+    truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
+    info.update(r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),
+                            _hwa_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool)))
     return Result(log.scenario.name, log.seed, criteria, targets, info)

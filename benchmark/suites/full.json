@@ -1,0 +1,56 @@
+{
+  "id": "full",
+  "scenarios": [
+    "S1",
+    "S1b",
+    "S2",
+    "S14"
+  ],
+  "faults": [
+    "F01",
+    "F02",
+    "F04",
+    "F06"
+  ],
+  "methods": [
+    "anchor",
+    "boundary",
+    "pairwise",
+    "lhs"
+  ],
+  "profiles": [
+    "VP-0",
+    "VP-1",
+    "VP-2",
+    "VP-3",
+    "VP-4",
+    "VP-5"
+  ],
+  "seeds": [
+    1
+  ],
+  "noise_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "lhs_count": 24,
+  "sampling_seed": 20261111,
+  "fault_hosts": [
+    [
+      "S1",
+      "a"
+    ],
+    [
+      "S1",
+      "c"
+    ]
+  ]
+}
