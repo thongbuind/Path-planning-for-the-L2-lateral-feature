@@ -3,6 +3,7 @@
 window.SPEC_CARDS = [
   {
     "id": "lateral-controller",
+    "region": "system",
     "x": 403,
     "y": -163,
     "title": "Lateral Controller",
@@ -39,7 +40,7 @@ window.SPEC_CARDS = [
   {
     "id": "perception",
     "icon": "object",
-    "x": -850,
+    "x": -930,
     "y": 157,
     "title": "Perception",
     "summary": "Cung cấp danh sách vật thể xung quanh xe.",
@@ -74,6 +75,7 @@ window.SPEC_CARDS = [
   },
   {
     "id": "adas-function-specification",
+    "region": "system",
     "icon": "adas",
     "x": -483,
     "y": 327,
@@ -87,8 +89,8 @@ window.SPEC_CARDS = [
   {
     "id": "vehicle-config",
     "icon": "config",
-    "x": -110,
-    "y": 334,
+    "x": -930,
+    "y": 480,
     "title": "Cấu hình xe",
     "summary": "Cung cấp kích thước và giới hạn lái của xe.",
     "research": {
@@ -98,6 +100,7 @@ window.SPEC_CARDS = [
   },
   {
     "id": "path-planner",
+    "region": "system",
     "group": "primary",
     "icon": "planner",
     "x": -266,
@@ -109,7 +112,44 @@ window.SPEC_CARDS = [
       "section": "planner-cycle"
     }
   },
-  // Hàng đầu: báo cáo tổng quan.
+  {
+    "id": "eps",
+    "region": "system",
+    "icon": "steer",
+    "x": 403,
+    "y": 157,
+    "title": "EPS",
+    "summary": "Chấp hành lệnh lái; giảm mô-men theo dốc khi path không hợp lệ.",
+    "research": {
+      "doc": "path-planner-hazard-analysis-and-risk-assessment",
+      "section": "safety-item"
+    }
+  },
+  {
+    "id": "longitudinal",
+    "icon": "car",
+    "x": 403,
+    "y": -483,
+    "title": "Khối dọc (ACC)",
+    "summary": "Chỉnh tốc độ theo xe trước và theo cua, đọc giới hạn từ planner.",
+    "research": {
+      "doc": "path-planner-software-architectural-design",
+      "section": "curve-strategy"
+    }
+  },
+  {
+    "id": "hmi",
+    "icon": "flag",
+    "x": -483,
+    "y": 640,
+    "title": "HMI",
+    "summary": "Đèn, âm thanh, rung báo tài xế.",
+    "research": {
+      "doc": "adas-function-specification",
+      "section": "adas-warnings"
+    }
+  },
+  // Thẻ tài liệu xếp theo thứ tự trong danh mục.
   {
     "id": "mentor-report",
     "kind": "doc",
@@ -117,11 +157,8 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "Summary · Path Planner",
     "title": "Mentor Report",
-    "summary": "Tóm tắt 2 trang: hệ thống, thiết kế chính, tuân thủ, kiểm chứng, an toàn và việc cần mentor hỗ trợ.",
-    "x": -2540,
-    "y": -650
+    "summary": "Tóm tắt 2 trang: hệ thống, thiết kế chính, tuân thủ, kiểm chứng, an toàn và việc cần mentor hỗ trợ."
   },
-  // Hàng thứ hai: tài liệu chính, đọc từ trái sang phải.
   {
     "id": "path-planner-software-requirements-specification",
     "kind": "doc",
@@ -130,9 +167,7 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "Requirements · Path Planner",
     "title": "Software Requirements Specification",
-    "summary": "Requirement, performance target, ODD, giả định và giới hạn calibration parameter; căn cứ để chấm planner.",
-    "x": -2540,
-    "y": -80
+    "summary": "Requirement, performance target, ODD, giả định và giới hạn calibration parameter; căn cứ để chấm planner."
   },
   {
     "id": "path-planner-software-architectural-design",
@@ -142,9 +177,7 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "Design · Path Planner",
     "title": "Software Architectural Design",
-    "summary": "Thành phần, chu kỳ, reference line, arbitration, path HWA, LKA, ELK, fault handling và calibration parameter.",
-    "x": -2160,
-    "y": -80
+    "summary": "Thành phần, chu kỳ, reference line, arbitration, path HWA, LKA, ELK, fault handling và calibration parameter."
   },
   {
     "id": "path-planner-architecture-decision-records",
@@ -154,9 +187,7 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "ADR · Path Planner",
     "title": "Architecture Decision Records",
-    "summary": "12 quyết định thiết kế, mỗi quyết định có bối cảnh, phương án bị loại và hệ quả.",
-    "x": -1780,
-    "y": -80
+    "summary": "12 quyết định thiết kế, mỗi quyết định có bối cảnh, phương án bị loại và hệ quả."
   },
   {
     "id": "path-planner-software-detailed-design",
@@ -166,11 +197,8 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "Detailed Design · Path Planner",
     "title": "Software Detailed Design",
-    "summary": "Thuật toán T1 đến T11, cấu trúc code và calibration parameter cấp thuật toán.",
-    "x": -1400,
-    "y": -80
+    "summary": "Thuật toán T1 đến T11, cấu trúc code và calibration parameter cấp thuật toán."
   },
-  // Hàng thứ ba: tài liệu tra cứu.
   {
     "id": "path-planner-interface-control-document",
     "kind": "doc",
@@ -178,9 +206,7 @@ window.SPEC_CARDS = [
     "renamedFrom": ["path-planner-interfaces", "g1-interfaces-and-signals", "interface-he-thong"],
     "eyebrow": "Interface · Path Planner",
     "title": "Interface Control Document",
-    "summary": "11 message của planner: trường, kiểu, đơn vị, tần số, timeout.",
-    "x": -2540,
-    "y": 730
+    "summary": "11 message của planner: trường, kiểu, đơn vị, tần số, timeout."
   },
   {
     "id": "adas-function-specification",
@@ -189,9 +215,7 @@ window.SPEC_CARDS = [
     "renamedFrom": ["adas-functions", "chuc-nang-adas"],
     "eyebrow": "Function Specification · ADAS",
     "title": "ADAS Function Specification",
-    "summary": "Khi nào HWA, LKA, ELK được yêu cầu: khả dụng, ý định tài xế, kích hoạt, cảnh báo, theo UN R79, EU ELKS và Euro NCAP.",
-    "x": -2160,
-    "y": 730
+    "summary": "Khi nào HWA, LKA, ELK được yêu cầu: khả dụng, ý định tài xế, kích hoạt, cảnh báo, theo UN R79, EU ELKS và Euro NCAP."
   },
   {
     "id": "path-planner-hazard-analysis-and-risk-assessment",
@@ -201,9 +225,7 @@ window.SPEC_CARDS = [
     "eyebrow": "Safety · HARA",
     "title": "Hazard Analysis and Risk Assessment (HARA)",
     "summary": "Item definition, hazard, S, E, C và ASIL đề xuất, safety goal, SOTIF; bản gửi phòng an toàn.",
-    "status": "Chờ review",
-    "x": -1780,
-    "y": 730
+    "status": "Chờ review"
   },
   {
     "id": "path-planner-software-qualification-test-specification",
@@ -216,54 +238,12 @@ window.SPEC_CARDS = [
     "mergedFrom": {
       "doc": "moi-truong-gia-lap",
       "section": "simulation-design"
-    },
-    "x": -1400,
-    "y": 730
-  },
-  {
-    "id": "conventions",
-    "icon": "rules",
-    "x": 403,
-    "y": -483,
-    "title": "Quy ước interface",
-    "summary": "Quy định cách các khối trao đổi dữ liệu.",
-    "research": {
-      "doc": "path-planner-interface-control-document",
-      "section": "header"
-    }
-  },
-  {
-    "id": "sim-scheduler",
-    "group": "sim",
-    "icon": "clock",
-    "x": 883,
-    "y": -650,
-    "title": "Bộ lập lịch",
-    "summary": "Điều phối thời điểm chạy các khối và giao message.",
-    "research": {
-      "doc": "path-planner-software-qualification-test-specification",
-      "section": "sim-scheduler"
-    }
-  },
-  {
-    "id": "sim-can",
-    "group": "sim",
-    "icon": "bus",
-    "x": 1236.333,
-    "y": -650,
-    "title": "Bus CAN ảo",
-    "summary": "Mô phỏng truyền tín hiệu khung gầm qua CAN.",
-    "research": {
-      "doc": "path-planner-software-qualification-test-specification",
-      "section": "sim-can"
     }
   },
   {
     "id": "sim-vehicle",
     "group": "sim",
     "icon": "car",
-    "x": 883,
-    "y": -390,
     "title": "Mô hình xe",
     "summary": "Mô phỏng chuyển động của xe và các tác động gây trôi làn.",
     "research": {
@@ -275,8 +255,6 @@ window.SPEC_CARDS = [
     "id": "sim-sensors",
     "group": "sim",
     "icon": "camera",
-    "x": 1236.333,
-    "y": -390,
     "title": "Mô hình cảm biến",
     "summary": "Sinh tín hiệu cảm biến từ môi trường giả lập.",
     "research": {
@@ -288,8 +266,6 @@ window.SPEC_CARDS = [
     "id": "sim-scenarios",
     "group": "sim",
     "icon": "flag",
-    "x": 883,
-    "y": -130,
     "title": "Kịch bản và bơm lỗi",
     "summary": "Tạo tình huống lái và lỗi đầu vào cho benchmark.",
     "research": {
@@ -301,8 +277,6 @@ window.SPEC_CARDS = [
     "id": "sim-controller",
     "group": "sim",
     "icon": "steer",
-    "x": 1236.333,
-    "y": -130,
     "title": "Controller và EPS chạy thử",
     "summary": "Bám đường mục tiêu và mô phỏng bộ chấp hành lái.",
     "research": {
@@ -314,8 +288,6 @@ window.SPEC_CARDS = [
     "id": "sim-acc",
     "group": "sim",
     "icon": "clock",
-    "x": 1236.333,
-    "y": 130,
     "title": "ACC chạy thử",
     "summary": "Tạo kế hoạch tốc độ và gia tốc dọc khi chạy thử.",
     "research": {
@@ -327,8 +299,6 @@ window.SPEC_CARDS = [
     "id": "sim-eval",
     "group": "sim",
     "icon": "chart",
-    "x": 883,
-    "y": 130,
     "title": "Ghi log và đánh giá",
     "summary": "Ghi dữ liệu để chạy lại và tính chỉ số đánh giá.",
     "research": {
@@ -337,18 +307,15 @@ window.SPEC_CARDS = [
     }
   },
   {
-    "id": "diagram-sequence",
+    "id": "diagram-modes",
     "kind": "diagram",
-    "diagram": "sequence",
-    "doc": "path-planner-software-architectural-design",
-    "section": "planner-sequence",
-    "x": -930,
-    "y": 820,
-    "eyebrow": "Góc nhìn động · Software Architectural Design, mục 3.2",
-    "title": "Tuần tự trong một chu kỳ 25 ms",
-    "summary": "Ai gửi gì cho ai, theo thứ tự, và deadline của chu kỳ.",
-    "lanes": ["Bộ lập lịch", "Input check", "Planner", "Ego-motion", "Lateral Controller", "Chức năng ADAS", "Khối dọc"],
-    "own": ["Input check", "Planner"]
+    "diagram": "modes",
+    "doc": "adas-function-specification",
+    "section": "adas-modes",
+    "region": "strategy",
+    "eyebrow": "Chức năng · ADAS Function Specification, mục 9.1",
+    "title": "Trạng thái của từng chức năng",
+    "summary": "OFF, STANDBY, REQUEST và điều kiện chuyển, theo off, standby, active mode của R79."
   },
   {
     "id": "diagram-states",
@@ -356,11 +323,57 @@ window.SPEC_CARDS = [
     "diagram": "states",
     "doc": "path-planner-software-architectural-design",
     "section": "arbitration-states",
-    "x": -77,
-    "y": 820,
-    "eyebrow": "Góc nhìn động · Software Architectural Design, mục 5.1",
+    "region": "strategy",
+    "eyebrow": "Chức năng · Software Architectural Design, mục 5.1",
     "title": "Arbitration state",
     "summary": "Chức năng đang lái (active_function) đổi thế nào theo từng sự kiện."
+  },
+  {
+    "id": "diagram-curve",
+    "kind": "diagram",
+    "diagram": "curve",
+    "doc": "path-planner-software-architectural-design",
+    "section": "curve-strategy",
+    "region": "strategy",
+    "eyebrow": "Chiến lược điều khiển · Software Architectural Design, mục 6.2 · R171 5.3.7.1.3",
+    "title": "Tốc độ và gia tốc ngang khi vào cua",
+    "summary": "Path planner và khối dọc phối hợp thế nào qua từng pha."
+  },
+  {
+    "id": "diagram-limits",
+    "kind": "diagram",
+    "diagram": "limits",
+    "doc": "path-planner-software-architectural-design",
+    "section": "design-limits",
+    "region": "safety",
+    "eyebrow": "Giới hạn vận hành · R79 Annex 6, 3.2.3 · 5.6.2.3.1",
+    "title": "Dải tốc độ và giới hạn quyền lái",
+    "summary": "Mỗi chức năng hoạt động ở tốc độ nào và được lái mạnh tới đâu.",
+    "extra": [{ "doc": "adas-function-specification", "section": "adas-availability" }]
+  },
+  {
+    "id": "diagram-ladder",
+    "kind": "diagram",
+    "diagram": "ladder",
+    "doc": "path-planner-software-architectural-design",
+    "section": "degradation",
+    "region": "safety",
+    "eyebrow": "Khái niệm an toàn · Software Architectural Design, mục 8.3 · R79 Annex 6, 3.4.3",
+    "title": "Bậc suy giảm",
+    "summary": "Mất biên làn hoặc input thì hệ thống còn làm được gì, và báo tài xế khi nào."
+  },
+  {
+    "id": "diagram-sequence",
+    "kind": "diagram",
+    "diagram": "sequence",
+    "doc": "path-planner-software-architectural-design",
+    "section": "planner-sequence",
+    "region": "dynamics",
+    "eyebrow": "Luồng tín hiệu · Software Architectural Design, mục 3.2",
+    "title": "Tuần tự trong một chu kỳ 25 ms",
+    "summary": "Ai gửi gì cho ai, theo thứ tự, và deadline của chu kỳ.",
+    "lanes": ["Bộ lập lịch", "Input check", "Planner", "Ego-motion", "Lateral Controller", "Chức năng ADAS", "Khối dọc"],
+    "own": ["Input check", "Planner"]
   },
   {
     "id": "diagram-latency",
@@ -368,9 +381,8 @@ window.SPEC_CARDS = [
     "diagram": "latency",
     "doc": "path-planner-software-architectural-design",
     "section": "latency-chain",
-    "x": 776,
-    "y": 820,
-    "eyebrow": "Góc nhìn thời gian · Software Architectural Design, mục 3.3",
+    "region": "dynamics",
+    "eyebrow": "Thời gian · Software Architectural Design, mục 3.3",
     "title": "Chuỗi trễ từ cảm biến tới bánh xe",
     "summary": "Mỗi đoạn trễ dài bao nhiêu và khối nào bù."
   }
@@ -383,17 +395,32 @@ window.SPEC_REGIONS = [
   },
   {
     "id": "vehicle",
-    "text": "Phần mềm trên xe"
+    "text": "Hệ thống trên xe",
+    "note": "R79 Annex 6, 3.3: khung tím là The System, phần còn lại là hệ thống khác của xe"
+  },
+  {
+    "id": "system",
+    "text": "The System"
   },
   {
     "id": "simulation",
-    "text": "Môi trường giả lập",
-    "note": "Không phải phần mềm trên xe"
+    "text": "Kiểm chứng SIL",
+    "note": "Không phải phần mềm trên xe; simulator gọi đúng thư viện planner sẽ bàn giao"
+  },
+  {
+    "id": "strategy",
+    "text": "Chức năng và chiến lược điều khiển",
+    "note": "R79 Annex 6, 3.2; R171 5.3.7.1.3. Vẽ từ bảng trong tài liệu; bấm sơ đồ để xem bảng"
+  },
+  {
+    "id": "safety",
+    "text": "Giới hạn vận hành và khái niệm an toàn",
+    "note": "R79 Annex 6, 3.2.3 và 3.4.3"
   },
   {
     "id": "dynamics",
-    "text": "Kiến trúc động của Path Planner",
-    "note": "Vẽ từ bảng trong tài liệu Thiết kế; bấm sơ đồ để xem bảng chi tiết"
+    "text": "Luồng tín hiệu và thời gian",
+    "note": "R79 Annex 6, 3.3.4"
   }
 ];
 
@@ -473,7 +500,7 @@ window.SPEC_EDGES = [
     "id": "e-trajectory",
     "from": "path-planner",
     "to": "lateral-controller",
-    "label": "Trajectory (Autoware)",
+    "label": "Trajectory, PathStatus",
     "research": {
       "doc": "path-planner-interface-control-document",
       "section": "trajectory"
@@ -488,15 +515,45 @@ window.SPEC_EDGES = [
       "doc": "path-planner-interface-control-document",
       "section": "path-status"
     }
+  },,
+  {
+    "id": "e-limits",
+    "from": "path-planner",
+    "to": "longitudinal",
+    "label": "LateralLimits: v_max, khoảng cách, cờ",
+    "research": {
+      "doc": "path-planner-interface-control-document",
+      "section": "lateral-limits"
+    }
   },
   {
-    "id": "e-previous",
-    "from": "path-planner",
+    "id": "e-longplan",
+    "from": "longitudinal",
     "to": "path-planner",
-    "label": "Path chu kỳ trước",
+    "label": "LongitudinalPlan",
     "research": {
-      "doc": "path-planner-software-architectural-design",
-      "section": "planner-cycle"
+      "doc": "path-planner-interface-control-document",
+      "section": "longitudinal-plan"
+    }
+  },
+  {
+    "id": "e-eps",
+    "from": "lateral-controller",
+    "to": "eps",
+    "label": "Lệnh lái",
+    "research": {
+      "doc": "path-planner-hazard-analysis-and-risk-assessment",
+      "section": "safety-item"
+    }
+  },
+  {
+    "id": "e-hmi",
+    "from": "adas-function-specification",
+    "to": "hmi",
+    "label": "Cảnh báo",
+    "research": {
+      "doc": "adas-function-specification",
+      "section": "adas-warnings"
     }
   }
 ];

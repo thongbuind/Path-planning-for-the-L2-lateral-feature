@@ -50,6 +50,13 @@ void pp_step(void *state,
              void *ego_motion_context,
              pp_planner_outputs_t *outputs);
 
+/*
+ * Identification of this build (R79 Annex 6 3.3.5): constant string
+ * "pp_planner <version> commit <source commit> calibration <data set id>".
+ * The same for every call; may be called at any time.
+ */
+const char *pp_version(void);
+
 #ifdef __cplusplus
 }
 #endif

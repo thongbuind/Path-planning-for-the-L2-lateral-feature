@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.1 |
+| Phiên bản | 1.2 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-10 |
+| Cập nhật | 2026-11-11 |
 
 ## 1. Purpose and scope {#adas-scope}
 
@@ -152,6 +152,25 @@ Mỗi chu kỳ 25 ms, xét từng phía và từng chức năng. Gửi REQUEST k
 | Mất hai vạch làn mình giữa lúc can thiệp, còn biên khác đủ tin | Hủy LKA, ELK; planner chuyển về HWA hoặc NONE (PP-SWR-047) |
 | Không còn biên đủ tin giữa lúc can thiệp | Giữ REQUEST; planner bám path cũ tối đa `T_coast` rồi báo path không hợp lệ (PP-SWR-124) |
 
+### 9.1 Trạng thái chức năng {#adas-modes}
+
+Giá trị `state` trong `FunctionRequests` ([Interface Control Document 5.6](report.html?doc=path-planner-interface-control-document&lang=vi#function-requests)). Theo R79: OFF là off mode, STANDBY và UNAVAILABLE là standby mode, REQUEST là active mode.
+
+| Từ | Tới | Khi | Chức năng | Nguồn |
+|---|---|---|---|---|
+| OFF | STANDBY | Bật trong menu, hoặc mặc định bật lúc khởi động | LKA, ELK | Mục 3 |
+| STANDBY | UNAVAILABLE | Một điều kiện khả dụng không thoả | LKA, ELK | Mục 7 |
+| UNAVAILABLE | STANDBY | Mọi điều kiện khả dụng thoả lại | LKA, ELK | Mục 7 |
+| STANDBY | REQUEST | Điều kiện kích hoạt thoả, ý định tài xế không chặn | LKA, ELK | Mục 8, 9 |
+| REQUEST | STANDBY | Planner báo COMPLETED | LKA, ELK | Mục 9 |
+| REQUEST | OFF | Tài xế ghi đè | LKA, ELK | Mục 8, 9 |
+| OFF | STANDBY | Hết `t_reactivate_override` sau lần ghi đè | LKA, ELK | Mục 9 |
+| OFF | REQUEST | Tài xế bấm nút khi ACC đang bật, điều kiện khả dụng và điều kiện vào HWA thoả | HWA | Mục 3, 7 |
+| REQUEST | OFF | Tay rời vô lăng quá `t_hands_off_off`, hoặc tài xế tắt bằng một thao tác | HWA | Mục 3, 8 |
+| REQUEST | UNAVAILABLE | Một điều kiện khả dụng không thoả | HWA | Mục 7 |
+| UNAVAILABLE | REQUEST | Điều kiện khả dụng và điều kiện vào HWA thoả lại; tài xế không phải bấm nút | HWA | nhóm tự thống nhất, như Toyota LTA, Volvo Pilot Assist |
+| Mọi trạng thái | FAULT | Khối Chức năng ADAS lỗi | HWA, LKA, ELK | Interface Control Document 5.6 |
+
 ## 10. Cảnh báo tài xế {#adas-warnings}
 
 Trong simulator chỉ ghi log qua message `HmiStatus`.
@@ -166,6 +185,8 @@ Trong simulator chỉ ghi log qua message `HmiStatus`.
 | HWA chạm aysmax và lốp trước bắt đầu đè vạch | Vẫn hỗ trợ trong khả năng; đèn kèm âm thanh hoặc rung. Dùng `lateral_limit_reached` và DLC | R79 5.6.2.2.3 |
 | `path_valid = false` | Yêu cầu tài xế cầm lái | nhóm tự thống nhất |
 | `lane_too_narrow = true` khi tài xế bấm HWA | Báo HWA không khả dụng | nhóm tự thống nhất |
+| HWA chuyển sang UNAVAILABLE | Đèn HWA đổi sang trạng thái chờ; tự trở lại khi điều kiện thoả | nhóm tự thống nhất |
+| HWA chuyển sang OFF vì tay rời vô lăng | Báo HWA đã tắt; tài xế phải bấm nút để bật lại | R79 5.6.2.2.5 |
 | Tài xế tắt ELK | Đèn báo liên tục | EU 2021/646 3.2.3 |
 
 ## 11. Edge cases {#adas-edge-cases}
@@ -277,3 +298,4 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 |---|---|---|
 | 1.0 | 2026-11-10 | Refactor thành ADAS Function Specification, baseline BL1. Mọi ngưỡng tự chọn thành calibration parameter (mục 13); HWA dùng được tâm làn suy ra, LKA và ELK cần vạch làn mình đủ tin (mentor); thêm `lane_too_narrow` vào điều kiện HWA; schema `FunctionRequests` chuyển sang Interface Control Document; ví dụ tính gom vào Appendix A; bỏ nhãn trạng thái và việc mở |
 | 1.1 | 2026-11-10 | Khối Chức năng ADAS tự tính trạng thái ngang và tự kiểm tính nhất quán, riêng với planner (PP-ADR-014); `conf_ego` chỉnh riêng, giới hạn 0–1 |
+| 1.2 | 2026-11-11 | Mục 9.1: bảng chuyển trạng thái của từng chức năng, gom từ mục 3, 7, 8, 9. HWA tự trở lại từ UNAVAILABLE; tắt vì tay rời hoặc tài xế tắt thì phải bấm nút lại (mục 9.1, 10) |

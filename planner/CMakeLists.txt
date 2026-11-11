@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pp_planner LANGUAGES C)
+project(pp_planner VERSION 0.1.0 LANGUAGES C)
 
 # PP-ADR-013: C11, no compiler extensions.
 set(CMAKE_C_STANDARD 11)
@@ -20,6 +20,15 @@ add_custom_command(
             --input ${PP_CALIBRATION_FILE} --out-dir ${PP_GENERATED_DIR}
     DEPENDS ${PP_CALIBRATION_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/calibration/gen_calibration.py
     COMMENT "Generating calibration from ${PP_CALIBRATION_FILE}")
+
+# Identification of the build for pp_version(): version, source commit, calibration data
+# set. Regenerated at every build (the commit can change without any file changing here).
+add_custom_target(pp_build_info ALL
+    COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
+            -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
+            -DVERSION=${PROJECT_VERSION} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
+    BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
+    COMMENT "Build identification for pp_version()")
 
 set(PP_WARNINGS -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow
                 -Wstrict-prototypes -Wmissing-prototypes -Wcast-qual -Wundef)
@@ -46,6 +55,7 @@ add_library(pp_planner SHARED
     ${PP_GENERATED_DIR}/pp_calibration.c)
 target_include_directories(pp_planner PRIVATE ${PP_PRIVATE_INCLUDES})
 target_compile_options(pp_planner PRIVATE ${PP_WARNINGS})
+add_dependencies(pp_planner pp_build_info)
 if(NOT APPLE)
     target_link_libraries(pp_planner PRIVATE m)
 endif()
@@ -55,11 +65,12 @@ option(PP_BUILD_TESTS "Build the C unit tests of the planner units" ON)
 if(PP_BUILD_TESTS)
     enable_testing()
     set(PP_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/planner/c)
-    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output test_stitching test_feasibility test_step)
+    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output test_stitching test_feasibility test_step test_version)
         add_executable(${name} ${PP_TEST_DIR}/${name}.c src/pp_planner.c ${PP_UNIT_SOURCES}
                        ${PP_GENERATED_DIR}/pp_calibration.c)
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
         target_compile_options(${name} PRIVATE ${PP_WARNINGS})
+        add_dependencies(${name} pp_build_info)
         if(NOT APPLE)
             target_link_libraries(${name} PRIVATE m)
         endif()

@@ -1,8 +1,0 @@
-# F01 Nhiễu c0, c1 (Software Qualification Test Specification section 6). PP-SWR-120.
-# Whole run, every line, white per frame. Levels as in the test specification.
-id: F01
-title: Nhiễu c0, c1
-levels:
-  a: {kind: noise, sigma_c0: 0.03, sigma_c1: 0.002}     # ban ngày
-  b: {kind: noise, sigma_c0: 0.045, sigma_c1: 0.003}    # × 1,5
-  c: {kind: noise, sigma_c0: 0.075, sigma_c1: 0.005}    # × 2,5, ban đêm hoặc mưa

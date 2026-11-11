@@ -1,8 +1,12 @@
-// Sơ đồ trên bản đồ, vẽ từ bảng trong Software Architectural Design.
+// Sơ đồ trên bản đồ, vẽ từ bảng trong tài liệu kỹ thuật, theo khung hồ sơ phê duyệt của R79 Annex 6.
 // File này không giữ dữ liệu riêng: sửa bảng trong tài liệu thì sơ đồ đổi theo.
-//   sequence : bảng ở mục planner-sequence (cột #, Lúc, Từ → tới, Nội dung, Requirement) và dòng **Deadline.**
-//   latency  : bảng ở mục latency-chain (cột #, Đoạn, Xấu nhất (ms), Gây ra, Bù); dòng có "song song" là chuỗi song song
-//   states   : bảng ở mục arbitration-states (cột Sự kiện, Đang ở …, Requirement)
+//   sequence : Software Architectural Design, planner-sequence (cột #, Lúc, Từ → tới, Nội dung, Requirement) và dòng **Deadline.**
+//   latency  : Software Architectural Design, latency-chain (cột #, Đoạn, Xấu nhất (ms), Gây ra, Bù); dòng có "song song" là chuỗi song song
+//   states   : Software Architectural Design, arbitration-states (cột Sự kiện, Đang ở …, Requirement)
+//   modes    : ADAS Function Specification, adas-modes (cột Từ, Tới, Khi, Chức năng)
+//   curve    : Software Architectural Design, curve-strategy (cột Pha, Bắt đầu khi, Tốc độ, Path planner, Khối dọc, Requirement)
+//   limits   : Software Architectural Design, design-limits (cột Chức năng, a_y, a_y thêm vào, Jerk) và dòng "Tốc độ" ở adas-availability
+//   ladder   : Software Architectural Design, degradation (cột Bậc, Khi, Hệ thống làm gì, Chức năng còn, Tài xế, Requirement)
 (function (root) {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
@@ -436,7 +440,293 @@
     return svg;
   }
 
-  var KINDS = { sequence: sequence, latency: latency, states: states };
+  // ---------- Chung cho các sơ đồ mô tả chức năng ----------
+  var W_FN = 760;
+  function num(text) {
+    var m = /(\d+(?:,\d+)?)/.exec(plain(text));
+    return m ? parseFloat(m[1].replace(",", ".")) : null;
+  }
+  // Điểm trên mép hộp b (x, y, w, h) theo hướng (ux, uy) từ tâm, lùi thêm margin.
+  function rim(b, ux, uy, margin) {
+    var tx = ux ? (b.w / 2) / Math.abs(ux) : Infinity, ty = uy ? (b.h / 2) / Math.abs(uy) : Infinity;
+    var t = Math.min(tx, ty) + (margin || 0);
+    return { x: b.x + b.w / 2 + ux * t, y: b.y + b.h / 2 + uy * t };
+  }
+  function badge(parent, x, y, text, fill) {
+    var w = Math.max(20, text.length * 6.5 + 10);
+    node("rect", { x: x - w / 2, y: y - 9, width: w, height: 18, rx: 9, fill: fill }, parent);
+    node("text", { x: x, y: y + 4, "text-anchor": "middle", fill: "#FFFFFF", "font-weight": 600, "font-size": 11 }, parent, text);
+  }
+  function fnColor(fns) {
+    var hwa = /HWA/.test(fns), other = /LKA|ELK/.test(fns);
+    return hwa && other ? C.gray : hwa ? C.violet : C.teal;
+  }
+
+  // ---------- Trạng thái của từng chức năng ----------
+  function modes(sec, opts, tr) {
+    var t = sec.tables[0];
+    if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
+    var iFrom = column(t, "Từ"), iTo = column(t, "Tới"), iWhen = column(t, "Khi"), iFn = column(t, "Chức năng");
+    var rows = t.rows.map(function (r, i) {
+      return { from: plain(r[iFrom]), to: plain(r[iTo]), when: plain(t.labels[i][iWhen]), fns: plain(r[iFn]) };
+    });
+    var ANY = "Mọi trạng thái";
+    var POS = { OFF: [20, 44], STANDBY: [300, 44], UNAVAILABLE: [580, 44], REQUEST: [300, 214], FAULT: [580, 290] };
+    var boxes = {};
+    function box(name) {
+      if (!boxes[name]) {
+        var p = POS[name] || [20, 268];
+        boxes[name] = { x: p[0], y: p[1], w: 150, h: 46, name: name };
+      }
+      return boxes[name];
+    }
+    rows.forEach(function (r) { if (r.from !== ANY) box(r.from); box(r.to); });
+    // Gom các dòng cùng cặp trạng thái vào một cung.
+    var arcs = [];
+    rows.forEach(function (r, i) {
+      var a = arcs.filter(function (x) { return x.from === r.from && x.to === r.to; })[0];
+      if (!a) { a = { from: r.from, to: r.to, nos: [], fns: "" }; arcs.push(a); }
+      a.nos.push(i + 1);
+      a.fns += " " + r.fns;
+    });
+    var listTop = 366, lines = rows.map(function (r, i) {
+      return wrap((i + 1) + ". " + tr(r.from) + " → " + tr(r.to) + " (" + r.fns + "): " + r.when, 112, 2);
+    });
+    var H = listTop + lines.reduce(function (s, l) { return s + l.length * 14 + 6; }, 0) + 40;
+    var svg = svgRoot(W_FN, H, tr("Trạng thái của từng chức năng"));
+
+    arcs.forEach(function (a) {
+      var b = boxes[a.to], color = fnColor(a.fns), g = node("g", {}, svg), s, e, at = 0.5;
+      tip(g, a.nos.join(", ") + " · " + a.from + " → " + a.to);
+      if (a.from === ANY) {
+        e = { x: b.x, y: b.y + b.h / 2 };
+        s = { x: b.x - 150, y: e.y };
+        node("text", { x: s.x - 4, y: s.y + 4, "text-anchor": "end", fill: C.soft, "font-size": 11 }, g, tr("từ mọi trạng thái"));
+      } else {
+        var f = boxes[a.from];
+        var ax = f.x + f.w / 2, ay = f.y + f.h / 2, bx = b.x + b.w / 2, by = b.y + b.h / 2;
+        var L = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / L, uy = (by - ay) / L;
+        var paired = arcs.some(function (x) { return x.from === a.to && x.to === a.from; });
+        var off = paired ? 9 : 0;
+        if (paired) at = 0.35;
+        s = rim(f, ux, uy, 4); e = rim(b, -ux, -uy, 8);
+        s.x += -uy * off; s.y += ux * off; e.x += -uy * off; e.y += ux * off;
+      }
+      node("line", { x1: s.x, y1: s.y, x2: e.x, y2: e.y, stroke: color, "stroke-width": 2,
+        "stroke-dasharray": a.from === ANY ? "5 4" : null, "marker-end": "url(#" + (color === C.gray ? "arrow-gray" : "arrow") + ")" }, g);
+      badge(g, s.x + (e.x - s.x) * at, s.y + (e.y - s.y) * at, a.nos.join(","), color);
+    });
+    Object.keys(boxes).forEach(function (name) {
+      var b = boxes[name], active = name === "REQUEST", fault = name === "FAULT";
+      node("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 12,
+        fill: active ? C.violetTint : fault ? "#B250001F" : C.fill, stroke: active ? C.violet : fault ? C.amber : C.line,
+        "stroke-width": active ? 2 : 1 }, svg);
+      node("text", { x: b.x + b.w / 2, y: b.y + 28, "text-anchor": "middle", "font-weight": 700, fill: C.text }, svg, tr(name));
+    });
+    node("text", { x: 515, y: 32, "text-anchor": "middle", fill: C.faint, "font-size": 11 }, svg, tr("standby mode"));
+    node("text", { x: 375, y: 276, "text-anchor": "middle", fill: C.violet, "font-size": 11 }, svg, tr("active mode"));
+    node("text", { x: 95, y: 32, "text-anchor": "middle", fill: C.faint, "font-size": 11 }, svg, tr("off mode"));
+
+    var y = listTop;
+    rows.forEach(function (r, i) {
+      multiline(svg, 12, y, lines[i], { fill: C.text, "font-size": 11.5 }, 14);
+      y += lines[i].length * 14 + 6;
+    });
+    legend(svg, 12, H - 16, [
+      { kind: "line", color: C.violet, text: tr("chỉ HWA") },
+      { kind: "line", color: C.teal, text: tr("LKA, ELK") },
+      { kind: "line", color: C.gray, text: tr("mọi chức năng") }
+    ]);
+    return svg;
+  }
+
+  // ---------- Chiến lược tốc độ trong cua ----------
+  function curve(sec, opts, tr) {
+    var t = sec.tables[0];
+    if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
+    var cols = ["Pha", "Bắt đầu khi", "Tốc độ", "Path planner", "Khối dọc", "Requirement"].map(function (n) { return column(t, n); });
+    var phases = t.rows.map(function (r, i) {
+      var l = t.labels[i];
+      return { name: plain(l[cols[0]]), when: plain(l[cols[1]]), speed: plain(r[cols[2]]), planner: plain(l[cols[3]]),
+        lon: plain(l[cols[4]]), req: plain(l[cols[5]]) };
+    });
+    var LEFT = 92, n = phases.length, colW = (W_FN - LEFT) / n, chars = Math.floor((colW - 12) / 6.2);
+    var rowsDef = [["when", tr("Bắt đầu khi")], ["planner", tr("Path planner")], ["lon", tr("Khối dọc")], ["req", tr("Requirement")]];
+    var wrapped = phases.map(function (p) {
+      var w = {};
+      rowsDef.forEach(function (d) { w[d[0]] = wrap(p[d[0]], chars, 7); });
+      return w;
+    });
+    var rowH = rowsDef.map(function (d) {
+      return 18 + Math.max.apply(null, wrapped.map(function (w) { return w[d[0]].length; })) * 13;
+    });
+    var HEAD = 48, PLOT = 96, top = HEAD + PLOT + 14;
+    var H = top + rowH.reduce(function (a, b) { return a + b; }, 0) + 36;
+    var svg = svgRoot(W_FN, H, tr("Tốc độ và a_y khi vào cua"));
+
+    phases.forEach(function (p, i) {
+      var x = LEFT + i * colW;
+      node("rect", { x: x + 2, y: 4, width: colW - 4, height: H - 40, rx: 8, fill: i % 2 ? "#FFFFFF" : C.fill }, svg);
+      badge(svg, x + 16, 20, String(i + 1), C.violet);
+      multiline(svg, x + 30, 24, wrap(p.name, chars - 4, 2), { "font-weight": 700, fill: C.text, "font-size": 12 }, 13);
+    });
+    // Đường v minh hoạ: Cao, Giảm, Thấp, Giữ, Tăng.
+    var hi = HEAD + 18, lo = HEAD + PLOT - 18, level = hi, pts = [];
+    phases.forEach(function (p, i) {
+      var x0 = LEFT + i * colW + 6, x1 = LEFT + (i + 1) * colW - 6, k = p.speed.toLowerCase(), end = level;
+      if (/^cao/.test(k)) { level = hi; end = hi; }
+      else if (/^giảm/.test(k)) end = lo;
+      else if (/^thấp/.test(k)) { level = lo; end = lo; }
+      else if (/^tăng/.test(k)) end = hi;
+      pts.push(x0 + "," + level, x1 + "," + end);
+      level = end;
+      node("text", { x: (x0 + x1) / 2, y: HEAD + PLOT + 4, "text-anchor": "middle", fill: C.soft, "font-size": 11 }, svg, p.speed);
+    });
+    node("polyline", { points: pts.join(" "), fill: "none", stroke: C.violet, "stroke-width": 3, "stroke-linejoin": "round" }, svg);
+    node("text", { x: 8, y: hi + 4, fill: C.soft, "font-size": 11 }, svg, tr("tốc độ"));
+    node("text", { x: 8, y: hi + 18, fill: C.faint, "font-size": 10 }, svg, tr("(minh hoạ)"));
+
+    var y = top;
+    rowsDef.forEach(function (d, j) {
+      node("line", { x1: 4, y1: y - 4, x2: W_FN - 4, y2: y - 4, stroke: C.line }, svg);
+      node("text", { x: 8, y: y + 10, "font-weight": 600, fill: d[0] === "planner" ? C.violet : C.text, "font-size": 11.5 }, svg, d[1]);
+      phases.forEach(function (p, i) {
+        multiline(svg, LEFT + i * colW + 8, y + 10, wrapped[i][d[0]],
+          { fill: d[0] === "req" ? C.soft : C.text, "font-size": 11 }, 13);
+      });
+      y += rowH[j];
+    });
+    legend(svg, 12, H - 14, [
+      { kind: "line", color: C.violet, text: tr("tốc độ xe, không theo tỉ lệ") },
+      { kind: "box", fill: C.fill, text: tr("mỗi cột một pha") }
+    ]);
+    return svg;
+  }
+
+  // ---------- Dải tốc độ và giới hạn quyền lái ----------
+  function limits(sec, opts, tr) {
+    var t = sec.tables[0];
+    if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
+    var iFn = column(t, "Chức năng"), iAy = column(t, "a_y"), iAdd = column(t, "a_y thêm vào"), iJ = column(t, "Jerk");
+    var fns = t.rows.map(function (r) {
+      return { name: plain(r[iFn]), ay: num(r[iAy]), add: num(r[iAdd]), addText: plain(r[iAdd]), jerk: num(r[iJ]) };
+    });
+    // Dải tốc độ: dòng "Tốc độ" của bảng điều kiện khả dụng (ADAS Function Specification mục 7).
+    var avail = opts.extra && opts.extra[0] && section(opts.extra[0].md, opts.extra[0].section);
+    var speedRow = null, speedTable = null;
+    (avail ? avail.tables : []).forEach(function (tb) {
+      tb.rows.forEach(function (r) { if (!speedRow && plain(r[0]) === "Tốc độ") { speedRow = r; speedTable = tb; } });
+    });
+    if (!speedRow) throw fail("Không thấy dòng \"Tốc độ\" trong mục {id}", { id: opts.extra ? opts.extra[0].section : "?" });
+    var speeds = {};
+    fns.forEach(function (f) {
+      var i = speedTable.header.indexOf(f.name);
+      var text = i >= 0 ? plain(speedRow[i]) : "";
+      var like = /^Như (\w+)/.exec(text);
+      if (like && speeds[like[1]]) { speeds[f.name] = speeds[like[1]]; return; }
+      var range = /(\d+)\s*[–-]\s*(\d+)\s*km\/h/.exec(text), from = /từ (\d+)\s*km\/h/.exec(text),
+        hold = /giữ tới dưới (\d+)\s*km\/h/.exec(text), max = /tối đa (\d+)\s*km\/h/.exec(text);
+      speeds[f.name] = {
+        on: range ? +range[1] : from ? +from[1] : null, max: range ? +range[2] : max ? +max[1] : null,
+        hold: hold ? +hold[1] : null, text: text
+      };
+    });
+
+    var LEFT = 64, PW = W_FN - LEFT - 150, ROW = 34, top1 = 44;
+    var top2 = top1 + fns.length * ROW + 70, H = top2 + fns.length * ROW + 64;
+    var svg = svgRoot(W_FN, H, tr("Dải tốc độ và giới hạn quyền lái"));
+
+    function axis(y0, max, step, unit, title) {
+      node("text", { x: 4, y: y0 - 20, "font-weight": 700, fill: C.text }, svg, title);
+      var yb = y0 + fns.length * ROW;
+      for (var v = 0; v <= max; v += step) {
+        var x = LEFT + v / max * PW;
+        node("line", { x1: x, y1: y0 - 6, x2: x, y2: yb, stroke: C.line, "stroke-dasharray": v ? "2 4" : null }, svg);
+        node("text", { x: x, y: yb + 14, "text-anchor": "middle", fill: C.soft, "font-size": 10.5 }, svg, String(v).replace(".", ","));
+      }
+      node("text", { x: LEFT + PW + 22, y: yb + 14, fill: C.soft, "font-size": 10.5 }, svg, unit);
+    }
+    axis(top1, 140, 20, "km/h", tr("Dải tốc độ hoạt động"));
+    fns.forEach(function (f, i) {
+      var s = speeds[f.name], y = top1 + i * ROW + 6, g = node("g", {}, svg), sx = function (v) { return LEFT + v / 140 * PW; };
+      tip(g, f.name + ": " + s.text);
+      node("text", { x: 4, y: y + 15, "font-weight": 600, fill: C.text }, g, f.name);
+      if (s.on == null || s.max == null) return;
+      if (s.hold != null && s.hold < s.on)
+        node("rect", { x: sx(s.hold), y: y + 2, width: sx(s.on) - sx(s.hold), height: 18, rx: 4, fill: "url(#hatch)" }, g);
+      node("rect", { x: sx(s.on), y: y + 2, width: sx(s.max) - sx(s.on), height: 18, rx: 4, fill: fnColor(f.name) }, g);
+      node("text", { x: sx(s.max) + 6, y: y + 15, fill: C.soft, "font-size": 11 }, g,
+        s.on + "–" + s.max + " km/h" + (s.hold != null && s.hold < s.on ? tr(", giữ tới {v}", { v: s.hold }) : ""));
+    });
+    var maxAy = 4.5;
+    axis(top2, maxAy, 0.5, "m/s²", tr("Giới hạn a_y của path"));
+    fns.forEach(function (f, i) {
+      var y = top2 + i * ROW + 6, g = node("g", {}, svg), sx = function (v) { return LEFT + v / maxAy * PW; };
+      tip(g, f.name + ": a_y ≤ " + f.ay + ", a_y thêm vào " + f.addText + ", jerk ≤ " + f.jerk);
+      node("text", { x: 4, y: y + 15, "font-weight": 600, fill: C.text }, g, f.name);
+      if (f.ay == null) return;
+      node("rect", { x: LEFT, y: y + 2, width: sx(f.ay) - LEFT, height: 18, rx: 4, fill: fnColor(f.name), opacity: 0.35 }, g);
+      if (f.add != null) node("rect", { x: LEFT, y: y + 6, width: sx(f.add) - LEFT, height: 10, rx: 3, fill: fnColor(f.name) }, g);
+      var addNote = f.add != null ? "≤ " + String(f.add).replace(".", ",") : f.addText && f.addText !== "—" ? f.addText : null;
+      var note = "≤ " + String(f.ay).replace(".", ",") + (addNote ? tr("; thêm vào ") + addNote : "") +
+        (f.jerk != null ? "; jerk ≤ " + f.jerk + " m/s³" : "");
+      node("text", { x: sx(f.ay) + 6, y: y + 15, fill: C.soft, "font-size": 11 }, g, note);
+    });
+    legend(svg, 12, H - 14, [
+      { kind: "box", fill: C.violet, text: tr("kích hoạt được") },
+      { kind: "box", fill: "url(#hatch)", text: tr("chỉ giữ, không kích hoạt mới") },
+      { kind: "box", fill: C.gray, text: tr("vạch đậm: a_y thêm vào") }
+    ]);
+    return svg;
+  }
+
+  // ---------- Bậc suy giảm ----------
+  function ladder(sec, opts, tr) {
+    var t = sec.tables[0];
+    if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
+    var c = ["Bậc", "Khi", "Hệ thống làm gì", "Chức năng còn", "Tài xế", "Requirement"].map(function (n) { return column(t, n); });
+    var steps = t.rows.map(function (r, i) {
+      var l = t.labels[i];
+      return { no: plain(r[c[0]]), when: plain(l[c[1]]), act: plain(l[c[2]]), left: plain(l[c[3]]),
+        driver: plain(l[c[4]]), req: plain(l[c[5]]) };
+    });
+    var n = steps.length, colW = W_FN / n, chars = Math.floor((colW - 16) / 6);
+    var PALETTE = ["#0F7B6C", "#0F7B6C", "#C27A0E", C.amber, "#B42318"];
+    var whenLines = steps.map(function (s) { return wrap(s.when, chars, 5); });
+    var leftLines = steps.map(function (s) { return wrap(s.left, chars, 2); });
+    var actLines = steps.map(function (s) { return wrap(s.act, chars, 5); });
+    var bodyLines = steps.map(function (s, i) { return leftLines[i].concat(actLines[i], [""]); });
+    var WHEN = 14 + 13 * Math.max.apply(null, whenLines.map(function (l) { return l.length; }));
+    var BOX = 40 + 13 * Math.max.apply(null, bodyLines.map(function (l) { return l.length; })) + 30;
+    var DROP = 34, H = 24 + (n - 1) * DROP + WHEN + BOX + 40;
+    var svg = svgRoot(W_FN, H, tr("Bậc suy giảm"));
+    steps.forEach(function (s, i) {
+      var x = i * colW + 4, y = 24 + i * DROP, color = PALETTE[Math.min(i, PALETTE.length - 1)], g = node("g", {}, svg);
+      tip(g, tr("Bậc") + " " + s.no + " · " + s.when + "\n" + s.act + "\nRequirement: " + s.req);
+      multiline(g, x + 4, y, whenLines[i], { fill: C.soft, "font-size": 10.5 }, 13);
+      var by = y + WHEN;
+      node("rect", { x: x, y: by, width: colW - 10, height: BOX, rx: 10, fill: color + "14", stroke: color, "stroke-width": 1.5 }, g);
+      badge(g, x + 30, by + 16, tr("Bậc") + " " + s.no, color);
+      multiline(g, x + 8, by + 40, leftLines[i], { fill: C.text, "font-size": 11, "font-weight": 700 }, 13);
+      multiline(g, x + 8, by + 46 + leftLines[i].length * 13, actLines[i], { fill: C.text, "font-size": 11 }, 13);
+      if (s.driver && s.driver !== "—") {
+        node("rect", { x: x + 6, y: by + BOX - 26, width: colW - 22, height: 20, rx: 6, fill: color }, g);
+        node("text", { x: x + 12, y: by + BOX - 12, fill: "#FFFFFF", "font-weight": 600, "font-size": 11 }, g, s.driver);
+      }
+      if (i < n - 1) {
+        var ax = x + colW - 10, ay = by + 18;
+        node("line", { x1: ax + 1, y1: ay, x2: ax + 9, y2: ay + DROP, stroke: C.gray, "stroke-width": 1.5, "marker-end": "url(#arrow-gray)" }, svg);
+      }
+    });
+    legend(svg, 12, H - 14, [
+      { kind: "box", fill: "#0F7B6C33", stroke: "#0F7B6C", text: tr("đủ chức năng") },
+      { kind: "box", fill: "#B2500033", stroke: C.amber, text: tr("một phần hệ thống") },
+      { kind: "box", fill: "#B4231833", stroke: "#B42318", text: tr("bỏ chức năng, trả lái") }
+    ]);
+    return svg;
+  }
+
+  var KINDS = { sequence: sequence, latency: latency, states: states, modes: modes, curve: curve, limits: limits, ladder: ladder };
 
   // Trả về { node } khi vẽ được, { error } khi bảng không đọc được.
   function render(kind, md, opts) {
@@ -447,7 +737,7 @@
     try {
       if (!KINDS[kind]) throw fail("Không có loại sơ đồ \"{kind}\"", { kind: kind });
       var source = section(md, opts.section);
-      if (!source) throw fail("Không thấy mục {id} trong Software Architectural Design", { id: "{#" + opts.section + "}" });
+      if (!source) throw fail("Không thấy mục {id} trong tài liệu", { id: "{#" + opts.section + "}" });
       var translation = opts.translation && section(opts.translation, opts.section);
       var allTranslated = !!translation;
       source.tables.forEach(function (table, i) {

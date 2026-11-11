@@ -2,6 +2,11 @@
 window.SPEC_EN = {
   // Giao diện
   "Bản đồ yêu cầu": "Requirements Map",
+  "Hệ thống trên xe": "Vehicle system",
+  "Kiểm chứng SIL": "SIL verification",
+  "Chức năng và chiến lược điều khiển": "Functions and control strategy",
+  "Giới hạn vận hành và khái niệm an toàn": "Operating limits and safety concept",
+  "Luồng tín hiệu và thời gian": "Signal flow and timing",
   "Vừa chiều ngang": "Fit width",
   "Nhận xét": "Comment",
   "Nhận xét ({count})": "Comments ({count})",

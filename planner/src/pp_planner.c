@@ -22,6 +22,7 @@
 #include "lateral_state.h"
 #include "latency.h"
 #include "output.h"
+#include "pp_build_info.h"
 #include "pp_calibration.h"
 #include "pp_path.h"
 #include "pp_planner.h"
@@ -78,6 +79,11 @@ static uint8_t next_counter(uint8_t *counter)
 size_t pp_state_size(void)
 {
     return sizeof(pp_state_t);
+}
+
+const char *pp_version(void)
+{
+    return PP_BUILD_INFO;
 }
 
 pp_init_result_t pp_init(void *state, size_t state_size,

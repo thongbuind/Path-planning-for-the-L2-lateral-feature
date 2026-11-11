@@ -1,0 +1,17 @@
+# Evaluation plan of a trade study (research/README.md, step 2). eval.study reads it.
+# An official run (--record) needs `locked` set and a clean working tree.
+id: PP-TS-nnn
+locked: null            # yyyy-mm-dd once reviewed; then do not change without a note in study.md
+suite: P1               # benchmark/suites/<id>.yaml: its tuning and test runs, seeds and scope
+parts: [tuning, test]   # parts of the suite to run for every variant
+equal_within:           # differences smaller than this count as equal (worst over runs and seeds)
+  PP-SWR-050: 0.005
+variants:
+  V0:
+    description: Bản hiện tại
+    calibration: {}     # parameter -> value, overrides planner/calibration/calibration.yaml
+    cmake: {}           # CMake cache entries for build-time choices, e.g. {PP_T7: qp}
+  V1:
+    description: …
+    calibration: {}
+    cmake: {}

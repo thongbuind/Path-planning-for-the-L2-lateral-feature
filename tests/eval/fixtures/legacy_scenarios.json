@@ -1,0 +1,522 @@
+{
+  "S1ba": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 13,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1b",
+      "variant": "a",
+      "description": "90 km/h, R = 200 m (a_y cua 3,1 m/s\u00b2)",
+      "road_file": "../roads/S1ba.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.005
+      ],
+      [
+        "arc",
+        200.0,
+        0.005
+      ]
+    ]
+  },
+  "S1bb": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 13,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1b",
+      "variant": "b",
+      "description": "90 km/h, R = 150 m (a_y cua 4,2 m/s\u00b2)",
+      "road_file": "../roads/S1bb.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.006666666666666667
+      ],
+      [
+        "arc",
+        200.0,
+        0.006666666666666667
+      ]
+    ]
+  },
+  "S1bc": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 30.555555555555554,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 12,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1b",
+      "variant": "c",
+      "description": "110 km/h, R = 300 m (a_y cua 3,1 m/s\u00b2)",
+      "road_file": "../roads/S1bc.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.0033333333333333335
+      ],
+      [
+        "arc",
+        250.0,
+        0.0033333333333333335
+      ]
+    ]
+  },
+  "S1be": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 13,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1b",
+      "variant": "e",
+      "description": "90 km/h, R = 200 m, clothoid 60 m",
+      "road_file": "../roads/S1be.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        60.0,
+        0.005
+      ],
+      [
+        "arc",
+        250.0,
+        0.005
+      ]
+    ]
+  },
+  "S14a": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 13,
+      "acc": "on",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S14",
+      "variant": "a",
+      "description": "nh\u01b0 S1b a (90 km/h, R = 200 m)",
+      "road_file": "../roads/S14a.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.005
+      ],
+      [
+        "arc",
+        200.0,
+        0.005
+      ]
+    ]
+  },
+  "S1a": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 28,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1",
+      "variant": "a",
+      "description": "90 km/h, clothoid v\u00e0o cung R = 1000 m (a_y cua 0,6 m/s\u00b2)",
+      "road_file": "../roads/S1a.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        200.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.001
+      ],
+      [
+        "arc",
+        550.0,
+        0.001
+      ]
+    ]
+  },
+  "S1b": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 24,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1",
+      "variant": "b",
+      "description": "90 km/h, clothoid v\u00e0o cung R = 500 m (a_y cua 1,25 m/s\u00b2)",
+      "road_file": "../roads/S1b.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        200.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.002
+      ],
+      [
+        "arc",
+        450.0,
+        0.002
+      ]
+    ]
+  },
+  "S1c": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 22,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1",
+      "variant": "c",
+      "description": "90 km/h, clothoid v\u00e0o cung R = 250 m (a_y cua 2,5 m/s\u00b2, ch\u1ea1m aysmax)",
+      "road_file": "../roads/S1c.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        200.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.004
+      ],
+      [
+        "arc",
+        400.0,
+        0.004
+      ]
+    ]
+  },
+  "S1d": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 30,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1",
+      "variant": "d",
+      "description": "90 km/h, cua ch\u1eef S, R = 500 m",
+      "road_file": "../roads/S1d.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        150.0,
+        0
+      ],
+      [
+        "clothoid",
+        100.0,
+        0.002
+      ],
+      [
+        "arc",
+        150.0,
+        0.002
+      ],
+      [
+        "clothoid",
+        100.0,
+        1e-12
+      ],
+      [
+        "clothoid",
+        100.0,
+        -0.002
+      ],
+      [
+        "arc",
+        200.0,
+        -0.002
+      ]
+    ]
+  },
+  "S1e": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 36.11111111111111,
+      "hwa_request_s": 1.0,
+      "hold_until_hwa": false,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.0,
+      "start_heading_rad": 0.0,
+      "duration_s": 22,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S1",
+      "variant": "e",
+      "description": "130 km/h, clothoid v\u00e0o cung R = 1000 m (a_y cua 1,3 m/s\u00b2)",
+      "road_file": "../roads/S1e.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        250.0,
+        0
+      ],
+      [
+        "clothoid",
+        150.0,
+        0.001
+      ],
+      [
+        "arc",
+        600.0,
+        0.001
+      ]
+    ]
+  },
+  "S2a": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 0.0,
+      "hold_until_hwa": true,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.2,
+      "start_heading_rad": 0.0,
+      "duration_s": 10,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S2",
+      "variant": "a",
+      "description": "l\u1ec7ch 0,2 m, g\u00f3c 0\u00b0",
+      "road_file": "../roads/S2a.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        600.0,
+        0
+      ]
+    ]
+  },
+  "S2b": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 0.0,
+      "hold_until_hwa": true,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.4,
+      "start_heading_rad": -0.017453292519943295,
+      "duration_s": 10,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S2",
+      "variant": "b",
+      "description": "l\u1ec7ch 0,4 m, g\u00f3c 1\u00b0 h\u01b0\u1edbng v\u00e0o t\u00e2m",
+      "road_file": "../roads/S2b.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        600.0,
+        0
+      ]
+    ]
+  },
+  "S2c": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 0.0,
+      "hold_until_hwa": true,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.5,
+      "start_heading_rad": 0.03490658503988659,
+      "duration_s": 10,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S2",
+      "variant": "c",
+      "description": "l\u1ec7ch 0,5 m, g\u00f3c 2\u00b0 h\u01b0\u1edbng ra ngo\u00e0i",
+      "road_file": "../roads/S2c.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        600.0,
+        0
+      ]
+    ]
+  },
+  "S2d": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 25.0,
+      "hwa_request_s": 0.0,
+      "hold_until_hwa": true,
+      "start_s_m": 10.0,
+      "start_offset_m": -0.4,
+      "start_heading_rad": 0.0,
+      "duration_s": 10,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S2",
+      "variant": "d",
+      "description": "l\u1ec7ch 0,4 m ph\u00eda ngo\u00e0i cua tr\u00e1i R = 500 m",
+      "road_file": "../roads/S2d.xodr"
+    },
+    "segments": [
+      [
+        "arc",
+        600.0,
+        0.002
+      ]
+    ]
+  },
+  "S2e": {
+    "parameters": {
+      "lane_width_m": 3.5,
+      "profile": "VP-0",
+      "speed_mps": 36.11111111111111,
+      "hwa_request_s": 0.0,
+      "hold_until_hwa": true,
+      "start_s_m": 10.0,
+      "start_offset_m": 0.5,
+      "start_heading_rad": 0.0,
+      "duration_s": 10,
+      "acc": "off",
+      "curvature_scale": 1.0,
+      "direction": 1.0,
+      "scenario_id": "S2",
+      "variant": "e",
+      "description": "l\u1ec7ch 0,5 m \u1edf 130 km/h",
+      "road_file": "../roads/S2e.xodr"
+    },
+    "segments": [
+      [
+        "straight",
+        800.0,
+        0
+      ]
+    ]
+  }
+}

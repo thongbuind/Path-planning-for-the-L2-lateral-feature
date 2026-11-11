@@ -28,12 +28,14 @@
     return values ? message.replace(/\{(\w+)\}/g, function (_, key) { return values[key]; }) : message;
   }
 
-  var MIN_K = 0.1;
+  var MIN_K = 0.02;
   var MAX_K = 3;
   var DRAG_THRESHOLD = 5; // px: dưới ngưỡng này coi là bấm, không phải kéo
   var GRID = 24;
 
   var view = { x: 0, y: 0, k: 1 };
+  var viewAnimation;
+  var autoFit = true;
   var cards = window.SPEC_CARDS || [];
 
   // ---------- Hiển thị ----------
@@ -91,9 +93,6 @@
     b.href = reportHref(c.doc);
     b.dataset.id = c.id;
     b.dataset.region = c.region || "docs";
-    b.style.left = c.x + "px";
-    b.style.top = c.y + "px";
-
     var head = el("span", "doc-head");
     head.appendChild(el("span", "doc-no", String(number).padStart(2, "0")));
     head.appendChild(el("span", "doc-title", tr(c.title)));
@@ -608,8 +607,6 @@
     b.href = reportHref(c.doc, c.section);
     b.dataset.id = c.id;
     b.dataset.region = c.region || "dynamics";
-    b.style.left = c.x + "px";
-    b.style.top = c.y + "px";
     var head = el("span", "doc-head");
     head.appendChild(el("span", "doc-kicker", tr(c.eyebrow)));
     b.appendChild(head);
@@ -626,7 +623,8 @@
   function refreshDiagrams(records) {
     if (!window.SpecDiagrams) return Promise.resolve();
     return Promise.all(diagramCards().map(function (c) {
-      return Promise.all([loadDoc(c.doc, "vi"), language === "en" && loadDoc(c.doc, "en"), records]).then(function () {
+      var extraDocs = (c.extra || []).map(function (x) { return loadDoc(x.doc, "vi"); });
+      return Promise.all([loadDoc(c.doc, "vi"), language === "en" && loadDoc(c.doc, "en"), records].concat(extraDocs)).then(function () {
         var card = world.querySelector('.card[data-id="' + c.id + '"]');
         var body = card && card.querySelector(".diagram-body");
         var vi = st(c.doc, "vi");
@@ -634,11 +632,13 @@
         var record = versionRecords?.[c.doc];
         var translation = language === "en" && vi.ok && en.ok && vi.revision && en.revision &&
           vi.revision === record?.vi && en.revision === record?.en ? en.md : null;
-        if (!body || !vi.md || (card._diagramMd === vi.md && card._diagramTranslation === translation)) return;
-        card._diagramMd = vi.md;
+        var extra = (c.extra || []).map(function (x) { return { md: st(x.doc, "vi").md || "", section: x.section }; });
+        var key = vi.md + extra.map(function (x) { return x.md; }).join("");
+        if (!body || !vi.md || (card._diagramMd === key && card._diagramTranslation === translation)) return;
+        card._diagramMd = key;
         card._diagramTranslation = translation;
         var out = window.SpecDiagrams.render(c.diagram, vi.md, {
-          section: c.section, lanes: c.lanes, own: c.own, translation: translation, tr: tr
+          section: c.section, lanes: c.lanes, own: c.own, translation: translation, tr: tr, extra: extra
         });
         if (out.node) {
           body.replaceChildren(out.node);
@@ -710,9 +710,11 @@
       var b = el("a", "card" + (c.group ? " " + c.group : ""));
       b.href = reportHref(c.research.doc, c.research.section);
       b.dataset.id = c.id;
-      b.dataset.region = c.group === "sim" ? "simulation" : "vehicle";
-      b.style.left = c.x + "px";
-      b.style.top = c.y + "px";
+      b.dataset.region = c.region || (c.group === "sim" ? "simulation" : "vehicle");
+      if (c.group !== "sim") {
+        b.style.left = c.x + "px";
+        b.style.top = c.y + "px";
+      }
 
       var top = el("span", "card-top");
       var icon = el("span", "card-icon");
@@ -730,7 +732,10 @@
   }
 
   var regionLayer = el("div", "map-regions");
-  var regionObserver = world && new ResizeObserver(layoutRegions);
+  var regionObserver = world && new ResizeObserver(function () {
+    layoutRegions();
+    if (autoFit) fit(false);
+  });
 
   function renderRegions() {
     regionLayer.replaceChildren();
@@ -754,49 +759,70 @@
     world.querySelectorAll(".card").forEach(function (card) { regionObserver.observe(card); });
   }
 
+  function placeRegion(frame, left, top, width) {
+    frame.style.left = left + "px";
+    frame.style.top = top + "px";
+    frame.style.width = width + "px";
+  }
+
+  // Giữ tọa độ các khối có đường nối. Các hàng thẻ còn lại tự giãn theo nội dung VI/EN.
   function layoutRegions() {
-    var padding = 42;
-    var header = 108;
-    var regions = {};
-    regionLayer.querySelectorAll(".map-region").forEach(function (frame) {
-      var nodes = world.querySelectorAll('.card[data-region="' + frame.dataset.region + '"]');
-      var bounds = boundsOf(nodes);
-      frame.hidden = !bounds;
-      if (!bounds) return;
-      regions[frame.dataset.region] = {
-        frame: frame,
-        left: bounds.minX - padding,
-        right: bounds.maxX + padding,
-        top: bounds.minY - header,
-        bottom: bounds.maxY + padding
-      };
-    });
+    var gap = 38, inset = 32, cardGap = 24;
+    var frames = Object.fromEntries(Array.from(regionLayer.children, function (frame) {
+      return [frame.dataset.region, frame];
+    }));
+    var vehicle = boundsOf(world.querySelectorAll('.card:is([data-region="vehicle"], [data-region="system"])'));
+    var system = boundsOf(world.querySelectorAll('.card[data-region="system"]'));
+    var vehicleLeft = vehicle.minX - 42;
+    var vehicleRight = vehicle.maxX + 42;
+    var top = vehicle.minY - 108;
+    var vehicleBottom = vehicle.maxY + 42;
+    placeRegion(frames.vehicle, vehicleLeft, top, vehicleRight - vehicleLeft);
+    frames.vehicle.style.height = vehicleBottom - top + "px";
+    placeRegion(frames.system, system.minX - 26, system.minY - 64, system.maxX - system.minX + 52);
+    frames.system.style.height = system.maxY - system.minY + 90 + "px";
 
-    var { docs, vehicle, simulation, dynamics } = regions;
-    if (docs && vehicle && simulation && dynamics) {
-      // Tài liệu kỹ thuật chiếm cả hai hàng. Hàng sơ đồ nằm dưới phần mềm trên xe và giả lập.
-      docs.top = vehicle.top = simulation.top = Math.min(docs.top, vehicle.top, simulation.top);
-      vehicle.left = dynamics.left = Math.min(vehicle.left, dynamics.left);
-      simulation.right = dynamics.right = Math.max(simulation.right, dynamics.right);
-      docs.bottom = dynamics.bottom = Math.max(docs.bottom, dynamics.bottom);
-
-      var upperBottom = Math.max(vehicle.bottom, simulation.bottom);
-      var gap = Math.min(vehicle.left - docs.right, simulation.left - vehicle.right, dynamics.top - upperBottom);
-      if (gap >= 0) {
-        docs.right = vehicle.left - gap;
-        vehicle.right = simulation.left - gap;
-        upperBottom = dynamics.top - gap;
-      }
-      vehicle.bottom = simulation.bottom = upperBottom;
+    function placeGrid(id, left, top, width, columns) {
+      var frame = frames[id];
+      var cardWidth = (width - 2 * inset - (columns - 1) * cardGap) / columns;
+      placeRegion(frame, left, top, width);
+      var heading = frame.lastElementChild;
+      var y = top + heading.offsetTop + heading.offsetHeight + cardGap;
+      var rowBottom = y;
+      world.querySelectorAll('.card[data-region="' + id + '"]').forEach(function (card, index) {
+        var column = index % columns;
+        if (index && column === 0) y = rowBottom + cardGap;
+        card.style.left = left + inset + column * (cardWidth + cardGap) + "px";
+        card.style.top = y + "px";
+        card.style.width = cardWidth + "px";
+        rowBottom = Math.max(rowBottom, y + card.offsetHeight);
+      });
+      var bottom = rowBottom + inset;
+      frame.style.height = bottom - top + "px";
+      return bottom;
     }
 
-    Object.values(regions).forEach(function (region) {
-      var style = region.frame.style;
-      style.left = region.left + "px";
-      style.top = region.top + "px";
-      style.width = region.right - region.left + "px";
-      style.height = region.bottom - region.top + "px";
-    });
+    var docsWidth = 1560;
+    var simWidth = 768;
+    var docsLeft = vehicleLeft - gap - docsWidth;
+    var simLeft = vehicleRight + gap;
+    var docsBottom = placeGrid("docs", docsLeft, top, docsWidth, 5);
+    var simBottom = placeGrid("simulation", simLeft, top, simWidth, 2);
+    var upperBottom = Math.max(docsBottom, vehicleBottom, simBottom);
+    var diagramTop = upperBottom + gap;
+    frames.docs.style.height = upperBottom - top + "px";
+    var strategyBottom = placeGrid("strategy", docsLeft, diagramTop, docsWidth, 3);
+    var safetyBottom = placeGrid("safety", vehicleLeft, diagramTop, vehicleRight - vehicleLeft, 2);
+    var dynamicsTop = simBottom + gap;
+    var dynamicsBottom = placeGrid("dynamics", simLeft, dynamicsTop, simWidth, 1);
+    var diagramBottom = Math.max(strategyBottom, safetyBottom, dynamicsBottom);
+    frames.strategy.style.height = diagramBottom - diagramTop + "px";
+    frames.safety.style.height = diagramBottom - diagramTop + "px";
+    var dynamicsShift = diagramBottom - dynamicsBottom;
+    if (dynamicsShift > 0) {
+      placeGrid("dynamics", simLeft, dynamicsTop + dynamicsShift, simWidth, 1);
+    }
+    frames.simulation.style.height = simBottom + dynamicsShift - top + "px";
   }
 
   // ---------- Đường dữ liệu ----------
@@ -907,6 +933,7 @@
   }
 
   function animateTo(target, ms) {
+    cancelAnimationFrame(viewAnimation);
     var from = { x: view.x, y: view.y, k: view.k };
     var t0 = performance.now();
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -918,12 +945,18 @@
       view.y = from.y + (target.y - from.y) * e;
       view.k = from.k + (target.k - from.k) * e;
       apply();
-      if (t < 1) requestAnimationFrame(step);
+      if (t < 1) viewAnimation = requestAnimationFrame(step);
     }
-    requestAnimationFrame(step);
+    viewAnimation = requestAnimationFrame(step);
+  }
+
+  function useCustomView() {
+    cancelAnimationFrame(viewAnimation);
+    autoFit = false;
   }
 
   function zoomBy(factor) {
+    useCustomView();
     var r = viewport.getBoundingClientRect();
     var cx = r.width / 2, cy = r.height / 2;
     var k = clampK(view.k * factor);
@@ -943,14 +976,15 @@
   }
 
   function fit(animate) {
-    layoutRegions();
-    var bounds = boundsOf(world.querySelectorAll(".card, .map-region:not([hidden])"));
+    var bounds = boundsOf(regionLayer.querySelectorAll(".map-region"));
     if (!bounds) return;
+    autoFit = true;
     var width = bounds.maxX - bounds.minX, height = bounds.maxY - bounds.minY;
     var r = viewport.getBoundingClientRect();
-    var pad = 32;
+    var pad = 16;
     var padRight = r.right - languageSwitch.getBoundingClientRect().left + 12;
-    var availW = r.width - pad - padRight, availH = r.height - pad * 2;
+    var availW = Math.max(1, r.width - pad - padRight);
+    var availH = Math.max(1, r.height - pad * 2);
     var k = clampK(Math.min(1, availW / width, availH / height));
     var target = {
       k: k,
@@ -958,7 +992,7 @@
       y: pad + (availH - height * k) / 2 - bounds.minY * k
     };
     if (animate) animateTo(target, 260);
-    else { view = target; apply(); }
+    else { cancelAnimationFrame(viewAnimation); view = target; apply(); }
   }
 
   // Trackpad: chụm hai ngón (trình duyệt gửi wheel kèm ctrlKey) = zoom,
@@ -972,6 +1006,7 @@
 
   viewport?.addEventListener("wheel", function (e) {
     e.preventDefault();
+    useCustomView();
     var r = viewport.getBoundingClientRect();
     var sx = e.clientX - r.left, sy = e.clientY - r.top;
 
@@ -1024,6 +1059,7 @@
     pointers.set(e.pointerId, { x: e.clientX - r.left, y: e.clientY - r.top });
 
     if (pinch && pointers.size >= 2) {
+      useCustomView();
       var m = midpoint();
       var k = clampK(pinch.k * (m.d / pinch.dist));
       view.k = k;
@@ -1035,6 +1071,7 @@
     if (!drag) return;
     var dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
     if (!drag.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+      useCustomView();
       drag.moved = true;
       viewport.classList.add("is-panning");
     }
@@ -1076,10 +1113,10 @@
       case "+": case "=": zoomBy(1.25); break;
       case "-": case "_": zoomBy(0.8); break;
       case "0": fit(true); break;
-      case "ArrowLeft": view.x += step; apply(); break;
-      case "ArrowRight": view.x -= step; apply(); break;
-      case "ArrowUp": view.y += step; apply(); break;
-      case "ArrowDown": view.y -= step; apply(); break;
+      case "ArrowLeft": useCustomView(); view.x += step; apply(); break;
+      case "ArrowRight": useCustomView(); view.x -= step; apply(); break;
+      case "ArrowUp": useCustomView(); view.y += step; apply(); break;
+      case "ArrowDown": useCustomView(); view.y -= step; apply(); break;
       default: handled = false;
     }
     if (handled) e.preventDefault();
@@ -1090,11 +1127,12 @@
   document.getElementById("zoom-fit")?.addEventListener("click", function () { fit(true); });
 
   function fitReportCatalog() {
-    var viewport = document.documentElement;
+    var root = document.documentElement;
     var header = reportCatalog.previousElementSibling;
-    var scale = Math.min(1, viewport.clientWidth / reportCatalog.offsetWidth,
-      (viewport.clientHeight - header.offsetHeight) / reportCatalog.offsetHeight);
-    viewport.style.setProperty("--report-scale", Math.max(0.01, scale));
+    var width = root.clientWidth - 1;
+    var height = root.clientHeight - header.offsetHeight - 1;
+    var scale = Math.min(1, width / reportCatalog.offsetWidth, height / reportCatalog.offsetHeight);
+    root.style.setProperty("--report-scale", Math.max(0.01, scale));
   }
 
   function renderReport() {
@@ -1196,19 +1234,14 @@
     });
   });
 
-  var initialLanguage = language;
-  var initialDocs = renderLanguage();
+  renderLanguage();
   if (reportCatalog && !currentDoc) {
     new ResizeObserver(fitReportCatalog).observe(reportCatalog);
     window.addEventListener("resize", fitReportCatalog);
   }
   if (world) {
     fit(false);
-    // Mục lục tải xong có thể làm thẻ cao hơn. Căn lại nếu người dùng chưa đổi góc nhìn.
-    var initialView = { x: view.x, y: view.y, k: view.k };
-    initialDocs.then(function () {
-      if (language === initialLanguage && view.x === initialView.x && view.y === initialView.y && view.k === initialView.k) fit(false);
-    });
+    new ResizeObserver(function () { if (autoFit) fit(false); }).observe(viewport);
     // Font tải xong có thể đổi chiều cao thẻ, vẽ lại đường cho khớp mép thẻ.
     document.fonts?.ready.then(drawEdges);
   }
