@@ -61,7 +61,7 @@ def straight(offset_y=0.0):
 
 def status(path_valid=True, function=ActiveFunction.HWA, valid=True):
     return PathStatus(BasicHeader(STAMP, 0, valid), path_valid, function,
-                      InterventionPhase.NONE, False, False)
+                      InterventionPhase.NONE, InterventionPhase.NONE, False, False)
 
 
 def no_motion(_request: EgoMotionRequest) -> EgoMotionResponse:

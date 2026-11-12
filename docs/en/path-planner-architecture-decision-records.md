@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-ADR` |
-| Version | 1.0 |
+| Version | 1.4 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#adr-scope}
 
@@ -43,11 +43,14 @@
 | PP-ADR-005 | Share one lateral-state calculation with the ADAS Functions module |
 | PP-ADR-006 | Check boundary consistency in the planner |
 | PP-ADR-007 | Use three layers of noise mitigation based on the previous path |
-| PP-ADR-008 | Balance side clearances and limit the center offset to actual free space |
+| PP-ADR-008 | Set the center offset from the clearance to a large vehicle and limit it to actual free space |
 | PP-ADR-009 | Follow the previous path for up to `T_coast`, then mark the path invalid |
 | PP-ADR-010 | Compensate post-planner latency in the Lateral Controller |
 | PP-ADR-011 | Infer the lane center from adjacent-lane markings and road edges in the planner |
 | PP-ADR-012 | Use one calibration set for all vehicles |
+| PP-ADR-013 | Use a C11 planner library with a C API and separate platform adapters |
+| PP-ADR-014 | Calculate the lateral state independently in the planner and the ADAS Functions module |
+| PP-ADR-015 | Report separate LKA and ELK phases in PathStatus |
 
 ## 5. Decisions {#adr-decisions}
 
@@ -97,7 +100,7 @@
 |---|---|
 | Context | The ADAS Functions module (for TLC) and the planner (for intervention paths) need the same measured lateral state |
 | Alternatives | A) Share a function with the same inputs. B) Have the planner calculate it independently. C) Have the ADAS Functions module publish the state in a message |
-| Decision | A |
+| Decision | A. Superseded by PP-ADR-014 |
 | Consequences | Benefit: both modules use the same value. Trade-off: both depend on a shared library. B can give inconsistent results (TLC of 1.0 s versus 1.3 s); C adds about 20 ms of latency, and the planner still has to calculate the state for HWA |
 | Related items | PP-SWR-080; Software Architectural Design Section 4.2 |
 
@@ -121,14 +124,14 @@
 | Consequences | Benefit: smooth paths under noise without duplicating the lane model's work. Trade-off: slower response to genuine lane changes; the Software Qualification Test Specification measures both effects |
 | Related items | PP-SWR-120; target PP-SWR-050; Software Architectural Design Section 4.1 |
 
-### PP-ADR-008 Balance side clearances and limit the center offset to actual free space {#adr-008}
+### PP-ADR-008 Set the center offset from the clearance to a large vehicle and limit it to actual free space {#adr-008}
 
 | Field | Value |
 |---|---|
 | Context | HWA shifts the target away from a large vehicle in an adjacent lane (assignment). The path must not shift toward a widening lane (mentor). The planner must operate for all lane widths of 2.5–5.5 m and all vehicles up to 2.5 m wide |
-| Alternatives | A) Use clearance to the raw road edge and a fixed offset of ±0.3 m. B) Balance clearances on both sides, using the reference line's lane boundary on an unoccupied side; calculate the offset limit from actual free space |
-| Decision | B. o = (right clearance − left clearance) / 2, clamped to ±o_lim, o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_lane − W_vehicle) / 2 |
-| Consequences | Benefit: the path does not shift toward lane widening; when objects are on both sides, the offset returns to 0; works for any lane and vehicle, with no case that conflicts with PP-SWR-051. Trade-off: depends on reference line quality; little room to offset a wide vehicle in a narrow lane |
+| Alternatives | A) Use clearance to the raw road edge and a fixed offset of ±0.3 m. B) Balance clearances on both sides, using the reference line's lane boundary on an unoccupied side. C) Shift away from the large vehicle by the shortfall from `gap_truck_min`. Balance the clearances when there are large vehicles on both sides. B and C both limit the offset to actual free space |
+| Decision | C (2026-11-11, supersedes B). See the formula in Software Architectural Design Section 6. o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_lane − W_vehicle) / 2. With a large vehicle centered in the adjacent lane, the clearance to it exceeds the clearance to the lane boundary. B can then leave the path centered or shift it toward the large vehicle |
+| Consequences | The path shifts away from the large vehicle, with a larger offset at smaller clearances. Lane widening does not pull the path toward that side. The path stays centered with large vehicles on both sides. It works for every lane and vehicle and respects PP-SWR-051. This adds `gap_truck_min` and depends on reference line quality. A wide vehicle in a narrow lane has little room to shift |
 | Related items | PP-SWR-051, 055, 056, 060, 062; target 057; Software Architectural Design Section 6 |
 
 ### PP-ADR-009 Follow the previous path for up to `T_coast`, then mark the path invalid {#adr-009}
@@ -171,8 +174,42 @@
 | Consequences | Benefit: no recalibration when integrating a new vehicle; demonstrates that the planner generalizes. Trade-off: the shared set can be less optimal for individual vehicles; all formulas must be parameterized by VehicleConfig |
 | Related items | PP-SWR-062, 116, 117; Software Architectural Design Section 11; Software Qualification Test Specification (flexibility) |
 
+### PP-ADR-013 Use a C11 planner library with a C API and separate platform adapters {#adr-013}
+
+| Field | Value |
+|---|---|
+| Context | The mentor needs to integrate the planner into a real system for verification. The target platform is unknown (PP-ASM-019). The benchmark must evaluate the code that will be delivered |
+| Alternatives | A) Python. B) Prototype in Python, then port to C. C) C11 with a C API and a separate adapter per platform. D) C++17 |
+| Decision | C. Apply a subset of MISRA C:2012. The caller supplies state memory. The planner uses no dynamic allocation, file reads, or global variables. Calibration is generated as a constant struct at build time. The simulator calls the same library through the SIL adapter |
+| Consequences | Platforms with C support can call the planner (AUTOSAR Classic, Adaptive, Linux, QNX, ROS 2). SIL and the target run the same source code with deterministic execution time. Algorithm trials take longer than in Python. Calibration changes require a rebuild. Free tools can check only part of MISRA C:2012 |
+| Related items | PP-ASM-019, Interface Control Document Section 4, Software Detailed Design Section 3 |
+
+### PP-ADR-014 Calculate the lateral state independently in the planner and the ADAS Functions module {#adr-014}
+
+| Field | Value |
+|---|---|
+| Context | The assignment requires an end-to-end path planner. It must integrate into a real system (PP-ADR-013) where another team supplies the ADAS Functions module |
+| Alternatives | A) Share a function with the ADAS Functions module (PP-ADR-005). B) Have the planner calculate the state from its own inputs. C) Have the ADAS Functions module publish the state in a message |
+| Decision | B. The ADAS Functions module computes its own state as specified in ADAS Function Specification Section 5. Each module implements the same formulas independently |
+| Consequences | The planner has no code dependency on the other module. The ADAS Functions stub in the simulator is independent of the planner. The module's TLC and the planner's lateral-state estimate can disagree (for example, 1.0 s versus 1.3 s). The planner must tolerate the discrepancy. PP-SWR-080 is still evaluated against the vehicle's actual state |
+| Related items | Supersedes PP-ADR-005. See PP-ADR-013, PP-SWR-080, Software Architectural Design Section 4.2, and Software Detailed Design Section 9 |
+
+### PP-ADR-015 Report separate LKA and ELK phases in PathStatus {#adr-015}
+
+| Field | Value |
+|---|---|
+| Context | When ELK reaches COMPLETED, T9 can select LKA if it is in REQUEST under PP-SWR-033. The ADAS Functions module must identify which function just completed |
+| Alternatives | A) Use a shared phase with `active_function`. B) Use a separate phase for each function |
+| Decision | B. PathStatus has `lka_phase` and `elk_phase`. Each phase stays at COMPLETED until its request leaves REQUEST |
+| Consequences | One message can report ELK COMPLETED and LKA ACTIVE. The sender and receiver must use the same schema version |
+| Related items | PP-TS-011, PP-SWR-032, 033, 041, Interface Control Document Section 6.2 |
+
 ## Revision history {#revision-history}
 
 | Version | Date | Changes |
 |---|---|---|
 | 1.0 | 2026-11-10 | Restructured as Architecture Decision Records, baseline BL1. All decisions are final; PP-ADR-008 limits the offset to actual free space; PP-ADR-009 uses `T_coast` ≤ 1 s; added PP-ADR-012; removed status labels and open items |
+| 1.1 | 2026-11-10 | Added PP-ADR-013 for the C11 library, C API, and separate platform adapters |
+| 1.2 | 2026-11-10 | Added PP-ADR-014 for independent lateral-state calculation in the planner. Superseded PP-ADR-005 |
+| 1.3 | 2026-11-11 | Selected C in PP-ADR-008, superseding B. The offset is based on the clearance shortfall from `gap_truck_min` |
+| 1.4 | 2026-11-12 | Added PP-ADR-015 for separate LKA and ELK phases in PathStatus |

@@ -22,11 +22,18 @@
 
 #define PP_AYSMAX (2.5)                /* [m/s^2] PP-SWR-001, R79 5.6.2.1.3 */
 #define PP_JERK_MAX_HWA (5.0)          /* [m/s^3] PP-SWR-003, R79 5.6.2.1.3 c */
+#define PP_AY_MAX_LKA (3.0)            /* PP-SWR-110 */
+#define PP_AY_MAX_ELK (4.0)            /* PP-SWR-111 */
+#define PP_AY_ADD_MAX_LKA (1.5)        /* PP-SWR-112 */
+#define PP_AY_ADD_MAX_ELK (3.0)        /* PP-SWR-113 */
+#define PP_JERK_MAX_LKA (5.0)          /* PP-SWR-114 */
+#define PP_JERK_MAX_ELK (10.0)         /* PP-SWR-115 */
 #define PP_JERK_WINDOW_S (0.5)         /* Software Requirements Specification 4 */
 
 typedef struct {
     double ay_max;                     /* [m/s^2] */
     double jerk_max;                   /* [m/s^3] */
+    double ay_add_max;                 /* [m/s^2], zero for the HWA path */
 } pp_function_limits_t;
 
 /* Step 1 on the 31 points. */

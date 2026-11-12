@@ -48,7 +48,7 @@ class FunctionRequest:
     state: RequestState
     side: Side  # Drift side; HWA uses NONE
     tlc: float  # [s]; Computed by the ADAS function block; HWA ignores it
-    elk_reason: ElkReason  # Log only
+    elk_reason: ElkReason  # ROAD_EDGE selects the observed road edge for ELK; other values are for logging
     cancel_reason: CancelReason  # Log only
 
     def __post_init__(self) -> None:

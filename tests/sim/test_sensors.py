@@ -2,10 +2,12 @@
 
 from math import cos, isclose, sin
 
-from interfaces import EgoMotionRequest, LineStatus
+import pytest
+
+from interfaces import EgoMotionRequest, LineStatus, LineType, RoadEdgeType
 from sim.sensors.ego_motion import EgoMotion
 from sim.sensors.lane_camera import CameraPose, LaneCamera
-from sim.world.road import Road, Segment
+from sim.world.road import Marking, Road, RoadEdgeSpec, RoadLayout, Segment
 
 
 def test_lane_camera_on_arc_centre():
@@ -31,6 +33,22 @@ def test_lane_camera_sees_offset_and_heading():
     l1 = lane.lines[1]
     assert isclose(l1.c0, (1.75 - 0.3) / cos(0.01), abs_tol=1e-3)
     assert isclose(l1.c1, -sin(0.01) / cos(0.01), abs_tol=1e-5)
+
+
+def test_lane_camera_reports_double_marking_and_measured_barrier():
+    layout = RoadLayout((None, Marking(1.675, LineType.DOUBLE, True), None, None),
+                        (None, RoadEdgeSpec(-1.75, RoadEdgeType.BARRIER)))
+    road = Road([Segment("straight", 300.0)], 3.5, layout)
+    pose = CameraPose(50.0, 0.0, 0.0, 50.0)
+    measured = LaneCamera(road).capture(0, pose)
+    ideal = LaneCamera(road, ideal=True).capture(0, pose)
+    assert measured.lines[1].type == LineType.DOUBLE and measured.lines[1].crossable
+    assert isclose(measured.lines[1].c0, 1.675, abs_tol=1e-6)
+    assert measured.lines[2].status == LineStatus.LOST
+    edge = measured.road_edges[1]
+    assert edge.type == RoadEdgeType.BARRIER and edge.status == LineStatus.MEASURED
+    assert isclose(edge.c0, -1.75, abs_tol=1e-6)
+    assert edge.variance[0] > 0 and ideal.road_edges[1].variance == (0.0,) * 4
 
 
 def _feed(motion: EgoMotion, v: float, r: float, until_us: int) -> None:
@@ -79,3 +97,10 @@ def test_ego_motion_rejects_unknown_past():
     assert motion.query(EgoMotionRequest(120_000, 180_000)).valid
     assert not motion.query(EgoMotionRequest(50_000, 180_000)).valid  # before the first sample
     assert not motion.query(EgoMotionRequest(180_000, 120_000)).valid  # t2 before t1
+
+
+def test_lane_camera_view_start_hides_the_near_road():
+    road = Road([Segment("straight", 300.0)], 3.5)
+    lane = LaneCamera(road, view_start_m=6.0).capture(0, CameraPose(50.0, 0.0, 0.0, 50.0))
+    assert lane.lines[1].view_range_start >= 6.0
+    assert lane.lines[1].c0 == pytest.approx(1.75, abs=1e-3)

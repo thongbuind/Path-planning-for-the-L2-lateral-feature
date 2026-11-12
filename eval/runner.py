@@ -33,6 +33,8 @@ def main() -> None:
                         help="Lane-model fault from benchmark/faults, e.g. F02 c")
     parser.add_argument("--acc", choices=("off", "ignore_limits", "on"),
                         help="Override the scenario's longitudinal side")
+    parser.add_argument("--adas-mode", choices=("A", "B"),
+                        help="Select the LKA/ELK stand-in inputs, A is timing comparison only")
     parser.add_argument("--out", type=Path, default=RUN_DIR)
     parser.add_argument("--record", action="store_true",
                         help="Official run: clean working tree, library from HEAD; copy to research/runs")
@@ -62,13 +64,18 @@ def main() -> None:
         scenario = loader.with_fault(scenario, *args.fault)
     if args.acc:
         scenario = replace(scenario, acc=args.acc, name=f"{scenario.name}_acc-{args.acc}")
+    if args.adas_mode:
+        if scenario.adas_mode == "scripted":
+            parser.error("--adas-mode applies to scenarios configured for the stand-in")
+        scenario = replace(scenario, adas_mode=args.adas_mode, name=f"{scenario.name}_adas-{args.adas_mode}")
+        manifest["adas_mode"] = args.adas_mode
     result = metrics.evaluate(run(scenario, args.seed))
     print(report.text(result))
     path = report.write_json(result, args.out)
     provenance.write(manifest, args.out, path.stem + ".manifest.json")
     print(f"\nJSON: {path}")
     if args.record:
-        failed = [c.id for c in result.criteria if c.applicable and not c.passed]
+        failed = result.case_failures + [c.id for c in result.criteria if c.applicable and not c.passed]
         dest = provenance.record(manifest, {"results.json": path},
                                  "trượt: " + (", ".join(failed) or "không"))
         print(f"Recorded: {dest}")

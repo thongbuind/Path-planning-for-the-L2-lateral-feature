@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(pp_planner VERSION 0.1.0 LANGUAGES C)
+project(pp_planner VERSION 0.2.0 LANGUAGES C)
 
 # PP-ADR-013: C11, no compiler extensions.
 set(CMAKE_C_STANDARD 11)
@@ -21,7 +21,7 @@ add_custom_command(
     DEPENDS ${PP_CALIBRATION_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/calibration/gen_calibration.py
     COMMENT "Generating calibration from ${PP_CALIBRATION_FILE}")
 
-# T7 technique chosen at build time (research/README.md step 3; PP-TS-003): quintic (A) or qp (C).
+# HWA T7 technique (PP-TS-003): quintic (A) or qp (C). Both use A for LKA and ELK.
 set(PP_T7 "quintic" CACHE STRING "T7 path generation technique: quintic or qp")
 set_property(CACHE PP_T7 PROPERTY STRINGS quintic qp)
 if(PP_T7 STREQUAL "qp")
@@ -32,12 +32,29 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
+# PP-TS-014: T4 blend with one lambda for the whole path (single) or one per point (per_time);
+# reference line beyond the view range on the last curvature (arc) or on a rate-limited one.
+set(PP_T4_BLEND "single" CACHE STRING "T4 blend: single or per_time")
+set_property(CACHE PP_T4_BLEND PROPERTY STRINGS single per_time)
+if(PP_T4_BLEND STREQUAL "per_time")
+    list(APPEND PP_T7_DEFINES PP_T4_PER_TIME)
+elseif(NOT PP_T4_BLEND STREQUAL "single")
+    message(FATAL_ERROR "PP_T4_BLEND must be single or per_time, got ${PP_T4_BLEND}")
+endif()
+set(PP_T2_BEYOND "arc" CACHE STRING "Reference line beyond the view range: arc or rate_limited")
+set_property(CACHE PP_T2_BEYOND PROPERTY STRINGS arc rate_limited)
+if(PP_T2_BEYOND STREQUAL "rate_limited")
+    list(APPEND PP_T7_DEFINES PP_T2_BEYOND_RATE)
+elseif(NOT PP_T2_BEYOND STREQUAL "arc")
+    message(FATAL_ERROR "PP_T2_BEYOND must be arc or rate_limited, got ${PP_T2_BEYOND}")
+endif()
+
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -DT4=${PP_T4_BLEND} -DT2=${PP_T2_BEYOND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()")
 
@@ -58,6 +75,7 @@ set(PP_UNIT_SOURCES
     src/generators/quintic.c
     src/generators/qp.c
     src/arbitration.c
+    src/intervention.c
     src/output.c)
 set(PP_PRIVATE_INCLUDES ${PP_INTERFACES_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${PP_GENERATED_DIR})
 
@@ -79,11 +97,14 @@ option(PP_BUILD_TESTS "Build the C unit tests of the planner units" ON)
 if(PP_BUILD_TESTS)
     enable_testing()
     set(PP_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/planner/c)
-    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output test_stitching test_feasibility test_step test_version test_qp test_offset)
+    foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output
+                 test_stitching test_feasibility test_step test_version test_qp test_offset
+                 test_arbitration test_intervention)
         add_executable(${name} ${PP_TEST_DIR}/${name}.c src/pp_planner.c ${PP_UNIT_SOURCES}
                        ${PP_GENERATED_DIR}/pp_calibration.c)
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
         target_compile_options(${name} PRIVATE ${PP_WARNINGS})
+        target_compile_definitions(${name} PRIVATE ${PP_T7_DEFINES})
         add_dependencies(${name} pp_build_info)
         if(NOT APPLE)
             target_link_libraries(${name} PRIVATE m)

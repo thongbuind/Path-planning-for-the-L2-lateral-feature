@@ -72,6 +72,8 @@ typedef struct {
     bool line_rejected[2];        /* L1, R1 failed the consistency check this cycle */
     double var_c2;                /* Variance of the centre's c2, c3 (for T5) */
     double var_c3;
+    bool far_kappa_set;           /* PP-TS-014 V2: curvature of the arc beyond view_end */
+    double far_kappa;             /* [1/m] */
 } pp_reference_line_t;
 
 void pp_reference_memory_reset(pp_reference_memory_t *mem);
@@ -108,6 +110,9 @@ typedef struct {
     pp_ref_point_t arc_start;
     double s_arc_start;
 } pp_ref_walker_t;
+
+/* Curvature of the centre at the end of the observed range (start of the arc beyond it). */
+double pp_ref_end_kappa(const pp_reference_line_t *ref);
 
 void pp_ref_walk_begin(pp_ref_walker_t *walker, const pp_reference_line_t *ref,
                        pp_ref_point_t *start);

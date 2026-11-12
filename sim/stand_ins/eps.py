@@ -15,14 +15,15 @@ HANDOVER_S = 1.0  # 4.6
 
 
 class Eps:
-    def __init__(self, vehicle: VehicleConfig, actuator_delay_s: float | None = None) -> None:
-        """`actuator_delay_s` overrides VehicleConfig for the slow-EPS scenarios (S13)."""
+    def __init__(self, vehicle: VehicleConfig, actuator_delay_s: float | None = None,
+                 *, moving_driver_target: bool = False) -> None:
+        """The driver can command changing angles before the first intervention."""
         self.vehicle = vehicle
         self.delay_us = round(1e6 * (vehicle.actuator_delay if actuator_delay_s is None
                                      else actuator_delay_s))
         self._requests: deque[tuple[int, SteeringRequest]] = deque()
         self._command: SteeringRequest | None = None
-        self._inactive_since_us: int | None = 0
+        self._inactive_since_us: int | None = None if moving_driver_target else 0
         self._last_active_angle = 0.0
         self.angle = 0.0  # [rad] steering wheel angle
         self.rate = 0.0  # [rad/s]
@@ -45,17 +46,18 @@ class Eps:
             _, cmd = self._requests.popleft()
             if cmd.active:
                 self._inactive_since_us = None
-            elif self._inactive_since_us is None:
+            elif self.controlling:
                 self._inactive_since_us = now_us
                 self._last_active_angle = self.angle
             self._command = cmd
 
         if self.controlling:
             target = self._command.steering_wheel_angle_rad
-        else:
-            since = self._inactive_since_us if self._inactive_since_us is not None else now_us
-            h = min(1.0, (now_us - since) / (HANDOVER_S * 1e6))
+        elif self._inactive_since_us is not None:
+            h = min(1.0, (now_us - self._inactive_since_us) / (HANDOVER_S * 1e6))
             target = (1 - h) * self._last_active_angle + h * self.driver_angle
+        else:
+            target = self.driver_angle
 
         v = self.vehicle
         max_rate = v.max_steering_wheel_rate

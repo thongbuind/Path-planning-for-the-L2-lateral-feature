@@ -92,6 +92,45 @@ def test_fault_concrete_preserves_injection(tmp_path):
         assert fault.active(4.05) == (level == 'e')
 
 
+def test_concrete_preserves_double_mark_barrier_and_oncoming_orientation(tmp_path):
+    import math
+    from interfaces import LineType, RoadEdgeType
+    from sim.world.road import Segment
+
+    source = tmp_path / 'road-edge.xosc'
+    root = openx.parse(BENCHMARK / 'scenarios' / 'S3.xosc')
+    root.find(".//ParameterDeclaration[@name='road_file']").set('value', 'road-edge.xodr')
+    root.find(".//ParameterDeclaration[@name='truck_t_m']").set('value', '3.5')
+    root.find(".//Private[@entityRef='Truck']//Orientation").set('h', str(math.pi))
+    openx.write(root, source)
+
+    road = openx.road_xml((Segment('straight', 1200.0),), 3.5)
+    right = road.find('.//right')
+    right.remove(right.find("lane[@id='-3']"))
+    right.find("lane[@id='-1']/roadMark").set('type', 'solid broken')
+    ego = right.find("lane[@id='-2']")
+    ego.remove(ego.find('roadMark'))
+    objects = openx.node(road.find('road'), 'objects')
+    barrier = openx.node(objects, 'object', id='1', type='barrier', s=0, t=-1.85, zOffset=0)
+    openx.node(barrier, 'repeat', s=0, length=1200, distance=0, tStart=-1.85, tEnd=-1.85,
+               widthStart=0.2, widthEnd=0.2, heightStart=0.8, heightEnd=0.8, zOffsetStart=0, zOffsetEnd=0)
+    openx.write(road, source.with_suffix('.xodr'))
+
+    destination = tmp_path / 'generated' / source.name
+    overrides = {'lane_width_m': 4.0}
+    openx.concrete(source, destination, overrides)
+    openx.validate(destination)
+    openx.validate(destination.with_suffix('.xodr'))
+    scenario = openx.load_scenario(destination)
+    assert scenario == openx.load_scenario(source, overrides)
+    assert scenario.traffic[0].direction == -1
+    mark = scenario.road_layout.markings[1]
+    assert mark.type == LineType.DOUBLE and mark.crossable and mark.offset_m == pytest.approx(1.925)
+    assert scenario.road_layout.markings[2] is None
+    edge = scenario.road_layout.edges[1]
+    assert edge.type == RoadEdgeType.BARRIER and edge.offset_m == pytest.approx(-2.0)
+
+
 def test_unsupported_dynamic_content_and_bad_parameters_rejected(tmp_path):
     source = BENCHMARK / 'scenarios/S1.xosc'
     with pytest.raises(ValueError, match='undeclared'): openx.load_scenario(source, {'typo': 1})
@@ -148,7 +187,7 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
                 anchors = openx.anchors(BENCHMARK / folder / f'{sid}.xosc')
                 assert {c['anchor'] for c in p['cases'] if c['family'] == sid and c['anchor']} == set(anchors)
         assert all(r['case'] in case_by_id for r in p['runs'])
-    assert {'anchor', 'boundary', 'pairwise', 'lhs'} == {m for c in plans['full']['cases'] for m in c['methods']}
+    assert {'anchor', 'boundary', 'pairwise', 'lhs', 'protocol'} == {m for c in plans['full']['cases'] for m in c['methods']}
     for p in plans.values():
         for anchor in ('a', 'e'):
             assert {c['parameters']['acc'] for c in p['cases'] if c['family'] == 'S14' and c['anchor'] == anchor} == {'on', 'ignore_limits'}
@@ -163,6 +202,51 @@ def test_manifest_tamper_detected(tmp_path):
     road = path.parent / manifest['cases'][0]['file'].replace('.xosc', '.xodr')
     road.write_text(road.read_text() + '\n')
     with pytest.raises(ValueError, match='changed'): suite.verify_manifest(path)
+
+
+def test_lka_and_elk_protocol_sets_are_explicit_and_separate_from_coverage():
+    counts = {"S4": 20, "S5": 14, "S6": 10, "S7": 5, "S8": 16}
+    cases = generate.plan("regression")["cases"]
+    for sid, count in counts.items():
+        rows = [c["parameters"] for c in cases if c["family"] == sid and c["methods"] == ["protocol"]
+                and c["parameters"]["profile"] == "VP-0"]
+        assert len(rows) == count
+        assert {r["speed_mps"] for r in rows} == {20.0}
+        assert {r["departure_v_lat_mps"] for r in rows if r["protocol"] == "Euro NCAP LSS"
+                and not r["indicated"]} == {.2, .3, .4, .5, .6}
+        if sid in ("S4", "S5"):
+            assert {r["departure_side"] for r in rows} == {"left", "right"}
+        if sid == "S5":
+            eu = [r for r in rows if r["protocol"] == "EU 2021/646"]
+            assert {(r["departure_side"], r["departure_v_lat_mps"]) for r in eu} == set(
+                product(("left", "right"), (.2, .5)))
+            assert all(r["departure_radius_m"] >= 1200 and not r["passive_hands_on"] for r in eu)
+        if sid == "S8":
+            intent = [r for r in rows if r["indicated"]]
+            assert {r["departure_v_lat_mps"] for r in intent} == {.5, .6, .7}
+            assert {r["departure_radius_m"] for r in intent} == {800}
+
+
+def test_anchors_override_the_default_drift_direction_and_target_speed():
+    assert loader.load("S4b", "b").driver.drift_curvature < 0
+    assert loader.load("S4b", "c").driver.drift_curvature > 0
+    same_speed = loader.load("S8", "b")
+    assert same_speed.speed_mps == same_speed.traffic[0].speed == 20.0
+
+
+@pytest.mark.parametrize("sid, variant", [("S4", "d"), ("S6", "d"), ("S7", "a"), ("S8", "late")])
+def test_intervention_round_trip_includes_driver_and_traffic(tmp_path, sid, variant):
+    source = BENCHMARK / "scenarios" / f"{sid}.xosc"
+    out = tmp_path / source.name
+    anchor = openx.anchors(source)[variant]
+    openx.concrete(source, out, anchor)
+    openx.validate(out)
+    openx.validate(out.with_suffix(".xodr"))
+    expected = loader.load(sid, variant)
+    assert openx.load_scenario(out) == expected
+    assert expected.hwa_request_s is None and expected.driver is not None
+    if variant == "late":
+        assert expected.adas_mode == "scripted" and len(expected.request_events) == 1
 
 
 def test_provenance_includes_xml_ranges_suites_and_schemas():

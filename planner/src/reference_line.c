@@ -267,7 +267,18 @@ void pp_ref_walk_begin(pp_ref_walker_t *walker, const pp_reference_line_t *ref,
     if (walker->x >= walker->x_end) {
         walker->on_arc = true;
         walker->arc_start = *start;
+        if (ref->far_kappa_set) {
+            walker->arc_start.kappa = ref->far_kappa;
+            walker->arc_start.dkappa = 0.0;
+        }
     }
+}
+
+double pp_ref_end_kappa(const pp_reference_line_t *ref)
+{
+    pp_ref_point_t end;
+    point_on_cubic(&ref->centre, fmax(ref->view_end, foot_x(&ref->centre, 0.0, 0.0)), &end);
+    return end.kappa;
 }
 
 static void point_on_arc(const pp_ref_point_t *a, double length, pp_ref_point_t *out)
@@ -304,6 +315,9 @@ void pp_ref_walk_to(pp_ref_walker_t *walker, double s, pp_ref_point_t *point)
             if (walker->x >= walker->x_end) {
                 walker->on_arc = true;
                 point_on_cubic(p, walker->x_end, &walker->arc_start);
+                if (walker->ref->far_kappa_set) {
+                    walker->arc_start.kappa = walker->ref->far_kappa;
+                }
                 walker->s_arc_start = walker->s;
             }
         }

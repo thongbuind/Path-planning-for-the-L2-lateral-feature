@@ -9,6 +9,7 @@
 
 parameters:
   conf_ego:         {value: 0.6, unit: "-", min: 0, max: 1, source: "Software Requirements Specification 7"}
+  conf_edge:        {value: 0.7, unit: "-", min: 0, max: 1, source: "Software Requirements Specification 7; PP-SWR-047"}
   conf_inferred:    {value: 0.8, unit: "-", gt_param: conf_ego, source: "Software Requirements Specification 7"}
   T_coast:          {value: 1.0, unit: s, min: 0, max: 1, source: "Software Requirements Specification 7; PP-SWR-124"}
   free_space_min:   {value: 0.1, unit: m, min: 0, source: "Software Requirements Specification 7; PP-SWR-051, 063"}
@@ -19,8 +20,9 @@ parameters:
   heading_end:      {value: 0.5, unit: deg, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   ay_add_end:       {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   T_end_hold:       {value: 0.5, unit: s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
-  T_lka:            {value: 3.0, unit: s, source: "Limits of PP-SWR-110, 112, 114"}
-  T_elk:            {value: 2.0, unit: s, source: "Limits of PP-SWR-111, 113, 115"}
+  T_lka:            {value: 3.0, unit: s, gt: 0, max: 10, source: "Limits of PP-SWR-083, 110, 112, 114"}
+  T_elk:            {value: 2.0, unit: s, gt: 0, max: 10, source: "Limits of PP-SWR-083, 111, 113, 115"}
+  intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
   dlc_target_lka:   {value: 0.5, unit: m, min: 0, source: "PP-SWR-084"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}
   ay_add_max_hwa:   {value: 0.5, unit: m/s^2, max: 2.5, source: "PP-SWR-001"}
@@ -48,6 +50,8 @@ parameters:
   # HWA recentering ends within this lateral offset; same 0.1 m as target PP-SWR-053.
   recenter_done:    {value: 0.1, unit: m, gt: 0, source: "nhóm tự thống nhất; PP-SWR-053; T7"}
   cont_margin:      {value: 0.9, unit: "-", gt: 0, max: 1, source: "Software Detailed Design 15; T4"}
+  # PP-TS-014 V2 (build PP_T2_BEYOND=rate_limited): rate of the curvature beyond the view range.
+  kappa_far_rate:   {value: 5.0e-4, unit: 1/m/s, gt: 0, source: "nhóm tự thống nhất; PP-TS-014; T2"}
   # T7 technique C, unified QP (Software Detailed Design 10, 15; PP-TS-003). Weights are
   # dimensionless; start values from the prototype in PP-TS-003.
   qp_w_jerk:          {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}

@@ -6,9 +6,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "arbitration.h"
 #include "curvature.h"
 #include "feasibility.h"
 #include "generators/qp.h"
+#include "intervention.h"
 #include "offset.h"
 #include "pp_calibration.h"
 #include "pp_types.h"
@@ -31,9 +33,17 @@ typedef struct {
     pp_limit_flag_t limit_flag;     /* T10: lateral_limit_reached */
     bool recentering;               /* T7: HWA brings the car back to the centre */
     pp_active_function_t last_active; /* T9 result of the previous cycle */
+    pp_arbitration_memory_t arbitration;
+    pp_edge_memory_t edge_mem;
+    pp_intervention_path_t intervention_path;
+    pp_lateral_velocity_history_t end_velocity;
+    bool requests_clock_set;
+    uint64_t last_requests_us;        /* PP-SWR-145, most recent usable receive time */
     bool has_prev_t0;               /* t0 of the previous cycle, for ego-motion between cycles */
     uint64_t prev_t0_us;
     pp_curvature_t curv;            /* T5 estimate */
+    bool far_kappa_valid;           /* PP-TS-014 V2: rate-limited curvature beyond the view */
+    double far_kappa;               /* [1/m] */
     bool t5_has_stamp;              /* Capture stamp of the last frame T5 used */
     uint64_t t5_stamp_us;
     pp_qp_ws_t qp;                  /* T7 technique C: warm start between cycles */

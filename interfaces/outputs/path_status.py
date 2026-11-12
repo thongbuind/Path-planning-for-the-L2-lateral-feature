@@ -33,10 +33,12 @@ class PathStatus:
     header: BasicHeader
     path_valid: bool
     active_function: ActiveFunction  # NONE when path_valid is false
-    intervention_phase: InterventionPhase
+    lka_phase: InterventionPhase  # LKA intervention phase
+    elk_phase: InterventionPhase  # ELK intervention phase
     lateral_limit_reached: bool
     lane_too_narrow: bool
 
     def __post_init__(self) -> None:
         check_enum(self, "active_function", ActiveFunction)
-        check_enum(self, "intervention_phase", InterventionPhase)
+        check_enum(self, "lka_phase", InterventionPhase)
+        check_enum(self, "elk_phase", InterventionPhase)

@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SRS` |
-| Version | 1.0 |
+| Version | 1.6 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -73,11 +73,13 @@
 | Path lateral jerk | Time derivative of path a_y, with a 0.5 s moving average |
 | Consecutive paths | Compare over the time interval both describe after transforming the previous path into the new path's base_link using the vehicle's actual motion |
 | Reliable lane boundary | L1 and R1 markings: status MEASURED, confidence ≥ `conf_ego`. L2 and R2 markings or road edges, when used to infer the lane center: status MEASURED, confidence ≥ `conf_inferred` |
-| DLC | As in ADAS Function Specification Section 3, calculated using the actual lane and actual vehicle position |
+| DLC | As in ADAS Function Specification Section 5, calculated using the actual lane and actual vehicle position |
 | DTLE | Minimum distance from the outer edge of the tire to the inner edge of the lane marking during an intervention; negative means the marking has been crossed (Euro NCAP) |
 | Free space on each side | (actual lane width − vehicle width including mirrors) / 2 |
 | Large vehicle | Object in an adjacent lane with width ≥ 2.3 m |
-| Termination conditions | DLC ≥ 0 on both sides; absolute v_lat ≤ `v_lat_end`; absolute heading error relative to the lane ≤ `heading_end`; added a_y ≤ `ay_add_end` |
+| Alongside | The longitudinal extent of the large vehicle overlaps the ego vehicle body |
+| Clearance to a large vehicle | Lateral distance from the ego vehicle body, including mirrors, when centered in the actual lane, to the nearest edge of the large vehicle |
+| Termination conditions | DLC ≥ 0 on both sides, magnitude of v_lat ≤ `v_lat_end`, magnitude of heading error relative to the lane ≤ `heading_end`, and magnitude of added a_y ≤ `ay_add_end` |
 
 ## 5. Operating conditions (ODD) {#req-odd}
 
@@ -113,6 +115,7 @@ Each row identifies the requirements that depend on the assumption and how to re
 | PP-ASM-016 | Vehicle width including mirrors does not exceed 2.5 m | PP-SWR-062, 063 | Read VehicleConfig | QCVN 09:2015/BGTVT 2.1.1.1 b |
 | PP-ASM-017 | The Lateral Controller compensates post-planner latency by reading path points using `header.stamp_us` and `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Confirm with the Lateral Controller team | team agreement |
 | PP-ASM-018 | ASIL ratings for safety requirements follow the safety department's confirmation review of the HARA | All Safety requirements | Safety department review outcome | team agreement |
+| PP-ASM-019 | The target platform (ECU, operating system, middleware, coding standard) is unknown. The planner requires only a C11 compiler (PP-ADR-013) | All requirements, through implementation | Ask the mentor for the target platform and coding standard | team agreement |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
 
@@ -121,12 +124,12 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | Parameter | Meaning | Limit | Basis for the limit |
 |---|---|---|---|
 | `conf_ego` | Minimum confidence of L1 and R1 markings | 0–1 | — |
+| `conf_edge` | Minimum confidence of a directly measured road edge for ELK | 0–1 | PP-SWR-047 |
 | `conf_inferred` | Minimum confidence of a boundary used to infer the lane center | > `conf_ego` | Inference adds the error of the stored offset |
 | `T_coast` | Time to follow the previous path when no reliable lane boundary remains | 0–1 s | Analysis: dead-reckoning deviation of 0.06 m after 1 s (Software Architectural Design Appendix A.4) |
 | `free_space_min` | Minimum free space on each side for HWA availability | ≥ 0 m | PP-SWR-051 |
-| `delta_ay` | Tolerance around aysmax for the `lateral_limit_reached` flag | ≥ 0 m/s² | — |
-| `epsilon_ay` | Amount by which path a_y may be below aysmax when required a_y exceeds aysmax | 0–2.5 m/s² | R79 5.6.2.2.3 |
-| `T_flag` | Maximum time for the `lateral_limit_reached` flag to change value | > 0 s | — |
+| `epsilon_ay` | Amount by which path a_y may be below aysmax when required a_y exceeds aysmax | 0–2.5 m/s² | — |
+| `gap_truck_min` | Clearance below which HWA offsets the lane center away from a large vehicle | > 0 m | — |
 | `v_lat_end`, `heading_end`, `ay_add_end` | Termination condition thresholds | ≥ 0 | — |
 | `T_end_hold` | Time for which the termination conditions must hold continuously before reporting COMPLETED | ≥ 0 s | — |
 
@@ -148,22 +151,22 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 |---|---|---|---|---|
 | PP-SWR-030 | The planner shall select the function in control in the priority order ELK > LKA > HWA, considering only functions with state = REQUEST | Test: S9 (a) | Safety, SG-01 | team agreement |
 | PP-SWR-031 | When the function in control changes, the path shall satisfy PP-SWR-100 to 102, except when LKA or ELK starts and the actual vehicle deviates from the previous path by more than 0.1 m or 0.1 m/s. In that case, apply PP-SWR-080 | Test: S9, S8c (d) | Safety, SG-04 | assignment |
-| PP-SWR-032 | When the LKA or ELK termination conditions have held continuously for `T_end_hold`, the planner shall set `intervention_phase = COMPLETED` | Test: S4, S5 | Functional | team agreement |
+| PP-SWR-032 | When the LKA or ELK termination conditions have held continuously for `T_end_hold`, the planner shall set that function's phase to COMPLETED | Test: S4, S5 | Functional | team agreement |
 | PP-SWR-033 | After COMPLETED, the planner shall select the function in control according to PP-SWR-030 from the functions still in REQUEST, excluding the one just marked COMPLETED. If no function remains, select NONE | Test: S9 (b) | Functional | team agreement |
 | PP-SWR-034 | If the function just marked COMPLETED remains in REQUEST, the planner shall not start a new intervention for that function until its state leaves REQUEST and returns to it | Test: S16 (a, b) | Functional | team agreement |
 | PP-SWR-035 | Each new LKA or ELK intervention shall have the same limits as the first, regardless of the number of prior interventions | Test: S16 (c, d, e) | Functional | team agreement |
-| PP-SWR-036 | When the intervening function leaves REQUEST mid-intervention and HWA is in REQUEST, the planner shall transition to HWA from the current state | Test: S9 (d), S8c (d) | Functional | team agreement |
-| PP-SWR-037 | When the intervening function leaves REQUEST mid-intervention and HWA is not in REQUEST, the planner shall set `active_function = NONE` and keep `path_valid = true` | Test: S9 (d), S8c (d) | Safety, SG-02 | team agreement |
+| PP-SWR-036 | When the intervening function leaves REQUEST mid-intervention, the planner shall transition from the current state to the function selected under PP-SWR-030 from those still in REQUEST | Test: S9 (d), S8c (d) | Functional | team agreement |
+| PP-SWR-037 | When the intervening function leaves REQUEST mid-intervention through a valid message and no eligible function remains, the planner shall report `active_function = NONE` with `path_valid = true` if the required inputs remain valid | Test: S9 (d), S8c (d) | Safety, SG-02 | team agreement |
 | PP-SWR-038 | The planner shall reflect changes in FunctionRequests in its output within one cycle of receiving the message | Test: S9, Q3 | Functional | team agreement |
 | PP-SWR-039 | While `driver_override = true`, the start of the path shall match the vehicle's current lateral position with an error of ≤ 0.05 m | Test: S9 (c), S17 | Safety, SG-05 | team agreement |
 | PP-SWR-040 | When `driver_override` changes to false while HWA is in REQUEST, the start of the HWA path shall match the vehicle's lateral position at that time with an error of ≤ 0.05 m | Test: S9 (c), S17 | Safety, SG-05 | team agreement |
-| PP-SWR-041 | The planner shall keep `intervention_phase = COMPLETED` until the state of that function leaves REQUEST | Test: S16 (a, b) | Functional | team agreement |
+| PP-SWR-041 | The planner shall keep each function's phase at COMPLETED until that function leaves REQUEST | Test: S16 (a, b) | Functional | team agreement |
 | PP-SWR-042 | When HWA leaves REQUEST and no function is in REQUEST, the planner shall set `active_function = NONE` and keep `path_valid = true` | Test: S9 (e) | Safety, SG-02 | team agreement |
 | PP-SWR-043 | While `path_valid = false`, `active_function` shall equal NONE | Test: F05, F12 (Lane Model), F20 | Functional | team agreement |
 | PP-SWR-044 | When inputs recover after `path_valid = false`, the start of the new path shall match the vehicle's actual lateral state within the tolerances in PP-SWR-080 | Test: F12 (Lane Model, recovery) | Functional | team agreement |
 | PP-SWR-045 | After input recovery, the planner shall start an LKA or ELK intervention only after the state of that function leaves REQUEST and returns to it | Test: F12 (Lane Model, recovery) | Safety, SG-01 | team agreement |
 | PP-SWR-046 | If VehicleStateEstimate becomes invalid during LKA or ELK intervention, the planner shall continue that intervention path until it ends | Test: F12 (v_y, in S5) | Safety, SG-03 | team agreement |
-| PP-SWR-047 | While the lane center can only be inferred from adjacent-lane markings or road edges, the planner shall not select LKA or ELK as the function in control | Test: F21 | Safety, SG-01 | mentor |
+| PP-SWR-047 | While the lane center can only be inferred from boundaries outside the ego lane, the planner shall not select LKA or ELK. Road-edge ELK is allowed if the hazard-side boundary of the ego lane is a MEASURED edge with confidence ≥ `conf_edge` and a reliable opposite boundary or stored lane width is available | Test: F21 | Safety, SG-01 | mentor, with the scope of road-edge ELK clarified by the team in PP-TS-007 |
 
 ### 8.3 HWA: a_y limits {#req-hwa-lateral-limit}
 
@@ -172,20 +175,19 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-001 | While HWA is in control, path a_y shall be ≤ aysmax = 2.5 m/s² at every point | Test: S1, S1b, S12 (a) | Regulatory, SG-01 | R79 5.6.2.1.3 (≤ 3 m/s²) |
 | PP-SWR-003 | While HWA is in control, path lateral jerk shall be ≤ 5 m/s³ | Test: S1 | Regulatory, SG-01 | R79 5.6.2.1.3 c |
 | PP-SWR-005 | If maximum required a_y > aysmax while HWA is in control, the planner shall keep `path_valid = true` and `active_function = HWA`, unless arbitration switches to LKA or ELK | Test: S1b | Regulatory, SG-02 | R79 5.6.2.2.3 |
-| PP-SWR-006 | If required a_y > aysmax at a path point while HWA is in control, path a_y at that point shall be ≥ aysmax − `epsilon_ay` | Test: S1b | Regulatory, SG-02 | R79 5.6.2.2.3 |
-| PP-SWR-007 | When maximum required a_y > aysmax + `delta_ay`, the planner shall set `lateral_limit_reached = true` within `T_flag` | Test: S1b | Functional | team agreement |
-| PP-SWR-008 | When maximum required a_y < aysmax − `delta_ay`, the planner shall set `lateral_limit_reached = false` within `T_flag` | Test: S1 (a, b, d, e) | Functional | team agreement |
+| PP-SWR-006 | If required a_y > aysmax at a point in the 0–1 s segment of the path while HWA is in control, path a_y at that point shall be ≥ aysmax − `epsilon_ay` | Test: S1b | Regulatory, SG-02 | R79 5.6.2.2.3 (assistance within available capability). The team set `epsilon_ay` |
+| PP-SWR-007 | When a front tire starts to touch the marking while HWA is in control and maximum required a_y > aysmax, `lateral_limit_reached` shall already be true | Test, closed loop: S1b | Regulatory, SG-01 | R79 5.6.2.2.3 and Annex 8, 3.2.5.2 |
 | PP-SWR-009 | The planner shall publish the same `lateral_limit_reached` value in PathStatus and LateralLimits for the same cycle | Inspection; Test: S14 | Interface | team agreement |
 
 ### 8.4 HWA: lane keeping and center offset {#req-hwa-centering}
 
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
-| PP-SWR-051 | While HWA is in control and maximum required a_y ≤ aysmax, DLC on both sides shall be ≥ 0 | Test, closed loop: S1 | Regulatory, SG-01 | R79 5.6.2.1.1 |
+| PP-SWR-051 | While HWA is in control, maximum required a_y ≤ aysmax, and free space on each side is ≥ `free_space_min`, DLC on both sides shall be ≥ 0 | Test, closed loop: S1 | Regulatory, SG-01 | R79 5.6.2.1.1 |
 | PP-SWR-052 | When HWA takes control with the vehicle up to 0.5 m from the lane center, the function in control shall remain HWA throughout recentering | Test: S2 | Functional | team agreement |
 | PP-SWR-054 | While HWA is in REQUEST and vehicle speed is within 0–60 km/h, the planner shall continue publishing a valid path for HWA | Test: S11 | Functional | team agreement |
-| PP-SWR-055 | While a large vehicle is in an adjacent lane and clearance on the opposite side is greater, the path shall be offset from the actual lane center toward the opposite side | Test: S3, S3b, S15 | Functional | assignment |
-| PP-SWR-056 | While offsetting the center, the path shall not shift toward the side with less clearance | Test: S3b, S15 | Safety, SG-01 | mentor |
+| PP-SWR-055 | While a large vehicle is alongside in an adjacent lane with clearance < `gap_truck_min` and no large vehicle is alongside on the opposite side, the path shall be offset from the actual lane center away from the large vehicle | Test: S3 | Functional | assignment |
+| PP-SWR-056 | While a large vehicle is alongside with clearance < `gap_truck_min`, the path shall not be offset from the actual lane center toward the large vehicle with the smallest clearance | Test: S3, S3b, S15 | Safety, SG-01 | mentor |
 | PP-SWR-058 | When a large vehicle in an adjacent lane is approaching, the path shall begin shifting before the large vehicle draws alongside | Test: S3 | Functional | assignment |
 
 ### 8.5 HWA: lane changes and ODD {#req-hwa-lane-change}
@@ -201,15 +203,17 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
-| PP-SWR-080 | When LKA or ELK starts intervening, the start of the path shall match the vehicle's actual lateral state: position error ≤ 0.1 m and v_lat error ≤ 0.1 m/s | Test: S4, S5, S6 | Functional | assignment |
-| PP-SWR-083 | The duration of an LKA or ELK intervention, ending in COMPLETED or cancellation, shall be ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Regulatory | R79 5.1.6.1.2.1 |
+| PP-SWR-080 | When LKA or ELK starts intervening, the start of the path shall match the vehicle's actual lateral state within position error ≤ 0.1 m and v_lat error ≤ 0.1 m/s | Test: S4, S5, S6 | Functional | assignment, with tolerances set by the team |
+| PP-SWR-083 | The duration of an LKA or ELK intervention, ending in COMPLETED or cancellation, shall be ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement based on R79 5.1.6.1.2.1 (audible warning required beyond 10 s) |
 | PP-SWR-084 | When LKA reports COMPLETED, DLC on the side toward which the vehicle drifted shall be ≥ 0 | Test, closed loop: S4 | Functional | assignment |
 | PP-SWR-085 | After an LKA or ELK intervention, minimum DLC on the opposite side shall be ≥ 0 | Test, closed loop: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | assignment |
 | PP-SWR-086 | Minimum DTLE during an intervention shall be ≥ −0.3 m for LKA and solid-marking ELK, and ≥ −0.1 m for road-edge ELK | Test, closed loop: S4, S5, S6 | Regulatory, SG-03 | Euro NCAP Assessment 4.3.2, 4.3.3.3; EU 2021/646 3.6.2 |
-| PP-SWR-088 | During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle shall be ≥ 0.3 m | Test, closed loop: S7, S8 | Regulatory, SG-03 | Euro NCAP 4.3.3.4; LSS 7.4.7 |
+| PP-SWR-088 | During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle shall be ≥ 0.3 m | Test, closed loop: S7, S8 | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) is the minimum. The team adopted the stricter 0.3 m from LSS 7.4.7 |
 | PP-SWR-089 | If ELK is requested when the front tire is already more than 0.3 m beyond the marking on the requested side, the planner shall not start that ELK intervention | Test: S8 | Safety, SG-01 | team agreement |
 | PP-SWR-090 | The planner shall not report COMPLETED until the termination conditions have held continuously for `T_end_hold` | Test: S4, S5 | Functional | team agreement |
 | PP-SWR-091 | When EPS latency is up to 100 ms, minimum DTLE shall still satisfy PP-SWR-086 | Test, closed loop: S13 (a, b) | Safety, SG-03 | team agreement |
+
+Limit 083 caps the time the planner keeps the intervening function in control while the vehicle is still unsettled. At the timeout, arbitration releases the intervening function and the controller applies its existing handover mechanism.
 
 ### 8.7 Limits, continuity, feasibility {#req-limits}
 
@@ -222,7 +226,7 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-111 | While ELK is in control, path a_y shall be ≤ 4.0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
 | PP-SWR-112 | While LKA is in control, added a_y shall be ≤ 1.5 m/s² | Test: S4, S4b | Safety, SG-01 | team agreement |
 | PP-SWR-113 | While ELK is in control, added a_y shall be ≤ 3.0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
-| PP-SWR-114 | While LKA is in control, path lateral jerk shall be ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270 |
+| PP-SWR-114 | While LKA is in control, path lateral jerk shall be ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270, section number to be verified |
 | PP-SWR-115 | While ELK is in control, path lateral jerk shall be ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
 | PP-SWR-116 | `front_wheel_angle` at every path point shall be ≤ `max_wheel_angle` from VehicleConfig | Test: all scenarios | Safety | VehicleConfig |
 | PP-SWR-117 | The steering wheel rate derived from the path (rate of change of `front_wheel_angle` times `steering_ratio`) shall be ≤ `max_steering_wheel_rate` from VehicleConfig | Test: all scenarios | Safety | VehicleConfig |
@@ -287,7 +291,7 @@ Basis: 170 ms = maximum assumed latency of 120 ms (PP-ASM-001) plus 50 ms; 250 m
 | PP-SWR-151 | `LateralLimits.v_max` shall equal √(a_y limit of the function in control / κ_max), where κ_max is the maximum curvature of the actual lane center within the lane model's visible range, with error ≤ 5 % | Test: S14 | Interface | team agreement |
 | PP-SWR-152 | `LateralLimits.distance` shall equal the longitudinal distance to the point with κ_max, with error ≤ 5 m | Test: S14 | Interface | team agreement |
 | PP-SWR-153 | When LongitudinalPlan is valid, Trajectory `longitudinal_velocity` and `acceleration` shall be taken from LongitudinalPlan | Test: S14 | Interface | team agreement |
-| PP-SWR-154 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant and zero acceleration | Test: S14 (d) | Interface | team agreement |
+| PP-SWR-154 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant with acceleration set to 0 | Test: S14 (d) | Interface | team agreement |
 | PP-SWR-155 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, the planner shall keep `path_valid = true` | Test: S14 (d) | Safety | team agreement |
 
 ## 9. Performance targets {#req-targets}
@@ -299,10 +303,12 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | PP-SWR-050 | Lateral path deviation should be small throughout the ODD and under lane model faults | Test: S1 (a, b, d, e), S6b, S11, S19, F03, F04, F21 | Performance | assignment |
 | PP-SWR-002 | Maximum added a_y during HWA recentering or center offset should be small | Test: S2, S3 | Performance | team agreement |
 | PP-SWR-004 | Path lateral jerk while HWA is in control should be small | Test: S1 | Performance | team agreement |
+| PP-SWR-008 | The time from when maximum required a_y drops below aysmax until `lateral_limit_reached` clears should be short | Test: S1 (a, b, d, e) | Performance | team agreement |
 | PP-SWR-013 | Additional lateral deviation relative to the zero-latency case should be small when camera latency is 0–200 ms with ±20 ms jitter | Test: Q1 | Performance | team agreement |
 | PP-SWR-016 | The 99th percentile of computation time per cycle should be low | Test: all scenarios | Performance | team agreement |
+| PP-SWR-064 | The time from when `lateral_limit_reached` is set until required a_y at the vehicle's position exceeds aysmax should be long | Test: S1b | Performance | team agreement |
 | PP-SWR-053 | The time from HWA taking control (with the vehicle up to 0.5 m off center) to lateral deviation ≤ 0.1 m should be short | Test: S2 | Performance | team agreement |
-| PP-SWR-057 | Minimum lateral clearance from the vehicle body to objects on either side while offsetting the center should be large | Test: S3b, S15 | Performance | team agreement |
+| PP-SWR-057 | Minimum lateral clearance from the vehicle body to objects on either side while offsetting the center should be large | Test: S3, S3b, S15 | Performance | team agreement |
 | PP-SWR-059 | The time from when the rear of the large vehicle has passed to lateral deviation ≤ 0.1 m should be short | Test: S3 | Performance | team agreement |
 | PP-SWR-081 | The time from the start of the LKA intervention path to COMPLETED should be short | Test: S4 | Performance | team agreement |
 | PP-SWR-082 | The time from the start of the ELK intervention path to COMPLETED should be short | Test: S5, S6, S7, S8, S8b (d, e) | Performance | team agreement |
@@ -314,3 +320,9 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | Version | Date | Changes |
 |---|---|---|
 | 1.0 | 2026-11-10 | Restructured as the Software Requirements Specification, baseline BL1. Separated requirements, performance targets, and calibration parameter limits; added the ODD (lane width 2.5–5.5 m, vehicle width ≤ 2.5 m including mirrors) and the Type column with safety goals; closed all previous open items (added PP-SWR-041 to 047, 063, and PP-ASM-017, 018); removed status labels and the open items section |
+| 1.1 | 2026-11-10 | Added PP-ASM-019. The target platform is unknown and the planner requires only a C11 compiler |
+| 1.2 | 2026-11-11 | Restricted PP-SWR-006 to the 0–1 s segment of the path. At long range, the lane model's cubic polynomial underestimates the curvature of short clothoids (6–11% at 72 m), so the planner cannot guarantee the requirement there. The vehicle follows the near segment, and the far segment is replanned each cycle |
+| 1.3 | 2026-11-11 | Aligned PP-SWR-007 with R79. The flag must be set when a front tire starts to touch the marking. The old requirement measured against `T_flag` itself, so increasing `T_flag` could make it pass. Moved PP-SWR-008 to the performance targets and added PP-SWR-064 for warning lead time. Removed `delta_ay` and `T_flag` from Section 7. Updated the sources for PP-SWR-006 and `epsilon_ay` |
+| 1.4 | 2026-11-11 | PP-SWR-051 applies only when free space on each side is ≥ `free_space_min`. The ODD permits a 2.5 m vehicle in a 2.5 m lane (PP-SWR-062), in which case a vehicle cannot maintain DLC ≥ 0. Report `lane_too_narrow` (PP-SWR-063) to make HWA unavailable. Requirements that refer to PP-SWR-051 (122, 123, 135 to 139, 148) inherit this condition |
+| 1.5 | 2026-11-11 | Rewrote PP-SWR-055 and 056 using the clearance to a large vehicle and `gap_truck_min`. Defined alongside and clearance to a large vehicle. Added `gap_truck_min` to Section 7. Comparing clearance to the vehicle with clearance to the lane boundary could leave the path centered or shift it toward a large vehicle centered in the adjacent lane |
+| 1.6 | 2026-11-12 | PP-SWR-032 and 041 separate the LKA and ELK phases. PP-SWR-036 and 037 reselect per 030 on cancellation. PP-SWR-047 distinguishes direct boundaries from boundaries outside the ego lane. Section 4 uses the magnitude of added a_y for completion. Clarified sources for 080, 083, 088, and 114 |

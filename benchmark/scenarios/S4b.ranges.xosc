@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S4b ranges" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S4b.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="profile">
+        <DistributionSet>
+          <Element value="VP-0" />
+          <Element value="VP-1" />
+          <Element value="VP-2" />
+          <Element value="VP-3" />
+          <Element value="VP-4" />
+          <Element value="VP-5" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="lane_width_m">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="3.5" upperLimit="4.2" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="departure_v_lat_mps">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="0.2" upperLimit="0.6" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="departure_side">
+        <DistributionSet>
+          <Element value="left" />
+          <Element value="right" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="curvature_scale">
+        <DistributionRange stepWidth="0.25">
+          <Range lowerLimit="1.0" upperLimit="4.0" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

@@ -7,8 +7,10 @@ from eval.metrics import Result
 
 
 def text(result: Result) -> str:
+    verdict = ("ĐẠT" if result.passed else "TRƯỢT") if result.scored else "ĐỐI CHIẾU THỜI ĐIỂM"
     lines = [f"Kịch bản {result.scenario}, seed {result.seed}: "
-             f"{'ĐẠT' if result.passed else 'TRƯỢT'}", "",
+             f"{verdict}", "",
+             *(f"TRƯỢT: {reason}" for reason in result.case_failures),
              f"{'Requirement':<12} {'Chỉ số':<52} {'Giá trị':>12}  {'Ngưỡng':<12} Kết quả"]
     for c in result.criteria:
         if not c.applicable:

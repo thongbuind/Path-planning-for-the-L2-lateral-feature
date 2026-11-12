@@ -11,6 +11,15 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | Mở | — | [study](studies/PP-TS-003-path-generator/study.md) |
 | PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở | — | [study](studies/PP-TS-005-lane-fit-error/study.md) |
 | PP-TS-004 | Calibration T2, T5, cờ giới hạn (sweep P1) | Mở, cần chạy lại | — | [study](studies/PP-TS-004-p1-calibration/study.md) |
+| PP-TS-006 | T7 tạo path can thiệp LKA, ELK bằng quintic hay QP | Mở | Tích hợp V1 trước | [study](studies/PP-TS-006-intervention-path/study.md) |
+| PP-TS-007 | Điều kiện cho phép ELK ở mép đường không có vạch | Đã quyết | V1 | [study](studies/PP-TS-007-road-edge-eligibility/study.md) |
+| PP-TS-008 | Nguồn FunctionRequests cho SIL LKA, ELK | Đã quyết | V2 | [study](studies/PP-TS-008-adas-stand-in/study.md) |
+| PP-TS-009 | Dự báo xung đột xe làn bên khi trôi chậm | Đã quyết | V1 | [study](studies/PP-TS-009-object-conflict-window/study.md) |
+| PP-TS-010 | Thời điểm rút LKA cùng phía trong lần ELK | Đã quyết | V1 | [study](studies/PP-TS-010-same-side-request-handover/study.md) |
+| PP-TS-011 | Quyền sở hữu pha can thiệp trong PathStatus | Đã quyết | V1 | [study](studies/PP-TS-011-path-status-phases/study.md) |
+| PP-TS-012 | Tuổi của VehicleStateEstimate khi T9 kiểm điều kiện kết thúc | Mở | Kiểm V1 | [study](studies/PP-TS-012-intervention-end-estimate-age/study.md) |
+| PP-TS-013 | Path êm trong hành lang an toàn (ý tưởng racing line) | Mở; nguyên mẫu nghiên cứu | — | [study](studies/PP-TS-013-comfort-line/study.md) |
+| PP-TS-014 | Liên tục của path khi phần xa ngoài tầm nhìn: V0–V3 | Đã khóa | — | [study](studies/PP-TS-014-continuity-beyond-view/study.md) |
 
 ## Problem reports
 
@@ -25,3 +34,16 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Mở; cần quyết định về requirement | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
 | PP-PR-008 | S1ba 130 km/h: path T7 A trễ so với a_y cần lúc vào cua | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 | PP-SWR-006 | [report](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md) |
 | PP-PR-009 | F03 c: cả bốn vạch nhảy 3,5 m trong 2 s, xe đi theo sang làn bên | Mở; sửa qua PP-TS-001 | PP-SWR-051, 100 | [report](problems/PP-PR-009-f03c-whole-lane-shift.md) |
+| PP-PR-010 | FunctionRequests quá timeout, PathStatus vẫn báo path hợp lệ | Đã sửa, chờ xác nhận chính thức | PP-SWR-145 | [report](problems/PP-PR-010-function-requests-timeout.md) |
+| PP-PR-011 | PP-SWR-047 chặn ELK ở các ca S6 chỉ có mép đường | Đã cài PP-TS-007 V1, chờ xác nhận chính thức | PP-SWR-047, 086 | [report](problems/PP-PR-011-road-edge-only-qualification.md) |
+| PP-PR-012 | Cửa sổ dự báo mặc định có thể bỏ lỡ xung đột S7(a) | Đã cài PP-TS-009 V1, chờ xác nhận chính thức | PP-SWR-088, 089 | [report](problems/PP-PR-012-slow-oncoming-conflict.md) |
+| PP-PR-013 | LKA cùng phía có thể được chọn trước khi yêu cầu rút tới planner | Đã cài PP-TS-010 V1, chờ SIL hai chức năng cùng yêu cầu | PP-SWR-033, ADAS-FS mục 9 | [report](problems/PP-PR-013-same-side-request-handover.md) |
+| PP-PR-014 | Lần can thiệp đang chạy khi log dừng bị chấm thời lượng vô hạn | Đã sửa, chờ xác nhận chính thức | PP-SWR-083 | [report](problems/PP-PR-014-intervention-at-run-end.md) |
+| PP-PR-015 | Xe bắt đầu trong cua trôi trước Tsteer | Đã sửa, chờ xác nhận chính thức | S4b, S7(e) | [report](problems/PP-PR-015-curve-driver-initial-lateral-speed.md) |
+| PP-PR-016 | Kết quả khoảng hở xe mục tiêu không ghi được JSON | Đã sửa, chờ xác nhận chính thức | PP-SWR-088 | [report](problems/PP-PR-016-traffic-score-json.md) |
+| PP-PR-017 | S4b(c), S8(b) kế thừa sai hướng trôi hoặc tốc độ xe mục tiêu | Đã sửa, chờ xác nhận chính thức | Định nghĩa S4b(c), S8(b) | [report](problems/PP-PR-017-anchor-inherits-wrong-parameter.md) |
+| PP-PR-018 | T9 dùng v_y trước t0 khi kiểm COMPLETED | Đã cài PP-TS-012 V1, chờ xác nhận chính thức | PP-SWR-032, 090 | [report](problems/PP-PR-018-intervention-completion-state-age.md) |
+| PP-PR-019 | ELK mép đường mất path trong tick nhận OFF | Đã sửa, chờ xác nhận chính thức | PP-SWR-037 | [report](problems/PP-PR-019-road-edge-cancellation.md) |
+| PP-PR-020 | Tick COMPLETED còn lệch ở một số neo cua và mép đường | Mở | PP-SWR-032, 090 | [report](problems/PP-PR-020-completion-mismatch-on-curves-and-edges.md) |
+| PP-PR-021 | Xe rời làn trong cua khi tầm nhìn camera ngắn (Q4) | Mở; đã rõ nguyên nhân (T4 chặn vì phần xa ngoài tầm nhìn); sửa theo PP-TS-014 | PP-SWR-051, 100 | [report](problems/PP-PR-021-short-view-curve-departure.md) |
+| PP-PR-022 | S14a tầm nhìn ngắn: ACC đọc LateralLimits rời làn xa hơn | Mở | PP-SWR-051, 151, 152 | [report](problems/PP-PR-022-s14a-short-view-acc-on.md) |

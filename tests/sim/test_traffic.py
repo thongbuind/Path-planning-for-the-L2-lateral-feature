@@ -1,14 +1,15 @@
 """Other vehicles and the ObjectList sensor (Software Qualification Test Specification 4.5)."""
 
-from math import isclose
+from math import isclose, pi
 
 import numpy as np
+import pytest
 
 from interfaces import FrameId
 from sim.sensors import object_sensor
 from sim.sensors.object_sensor import ObjectSensor
 from sim.world.road import Road, Segment
-from sim.world.traffic import Traffic, TrafficSpec
+from sim.world.traffic import LateralMotion, Traffic, TrafficSpec
 
 
 def _road() -> Road:
@@ -21,6 +22,40 @@ def test_traffic_moves_along_the_road_at_constant_offset():
     assert truck.id == 7 and isclose(truck.s, 120.0) and truck.d == -3.5
     assert isclose(truck.x, 120.0, abs_tol=1e-6) and isclose(truck.y, -3.5, abs_tol=1e-6)
     assert truck.length == 12.0 and truck.width == 2.5
+
+
+def test_oncoming_vehicle_uses_decreasing_road_s_and_negative_sensor_vx():
+    traffic = Traffic(_road(), (TrafficSpec(1, 100.0, 3.5, 20.0, direction=-1),))
+    (car,) = traffic.at(2.0)
+    assert car.s == 60.0 and car.x == pytest.approx(60.0) and car.y == pytest.approx(3.5)
+    assert car.speed == 20.0 and car.heading == pytest.approx(pi)
+    sensor = ObjectSensor(np.random.default_rng(1), ideal=True)
+    out = sensor.capture(0, (50.0, 0.0, 0.0), 20.0, [car])
+    assert out.num_objects == 1
+    assert out.objects[0].vx == pytest.approx(-20.0)
+    assert out.objects[0].vy == pytest.approx(0.0, abs=1e-12)
+
+
+def test_lateral_motion_sets_position_and_velocity_only_during_manoeuvre():
+    motion = LateralMotion(start_s=1.0, duration_s=2.0, target_offset_m=0.0)
+    traffic = Traffic(_road(), (TrafficSpec(1, 100.0, 3.5, 20.0, lateral_motion=motion),))
+    sensor = ObjectSensor(np.random.default_rng(1), ideal=True)
+    for t, d, v_lat in ((1.0, 3.5, 0.0), (2.0, 1.75, -3.5 * 1.875 / 2), (3.0, 0.0, 0.0)):
+        (car,) = traffic.at(t)
+        out = sensor.capture(round(t * 1e6), (100.0, 0.0, 0.0), 20.0, [car])
+        assert car.d == pytest.approx(d)
+        assert out.objects[0].vx == pytest.approx(20.0)
+        assert out.objects[0].vy == pytest.approx(v_lat)
+
+
+def test_ideal_object_list_is_fixed_size_without_misses_or_ghosts():
+    traffic = Traffic(_road(), tuple(TrafficSpec(i, 10.0 + i, 3.5, 20.0) for i in range(1, 41)))
+    sensor = ObjectSensor(np.random.default_rng(3), ideal=True)
+    full = sensor.capture(0, (0.0, 0.0, 0.0), 20.0, traffic.at(0.0))
+    empty = sensor.capture(50_000, (0.0, 0.0, 0.0), 20.0, [])
+    assert len(full.objects) == full.num_objects == 32
+    assert tuple(obj.id for obj in full.objects) == tuple(range(1, 33))
+    assert len(empty.objects) == 32 and empty.num_objects == 0
 
 
 def test_sensor_reports_truck_in_base_link():

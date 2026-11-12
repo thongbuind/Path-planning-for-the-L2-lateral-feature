@@ -52,3 +52,27 @@ def test_catalogue_loads(fault_id, levels):
     for level in levels:
         scenario = loader.with_fault(loader.load("S1", "a"), fault_id, level)
         assert scenario.name == f"S1a_{fault_id}{level}" and len(scenario.lane_faults) == 1
+
+
+def test_view_short_refits_on_the_shorter_window():
+    road = Road([Segment("straight", 300.0)], 3.5)
+    injector = LaneFaultInjector((LaneFault("view_short", start_s=1.0, duration_s=0.5, lines=(2,), value=20.0),),
+                                 np.random.default_rng(1))
+    assert injector.view_limits(900_000) == (None,) * 4
+    limits = injector.view_limits(1_200_000)
+    assert limits == (None, None, 20.0, None)
+    lane = LaneCamera(road).capture(1_200_000, CameraPose(50.0, 0.0, 0.0, 50.0), limits)
+    assert lane.lines[2].view_range_end <= 20.0 + 1e-9 and lane.lines[1].view_range_end > 70.0
+
+
+def test_view_flicker_limits_every_other_frame():
+    injector = LaneFaultInjector((LaneFault("view_flicker", value=30.0),), np.random.default_rng(1))
+    assert injector.view_limits(0) == (None,) * 4
+    assert injector.view_limits(50_000) == (30.0,) * 4
+
+
+def test_view_extend_reports_a_longer_range_with_the_same_polynomial():
+    base = frame(1_000_000)
+    lane = apply(LaneFault("view_extend", start_s=1.0, value=126.0), 1_000_000)
+    assert lane.lines[1].view_range_end == 126.0
+    assert lane.lines[1].c2 == base.lines[1].c2

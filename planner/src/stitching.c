@@ -154,6 +154,58 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
     return from_old;
 }
 
+static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, double lambda,
+                        double wheelbase)
+{
+    const double kappa = o->kappa + (lambda * ((double)c->curvature - o->kappa));
+    c->pose.x = (float)(o->x + (lambda * ((double)c->pose.x - o->x)));
+    c->pose.y = (float)(o->y + (lambda * ((double)c->pose.y - o->y)));
+    c->pose.yaw = (float)wrap_angle(o->yaw + (lambda * wrap_angle((double)c->pose.yaw - o->yaw)));
+    c->lateral_velocity_mps = (float)(o->d_dot + (lambda * ((double)c->lateral_velocity_mps - o->d_dot)));
+    c->curvature = (float)kappa;
+    c->heading_rate_rps = (float)((double)c->longitudinal_velocity_mps * kappa);
+    c->front_wheel_angle_rad = (float)atan(wheelbase * kappa);
+}
+
+#ifdef PP_T4_PER_TIME
+/* PP-TS-014 V1: one lambda per point, never larger than at an earlier point, each the
+ * largest that keeps that point within cont_margin of the continuity thresholds. */
+double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
+                       pp_trajectory_point_t points[PP_TRAJECTORY_POINTS])
+{
+    double lambda = 1.0;
+    if (old->valid) {
+        const double margin = (double)cal->cont_margin;
+        for (uint32_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+            pp_trajectory_point_t *c = &points[k];
+            pp_path_sample_t o;
+            /* Beyond the old horizon the sample continues the old arc; it is blended with the
+             * lambda reached so far but does not lower it (as the single lambda). */
+            if (pp_stitch_sample_old(old, (double)k * PP_GRID_STEP_S, &o)) {
+                const double yaw = (double)c->pose.yaw;
+                const double ex = o.x - (double)c->pose.x;
+                const double ey = o.y - (double)c->pose.y;
+                const double lateral = fabs((-sin(yaw) * ex) + (cos(yaw) * ey));
+                const double heading = fabs(wrap_angle(yaw - o.yaw));
+                const double curvature = fabs((double)c->curvature - o.kappa);
+                if (lateral > 0.0) {
+                    lambda = fmin(lambda, (margin * PP_CONT_LATERAL_M) / lateral);
+                }
+                if (heading > 0.0) {
+                    lambda = fmin(lambda, (margin * PP_CONT_HEADING_RAD) / heading);
+                }
+                if (curvature > 0.0) {
+                    lambda = fmin(lambda, (margin * PP_CONT_CURVATURE) / curvature);
+                }
+            }
+            if (lambda < 1.0) {
+                blend_point(c, &o, lambda, wheelbase);
+            }
+        }
+    }
+    return lambda;
+}
+#else
 double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
                        pp_trajectory_point_t points[PP_TRAJECTORY_POINTS])
 {
@@ -192,21 +244,10 @@ double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, do
 
         if (lambda < 1.0) {
             for (uint32_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
-                pp_trajectory_point_t *c = &points[k];
-                const pp_path_sample_t *o = &samples[k];
-                const double kappa = o->kappa + (lambda * ((double)c->curvature - o->kappa));
-                c->pose.x = (float)(o->x + (lambda * ((double)c->pose.x - o->x)));
-                c->pose.y = (float)(o->y + (lambda * ((double)c->pose.y - o->y)));
-                c->pose.yaw = (float)wrap_angle(o->yaw
-                                                + (lambda * wrap_angle((double)c->pose.yaw - o->yaw)));
-                c->lateral_velocity_mps = (float)(o->d_dot
-                                                  + (lambda * ((double)c->lateral_velocity_mps
-                                                               - o->d_dot)));
-                c->curvature = (float)kappa;
-                c->heading_rate_rps = (float)((double)c->longitudinal_velocity_mps * kappa);
-                c->front_wheel_angle_rad = (float)atan(wheelbase * kappa);
+                blend_point(&points[k], &samples[k], lambda, wheelbase);
             }
         }
     }
     return lambda;
 }
+#endif

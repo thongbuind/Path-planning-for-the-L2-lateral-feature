@@ -297,7 +297,8 @@ class PathStatusC(ctypes.Structure):
         ("header", BasicHeaderC),
         ("path_valid", ctypes.c_bool),
         ("active_function", ctypes.c_uint8),
-        ("intervention_phase", ctypes.c_uint8),
+        ("lka_phase", ctypes.c_uint8),
+        ("elk_phase", ctypes.c_uint8),
         ("lateral_limit_reached", ctypes.c_bool),
         ("lane_too_narrow", ctypes.c_bool),
     ]
@@ -371,7 +372,7 @@ FIELD_SPECS = {
     "VehicleConfig": [("wheelbase", "scalar", None), ("rear_axle_to_cg", "scalar", None), ("vehicle_width", "scalar", None), ("steering_ratio", "scalar", None), ("max_wheel_angle", "scalar", None), ("max_steering_wheel_rate", "scalar", None), ("actuator_delay", "scalar", None)],
     "VehicleStateEstimate": [("header", "struct", 'Header'), ("lateral_velocity", "scalar", None), ("lateral_velocity_variance", "scalar", None), ("slip_angle", "scalar", None)],
     "LateralLimits": [("header", "struct", 'BasicHeader'), ("v_max", "scalar", None), ("distance", "scalar", None), ("lateral_limit_reached", "scalar", None)],
-    "PathStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("active_function", "enum", 'ActiveFunction'), ("intervention_phase", "enum", 'InterventionPhase'), ("lateral_limit_reached", "scalar", None), ("lane_too_narrow", "scalar", None)],
+    "PathStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("active_function", "enum", 'ActiveFunction'), ("lka_phase", "enum", 'InterventionPhase'), ("elk_phase", "enum", 'InterventionPhase'), ("lateral_limit_reached", "scalar", None), ("lane_too_narrow", "scalar", None)],
     "TrajectoryPoint": [("time_from_start", "scalar", None), ("pose", "struct", 'Pose2D'), ("longitudinal_velocity_mps", "scalar", None), ("lateral_velocity_mps", "scalar", None), ("acceleration_mps2", "scalar", None), ("heading_rate_rps", "scalar", None), ("curvature", "scalar", None), ("front_wheel_angle_rad", "scalar", None), ("rear_wheel_angle_rad", "scalar", None)],
     "Trajectory": [("header", "struct", 'Header'), ("points", "array_struct", 'TrajectoryPoint')],
     "PlannerInputs": [("t0_us", "scalar", None), ("lane_model", "received", "LaneModel"), ("object_list", "received", "ObjectList"), ("imu", "received", "ImuSignals"), ("steering", "received", "SteeringSignals"), ("speed", "received", "SpeedSignals"), ("vehicle_state", "received", "VehicleStateEstimate"), ("function_requests", "received", "FunctionRequests"), ("longitudinal_plan", "received", "LongitudinalPlan")],

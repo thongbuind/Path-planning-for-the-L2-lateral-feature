@@ -6,7 +6,7 @@
 #include "pp_test.h"
 
 static const pp_vehicle_config_t VP0 = {2.9F, 1.45F, 1.9F, 15.0F, 0.61F, 6.0F, 0.05F};
-static const pp_function_limits_t HWA = {PP_AYSMAX, PP_JERK_MAX_HWA};
+static const pp_function_limits_t HWA = {PP_AYSMAX, PP_JERK_MAX_HWA, 0.0};
 
 /* Points on the x axis with curvature kappa0 at point 0 and kappa elsewhere. */
 static void path(pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS], double v, double kappa0,

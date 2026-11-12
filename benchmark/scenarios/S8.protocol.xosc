@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8 protocol" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S8.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-72-2" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-72-2" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-72-3" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-72-3" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-72-4" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-72-4" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-72-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-72-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-72-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-72-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-80-2" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-80-2" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-80-3" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-80-3" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-80-4" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-80-4" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-80-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-80-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-overtaking-left-80-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS overtaking-left-80-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-72-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-72-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-72-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-72-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-72-7" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-72-7" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.7" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.53" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-80-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-80-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-80-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-80-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-indicated-left-80-7" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS indicated-left-80-7" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.7" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.53" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

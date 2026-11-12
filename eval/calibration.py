@@ -12,7 +12,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 CALIBRATION_FILE = ROOT / "planner" / "calibration" / "calibration.yaml"
-REQUIREMENT_PARAMETERS = ("epsilon_ay", "free_space_min", "gap_truck_min")  # PP-SWR-006 (SRS 1.3); 051, 063 (SRS 1.4); 055, 056 (SRS 1.5)
+REQUIREMENT_PARAMETERS = (
+    "epsilon_ay", "free_space_min", "gap_truck_min",  # PP-SWR-006, 051, 063, 055, 056
+    "T_end_hold", "v_lat_end", "heading_end", "ay_add_end",  # PP-SWR-032, 090
+)
 _UNITS = {"deg": pi / 180.0, "ms": 1e-3}
 
 

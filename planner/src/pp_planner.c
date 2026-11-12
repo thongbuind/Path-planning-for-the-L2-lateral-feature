@@ -3,10 +3,8 @@
  *
  * One cycle (Software Architectural Design 3.2) runs the units of the Software
  * Detailed Design in this order: T1 input check and latency compensation, T2
- * reference line, T5 curvature fusion, T6 lateral state, T4 stitching (start state),
- * T7 path generation (technique A) with T11 output, T4 continuity, T10 feasibility, T9
- * arbitration. Each unit header says which steps are implemented. Not yet in the
- * cycle: T3, T8.
+ * reference line, T5 curvature fusion, T6 lateral state, T9 arbitration,
+ * T4 stitching, T7/T8 path generation, T10 feasibility and T11 output.
  */
 
 #include <math.h>
@@ -20,6 +18,7 @@
 #include "generators/qp.h"
 #include "generators/quintic.h"
 #include "input_check.h"
+#include "intervention.h"
 #include "lateral_state.h"
 #include "offset.h"
 #include "latency.h"
@@ -121,8 +120,11 @@ typedef struct {
     const pp_object_list_t *object_list;
     const pp_speed_signals_t *speed;
     const pp_imu_signals_t *imu;
+    const pp_steering_signals_t *steering;
     const pp_vehicle_state_estimate_t *vehicle_state;
     const pp_function_requests_t *function_requests;
+    uint64_t requests_rx_us;
+    bool requests_timed_out;
     const pp_longitudinal_plan_t *longitudinal_plan;
 } pp_usable_inputs_t;
 
@@ -153,6 +155,11 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
         && (isfinite(in->imu.message.yaw_rate_rps) != 0)) {
         out->imu = &in->imu.message;
     }
+    if (pp_input_usable(in->steering.present, in->steering.message.header.valid, in->steering.rx_us,
+                        in->steering.message.header.stamp_us, t0, PP_STEERING_TIMEOUT_US,
+                        PP_NO_AGE_LIMIT) && isfinite(in->steering.message.steering_wheel_angle_rad)) {
+        out->steering = &in->steering.message;
+    }
     if (pp_input_usable(in->vehicle_state.present, in->vehicle_state.message.header.valid,
                         in->vehicle_state.rx_us, in->vehicle_state.message.header.stamp_us, t0,
                         PP_VEHICLE_STATE_TIMEOUT_US, PP_VEHICLE_STATE_MAX_AGE_US)
@@ -165,6 +172,7 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
                         in->function_requests.message.header.stamp_us, t0,
                         PP_FUNCTION_REQUESTS_TIMEOUT_US, PP_FUNCTION_REQUESTS_MAX_AGE_US)) {
         out->function_requests = &in->function_requests.message;
+        out->requests_rx_us = in->function_requests.rx_us;
     }
     if (pp_input_usable(in->longitudinal_plan.present,
                         in->longitudinal_plan.message.header.valid,
@@ -173,6 +181,25 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
                         PP_LONGITUDINAL_PLAN_TIMEOUT_US, PP_LONGITUDINAL_PLAN_MAX_AGE_US)) {
         out->longitudinal_plan = &in->longitudinal_plan.message;
     }
+}
+
+static void check_requests_timeout(pp_state_t *s, const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
+{
+    const uint64_t now = in->t0_us;
+    if (!s->requests_clock_set) {
+        s->requests_clock_set = true;
+        s->last_requests_us = now;
+        if (in->function_requests.present && in->function_requests.message.header.valid
+            && (in->function_requests.rx_us <= now)) {
+            s->last_requests_us = in->function_requests.rx_us;
+        }
+    }
+    if ((out->function_requests != NULL) && (out->requests_rx_us <= now)
+        && (out->requests_rx_us >= s->last_requests_us)) {
+        s->last_requests_us = out->requests_rx_us;
+    }
+    out->requests_timed_out = (now >= s->last_requests_us)
+        && ((now - s->last_requests_us) > PP_FUNCTION_REQUESTS_TIMEOUT_US);       /* PP-SWR-145 */
 }
 
 /* T1 step 2: motion from lane model capture to t0. False when not available (PP-SWR-143). */
@@ -206,12 +233,17 @@ typedef struct {
     pp_reference_line_t ref;
     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
     pp_ref_samples_t samples;
+    pp_arbitration_t arbitration;
     double ay_need_max;                    /* T10 step 1, for lateral_limit_reached */
+    double ay_limit;
+    bool intervention_limited;
     pp_curve_limit_t curve;                /* T10 step 4, for LateralLimits */
 } pp_cycle_result_t;
 
-/* Limits of HWA, the only function so far (Software Architectural Design 9). */
-static const pp_function_limits_t PP_HWA_LIMITS = {PP_AYSMAX, PP_JERK_MAX_HWA};
+/* Software Architectural Design 9. */
+static const pp_function_limits_t PP_HWA_LIMITS = {PP_AYSMAX, PP_JERK_MAX_HWA, 0.0};
+static const pp_function_limits_t PP_LKA_LIMITS = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA};
+static const pp_function_limits_t PP_ELK_LIMITS = {PP_AY_MAX_ELK, PP_JERK_MAX_ELK, PP_AY_ADD_MAX_ELK};
 
 #define PP_T_STEP_S (0.25)                 /* T7 A: duration step (Software Detailed Design 10) */
 #define PP_T_MAX_STEPS (32U)               /* Bounds the loop whatever T_max is */
@@ -322,6 +354,28 @@ static bool generate_hwa_qp(pp_state_t *s, const pp_reference_line_t *ref,
 }
 #endif
 
+#ifdef PP_T2_BEYOND_RATE
+/* PP-TS-014 V2: the arc beyond view_end follows the curvature at view_end at most
+ * kappa_far_rate per second, so the extrapolated part of the path changes slowly. */
+static void limit_far_kappa(pp_state_t *s, double dt, pp_reference_line_t *ref)
+{
+    if (!ref->valid) {
+        s->far_kappa_valid = false;
+        return;
+    }
+    const double target = pp_ref_end_kappa(ref);
+    if (!s->far_kappa_valid) {
+        s->far_kappa = target;
+        s->far_kappa_valid = true;
+    } else {
+        const double step = (double)s->cal->kappa_far_rate * dt;
+        s->far_kappa += pp_clamp(target - s->far_kappa, -step, step);
+    }
+    ref->far_kappa = s->far_kappa;
+    ref->far_kappa_set = true;
+}
+#endif
+
 /* Ego-motion since the previous cycle, for the T2 memory and the T5 prior. */
 static bool cycle_motion(pp_state_t *s, uint64_t t0_us, pp_ego_motion_fn ego_motion,
                          void *context, pp_motion_t *motion)
@@ -362,6 +416,69 @@ static void fuse_curvature(pp_state_t *s, const pp_usable_inputs_t *in, double d
     }
 }
 
+static pp_lateral_state_t measure_lateral(const pp_reference_line_t *ref, double v,
+                                          double v_y, double yaw_rate)
+{
+    pp_ref_walker_t walker;
+    pp_ref_point_t foot;
+    pp_lateral_state_t state;
+    pp_ref_walk_begin(&walker, ref, &foot);
+    pp_lateral_state(&foot, v, v_y, yaw_rate, &state);
+    return state;
+}
+
+static bool outside_boundary(const pp_lane_at_t0_t *lane, double confidence)
+{
+    static const uint32_t indices[] = {PP_LINE_L2, PP_LINE_R2, PP_EDGE_LEFT, PP_EDGE_RIGHT};
+    for (size_t i = 0U; i < sizeof(indices) / sizeof(indices[0]); i++) {
+        const pp_boundary_t *b = &lane->boundary[indices[i]];
+        if (b->present && (b->status == PP_LINE_STATUS_MEASURED) && (b->confidence >= confidence)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void finish_intervention_path(pp_state_t *s, const pp_speed_profile_t *speed,
+                                     const pp_function_limits_t *limits, const pp_old_path_t *old,
+                                     bool blend, pp_cycle_result_t *out)
+{
+    const double wheelbase = (double)s->vehicle.wheelbase;
+    if (blend) {
+        (void)pp_stitch_blend(old, s->cal, wheelbase, out->points);
+    }
+    out->intervention_limited = pp_feasibility_limit(out->points, &out->samples, limits, &s->vehicle);
+    pp_path_check_t check;
+    pp_feasibility_check(out->points, &out->samples, &check);
+    out->ay_need_max = fmax(check.ay_need_max, pp_ay_need_max(&out->ref, speed));
+    out->ay_limit = limits->ay_max;
+    pp_curve_limit(&out->ref, out->ay_limit, &out->curve);
+    out->path_valid = true;
+}
+
+static void plan_intervention(pp_state_t *s, const pp_arbitration_input_t *arb,
+                              const pp_old_path_t *old, const pp_reference_line_t *ref,
+                              const pp_lateral_state_t *ego, const pp_speed_profile_t *speed,
+                              pp_cycle_result_t *out)
+{
+    const bool elk = out->arbitration.active_function == PP_ACTIVE_FUNCTION_ELK;
+    const size_t function = elk ? PP_FUNCTION_ELK : PP_FUNCTION_LKA;
+    const pp_function_limits_t *limits = elk ? &PP_ELK_LIMITS : &PP_LKA_LIMITS;
+    bool blend = true;
+    out->ref = *ref;
+    if (out->arbitration.starting) {
+        const pp_intervention_request_t *req = &s->arbitration.intervention[function - 1U];
+        const double tlc = (double)arb->requests->requests[function].tlc;
+        pp_intervention_begin(&s->intervention_path, req, tlc, arb->t0_us, ref, ego, speed,
+                              limits, &s->vehicle, s->cal, elk);                   /* T7 A */
+        blend = !pp_intervention_start_exception(ref, ego, old);                  /* PP-SWR-031 */
+    }
+    pp_lateral_path_t path;
+    pp_intervention_sample(&s->intervention_path, arb->t0_us, &path);
+    pp_output_points(ref, &path, speed, s->vehicle.wheelbase, out->points, &out->samples);
+    finish_intervention_path(s, speed, limits, old, blend, out);
+}
+
 static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *in,
                       pp_ego_motion_fn ego_motion, void *context, pp_cycle_result_t *out)
 {
@@ -369,6 +486,11 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
     pp_motion_t since_last;
     pp_old_path_t old;
     (void)memset(out, 0, sizeof(*out));
+    out->ay_limit = PP_HWA_LIMITS.ay_max;
+    pp_arbitration_input_t arb = {
+        .requests = in->function_requests, .t0_us = t0_us, .requests_rx_us = in->requests_rx_us,
+        .hold_s = (double)s->cal->T_end_hold,
+    };
     const bool moved = cycle_motion(s, t0_us, ego_motion, context, &since_last);
     pp_stitch_move_old(&s->prev_path, t0_us, ego_motion, context, &old);         /* T4 step 1 */
 
@@ -378,8 +500,12 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
     if (!forward) {
         pp_reference_memory_reset(&s->ref_mem);
         pp_curvature_reset(&s->curv);
+        s->far_kappa_valid = false;
         pp_qp_reset(&s->qp);
         pp_offset_reset(&s->offset);
+        (void)memset(&s->edge_mem, 0, sizeof(s->edge_mem));
+        s->end_velocity.valid = false;
+        pp_arbitrate(&s->arbitration, &arb, &out->arbitration);
     } else {
         const double dt = (double)PP_PLANNER_PERIOD_US / PP_US_PER_S;
         const double v = (double)in->speed->speed_mps;
@@ -406,6 +532,83 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
         } else {
             pp_curvature_predict(&s->curv, moved ? since_last.dx : (v * dt), s->cal);
         }
+#ifdef PP_T2_BEYOND_RATE
+        limit_far_kappa(s, dt, &out->ref);                                  /* PP-TS-014 V2 */
+#endif
+        pp_reference_line_t edges[PP_ROAD_EDGES] = {0};
+        const pp_intervention_request_t *last_elk = &s->arbitration.intervention[PP_FUNCTION_ELK - 1U];
+        const bool edge_handover = (last_elk->phase == PP_INTERVENTION_PHASE_ACTIVE)
+                                   && (last_elk->reason == PP_ELK_REASON_ROAD_EDGE);
+        if (edge_handover || ((arb.requests != NULL)
+                            && (arb.requests->requests[PP_FUNCTION_ELK].state != PP_REQUEST_STATE_OFF))) {
+            pp_road_edge_references(&s->edge_mem, &lane, &camera_ref, moved ? &since_last : NULL,
+                                    &s->vehicle, s->cal, edges);                 /* PP-SWR-047 */
+        } else {
+            (void)memset(&s->edge_mem, 0, sizeof(s->edge_mem));
+        }
+        const pp_reference_line_t *refs[PP_INTERVENTIONS] = {&camera_ref, &camera_ref};
+        const pp_reference_line_t *idle_edge = edges[0].valid ? &edges[0] : &edges[1];
+        const bool chassis_valid = (in->imu != NULL) && (in->steering != NULL);
+        const bool state_valid = in->vehicle_state != NULL;
+        const bool intervention_requested = arb.requests != NULL
+            && ((arb.requests->requests[PP_FUNCTION_LKA].state == PP_REQUEST_STATE_REQUEST)
+                || (arb.requests->requests[PP_FUNCTION_ELK].state == PP_REQUEST_STATE_REQUEST));
+        const double end_v_y = pp_intervention_vy_at_t0(&s->end_velocity,
+                                  intervention_requested ? in->vehicle_state : NULL, t0_us);
+        const bool coast_ok = old.valid && !outside_boundary(&lane, s->cal->conf_inferred);
+        arb.hwa_available = out->ref.valid;
+        arb.path_available = !in->requests_timed_out && (arb.hwa_available || idle_edge->valid);
+        if (arb.requests != NULL) {
+            for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
+                const pp_function_request_t *req = &arb.requests->requests[i + 1U];
+                const pp_intervention_request_t *prior = &s->arbitration.intervention[i];
+                const pp_side_t side = prior->requested ? prior->side : req->side;
+                const pp_elk_reason_t reason = prior->requested ? prior->reason : req->elk_reason;
+                const bool elk = i == (PP_FUNCTION_ELK - 1U);
+                const bool edge = elk && (reason == PP_ELK_REASON_ROAD_EDGE);
+                const bool has_side = (side == PP_SIDE_LEFT) || (side == PP_SIDE_RIGHT);
+                if (edge) {
+                    refs[i] = &edges[(side == PP_SIDE_LEFT) ? 0U : 1U];
+                }
+                arb.can_start[i] = chassis_valid && state_valid && has_side && (edge ? refs[i]->valid
+                    : pp_intervention_line_trusted(&lane, &camera_ref, side, &s->vehicle, s->cal));
+                arb.can_continue[i] = chassis_valid && has_side && refs[i]->valid && !refs[i]->inferred
+                                      && (!refs[i]->coasting || coast_ok);       /* PP-SWR-046 */
+                if (arb.can_continue[i] && state_valid && (prior->phase == PP_INTERVENTION_PHASE_ACTIVE)) {
+                    const pp_lateral_state_t ego = measure_lateral(refs[i], v, end_v_y, yaw_rate);
+                    arb.can_finish[i] = pp_intervention_settled(refs[i], &ego, &old, v, end_v_y, yaw_rate,
+                                                               &s->vehicle, s->cal);
+                }
+                if (elk) {
+                    arb.elk_too_late = pp_elk_past_marking(&lane, side, &s->vehicle, s->cal);
+                }
+            }
+        }
+        pp_arbitrate(&s->arbitration, &arb, &out->arbitration);
+        if (!arb.path_available) {
+            return;
+        }
+        const pp_active_function_t active = out->arbitration.active_function;
+        if ((active == PP_ACTIVE_FUNCTION_LKA) || (active == PP_ACTIVE_FUNCTION_ELK)) {
+            const size_t index = (active == PP_ACTIVE_FUNCTION_LKA) ? 0U : 1U;
+            pp_speed_profile_t speed;
+            pp_speed_profile(in->longitudinal_plan, t0_us, v, &speed);
+            const pp_lateral_state_t ego = measure_lateral(refs[index], v, v_y, yaw_rate);
+            plan_intervention(s, &arb, &old, refs[index], &ego, &speed, out);
+            return;
+        }
+        if (!out->ref.valid && idle_edge->valid) {
+            /* ELK can receive a valid status before its first REQUEST on an unmarked road. */
+            out->ref = *idle_edge;
+            pp_speed_profile_t speed;
+            pp_lateral_path_t path;
+            pp_speed_profile(in->longitudinal_plan, t0_us, v, &speed);
+            const pp_lateral_state_t ego = measure_lateral(idle_edge, v, v_y, yaw_rate);
+            (void)pp_generate_quintic(&ego, ego.d, s->cal->T_lka, &path);
+            pp_output_points(idle_edge, &path, &speed, s->vehicle.wheelbase, out->points, &out->samples);
+            finish_intervention_path(s, &speed, &PP_HWA_LIMITS, &old, true, out);
+            return;
+        }
         if (out->ref.valid) {
             pp_ref_walker_t walker;
             pp_ref_point_t foot;
@@ -415,7 +618,12 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
             pp_path_check_t check;
             pp_ref_walk_begin(&walker, &out->ref, &foot);
             pp_lateral_state(&foot, v, v_y, yaw_rate, &measured);                  /* T6 */
-            const bool from_old = pp_stitch_start(&old, &out->ref, &measured, s->cal, &start); /* T4 step 2 */
+            bool from_old = false;
+            if (out->arbitration.cancelled) {
+                start = measured;                                      /* PP-SWR-036 */
+            } else {
+                from_old = pp_stitch_start(&old, &out->ref, &measured, s->cal, &start); /* T4 step 2 */
+            }
             update_recentering(s, in->function_requests, measured.d);
             /* T8: offset from a large vehicle in an adjacent lane; car front and rear
              * approximated from the wheelbase (VehicleConfig has no length). */
@@ -450,6 +658,9 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
                 }
             }
         }
+        if (!out->path_valid) {
+            pp_arbitration_invalidate(&s->arbitration, &out->arbitration);
+        }
     }
 }
 
@@ -467,19 +678,24 @@ void pp_step(void *state,
         if ((s != NULL) && (inputs != NULL)) {
             const uint64_t t0 = inputs->t0_us;
             pp_cycle_result_t cycle;
-            pp_arbitration_t arbitration;
             (void)memset(&cycle, 0, sizeof(cycle));
 
             if (s->initialized) {
                 pp_usable_inputs_t usable;
                 check_inputs(inputs, &usable);                                     /* T1 */
+                check_requests_timeout(s, inputs, &usable);
                 plan_path(s, t0, &usable, ego_motion, ego_motion_context, &cycle);
-                pp_arbitrate(usable.function_requests, cycle.path_valid, &arbitration); /* T9 */
-                s->last_active = arbitration.active_function;
+                const pp_active_function_t active = cycle.arbitration.active_function;
+                const bool switch_authority = (active != s->last_active)
+                    && ((active >= PP_ACTIVE_FUNCTION_LKA) || (s->last_active >= PP_ACTIVE_FUNCTION_LKA));
+                s->last_active = active;
 
                 /* T10 step 3: flag from the curvature ahead; no path, no flag. */
                 if (cycle.path_valid) {
-                    pp_limit_flag_update(&s->limit_flag, cycle.ay_need_max, PP_HWA_LIMITS.ay_max,
+                    if (switch_authority) {
+                        pp_limit_flag_reset(&s->limit_flag);
+                    }
+                    pp_limit_flag_update(&s->limit_flag, cycle.ay_need_max, cycle.ay_limit,
                                          s->cal, (double)PP_PLANNER_PERIOD_US / PP_US_PER_S);
                 } else {
                     pp_limit_flag_reset(&s->limit_flag);
@@ -507,9 +723,7 @@ void pp_step(void *state,
                 outputs->lateral_limits.header.valid = cycle.path_valid;
                 outputs->lateral_limits.v_max = (float)cycle.curve.v_max;
                 outputs->lateral_limits.distance = (float)cycle.curve.distance;
-                outputs->lateral_limits.lateral_limit_reached = s->limit_flag.reached;
-            } else {
-                pp_arbitrate(NULL, false, &arbitration);
+                outputs->lateral_limits.lateral_limit_reached = s->limit_flag.reached || cycle.intervention_limited;
             }
 
             outputs->path_status_sent = true;
@@ -517,9 +731,10 @@ void pp_step(void *state,
             outputs->path_status.header.counter = next_counter(&s->path_status_counter);
             outputs->path_status.header.valid = true;
             outputs->path_status.path_valid = cycle.path_valid;
-            outputs->path_status.active_function = arbitration.active_function;
-            outputs->path_status.intervention_phase = arbitration.intervention_phase;
-            outputs->path_status.lateral_limit_reached = s->initialized && s->limit_flag.reached;
+            outputs->path_status.active_function = cycle.arbitration.active_function;
+            outputs->path_status.lka_phase = cycle.arbitration.lka_phase;
+            outputs->path_status.elk_phase = cycle.arbitration.elk_phase;
+            outputs->path_status.lateral_limit_reached = outputs->lateral_limits.lateral_limit_reached;
             outputs->path_status.lane_too_narrow = cycle.ref.valid && cycle.ref.lane_too_narrow;
         }
     }

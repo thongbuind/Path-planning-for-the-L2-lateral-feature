@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-HARA` |
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | Awaiting confirmation review |
 | Author | thongbui |
 | Reviewer |   |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-11 |
 
 ## 1. Purpose and scope {#safety-scope}
 
@@ -156,7 +156,7 @@ Sensor and algorithm limitations when no fault is present. Each condition has a 
 | TC-04 | A crest obstructs visibility ahead of a curve | The curve is detected late | Limit a_y; set `lateral_limit_reached`; the longitudinal module slows the vehicle | S1b |
 | TC-05 | A curve requires more lateral acceleration than aysmax allows | The path is truncated, and the vehicle approaches the lane marking | Same as TC-04 | S1b |
 | TC-06 | Wet road, μ = 0.5 | Available tire grip is lower than the a_y limit | The ELK a_y limit of 4.0 m/s² is below the grip limit of 4.9 m/s² | S12 |
-| TC-07 | Large vehicle in an adjacent lane, narrow lane, or objects on both sides | Center offset in the wrong direction or too close to an object | Balance clearances and limit the offset to actual free space | S3, S3b, S15 |
+| TC-07 | Large vehicle in an adjacent lane, narrow lane, or objects on both sides | Center offset in the wrong direction or too close to an object | Shift away from the large vehicle based on the clearance to it. Stay centered with large vehicles on both sides. Limit the offset to the actual free space | S3, S3b, S15 |
 | TC-08 | Traffic congestion at low speed | The path covers only a short distance | HWA continues; LKA and ELK are unavailable | S11 |
 | TC-09 | Crosswind or road cross slope | The vehicle drifts even though the path is correct | Closed-loop Lateral Controller; LKA intervention | S4 |
 | TC-10 | Prolonged loss of all lane boundaries | Dead reckoning accumulates error | Follow the previous path for up to 1 s, then mark it invalid | F05 |
@@ -198,3 +198,4 @@ Sensor and algorithm limitations when no fault is present. Each condition has a 
 |---|---|---|
 | 1.0 | 2026-11-10 | Rewritten as the HARA for the safety department. Made the item definition self-contained; added operational situations, proposed S, E, C, ASIL ratings, safe states, and FTTIs; split out HE-08 for ELK; added TC-13, safety mechanisms, and open points |
 | 1.1 | 2026-11-10 | Added frequency-based E classification; recorded the basis for the SG-04 and SG-05 FTTIs; specified no sudden torque release in the SG-01 safe state; split the open points; added questions about S for HE-03 and HE-06; revised the ASIL rationale for HE-05 |
+| 1.2 | 2026-11-11 | Updated TC-07 for the revised center offset (PP-ADR-008) |

@@ -1,9 +1,8 @@
 """Pass/fail criteria and metrics measured on ground truth (Software Qualification Test
 Specification 8.1, 8.2; definitions of Software Requirements Specification section 4).
 
-Only what the planner sends (Trajectory, PathStatus, LateralLimits), its compute time
-and the delivered calibration values that requirements point to are used, together
-with the simulator's ground truth. Nothing inside the planner is read.
+Only the ICD inputs and outputs, compute time, calibration values referenced by
+requirements and simulator ground truth are used.
 
 Covered so far: PP-SWR-001, 003, 005, 006, 007, 009, 010, 051, 052, 055, 056, 058, 063, 100 to 102,
 116, 117, 150; targets PP-SWR-002, 008, 016, 050, 053, 057, 059, 064, 125. A criterion with no situation to judge in a run is reported as
@@ -12,16 +11,21 @@ not applicable. Information only: a_y and jerk on the vehicle as R79 Annex 8, 2.
 """
 
 from dataclasses import asdict, dataclass, field
-from math import cos, sin
+from math import cos, hypot, sin
 
 import numpy as np
 
 from eval.calibration import requirement_parameters
-from interfaces import ActiveFunction, TRAJECTORY_STEP_S
+from interfaces import (
+    FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US,
+    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, RequestState, Side,
+)
 from sim.harness import PlannerCycle, RunLog
+from sim.stand_ins.eps import HANDOVER_S
 from sim.world.traffic import Traffic
 
 AYSMAX = 2.5  # [m/s^2] PP-SWR-001
+LONG_VIEW_M = 126.0  # Largest view range the planner uses (Interface Control Document 5.1)
 JERK_MAX_HWA = 5.0  # [m/s^3] PP-SWR-003
 JERK_WINDOW_S = 0.5  # Software Requirements Specification 4, "Jerk ngang của path"
 CONTINUITY_LATERAL_M = 0.05  # PP-SWR-100
@@ -34,6 +38,16 @@ TRUTH_STEP = 10  # Ground truth samples (1 ms) per offset sample, 10 ms
 GRID_STEP_S = float(TRAJECTORY_STEP_S)
 BIG_VEHICLE_WIDTH_M = 2.3  # Software Requirements Specification 4, "Xe lớn"
 BODY_OVERHANG_M = 1.0  # Software Qualification Test Specification 8.1: car body = rear axle - 1 m .. front axle + 1 m
+INTERVENTION_FUNCTIONS = (ActiveFunction.LKA, ActiveFunction.ELK)
+INTERVENTION_LIMITS = {ActiveFunction.LKA: (3.0, 1.5, 5.0),
+                       ActiveFunction.ELK: (4.0, 3.0, 10.0)}  # PP-SWR-110 to 115
+ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
+MAX_INTERVENTION_S = 10.0  # PP-SWR-083
+MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
+EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
+OTHER_CAR_GAP_MIN_M = 0.3  # PP-SWR-088
+LATE_ELK_DLC_M = -0.3  # PP-SWR-089
+FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132
 
 # a_y and jerk measured on the vehicle as R79 Annex 8, 2.4 prescribes (Software Qualification
 # Test Specification 5.1). Reported as information; no requirement points to it yet.
@@ -71,15 +85,20 @@ class Result:
     criteria: list[Criterion]
     targets: list[Target]
     info: dict = field(default_factory=dict)
+    case_failures: list[str] = field(default_factory=list)
+    scored: bool = True
 
     @property
-    def passed(self) -> bool:
-        return all(c.passed for c in self.criteria if c.applicable)
+    def passed(self) -> bool | None:
+        if not self.scored:
+            return None
+        return not self.case_failures and all(c.passed for c in self.criteria if c.applicable)
 
     def to_dict(self) -> dict:
         return {"scenario": self.scenario, "seed": self.seed, "passed": self.passed,
                 "criteria": [asdict(c) for c in self.criteria],
-                "targets": [asdict(t) for t in self.targets], "info": self.info}
+                "targets": [asdict(t) for t in self.targets], "info": self.info,
+                "case_failures": self.case_failures, "scored": self.scored}
 
 
 def _valid(c: PlannerCycle) -> bool:
@@ -95,17 +114,26 @@ class _Truth:
     """Ground-truth base_link pose by time."""
 
     def __init__(self, log: RunLog) -> None:
+        self.log = log
         self.t = np.asarray(log.t_us)
         self.rear = np.asarray(log.rear)
         self.front = np.asarray(log.front)
 
+    def index(self, t_us: int) -> int:
+        return int(np.clip(np.searchsorted(self.t, t_us), 0, len(self.t) - 1))
+
     def rear_at(self, t_us: int) -> tuple[float, float, float]:
-        i = int(np.clip(np.searchsorted(self.t, t_us), 0, len(self.t) - 1))
-        return tuple(self.rear[i])
+        return tuple(self.rear[self.index(t_us)])
 
     def front_at(self, t_us: int) -> tuple[float, float, float]:
-        i = int(np.clip(np.searchsorted(self.t, t_us), 0, len(self.t) - 1))
-        return tuple(self.front[i])
+        return tuple(self.front[self.index(t_us)])
+
+    def lateral_velocity(self, i: int, lane_heading: float, *, front: bool = False) -> float:
+        heading = self.rear[i][2] - lane_heading
+        v_y = self.log.rear_v_y[i]
+        if front:
+            v_y += self.log.wheelbase * self.log.yaw_rate[i]
+        return self.log.speed[i] * sin(heading) + v_y * cos(heading)
 
 
 def _to_world(pose, x, y, yaw):
@@ -316,10 +344,391 @@ def r79_vehicle(t_s: np.ndarray, a_y: np.ndarray, active: np.ndarray, aysmax: fl
     return out
 
 
-def _hwa_at(times_s: np.ndarray, cycle_t_s: np.ndarray, hwa: np.ndarray) -> np.ndarray:
-    """Ground-truth samples at which the latest planner cycle had HWA driving."""
+def _cycle_mask_at(times_s: np.ndarray, cycle_t_s: np.ndarray, active: np.ndarray) -> np.ndarray:
+    """Ground-truth samples for which the latest planner cycle matches the mask."""
     idx = np.searchsorted(cycle_t_s, times_s, side="right") - 1
-    return (idx >= 0) & hwa[np.clip(idx, 0, len(hwa) - 1)]
+    return (idx >= 0) & active[np.clip(idx, 0, len(active) - 1)]
+
+
+@dataclass(frozen=True)
+class _Request:
+    start: int
+    stop: int
+    rx_us: int
+    message: FunctionRequest
+
+
+@dataclass(frozen=True)
+class _Intervention:
+    function: ActiveFunction
+    start: int
+    stop: int
+    completed: bool
+    request: _Request | None
+
+
+def _phase(cycle: PlannerCycle, function: ActiveFunction) -> InterventionPhase:
+    status = cycle.path_status
+    if status is None or not status.header.valid:
+        return InterventionPhase.NONE
+    return status.lka_phase if function == ActiveFunction.LKA else status.elk_phase
+
+
+def _request_windows(cycles, function):
+    """Contiguous usable REQUEST inputs and the time the first frame was received."""
+    windows = []
+    first = None
+    for i, c in enumerate(cycles):
+        rx = c.function_requests
+        present = (rx is not None and rx.message.header.valid
+                   and 0 <= c.t0_us - rx.rx_us <= FUNCTION_REQUESTS_TIMEOUT_US
+                   and -FUTURE_STAMP_TOLERANCE_US <= c.t0_us - rx.message.header.stamp_us
+                   <= FUNCTION_REQUESTS_MAX_AGE_US)
+        message = rx.message.requests[int(function) - 1] if present else None
+        if message is not None and message.state == RequestState.REQUEST:
+            if first is None:
+                first = i, rx.rx_us, message
+        elif first is not None:
+            windows.append(_Request(first[0], i, first[1], first[2]))
+            first = None
+    if first is not None:
+        windows.append(_Request(first[0], len(cycles), first[1], first[2]))
+    return windows
+
+
+def _intervention_windows(cycles, valid, requests):
+    """Intervention path intervals and the phase of the same function at their end."""
+    episodes = []
+    for function in INTERVENTION_FUNCTIONS:
+        start = None
+        for i in range(len(cycles) + 1):
+            c = cycles[i] if i < len(cycles) else None
+            active = (c is not None and valid[i] and c.path_status.active_function == function
+                      and _phase(c, function) == InterventionPhase.ACTIVE)
+            if active:
+                if start is None:
+                    start = i
+            elif start is not None:
+                req = next((r for r in requests[function] if r.start <= start < r.stop), None)
+                completed = c is not None and _phase(c, function) == InterventionPhase.COMPLETED
+                episodes.append(_Intervention(function, start, i, completed, req))
+                start = None
+    return sorted(episodes, key=lambda e: e.start)
+
+
+def _path_at(cycle, t_us, truth):
+    t, x, y, yaw, k, v, _ = _points(cycle.trajectory)
+    elapsed = (t_us - cycle.trajectory.header.stamp_us) * 1e-6
+    wx, wy, heading = _to_world(truth.rear_at(cycle.trajectory.header.stamp_us),
+        np.interp(elapsed, t, x), np.interp(elapsed, t, y), np.interp(elapsed, t, np.unwrap(yaw)))
+    projected = truth.log.road.project(wx, wy)
+    speed = float(np.interp(elapsed, t, v))
+    v_lat = speed * sin(heading - projected.heading)
+    ay_add = speed**2 * (float(np.interp(elapsed, t, k)) - projected.curvature)
+    return projected.d, v_lat, ay_add
+
+
+def _entry_errors(cycle, t_us, truth):
+    i = truth.index(t_us)
+    rear = truth.rear[i]
+    actual = truth.log.road.project(rear[0], rear[1])
+    d, v_lat, _ = _path_at(cycle, t_us, truth)
+    return abs(d - actual.d), abs(v_lat - truth.lateral_velocity(i, actual.heading))
+
+
+def _boundary_offset(road, side, *, edge=False):
+    index = 0 if side == Side.LEFT else 1
+    boundary = road.layout.markings[index + 1]
+    if edge or boundary is None:
+        boundary = road.layout.edges[index]
+    if boundary is None:
+        return (1 if side == Side.LEFT else -1) * road.lane_width / 2
+    return boundary.offset_m
+
+
+def _dlc(log, projection, side, *, edge=False):
+    sign = 1 if side == Side.LEFT else -1
+    return sign * (_boundary_offset(log.road, side, edge=edge) - projection.d) - log.vehicle_width / 2
+
+
+def _opposite(side):
+    return Side.RIGHT if side == Side.LEFT else Side.LEFT
+
+
+def _min_dlc(truth, start_us, stop_us, side, *, edge=False):
+    road = truth.log.road
+    lo, hi = truth.index(start_us), truth.index(stop_us)
+    hint = None
+    value = float("inf")
+    for x, y, _ in truth.front[lo:hi + 1]:
+        p = road.project(x, y, hint)
+        hint = p.s
+        value = min(value, _dlc(truth.log, p, side, edge=edge))
+    return value
+
+
+def _handover_end_us(truth, stop_us, next_start_us):
+    stop = truth.index(stop_us)
+    upper = truth.index(next_start_us)
+    released = next((int(truth.t[i]) for i in range(stop, upper + 1)
+                     if not truth.log.eps_controlling[i]), stop_us)
+    return min(released + round(HANDOVER_S * 1e6), next_start_us)
+
+
+def _end_condition(truth, prev, cur, side, edge, cal):
+    i = truth.index(cur.t0_us)
+    front, rear = truth.front[i], truth.rear[i]
+    road = truth.log.road
+    pf = road.project(front[0], front[1])
+    pr = road.project(rear[0], rear[1], pf.s)
+    if (min(_dlc(truth.log, pf, side, edge=edge), _dlc(truth.log, pf, _opposite(side))) < 0
+            or abs(truth.lateral_velocity(i, pf.heading, front=True)) > cal["v_lat_end"]
+            or abs(_wrap(rear[2] - pr.heading)) > cal["heading_end"]):
+        return False
+    return _valid(prev) and abs(_path_at(prev, cur.t0_us, truth)[2]) <= cal["ay_add_end"]
+
+
+def _target_geometry(truth, episodes):
+    """Ground-truth lateral gap while ELK drives and rectangle contact over the encounter."""
+    log = truth.log
+    if not log.scenario.traffic:
+        return None, None
+    traffic = Traffic(log.road, log.scenario.traffic)
+    target_active = np.zeros(len(truth.t), dtype=bool)
+    for e in episodes:
+        if e.request and e.request.message.elk_reason in (ElkReason.ONCOMING, ElkReason.OVERTAKING):
+            stop = log.cycles[e.stop].t0_us if e.stop < len(log.cycles) else truth.t[-1]
+            target_active[truth.index(log.cycles[e.start].t0_us):truth.index(stop) + 1] = True
+    ego_length = log.wheelbase + 2 * BODY_OVERHANG_M
+    widths = (log.vehicle_width / 2, ego_length / 2)
+    min_gap = float("inf")
+    contact = False
+    hint = None
+    for i, (t, rear) in enumerate(zip(truth.t, truth.rear)):
+        x, y, yaw = rear
+        ex, ey = cos(yaw), sin(yaw)
+        x += log.wheelbase / 2 * ex
+        y += log.wheelbase / 2 * ey
+        if target_active[i]:
+            p = log.road.project(x, y, hint)
+            hint = p.s
+            nx, ny = -sin(p.heading), cos(p.heading)
+            ego_span = widths[0] * abs(nx * ey - ny * ex) + widths[1] * abs(nx * ex + ny * ey)
+        for target in traffic.at(t * 1e-6):
+            tx, ty = cos(target.heading), sin(target.heading)
+            dx, dy = target.x - x, target.y - y
+            half_w, half_l = target.width / 2, target.length / 2
+            if target_active[i]:
+                span = half_w * abs(nx * ty - ny * tx) + half_l * abs(nx * tx + ny * ty)
+                min_gap = min(min_gap, abs(nx * dx + ny * dy) - ego_span - span)
+            if contact or hypot(dx, dy) > hypot(*widths) + hypot(half_l, half_w):
+                continue
+            # Separating axes of the two rectangles.
+            contact = all(abs(ax * dx + ay * dy) <= (
+                widths[0] * abs(ax * ey - ay * ex) + widths[1] * abs(ax * ex + ay * ey)
+                + half_w * abs(ax * ty - ay * tx) + half_l * abs(ax * tx + ay * ty))
+                for ax, ay in ((ex, ey), (-ey, ex), (tx, ty), (-ty, tx)))
+    return (min_gap if np.isfinite(min_gap) else None), not contact
+
+
+def _completion_errors(truth, episode, cal, edge):
+    cycles = truth.log.cycles
+    side = episode.request.message.side
+    since = None
+    reached = []
+    for i in range(episode.start + 1, min(episode.stop + 1, len(cycles))):
+        cur = cycles[i]
+        if not _end_condition(truth, cycles[i - 1], cur, side, edge, cal):
+            since = None
+        elif since is None:
+            since = cur.t0_us
+        if since is not None and cur.t0_us - since >= round(cal["T_end_hold"] * 1e6):
+            reached.append(i)
+    completion_late = bool(reached and (not episode.completed or reached[0] != episode.stop))
+    premature = episode.completed and episode.stop not in reached
+    return bool(reached), completion_late, premature
+
+
+def _check_late_elk(truth, windows):
+    cycles = truth.log.cycles
+    late_dlcs = []
+    accepted = 0
+    for r in windows:
+        side = r.message.side
+        if side not in (Side.LEFT, Side.RIGHT):
+            continue
+        index = 1 if side == Side.LEFT else 2
+        if truth.log.road.layout.markings[index] is None:
+            continue
+        front = truth.front_at(r.rx_us)
+        dlc = _dlc(truth.log, truth.log.road.project(front[0], front[1]), side)
+        if dlc < LATE_ELK_DLC_M:
+            late_dlcs.append(dlc)
+            accepted += any(_phase(c, ActiveFunction.ELK) == InterventionPhase.ACTIVE
+                            for c in cycles[r.start:r.stop])
+    return late_dlcs, accepted
+
+
+def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_times):
+    log, cycles = truth.log, truth.log.cycles
+    expected = log.scenario.notes.get("expect_intervention")
+    if not (expected or episodes or any(requests.values())):
+        return
+    issues = result.case_failures
+    if expected in ("LKA", "ELK"):
+        function = ActiveFunction[expected]
+        desired = log.scenario.notes.get("departure_side")
+        expected_requests = [r for r in requests[function]
+                             if desired is None or r.message.side.name.lower() == desired]
+        if not expected_requests:
+            side = "" if desired is None else f" (phía {'trái' if desired == 'left' else 'phải'})"
+            issues.append(f"{expected}: thiếu REQUEST đến planner{side}")
+        elif (any(not any(e.request is r and e.function == function for e in episodes)
+                  for r in expected_requests)
+              or any(_phase(c, function) == InterventionPhase.ACTIVE and not _valid(c) for c in cycles)):
+            issues.append(f"{expected}: có REQUEST nhưng thiếu path can thiệp hợp lệ")
+    late_dlcs, accepted = _check_late_elk(truth, requests[ActiveFunction.ELK])
+    if expected == "late ELK":
+        if not requests[ActiveFunction.ELK]:
+            issues.append("PP-SWR-089: thiếu REQUEST bơm muộn đến planner")
+        elif not late_dlcs:
+            issues.append("PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
+
+    starts = []
+    durations = []
+    timed_functions = set()
+    censored_functions = set()
+    opposite_dlcs, completed_dlcs = [], []
+    dtle_mark, dtle_edge, dtle_lka = [], [], []
+    times_to_complete = {f: [] for f in INTERVENTION_FUNCTIONS}
+    end_judged = late_completion = early_completion = n_completed = 0
+    details = []
+    for i, episode in enumerate(episodes):
+        function = episode.function
+        if episode.request is None:
+            issues.append(f"{function.name}: path can thiệp thiếu REQUEST tương ứng")
+            continue
+        req = episode.request.message
+        if req.side not in (Side.LEFT, Side.RIGHT):
+            issues.append(f"{function.name}: REQUEST thiếu phía can thiệp")
+            continue
+        start_us = cycles[episode.start].t0_us
+        end_seen = episode.stop < len(cycles)
+        stop_us = cycles[episode.stop].t0_us if end_seen else int(truth.t[-1])
+        next_us = next((cycles[e.start].t0_us for e in episodes[i + 1:]
+                        if e.function != function or e.request is not episode.request), int(truth.t[-1]))
+        edge = req.elk_reason == ElkReason.ROAD_EDGE
+        lka = function == ActiveFunction.LKA
+        starts.append(_entry_errors(cycles[episode.start], start_us, truth))
+        elapsed_s = (stop_us - episode.request.rx_us) * 1e-6
+        if end_seen or elapsed_s >= MAX_INTERVENTION_S:
+            durations.append(elapsed_s if end_seen else float("inf"))
+            timed_functions.add(function.name)
+        else:
+            censored_functions.add(function.name)
+        handover_us = _handover_end_us(truth, stop_us, next_us)
+        opposite_dlcs.append(_min_dlc(truth, start_us, handover_us, _opposite(req.side)))
+        dtle = _min_dlc(truth, start_us, stop_us, req.side, edge=edge)
+        if lka:
+            dtle_lka.append(dtle)
+        if edge:
+            dtle_edge.append(dtle)
+        elif lka or req.elk_reason == ElkReason.SOLID_LINE:
+            dtle_mark.append(dtle)
+        if episode.completed:
+            n_completed += 1
+            times_to_complete[function].append((stop_us - start_us) * 1e-6)
+            if lka:
+                front = truth.front_at(stop_us)
+                completed_dlcs.append(_dlc(log, log.road.project(front[0], front[1]), req.side))
+        reached, late, early = _completion_errors(truth, episode, cal, edge)
+        end_judged += reached
+        late_completion += late
+        early_completion += early
+        details.append({"function": function.name, "side": req.side.name, "reason": req.elk_reason.name,
+                        "request_rx_us": episode.request.rx_us, "start_us": start_us,
+                        "end_us": stop_us if end_seen else None, "completed": episode.completed,
+                        "observed_duration_s": elapsed_s,
+                        "end_handover_us": handover_us, "dtle_m": dtle})
+
+    if expected in censored_functions and expected not in timed_functions:
+        issues.append(f"{expected}: ca kết thúc trước khi đủ cửa sổ chấm thời lượng")
+
+    def lower(requirement, metric, values, limit):
+        value = float(min(values, default=float("nan")))
+        result.criteria.append(Criterion(requirement, metric, value, f">= {limit}",
+                                          value >= limit, applicable=bool(values)))
+
+    def upper(requirement, metric, values, limit):
+        value = float(max(values, default=float("nan")))
+        result.criteria.append(Criterion(requirement, metric, value, f"<= {limit}",
+                                          value <= limit, applicable=bool(values)))
+
+    upper("PP-SWR-080", "Lệch vị trí ngang tại điểm đầu [m]", [d for d, _ in starts], ENTRY_D_M)
+    upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
+    upper("PP-SWR-032", "Lần chưa báo COMPLETED tại tick đủ điều kiện", [late_completion] if end_judged else [], 0)
+    upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
+    upper("PP-SWR-083", "Thời lượng từ REQUEST tới COMPLETED hoặc hủy [s]", durations, MAX_INTERVENTION_S)
+    lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
+    lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
+    lower("PP-SWR-086", "DTLE vạch nhỏ nhất [m]", dtle_mark, MARK_DTLE_MIN_M)
+    lower("PP-SWR-086", "DTLE mép đường nhỏ nhất [m]", dtle_edge, EDGE_DTLE_MIN_M)
+    if abs(log.actuator_delay_s - 0.1) <= 1e-7:
+        lower("PP-SWR-091", "DTLE vạch với trễ EPS 100 ms [m]", dtle_mark, MARK_DTLE_MIN_M)
+        lower("PP-SWR-091", "DTLE mép với trễ EPS 100 ms [m]", dtle_edge, EDGE_DTLE_MIN_M)
+    upper("PP-SWR-089", "Số ELK REQUEST muộn đã khởi động", [accepted] if late_dlcs else [], 0)
+    gap, no_impact = _target_geometry(truth, episodes)
+    lower("PP-SWR-088", "Khoảng cách ngang nhỏ nhất tới xe mục tiêu [m]",
+          [] if gap is None else [gap], OTHER_CAR_GAP_MIN_M)
+    result.info["interventions"] = details
+    result.info["late_elk_request_dlc_m"] = late_dlcs
+    if no_impact is not None:
+        result.info["no_impact"] = no_impact
+    if dtle_lka:
+        result.targets.append(Target("PP-SWR-087", "DTLE LKA nhỏ nhất", min(dtle_lka), "m"))
+    for function in INTERVENTION_FUNCTIONS:
+        lka = function == ActiveFunction.LKA
+        if times_to_complete[function]:
+            result.targets.append(Target("PP-SWR-081" if lka else "PP-SWR-082",
+                                         f"Thời lượng path {function.name} tới COMPLETED",
+                                         max(times_to_complete[function]), "s"))
+        active = np.zeros(len(cycles), dtype=bool)
+        for e in episodes:
+            if e.function == function:
+                active[e.start:e.stop] = True
+        active_paths = [p for p, use in zip(paths, active) if use]
+        ay_limit, added_limit, jerk_limit = INTERVENTION_LIMITS[function]
+        upper("PP-SWR-110" if lka else "PP-SWR-111", f"a_y lớn nhất của path {function.name} [m/s²]",
+              [float(np.max(np.abs(p.ay))) for p in active_paths], ay_limit)
+        upper("PP-SWR-112" if lka else "PP-SWR-113", f"a_y thêm vào của path {function.name} [m/s²]",
+              [float(np.max(np.abs(p.ay - p.ay_need))) for p in active_paths], added_limit)
+        upper("PP-SWR-114" if lka else "PP-SWR-115", f"Jerk lớn nhất của path {function.name} [m/s³]",
+              [_jerk_max(p.ay) for p in active_paths], jerk_limit)
+        if active_paths:
+            t_s = truth.t * 1e-6
+            vehicle = r79_vehicle(t_s, np.asarray(log.a_y), _cycle_mask_at(t_s, cycle_times, active))
+            result.info[f"{function.name.lower()}_vehicle_r79"] = {
+                key: vehicle[key] for key in ("ay_vehicle_r79_max", "jerk_vehicle_r79_max")
+            }
+
+    if log.adas:
+        for function in INTERVENTION_FUNCTIONS:
+            idx = int(function) - 1
+            a = next((m.t_us for m in log.adas if m.measured_requests.requests[idx].state == RequestState.REQUEST), None)
+            b = next((m.t_us for m in log.adas if m.ideal_requests.requests[idx].state == RequestState.REQUEST), None)
+            if a is not None or b is not None:
+                result.info[f"{function.name.lower()}_request_timing"] = {
+                    "mode_a_us": a, "mode_b_us": b, "a_minus_b_us": None if a is None or b is None else a - b,
+                }
+    if log.scenario.notes.get("protocol") and episodes:
+        ep = episodes[0]
+        k = truth.index(cycles[ep.start].t0_us)
+        front = truth.front[k]
+        lane = log.road.project(front[0], front[1])
+        measured = abs(truth.lateral_velocity(k, lane.heading, front=True))
+        desired = log.scenario.notes["departure_v_lat_mps"]
+        result.info["protocol_v_lat"] = {"target_mps": desired, "at_start_mps": measured,
+                                          "within_0_05_mps": abs(measured - desired) <= 0.05}
 
 
 def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result:
@@ -331,6 +740,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     t_s = np.array([c.t0_us * 1e-6 for c in cycles])
     valid = np.array([_valid(c) for c in cycles])
     hwa = np.array([_hwa(c) for c in cycles])
+    requests = {f: _request_windows(cycles, f) for f in INTERVENTION_FUNCTIONS}
+    episodes = _intervention_windows(cycles, valid, requests)
 
     # Truth along every valid path, once.
     paths: list[_PathTruth | None] = []
@@ -378,7 +789,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
 
     # PP-SWR-005: path stays valid with HWA while the curve needs more than aysmax.
     first_hwa = int(np.argmax(hwa)) if np.any(hwa) else len(cycles)
-    requested = t_s >= log.scenario.hwa_request_s
+    hwa_request_s = log.scenario.hwa_request_s
+    requested = t_s >= (hwa_request_s if hwa_request_s is not None else np.inf)
     sharp = np.zeros(len(cycles), dtype=bool)
     for i in range(first_hwa, len(cycles)):
         # A cycle without a path uses the curvature seen by the previous one.
@@ -427,8 +839,13 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
 
     # PP-SWR-100 to 102: consecutive valid paths.
     cont = [0.0, 0.0, 0.0]
+    intervention_starts = {e.start for e in episodes}
     for i in range(1, len(cycles)):
         if valid[i - 1] and valid[i]:
+            if i in intervention_starts:
+                d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
+                if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
+                    continue  # PP-SWR-031: exception only at the first tick
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
 
@@ -505,11 +922,17 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     big = _big_vehicles(log, cycles, paths, truth, cal["gap_truck_min"])
 
     compute_ms = np.array([c.compute_ns for c in cycles]) * 1e-6
-    hwa_requested = [c for c in cycles if c.t0_us >= log.scenario.hwa_request_s * 1e6]
+    hwa_requested = [c for c in cycles if hwa_request_s is not None and c.t0_us >= hwa_request_s * 1e6]
     any_hwa = bool(np.any(hwa))
+    # PP-SWR-017: a lane model with a view range beyond what the planner uses stays valid input.
+    long_view = [c for c in cycles if c.lane_view_reported is not None and c.lane_view_reported > LONG_VIEW_M]
+    long_view_valid = (sum(c.path_status is not None and c.path_status.path_valid for c in long_view) / len(long_view)
+                       if long_view else 1.0)
     criteria = [
         Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
+        Criterion("PP-SWR-017", "Tỉ lệ chu kỳ có path hợp lệ khi lane model báo tầm nhìn > 126 m",
+                  long_view_valid, "= 1", long_view_valid == 1.0, applicable=bool(long_view)),
         Criterion("PP-SWR-150", "LateralLimits mỗi chu kỳ", float(limits_every_cycle), "= 1",
                   limits_every_cycle),
         Criterion("PP-SWR-009", "Cờ giới hạn giống nhau ở PathStatus và LateralLimits",
@@ -598,5 +1021,12 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     }
     truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
     info.update(r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),
-                            _hwa_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool)))
-    return Result(log.scenario.name, log.seed, criteria, targets, info)
+                            _cycle_mask_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool)))
+    result = Result(log.scenario.name, log.seed, criteria, targets, info)
+    _score_interventions(result, truth, paths, episodes, requests, cal, t_s)
+    if log.scenario.adas_mode == "A":
+        result.scored = False
+        result.criteria.clear()
+        result.targets.clear()
+        result.case_failures.clear()
+    return result

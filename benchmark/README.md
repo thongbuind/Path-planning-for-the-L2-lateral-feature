@@ -7,7 +7,8 @@ Nguồn kịch bản là OpenSCENARIO XML 1.3.1; đường là OpenDRIVE 1.8.1. 
 | `scenarios/<ID>.xosc` | Kịch bản logic, khai báo tham số và giá trị danh định |
 | `scenarios/<ID>.anchors.xosc` | `ParameterValueDistribution` với các bộ giá trị neo đi cùng nhau; `variant` giữ mã a, b… |
 | `scenarios/<ID>.ranges.xosc` | `ParameterValueDistribution`, dùng `DistributionRange` hoặc `DistributionSet` |
-| `roads/<ID><variant>.xodr` | Hình học đường của từng neo; đường tham chiếu nằm ở tâm làn −2 |
+| `scenarios/<ID>.protocol.xosc` | Các bộ giá trị tường minh theo Euro NCAP LSS và EU 2021/646 |
+| `roads/<ID><variant>.xodr` | Hình học đường dùng chung giữa các neo khi phù hợp. Đường tham chiếu nằm ở tâm làn ego |
 | `faults/<ID>*.xosc` | Cùng cấu trúc; mỗi ca lỗi chạy trên đường và thời lượng của từng neo trong `fault_hosts` của bộ chạy (S1a, S1c) |
 | `suites/{smoke,regression,full}.json` | Cách chọn, profile, seed chạy và seed lấy mẫu |
 | `schema/` | XSD nguyên bản tải từ ASAM; URL và SHA-256 trong `sources.json` |
@@ -26,6 +27,8 @@ python3 -m eval.generate smoke
 python3 -m eval.suite build/concrete/smoke/manifest.json --jobs 2
 python3 -m eval.runner S1 a --seed 1
 python3 -m eval.runner S1 a --fault F02 c
+python3 -m eval.runner S5 a --seed 1
+python3 -m eval.runner S5 a --seed 1 --adas-mode A
 python3 -m eval.runner build/concrete/smoke/cases/<case-id>.xosc --seed 1
 ```
 
@@ -33,9 +36,9 @@ Thay `smoke` bằng `regression` hoặc `full` để sinh hai bộ còn lại. `
 
 | Bộ | Cách chọn | Profile | Seed | Lượt chạy hiện tại |
 |---|---|---|---|---|
-| Smoke | Mọi neo đã hỗ trợ | VP-0 | 1 | 69 (0,4 giờ mô phỏng) |
-| Regression | Neo và biên | VP-0…VP-5 | 1, 2 | 1.788 (12,8 giờ mô phỏng) |
-| Full | Neo, biên, pairwise, Latin hypercube | VP-0…VP-5 | 1; riêng F01: 1…10 | 4.032 (33,4 giờ mô phỏng) |
+| Smoke | Mọi neo đã hỗ trợ và S8 late | VP-0 | 1 | 101 (0,58 giờ mô phỏng) |
+| Regression | Neo, biên, lưới chuẩn | VP-0…VP-5 | 1, 2 | 3.192 (19,46 giờ mô phỏng) |
+| Full | Neo, biên, pairwise, Latin hypercube, lưới chuẩn | VP-0…VP-5 | 1. Riêng F01: 1…10 | 5.742 (41,52 giờ mô phỏng) |
 
 Ca lỗi chạy trên hai đường chủ: S1a (cua nhẹ) và S1c (cua chạm aysmax), như M1. Mã ca lỗi ghi đường chủ, ví dụ `F06-e-S1c-VP-0-<hash>`.
 
@@ -51,21 +54,26 @@ S14 luôn có cả ACC đọc và bỏ qua LateralLimits. `eval.suite` chạy `-
 - Latin hypercube: 24 mẫu mỗi kịch bản logic, seed `20261111`; mỗi chiều số dùng một mẫu trong mỗi khoảng chia đều. Tập phân loại dùng chỉ số của khoảng mẫu. Mọi profile được ghép sau bước lấy mẫu.
 - Khi lấy mẫu tốc độ, thời gian chạy thay đổi theo tỷ lệ nghịch để giữ quãng đường của ca danh định. Quy tắc này không áp dụng cho neo. Không loại ca vì kết quả planner.
 - `curvature_scale` nhân độ cong của đường danh định; `direction` đảo trái/phải. S1 dùng tỷ lệ 1…4 tương ứng R = 1000…250 m; S1b dùng 2/3…4/3 tương ứng R = 300…150 m. Làn 2,5…5,5 m và tốc độ 10…130 km/h lấy từ ODD; biên offset/góc S2 lấy từ các neo. Không thêm ngưỡng đạt/trượt.
-- Với lỗi, các mức cũ là bộ neo đi cùng nhau. F04 chỉ lấy mẫu thêm chế độ mất vạch; chế độ giảm độ tin giữ các neo c/d. F06 chỉ lấy mẫu thêm sai c2; sai c3 giữ neo c để không trộn tham số khác đơn vị. F01 lấy mẫu các mức sigma đã có; F02 lấy mẫu giá trị/thời điểm/thời lượng đã có.
+- Với lỗi, các mức cũ là bộ neo đi cùng nhau. F04 chỉ lấy mẫu thêm chế độ mất vạch; chế độ giảm độ tin giữ các neo c/d. F06 chỉ lấy mẫu thêm sai c2; sai c3 giữ neo c để không trộn tham số khác đơn vị. F01 lấy mẫu các mức sigma đã có; F02 lấy mẫu giá trị/thời điểm/thời lượng đã có. F22 lấy mẫu loại lỗi tầm nhìn, tầm nhìn 15–126 m, thời điểm, thời lượng, một hay mọi vạch.
 - Ca trùng giá trị chỉ xuất một lần, ghi lại mọi cách chọn đã tạo ra nó. Các neo khác mã vẫn được giữ.
+- Lưới chuẩn dùng 65 hàng tường minh trong S4, S5, S6, S7, S8. Mỗi hàng giữ nguyên các tham số đi cùng nhau khi ghép profile. `stepWidth` của `*.ranges.xosc` dành cho metadata ASAM.
 
 ## Supported simulator subset
 
-Đây là adapter cho một ego trên một đường phẳng ba làn có bề rộng không đổi. Hình học hỗ trợ `line`, `arc`, `spiral`; trạng thái ban đầu dùng `RoadPosition`, `Orientation`, `SpeedAction`; kết thúc dùng `SimulationTimeCondition`. Các cấu trúc ngoài tập hỗ trợ bị từ chối, không được coi là đã chạy.
+Adapter hỗ trợ một ego trên đường phẳng từ một đến ba làn có bề rộng không đổi. Hình học dùng `line`, `arc`, `spiral` và biên cố định. Trạng thái ban đầu dùng `RoadPosition`, `Orientation`, `SpeedAction`. Kết thúc dùng `SimulationTimeCondition`.
 
 | Phần mở rộng | Ý nghĩa |
 |---|---|
 | Vehicle `Properties`, `pp:adapter=single-ego-v1` | Nhận diện contract của adapter |
 | `pp:profile` | Vehicle profile simulator; file cụ thể cập nhật bề rộng, wheelbase và khối lượng của Vehicle |
 | `pp:acc` | `off`, `on`, `ignore_limits` như simulator hiện có |
-| `pp:camera_view_m` | Tầm nhìn của camera [m], mặc định 80; tuỳ chọn |
+| `pp:camera_view_m`, `pp:camera_view_start_m` | Điểm cuối và điểm đầu tầm nhìn của camera trong `base_link` [m], mặc định 80 và 0; tuỳ chọn. Điểm cuối trong 10–126 m, giới hạn xử lý của planner (Interface Control Document 5.1) |
 | `pp:hwa_request_s`, `pp:hold_until_hwa` | Thời điểm yêu cầu HWA và giữ offset/góc đến khi HWA bắt đầu |
-| `CustomCommandAction type="pp:lane_fault:v1"` | JSON có `kind`, `start_s`, `duration_s`, `lines`, `value`, `sigma_c0`, `sigma_c1`; áp dụng theo thời điểm chụp frame; duration −1 là tới cuối ca |
+| `pp:hwa_view_gate` | `true`: HWA theo kịch bản rời REQUEST khi thời gian nhìn trước quá ngắn (Software Qualification Test Specification 4.8); dùng ở F22 |
+| `pp:adas_mode`, `pp:lka_enabled`, `pp:elk_enabled` | Chọn stand-in và chức năng. `B` để chấm planner, `A` để đối chiếu thời điểm, `scripted` cho chuỗi yêu cầu cố định |
+| `pp:expect_intervention`, `pp:protocol` | Kết quả mong đợi và nguồn lưới chuẩn của bên đánh giá |
+| `CustomCommandAction type="pp:departure:v1"` | Dựng cung tạo trôi, tín hiệu tài xế, lực ngang và vị trí ban đầu của xe mục tiêu theo Software Qualification Test Specification mục 4.8. Ca late bơm REQUEST tại thời điểm danh định vượt vạch |
+| `CustomCommandAction type="pp:lane_fault:v1"` | JSON có `kind`, `start_s`, `duration_s`, `lines`, `value`, `sigma_c0`, `sigma_c1`; áp dụng theo thời điểm chụp frame; duration −1 là tới cuối ca. `view_short`, `view_flicker`, `view_extend` (F22) dùng `value` là tầm nhìn [m], > 0; `view_extend` được vượt 126 m để kiểm planner cắt an toàn |
 | `lane_width_m`, `curvature_scale`, `direction` | Bộ sinh dựng lại `.xodr` với số cụ thể; OpenDRIVE không chứa biểu thức `$parameter` |
 
 Các phần mở rộng cần adapter tương ứng khi chuyển sang simulator khác. Qua XSD chứng minh đúng cấu trúc, không chứng minh các simulator khác tự hiểu HWA, ACC hay bơm lỗi của dự án.

@@ -285,8 +285,10 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_path_status_t, path_valid);
     } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "active_function") == 0)) {
         result = offsetof(pp_path_status_t, active_function);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "intervention_phase") == 0)) {
-        result = offsetof(pp_path_status_t, intervention_phase);
+    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lka_phase") == 0)) {
+        result = offsetof(pp_path_status_t, lka_phase);
+    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "elk_phase") == 0)) {
+        result = offsetof(pp_path_status_t, elk_phase);
     } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lateral_limit_reached") == 0)) {
         result = offsetof(pp_path_status_t, lateral_limit_reached);
     } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lane_too_narrow") == 0)) {

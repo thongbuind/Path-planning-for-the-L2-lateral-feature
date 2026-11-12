@@ -39,3 +39,34 @@ def test_combined_sets_take_improving_values_only():
     ]
     sets = sweep.combined_sets(suite, results)
     assert [s.values for s in sets] == [{"k_jump": 2}]
+
+
+def test_matrix_sim_sweep_one_at_a_time():
+    import pytest
+    from eval import matrix
+    from sim.scenario import Scenario
+    block = {"sim_sweep": {"camera_view_m": [10, 80, 126], "camera_view_start_m": [0, 5]}}
+    assert matrix.sim_settings(block) == [{}, {"camera_view_m": 10.0}, {"camera_view_m": 126.0},
+                                          {"camera_view_start_m": 5.0}]
+    with pytest.raises(ValueError):
+        matrix.sim_settings({"sim_sweep": {"speed_mps": [10]}})
+    base = Scenario("x", (), 3.5, 25.0)
+    assert matrix.apply_sim(base, {"camera_view_m": 40.0}).camera_view_m == 40.0
+    with pytest.raises(ValueError):
+        matrix.apply_sim(base, {"camera_view_m": 150.0})
+
+
+def test_suite_run_with_simulator_values():
+    import pytest
+    from eval import sweep
+    assert sweep.split_run(["S1", "c", {"camera_view_m": 30}]) == (["S1", "c"], {"camera_view_m": 30})
+    assert sweep.split_run(["S1", "c", "F22", "c"]) == (["S1", "c", "F22", "c"], {})
+    scenario = sweep.load_run(["S14", "a", {"camera_view_m": 40, "acc": "on"}])
+    assert scenario.camera_view_m == 40.0 and scenario.acc == "on" and "camera_view_m=40" in scenario.name
+    with pytest.raises(ValueError):
+        sweep.load_run(["S1", "c", {"speed_mps": 10}])
+    suite = sweep.load_suite("PP-TS-014")
+    for part in ("tuning", "test"):
+        for run in suite[part]["runs"]:
+            sweep.load_run(run)
+            assert sweep.scope_of(suite, run)

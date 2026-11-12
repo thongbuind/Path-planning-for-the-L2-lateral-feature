@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `ADAS-FS` |
-| Version | 1.0 |
+| Version | 1.4 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#adas-scope}
 
@@ -43,7 +43,7 @@
 |---|---|---|
 | Settings (HWA button, LKA and ELK menu) | Reads them | Has no access to them |
 | Availability conditions (Section 7) | Checks them | Receives the result through `state` |
-| DLC, v_lat, and TLC with uncertainty (Section 5) | Calculates them using a function shared with the planner (PP-ADR-005) | Uses TLC to select the path duration |
+| DLC, v_lat, and TLC with uncertainty (Section 5) | Calculates them independently of the planner (PP-ADR-014) | Uses TLC to select the path duration and computes its own lateral state |
 | Hazard beyond the lane marking (Section 6) | Evaluates it | Does not evaluate it |
 | Driver intent (Section 8) | Infers it | Receives `driver_override` |
 | Driver warnings (Section 10) | Sends them to HMI | Reports `lateral_limit_reached` and `path_valid` |
@@ -96,7 +96,7 @@ If the conditions are not met, the function shall not send REQUEST. Except for t
 |---|---|---|---|---|
 | Settings | Enabled by the driver, with ACC enabled | Enabled in the menu | Enabled | R79 5.6.2.1.2; EU 2021/646 3.2.1 |
 | Speed | 10–130 km/h; wait below 10 km/h | Activates from 70 km/h, remains active until speed falls below 65 km/h, up to 130 km/h | Same as LKA | EU 2021/646 3.6.1; R79 B1 |
-| Lane boundaries | Two markings; or one marking plus stored lane width; or a lane center the planner infers from adjacent-lane markings and road edges | Marking on the drift side: MEASURED, confidence ≥ `conf_ego`, visible range ≥ `view_min` | Same as LKA. Road edge: MEASURED, confidence ≥ `conf_edge` | mentor (only HWA uses the inferred lane center) |
+| Lane boundaries | Two markings, one marking plus stored lane width, or a lane center the planner infers from adjacent-lane markings and road edges | Marking on the drift side is MEASURED with confidence ≥ `conf_ego` and visible range ≥ `view_min` | Same as LKA. Road-edge ELK uses a directly MEASURED edge with confidence ≥ `conf_edge`. It also needs a reliable opposite boundary, or the stored lane width if the edge has already been associated with the ego lane | mentor, PP-SWR-047, PP-TS-007 |
 | Unreliable boundary | — | UNAVAILABLE | UNAVAILABLE on that side | mentor |
 | Free space | `lane_too_narrow = false` | — | — | PP-SWR-063 |
 | ESC | HWA continues if ESC intervenes | Suppressed if ESC intervenes or is disabled | Same as LKA | EU 2021/646 3.2.2, 3.3.2 |
@@ -145,12 +145,33 @@ Evaluate each side and function every 25 ms cycle. Send REQUEST when the availab
 
 | Event | ADAS Functions module action |
 |---|---|
-| Planner reports COMPLETED | Return to STANDBY. Reactivate on the same side once DLC has reached ≥ `dlc_rearm` and then decreases again, or after `t_rearm` |
+| Planner reports COMPLETED for a function | That function returns to STANDBY. Reactivate on the same side once DLC has reached ≥ `dlc_rearm` and then decreases again, or after `t_rearm` |
+| Planner reports ELK ACTIVE | Return same-side LKA to STANDBY. Suppress new LKA requests on that side while ELK is ACTIVE |
+| Planner reports ELK COMPLETED | Apply the LKA reactivation conditions for COMPLETED on the same side, even if LKA is already in STANDBY |
 | Driver override | Send OFF immediately. Wait `t_reactivate_override`, except for object-based ELK |
 | Speed falls below 65 km/h during intervention | Hold REQUEST until COMPLETED; do not start a new intervention |
 | One marking is lost during intervention, and the remaining one is reliable | Hold REQUEST; the planner uses the remaining marking plus stored lane width |
-| Both ego-lane markings are lost during intervention, but another reliable boundary remains | Cancel LKA and ELK; the planner switches to HWA or NONE (PP-SWR-047) |
+| Both ego-lane markings are lost during intervention, and another reliable boundary remains | Cancel marking-based intervention. Road-edge ELK continues if the remaining boundaries meet the conditions in Section 7 |
 | No reliable boundary remains during intervention | Hold REQUEST; the planner follows the previous path for up to `T_coast`, then marks it invalid (PP-SWR-124) |
+
+### 9.1 Function states {#adas-modes}
+
+Values of `state` in `FunctionRequests` ([Interface Control Document 5.6](report.html?doc=path-planner-interface-control-document&lang=en#function-requests)). Under R79, OFF corresponds to off mode, STANDBY and UNAVAILABLE to standby mode, and REQUEST to active mode.
+
+| From | To | When | Function | Source |
+|---|---|---|---|---|
+| OFF | STANDBY | Enabled in the menu or enabled by default at startup | LKA, ELK | Section 3 |
+| STANDBY | UNAVAILABLE | An availability condition is unmet | LKA, ELK | Section 7 |
+| UNAVAILABLE | STANDBY | All availability conditions are met again | LKA, ELK | Section 7 |
+| STANDBY | REQUEST | Activation conditions are met and driver intent allows intervention | LKA, ELK | Sections 8, 9 |
+| REQUEST | STANDBY | The planner reports COMPLETED | LKA, ELK | Section 9 |
+| REQUEST | OFF | The driver overrides steering | LKA, ELK | Sections 8, 9 |
+| OFF | STANDBY | `t_reactivate_override` expires after the override | LKA, ELK | Section 9 |
+| OFF | REQUEST | The driver presses the button while ACC is on and the availability and HWA entry conditions are met | HWA | Sections 3, 7 |
+| REQUEST | OFF | The driver's hands are off the steering wheel for more than `t_hands_off_off`, or the driver switches it off with one action | HWA | Sections 3, 8 |
+| REQUEST | UNAVAILABLE | An availability condition is unmet | HWA | Section 7 |
+| UNAVAILABLE | REQUEST | Availability and HWA entry conditions are met again. HWA resumes automatically | HWA | team agreement, as in Toyota LTA and Volvo Pilot Assist |
+| Any state | FAULT | The ADAS Functions module has a fault | HWA, LKA, ELK | Interface Control Document 5.6 |
 
 ## 10. Driver warnings {#adas-warnings}
 
@@ -166,6 +187,8 @@ In the simulator, warnings are only logged via the `HmiStatus` message.
 | HWA reaches aysmax and a front tire starts to touch the lane marking | Maintain assistance as far as possible; visual warning with audible or haptic warning. Use `lateral_limit_reached` and DLC | R79 5.6.2.2.3 |
 | `path_valid = false` | Prompt the driver to take over steering | team agreement |
 | `lane_too_narrow = true` when the driver presses the HWA button | Indicate that HWA is unavailable | team agreement |
+| HWA enters UNAVAILABLE | The HWA indicator changes to standby. HWA resumes automatically when the conditions are met | team agreement |
+| HWA enters OFF because the driver's hands are off the wheel | Indicate that HWA is off. The driver must press the button to re-enable it | R79 5.6.2.2.5 |
 | Driver disables ELK | Continuous visual indicator | EU 2021/646 3.2.3 |
 
 ## 11. Edge cases {#adas-edge-cases}
@@ -221,12 +244,12 @@ One set for all vehicles. The Software Qualification Test Specification sweeps t
 | `k_sigma` | — | 2 | 1–3 | ≥ 0 |
 | `sigma_tlc_max` | s | 0.5 | 0.3–0.7 | > 0 |
 | `n_confirm` | frame | 2 | 1–3 | ≥ 1 |
-| `conf_ego` | — | 0.6 | 0.4–0.8 | Shared with the planner |
+| `conf_ego` | — | 0.6 | 0.4–0.8 | 0–1 |
 | `conf_edge` | — | 0.7 | 0.5–0.9 | 0–1 |
 | `view_min` | m | 20 | 15–30 | > 0 |
 | `exist_min` | — | 0.7 | 0.5–0.9 | 0–1 |
 | `n_track` | frame | 3 | 2–5 | ≥ 1 |
-| `t_conflict` | s | 2.0 | 1.5–3.0 | > 0 |
+| `t_conflict` | s | 3.0 | 1.5–3.0 | > 0 (PP-TS-009) |
 | `box_margin` | m | 2.0 | 1.0–3.0 | ≥ 0 |
 | `abreast_margin` | m | 1.0 | 0.5–2.0 | ≥ 0 |
 | `ttc_rear` | s | 1.5 | 1.0–2.0 | > 0 |
@@ -276,3 +299,7 @@ Most noise comes from c1 multiplied by speed. With `k_sigma` = 2, confirming the
 | Version | Date | Changes |
 |---|---|---|
 | 1.0 | 2026-11-10 | Restructured as the ADAS Function Specification, baseline BL1. Made all team-selected thresholds calibration parameters (Section 13); HWA can use an inferred lane center, while LKA and ELK require reliable ego-lane markings (mentor); added `lane_too_narrow` to HWA availability; moved the `FunctionRequests` schema to the Interface Control Document; consolidated calculation examples in Appendix A; removed status labels and open items |
+| 1.1 | 2026-11-10 | The ADAS Functions module computes the lateral state and checks consistency independently of the planner (PP-ADR-014). It has its own `conf_ego` calibration, bounded by 0–1 |
+| 1.2 | 2026-11-11 | Section 9.1 consolidates the state transitions in Sections 3, 7, 8, and 9. HWA resumes automatically from UNAVAILABLE. After a hands-off or driver-initiated shutdown, the driver must press the button to restart it (Sections 9.1, 10) |
+| 1.3 | 2026-11-11 | Section 9 handles COMPLETED by function and withdraws the same-side LKA REQUEST on ELK completion |
+| 1.4 | 2026-11-12 | Section 7 specifies the conditions for direct ELK boundaries. Section 9 withdraws same-side LKA from ELK ACTIVE onward. Section 13 sets `t_conflict` before verification per PP-TS-009 |

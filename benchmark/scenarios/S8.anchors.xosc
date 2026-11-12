@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8 anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S8.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Xe vượt 80 km/h, trôi 0,2 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Hai xe cùng 72 km/h, trôi 0,4 m/s" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Có xi-nhan, trôi 0,5 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Có xi-nhan, trôi 0,7 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.7" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.53" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="22.22222222222222" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="800.0" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Xe vượt 100 km/h, trôi 0,4 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="27.77777777777778" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="late" />
+            <ParameterAssignment parameterRef="description" value="Bơm ELK REQUEST sau khi lốp trước đã vượt vạch" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="adas_mode" value="scripted" />
+            <ParameterAssignment parameterRef="late_request" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="late ELK" />
+            <ParameterAssignment parameterRef="duration_s" value="10.0" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

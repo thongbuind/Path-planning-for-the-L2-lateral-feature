@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ADR` |
-| Phiên bản | 1.3 |
+| Phiên bản | 1.4 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-12 |
 
 ## 1. Purpose and scope {#adr-scope}
 
@@ -50,6 +50,7 @@
 | PP-ADR-012 | Một bộ calibration cho mọi xe |
 | PP-ADR-013 | Planner là thư viện C11 có API C, tách adapter theo nền tảng |
 | PP-ADR-014 | Planner tự tính trạng thái ngang, không dùng chung với khối Chức năng ADAS |
+| PP-ADR-015 | PathStatus có pha riêng cho LKA và ELK |
 
 ## 5. Các quyết định {#adr-decisions}
 
@@ -193,6 +194,16 @@
 | Hệ quả | Được: planner tự đứng, không phụ thuộc mã của khối khác; khối Chức năng ADAS chạy thử trong simulator độc lập với planner. Mất: TLC của khối Chức năng ADAS và trạng thái ngang của planner có thể vênh (ví dụ 1,0 s so với 1,3 s); planner phải chịu được độ vênh này, PP-SWR-080 vẫn đo trên trạng thái thật của xe |
 | Liên quan | Thay PP-ADR-005; PP-ADR-013; PP-SWR-080; Software Architectural Design mục 4.2; Software Detailed Design mục 9 |
 
+### PP-ADR-015 PathStatus có pha riêng cho LKA và ELK {#adr-015}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Tại tick ELK COMPLETED, T9 có thể chọn LKA đang REQUEST theo PP-SWR-033. Khối Chức năng ADAS phải nhận ra chức năng nào vừa hoàn tất |
+| Phương án | A) Một pha chung đi cùng `active_function`. B) Pha riêng cho từng chức năng |
+| Quyết định | B. PathStatus có `lka_phase` và `elk_phase`. Mỗi pha giữ COMPLETED tới khi yêu cầu tương ứng rời REQUEST |
+| Hệ quả | Một message có thể công bố ELK COMPLETED cùng LKA ACTIVE. Bên phát và bên nhận phải dùng cùng phiên bản schema |
+| Liên quan | PP-TS-011, PP-SWR-032, 033, 041, Interface Control Document mục 6.2 |
+
 ## Revision history {#revision-history}
 
 | Phiên bản | Ngày | Nội dung |
@@ -201,3 +212,4 @@
 | 1.1 | 2026-11-10 | Thêm PP-ADR-013: planner là thư viện C11 có API C, tách adapter theo nền tảng |
 | 1.2 | 2026-11-10 | Thêm PP-ADR-014: planner tự tính trạng thái ngang; PP-ADR-005 bị thay |
 | 1.3 | 2026-11-11 | PP-ADR-008 chọn C thay B: dời theo khoảng hở tới xe lớn so với `gap_truck_min` |
+| 1.4 | 2026-11-12 | Thêm PP-ADR-015 về pha riêng cho LKA và ELK trong PathStatus |

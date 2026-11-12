@@ -17,7 +17,7 @@ structs:
       - {name: state, type: RequestState}
       - {name: side, type: Side, doc: "Drift side; HWA uses NONE"}
       - {name: tlc, type: float32, unit: s, doc: "Computed by the ADAS function block; HWA ignores it"}
-      - {name: elk_reason, type: ElkReason, doc: "Log only"}
+      - {name: elk_reason, type: ElkReason, doc: "ROAD_EDGE selects the observed road edge for ELK; other values are for logging"}
       - {name: cancel_reason, type: CancelReason, doc: "Log only"}
   FunctionRequests:
     fields:

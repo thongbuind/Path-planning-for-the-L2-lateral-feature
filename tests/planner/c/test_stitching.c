@@ -154,6 +154,31 @@ static void test_blend_limits_the_jump(void)
     PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, same.points), 1.0, 1e-9);
 }
 
+/* PP-TS-014: candidate equal to the old path near the car, 0.5 m away from 2 s on. */
+static void test_blend_far_change(void)
+{
+    pp_previous_path_t prev = straight_path(0.0, 0.0);
+    pp_old_path_t old;
+    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
+    pp_previous_path_t cand = straight_path(0.0, 0.0);
+    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        cand.points[k].pose.y = (float)(0.01 * (double)k);          /* near: 0.01 m per point */
+    }
+    for (unsigned k = 20U; k < PP_TRAJECTORY_POINTS; k++) {
+        cand.points[k].pose.y = 0.5F;
+    }
+    const double limit = (double)pp_calibration.cont_margin * PP_CONT_LATERAL_M;
+    (void)pp_stitch_blend(&old, &pp_calibration, 2.9, cand.points);
+    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        PP_CHECK((double)cand.points[k].pose.y <= limit + 1e-6);    /* each point within the limit */
+    }
+#ifdef PP_T4_PER_TIME
+    PP_CHECK_NEAR(cand.points[3].pose.y, 0.03, 1e-6);              /* near part kept (V1) */
+#else
+    PP_CHECK(cand.points[3].pose.y < 0.004F);                       /* scaled with the far change */
+#endif
+}
+
 int main(void)
 {
     test_move_old();
@@ -162,5 +187,6 @@ int main(void)
     test_start_from_old_path_or_reset();
     test_start_curvature_gives_lateral_acceleration();
     test_blend_limits_the_jump();
+    test_blend_far_change();
     return PP_TEST_RESULT();
 }

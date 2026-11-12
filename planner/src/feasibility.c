@@ -39,6 +39,26 @@ void pp_feasibility_check(const pp_trajectory_point_t points[PP_TRAJECTORY_POINT
     }
 }
 
+static void curvature_interval(double kappa_ref, double v, double limit,
+                               const pp_function_limits_t *limits, double *lo, double *hi)
+{
+    *lo = -limit;
+    *hi = limit;
+    if (limits->ay_add_max > 0.0) {
+        const double band = PP_LIMIT_SCALE * limits->ay_add_max / (v * v);
+        const double lower = fmax(-limit, kappa_ref - band);
+        const double upper = fmin(limit, kappa_ref + band);
+        if (lower <= upper) {
+            *lo = lower;
+            *hi = upper;                                                 /* PP-SWR-112, 113 */
+        } else {
+            /* The road needs more acceleration than both budgets permit. */
+            *lo = pp_clamp(kappa_ref, -limit, limit);
+            *hi = *lo;
+        }
+    }
+}
+
 bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                           const pp_ref_samples_t *ref, const pp_function_limits_t *limits,
                           const pp_vehicle_config_t *vehicle)
@@ -56,7 +76,10 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
         const double v0 = fmax((double)points[0].longitudinal_velocity_mps, PP_MIN_SPEED_MPS);
         const double limit0 = PP_LIMIT_SCALE * fmin(limits->ay_max / (v0 * v0), kappa_wheel);
         const double wanted0 = (double)points[0].curvature;
-        kappa[0] = pp_clamp(wanted0, -limit0, limit0);
+        double lo;
+        double hi;
+        curvature_interval(ref->kappa[0], v0, limit0, limits, &lo, &hi);
+        kappa[0] = pp_clamp(wanted0, lo, hi);
         if (fabs(kappa[0] - wanted0) > PP_CHANGED_KAPPA) {
             points[0].curvature = (float)kappa[0];
             points[0].heading_rate_rps = (float)((double)points[0].longitudinal_velocity_mps * kappa[0]);
@@ -71,7 +94,10 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                                    PP_MIN_SPEED_MPS);
         const double limit = PP_LIMIT_SCALE
                              * fmin(limits->ay_max / (v * v), kappa_wheel);   /* PP-SWR-001, 116 */
-        double c = pp_clamp(wanted, -limit, limit);
+        double lo;
+        double hi;
+        curvature_interval(ref->kappa[k], v, limit, limits, &lo, &hi);
+        double c = pp_clamp(wanted, lo, hi);
 
         /* Jerk per step (PP-SWR-003); stricter than the 0.5 s mean of the requirement. */
         const double ay_prev = v_prev * v_prev * kappa[k - 1U];

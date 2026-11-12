@@ -7,18 +7,23 @@ benchmark/suites and writes build/matrix/<suite>/summary.md, runs.json and manif
 Each run is judged with the scope of the named sweep suite (Kiểm chứng column of the SRS);
 all other criteria are reported as information. --record makes it an official run
 (research/README.md).
+
+A block may sweep simulator settings with `sim_sweep` (Software Qualification Test
+Specification 6.1, Q4): one value at a time, the others at their scenario value, plus one
+run at the scenario values. Only the fields in SIM_SWEEP_FIELDS can be swept.
 """
 
 import argparse
 import json
 import math
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import replace
+from dataclasses import fields, replace
 from pathlib import Path
 
 import yaml
 
-from eval import loader, provenance, sweep
+from eval import loader, openx, provenance, sweep
+from sim.scenario import Scenario
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "matrix"
@@ -27,14 +32,42 @@ INFO = ("vehicle_offset_max_m", "ay_need_at_car_max", "speed_min_mps", "decel_ma
         "jerk_vehicle_r79_max", "ay_vehicle_r79_within_limits")
 
 
+SIM_SWEEP_FIELDS = ("camera_view_m", "camera_view_start_m")
+_DEFAULTS = {f.name: f.default for f in fields(Scenario)}
+
+
+def sim_settings(block: dict) -> list[dict]:
+    """[{}] without a sweep; else the scenario values first, then one change at a time."""
+    sweep_spec = block.get("sim_sweep", {})
+    unknown = set(sweep_spec) - set(SIM_SWEEP_FIELDS)
+    if unknown:
+        raise ValueError(f"cannot sweep {sorted(unknown)}")
+    settings = [{}]
+    for name, values in sweep_spec.items():
+        settings += [{name: float(v)} for v in values if float(v) != _DEFAULTS[name]]
+    return settings
+
+
+def apply_sim(scenario: Scenario, sim: dict) -> Scenario:
+    scenario = replace(scenario, **sim)
+    if not (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
+            and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m):
+        raise ValueError("camera view outside 0 <= start < end, 10 <= end <= 126 m")
+    return scenario
+
+
 def expand(suite: dict) -> list[dict]:
     jobs = []
     for block in suite["blocks"]:
-        for run in block["runs"]:
-            for acc in block["acc"]:
-                for profile in block.get("profiles", suite["profiles"]):
-                    for seed in block.get("seeds", suite["seeds"]):
-                        jobs.append({"run": list(run), "acc": acc, "profile": profile, "seed": seed})
+        for sim in sim_settings(block):
+            for run in block["runs"]:
+                for acc in block["acc"]:
+                    for profile in block.get("profiles", suite["profiles"]):
+                        for seed in block.get("seeds", suite["seeds"]):
+                            job = {"run": list(run), "acc": acc, "profile": profile, "seed": seed}
+                            if sim:
+                                job["sim"] = sim
+                            jobs.append(job)
     return jobs
 
 
@@ -54,12 +87,13 @@ def run_one(suite_id: str, job: dict) -> dict:
     scenario = loader.load(run[0], run[1])
     if len(run) > 2:
         scenario = loader.with_fault(scenario, run[2], run[3])
-    scenario = replace(scenario, acc=job["acc"], profile=job["profile"])
+    scenario = apply_sim(replace(scenario, acc=job["acc"], profile=job["profile"]), job.get("sim", {}))
     result = metrics.evaluate(Harness(scenario, SilPlanner, job["seed"]).run())
     in_scope = scope(suite, run)
-    failed = [c.id for c in result.criteria if c.applicable and not c.passed and c.id in in_scope]
+    failed = result.case_failures + [c.id for c in result.criteria if c.applicable and not c.passed and c.id in in_scope]
     other = [c.id for c in result.criteria if c.applicable and not c.passed and c.id not in in_scope]
-    return {**job, "name": scenario.name, "failed": failed, "failed_out_of_scope": other,
+    sim = ", ".join(f"{k}={v:g}" for k, v in job.get("sim", {}).items())
+    return {**job, "name": scenario.name + (f" [{sim}]" if sim else ""), "failed": failed, "failed_out_of_scope": other,
             "targets": {t.id: t.value for t in result.targets},
             "criteria": {c.id: c.value for c in result.criteria if c.applicable},
             "info": {k: result.info.get(k) for k in INFO}}
