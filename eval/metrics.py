@@ -391,6 +391,103 @@ def _phase(cycle: PlannerCycle, function: ActiveFunction) -> InterventionPhase:
     return status.lka_phase if function == ActiveFunction.LKA else status.elk_phase
 
 
+LANE_INVALID_AGE_US = 250_000  # PP-SWR-131
+LANE_KEEP_AGE_US = 170_000  # PP-SWR-133
+T_COAST_MAX_US = 1_000_000  # SRS 7: upper limit of T_coast
+
+
+def _usable_requests(c) -> bool:
+    rx = c.function_requests
+    return (rx is not None and rx.message.header.valid
+            and 0 <= c.t0_us - rx.rx_us <= FUNCTION_REQUESTS_TIMEOUT_US
+            and -FUTURE_STAMP_TOLERANCE_US <= c.t0_us - rx.message.header.stamp_us
+            <= FUNCTION_REQUESTS_MAX_AGE_US)
+
+
+def _input_age_criteria(cycles, hwa_request_s) -> list:
+    """PP-SWR-131: lane model older than 250 ms for longer than T_coast (upper limit) plus a
+    cycle leaves no valid path. PP-SWR-133: aged 170-250 ms with both ego lines reported, the
+    path stays valid while HWA is requested."""
+    stale_since = None
+    n131 = ok131 = n133 = ok133 = 0
+    for c in cycles:
+        lane = c.lane_view
+        age = None if lane is None else c.t0_us - lane[0]
+        valid = c.path_status is not None and c.path_status.path_valid
+        if age is not None and age > LANE_INVALID_AGE_US:
+            stale_since = c.t0_us if stale_since is None else stale_since
+        elif age is not None:
+            stale_since = None
+        if stale_since is not None and c.t0_us - stale_since > T_COAST_MAX_US + _PLANNER_CYCLE_US:
+            n131 += 1
+            ok131 += not valid
+        hwa_requested = hwa_request_s is not None and c.t0_us >= hwa_request_s * 1e6
+        if (age is not None and LANE_KEEP_AGE_US <= age <= LANE_INVALID_AGE_US and hwa_requested
+                and c.lane_view_reported is not None):
+            n133 += 1
+            ok133 += valid
+    share131 = ok131 / n131 if n131 else 1.0
+    share133 = ok133 / n133 if n133 else 1.0
+    return [
+        Criterion("PP-SWR-131", "Tỉ lệ chu kỳ không có path hợp lệ khi lane model quá 250 ms lâu hơn T_coast",
+                  share131, "= 1", share131 == 1.0, applicable=n131 > 0),
+        Criterion("PP-SWR-133", "Tỉ lệ chu kỳ có path hợp lệ khi lane model có tuổi 170–250 ms",
+                  share133, "= 1", share133 == 1.0, applicable=n133 > 0),
+    ]
+
+
+def _request_change_criteria(cycles) -> list:
+    """PP-SWR-038: a function leaving REQUEST is no longer active, and HWA entering REQUEST
+    alone (no LKA, ELK, no override, valid path) is active, from the first cycle at least one
+    cycle after the message was received."""
+    checks = []  # (rx_us, function, entering)
+    previous = None
+    for c in cycles:
+        if not _usable_requests(c):
+            continue
+        rx = c.function_requests
+        if previous is not None and rx.rx_us != previous.rx_us:
+            for function in (ActiveFunction.HWA, ActiveFunction.LKA, ActiveFunction.ELK):
+                was = previous.message.requests[int(function) - 1].state == RequestState.REQUEST
+                now = rx.message.requests[int(function) - 1].state == RequestState.REQUEST
+                if was != now:
+                    checks.append((rx.rx_us, function, now))
+        previous = rx
+    n = ok = 0
+    for rx_us, function, entering in checks:
+        c = next((c for c in cycles if c.t0_us >= rx_us + _PLANNER_CYCLE_US), None)
+        if c is None or c.path_status is None or not _usable_requests(c):
+            continue
+        requests = c.function_requests.message
+        state = requests.requests[int(function) - 1].state == RequestState.REQUEST
+        if state != entering:
+            continue                                # changed again since
+        active = c.path_status.active_function
+        if not entering:
+            n += 1
+            ok += active != function
+        elif (function == ActiveFunction.HWA and not requests.driver_override and c.path_status.path_valid
+              and not c.path_status.lane_too_narrow
+              and all(requests.requests[int(f) - 1].state != RequestState.REQUEST
+                      for f in (ActiveFunction.LKA, ActiveFunction.ELK))):
+            n += 1
+            ok += active == function
+    share = ok / n if n else 1.0
+    return [Criterion("PP-SWR-038", "Tỉ lệ thay đổi FunctionRequests thể hiện ở output trong một chu kỳ",
+                      share, "= 1", share == 1.0, applicable=n > 0)]
+
+
+def _yaw_delay_criterion(scenario, criteria) -> list:
+    """PP-SWR-138: with an unreported yaw rate delay up to 50 ms, 051 and 100 to 102 hold."""
+    if not 0.0 < scenario.yaw_filter_delay_ms <= 50.0:
+        return []
+    parts = [c for c in criteria if c.id in ("PP-SWR-051", "PP-SWR-100", "PP-SWR-101", "PP-SWR-102")
+             and c.applicable]
+    ok = all(c.passed for c in parts)
+    return [Criterion("PP-SWR-138", "PP-SWR-051 và 100 đến 102 đạt khi yaw rate trễ không báo",
+                      float(ok), "= 1", ok, applicable=bool(parts))]
+
+
 def _stale_requests(cycles) -> bool:
     """FunctionRequests reached the planner older than the ICD max age (outside the contract).
     The planner then has no usable request (PP-SWR-048) and no valid path (PP-SWR-145), so
@@ -1052,6 +1149,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   wheel_rate_max, f"<= {log.max_steering_wheel_rate}",
                   wheel_rate_max <= log.max_steering_wheel_rate),
     ]
+    criteria += _input_age_criteria(cycles, hwa_request_s) + _request_change_criteria(cycles)
+    criteria += _yaw_delay_criterion(log.scenario, criteria)
     targets = [
         Target("PP-SWR-050", "Lệch ngang của path so với tâm làn thật, 0–1 s, lớn nhất",
                deviation_max, "m"),

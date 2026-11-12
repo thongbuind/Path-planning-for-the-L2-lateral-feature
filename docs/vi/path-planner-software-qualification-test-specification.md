@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.26 |
+| Phiên bản | 1.27 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -438,7 +438,7 @@ Không có ngưỡng đạt. Báo cáo giá trị xấu nhất qua mọi seed v�
 | Lệch ngang | Path so với tâm làn thật, đoạn 0–1 s | Nhỏ hơn | PP-SWR-050 |
 | a_y thêm vào của HWA | Lớn nhất khi đưa về giữa hoặc dời tâm | Nhỏ hơn | PP-SWR-002 |
 | Jerk ngang của HWA | Đỉnh và RMS | Nhỏ hơn | PP-SWR-004 |
-| Lệch ngang tăng theo trễ | Q1 so với trễ 0 | Nhỏ hơn | PP-SWR-013 |
+| Lệch ngang tăng theo trễ | Q1 so với trễ 0, cùng ca, seed, profile; tính bằng `python3 -m eval.sweep_delta Q1 --key camera_latency_ms --base 0` | Nhỏ hơn | PP-SWR-013 |
 | Thời gian tính | Đồng hồ thật của máy: trung bình, p95, p99, lớn nhất | Nhỏ hơn | PP-SWR-016 |
 | Thời gian báo trước | Từ lúc cờ giới hạn bật tới lúc a_y cần tại vị trí xe vượt aysmax; nhỏ nhất | Dài hơn | PP-SWR-064 |
 | Thời gian tắt cờ | Từ lúc a_y cần lớn nhất < aysmax tới lúc cờ tắt; lớn nhất | Ngắn hơn | PP-SWR-008 |
@@ -615,3 +615,4 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | 1.19 | 2026-11-12 | Mục 8.1: liên tục chỉ chấm trong tầm nhìn lane model báo (SRS 1.9); thêm chỉ số `observed_horizon_s` (PP-SWR-018) |
 | 1.20 | 2026-11-12 | Mục 8.1: chỉ số `observed_horizon_s` một phía, theo SRS 1.10 |
 | 1.26 | 2026-11-12 | Mục 6.1: Q3 ở 60 ms là ca FunctionRequests quá tuổi (PP-SWR-048, PP-PR-023) |
+| 1.27 | 2026-11-12 | Mục 8.2: cách tính PP-SWR-013 từ kết quả Q1 |

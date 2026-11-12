@@ -78,3 +78,13 @@ def test_matrix_block_sim_is_held_for_every_level():
     assert matrix.sim_settings(block) == [
         {"camera_jitter_ms": 20.0}, {"camera_jitter_ms": 20.0, "camera_latency_ms": 0.0},
         {"camera_jitter_ms": 20.0, "camera_latency_ms": 200.0}]
+
+
+def test_sweep_delta_pairs_runs_with_the_base_level():
+    from eval import sweep_delta
+    runs = [{"run": ["S1", "c"], "acc": "off", "profile": "VP-0", "seed": 1, "name": "S1c [j=20]",
+             "sim": {"camera_jitter_ms": 20.0}, "targets": {"PP-SWR-050": 0.30}},
+            {"run": ["S1", "c"], "acc": "off", "profile": "VP-0", "seed": 1, "name": "S1c [j=20, l=0]",
+             "sim": {"camera_jitter_ms": 20.0, "camera_latency_ms": 0.0}, "targets": {"PP-SWR-050": 0.25}}]
+    rows = sweep_delta.deltas(runs, "camera_latency_ms", 0.0, "PP-SWR-050", 100.0)
+    assert [(r["level"], round(r["delta"], 3)) for r in rows] == [(0.0, 0.0), (100.0, 0.05)]
