@@ -180,7 +180,9 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
         assert profiles == ({'VP-0'} if name == 'smoke' else {f'VP-{i}' for i in range(6)})
         for c in p['cases']:
             seeds = {r['seed'] for r in p['runs'] if r['case'] == c['id']}
-            expected = {1} if name == 'smoke' else {1, 2} if name == 'regression' else set(range(1, 11)) if c['family'] == 'F01' else {1}
+            noisy = c['family'] == 'F01' or any(f['source'].endswith('F01.xosc')
+                                                 for f in c.get('inject', {}).get('faults', []))
+            expected = {1} if name == 'smoke' else {1, 2} if name == 'regression' else set(range(1, 11)) if noisy else {1}
             assert seeds == expected
         for folder in ('scenarios', 'faults'):
             for sid in p['definition'][folder]:

@@ -44,7 +44,7 @@ def difficulty(scenario: Scenario, swept: bool = False) -> str:
     view_gate = HwaViewCalibration()
     if hwa and scenario.hwa_view_gate and speed > 0 and scenario.camera_view_m / speed < view_gate.t_view_hwa:
         levels.append("L5")
-    faults = len(scenario.lane_faults)
+    faults = fault_count(scenario)
     if faults > 1:
         levels.append("L4")
     elif faults == 1 or swept:
@@ -61,6 +61,19 @@ def difficulty(scenario: Scenario, swept: bool = False) -> str:
     if boundary:
         levels.append("L1")
     return max(levels, key=LEVELS.index)
+
+
+FAULT_FIELDS = ("lane_faults", "channel_faults", "sensor_faults", "clock_faults", "ego_motion_faults")
+
+
+def fault_count(scenario: Scenario) -> int:
+    """Fault definitions of section 6 in the case: those the case names (pp:faults), else one
+    when it holds any fault command or the CAN rounding of F18. A definition may hold several
+    commands (F07: yaw rate and a_y), so commands are not counted."""
+    named = scenario.notes.get("faults")
+    if named:
+        return len(named)
+    return int(any(getattr(scenario, f) for f in FAULT_FIELDS) or (scenario.can_bus and not scenario.realism))
 
 
 def of(scenario: Scenario, swept: bool = False) -> dict:

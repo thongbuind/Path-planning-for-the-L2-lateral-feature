@@ -146,3 +146,15 @@ def test_requests_timeout_needs_none_and_invalid_and_043():
     status = I.PathStatus(I.BasicHeader(0, 0, True), False, A.HWA, F.NONE, F.NONE, False, False)
     bad = replace(_fc(3), path_status=status)
     assert not _ids(metrics.fault_reaction_criteria([_fc(0), bad], 1.0))["PP-SWR-043"].passed
+
+
+def test_predicted_or_low_confidence_boundaries_are_not_enough():
+    M, P, L = I.LineStatus.MEASURED, I.LineStatus.PREDICTED, I.LineStatus.LOST
+    cal = {"conf_ego": 0.6, "conf_inferred": 0.8}
+    def with_b(b):
+        return replace(_fc(0), lane_boundaries=b)
+    assert metrics.lane_usable(with_b(((L, 0.0), (M, 0.7), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0))), cal)
+    assert not metrics.lane_usable(with_b(((P, 1.0),) * 6), cal)  # reconstructed only
+    # L2, R2 measured but below conf_inferred (F21 e): not enough
+    assert not metrics.lane_usable(with_b(((M, 0.7), (L, 0.0), (L, 0.0), (M, 0.7), (L, 0.0), (L, 0.0))), cal)
+    assert metrics.lane_usable(with_b(((M, 0.9), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0))), cal)

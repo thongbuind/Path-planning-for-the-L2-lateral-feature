@@ -63,14 +63,14 @@ def test_missing_criterion_and_wrong_level_are_reported():
 
 def test_suite_matches_the_table_of_section_12():
     suite = selfcheck.load_suite()
-    assert list(suite["baits"]) == [f"PM-{i:02d}" for i in range(1, 10)]
+    assert list(suite["baits"]) == [f"PM-{i:02d}" for i in range(1, 11)]
     for bait in suite["baits"].values():
         for check in bait["expect"]:
             assert severity.level(check) == bait["level"]
 
 
 @pytest.mark.skipif(shutil.which("cc") is None, reason="no C compiler")
-@pytest.mark.parametrize("define", [None] + [f"PM_{i:02d}" for i in range(1, 10)])
+@pytest.mark.parametrize("define", [None] + [f"PM_{i:02d}" for i in range(1, 11)])
 def test_bait_sources_build_without_warnings(tmp_path, define):
     subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Wpedantic", "-Werror", "-shared", "-fPIC",
                     f"-I{ROOT / 'interfaces' / 'c'}", *([f"-D{define}"] if define else []),

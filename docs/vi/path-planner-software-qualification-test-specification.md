@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.27 |
+| Phiên bản | 1.28 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -63,6 +63,7 @@
 | Tần số | Planner và khối Chức năng ADAS 40 Hz; tín hiệu xe theo signal list (mentor) |
 | Seed | Một seed chính mỗi lần chạy, tách luồng cho từng kênh; 10 seed cho mỗi ô có nhiễu |
 | Log | Một file MCAP cho mỗi lần chạy có trượt trong phạm vi; lần chạy một ca (`eval.runner`) luôn có. Lần chạy đạt tái lập từ manifest (lệnh, commit, thư viện, seed). Xem bằng Foxglove |
+| Môi trường của ca | Ca có thể đặt μ mặt đường, trễ EPS thật, hệ số nhiễu ObjectList, trễ camera (S12, S13, mục 6.2). Planner vẫn nhận VehicleConfig danh định |
 | Máy 8 GB RAM | Chạy từng lô nhỏ |
 
 ### 4.2 Bộ lập lịch và đồng hồ {#sim-scheduler}
@@ -122,7 +123,7 @@ Mức lỗi do bên test đặt từ datasheet hoặc tài liệu, không lấy 
 
 | Kênh | Cách sinh | Mức |
 |---|---|---|
-| Lane model | Hình học làn trong tầm nhìn, đưa về `base_link`, khớp đa thức bậc 3 cho từng vạch của ba làn và từng mép đường; fault injection theo mục 6. Tầm nhìn danh định 0–80 m, riêng từng vạch; mỗi vạch khớp trên đúng đoạn nó thấy. Điểm đầu, điểm cuối đặt theo kịch bản (điểm cuối 10–126 m, quét ở Q4); lỗi tầm nhìn ở F22. Trễ chụp tới gửi 100 ms | Không lỗi: báo σ_c0 = 0,03 m, σ_c1 = 0,002 (mức F01 a); lỗi theo mục 6 |
+| Lane model | Hình học làn trong tầm nhìn, đưa về `base_link`, khớp đa thức bậc 3 cho từng vạch của ba làn và từng mép đường; fault injection theo mục 6. Tầm nhìn danh định 0–80 m, riêng từng vạch; mỗi vạch khớp trên đúng đoạn nó thấy. Điểm đầu, điểm cuối đặt theo kịch bản (điểm cuối 10–126 m, quét ở Q4); lỗi tầm nhìn ở F22. Trễ chụp tới gửi 100 ms. Xe sang làn khác: các vạch được đánh chỉ số lại theo làn mới, `lane_change` báo ở frame đó; bên chấm đo theo làn mới (S17) | Không lỗi: báo σ_c0 = 0,03 m, σ_c1 = 0,002 (mức F01 a); lỗi theo mục 6 |
 | ObjectList | Vật thể của kịch bản đưa về `base_link`, cùng chu kỳ và trễ với lane model; tầm phát hiện 150 m phía trước, 80 m phía sau; `existence_probability` 0,95 với vật thật, 0,6 với vật thể ảo (nhóm tự thống nhất) | x: σ = 0,2 m + 1 % khoảng cách; y: σ = 0,1 m + 0,5 %; vx, vy: σ = 0,3 và 0,2 m/s; kích thước σ = 0,1 m; bỏ sót 2 % frame; vật thể ảo 0,05 lần/s, tồn tại 0,2 s; mưa: σ × 1,5 |
 | Yaw rate | Sạch ở kịch bản chính | Fault injection: σ = 0,07 hoặc 0,14 °/s (0,02 °/s/√Hz × √12 hoặc √50 Hz); bias 0,1 / 0,3 / 1 °/s |
 | a_x, a_y | Sạch ở kịch bản chính; trên đường nghiêng vẫn chứa g·sin(góc nghiêng) | Fault injection: σ = 0,004 hoặc 0,008 m/s²; bias tới 0,2 m/s² |
@@ -162,7 +163,7 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | Lệnh gia tốc | Nhỏ nhất trong ba: theo tốc độ đặt, theo xe trước, theo đường bao tốc độ của cua; sau đó giới hạn gia tốc và jerk | ISO 15622:2018 6.1 |
 | Chọn xe mục tiêu | Hành lang rộng bằng bề rộng xe cộng 0,2 m mỗi bên, đi theo Trajectory trong 3 s, nối tiếp bằng tâm lane model. Chọn xe có thân trong hành lang lúc này hoặc sau 1 s; chỉ vật thể cùng chiều đã từng chạy từ 1 m/s. Bỏ xe đã chọn khi ra ngoài hành lang nới thêm 0,3 m mỗi bên quá 1 s | nhóm tự thống nhất |
 | Vật thể đứng yên | Không phản ứng với vật chưa từng chạy | ISO 15622:2018 6.2.2 |
-| Bám xe trước | c_des = 5 m + τ·v, τ = 1,8 s. a = 0,5·(c − c_des) + 1,0·(v_trước − v), phần do sai số khoảng cách giới hạn ±1,0 m/s² | τ: ISO 15622:2018 6.2.3.1 (1,5–2,2 s); còn lại: nhóm tự thống nhất |
+| Bám xe trước | c_des = 5 m + τ·v, τ = 1,8 s. a = 0,5·(c − c_des) + 1,0·(v_trước − v), phần do sai số khoảng cách giới hạn ±1,0 m/s². c tính từ đầu xe theo BoundingBox của kịch bản; vị trí vật thể dời theo tuổi của frame | τ: ISO 15622:2018 6.2.3.1 (1,5–2,2 s); còn lại: nhóm tự thống nhất |
 | Tốc độ trong cua | v_t = v_max·√(1 − 0,3 / 2,5), để lại 0,3 m/s² a_y cho HWA sửa lệch. v_cho_phép = √(v_t² + 2·2,0·max(0, d − 0,5·v)), d là khoảng cách tới chỗ cong nhất; v_max đổi không quá 5 % thì d đếm lùi theo quãng xe đã đi | nhóm tự thống nhất |
 | Luật bám | Theo tốc độ đặt: a = 0,4·(v_đặt − v). Theo đường bao: a = dv_cho_phép/dt + 1,0·(v_cho_phép − v) | nhóm tự thống nhất |
 | `lateral_limit_reached` | Không tăng tốc khi cờ bật | nhóm tự thống nhất |
@@ -298,7 +299,7 @@ Mỗi bộ cụ thể mang hai nhãn: độ khó và kết quả mong đợi. B�
 
 - L1: giá trị bằng đúng đầu dải: bề rộng làn 2,5 hoặc 5,5 m; bề rộng xe 2,5 m; tốc độ 10 hoặc 130 km/h khi có HWA, 70 hoặc 130 km/h khi có LKA, ELK.
 - L2: HWA được yêu cầu và a_y cần theo độ cong lớn nhất của đường (v²·κ) vượt aysmax.
-- L3: một lỗi, hoặc giá trị simulator được quét khác giá trị của kịch bản (Q1 đến Q4). L4: từ hai lỗi.
+- L3: một lỗi, hoặc giá trị simulator được quét khác giá trị của kịch bản (Q1 đến Q4). L4: từ hai lỗi. Đếm theo định nghĩa lỗi (mã F, ca ghép G), không theo số lệnh bơm.
 - L5: điều kiện tầm nhìn của HWA bật và tầm nhìn chia tốc độ nhỏ hơn `t_view_hwa`.
 
 | Mức | Điều kiện của ca | Ví dụ |
@@ -341,7 +342,16 @@ Chấm cả hai chiều:
 
 ## 6. Fault injection {#benchmark-faults}
 
-Mỗi lỗi bơm ở ba thời điểm: HWA đang chạy ổn định, ngay lúc LKA hoặc ELK kích hoạt, giữa lúc can thiệp. Lỗi theo thời điểm chụp của frame; lane model không gửi cờ (PP-ASM-009). Cột Yêu cầu sinh tự động như ở mục 5.
+Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của frame; lane model không gửi cờ (PP-ASM-009). Cột Yêu cầu sinh tự động như ở mục 5.
+
+| Thời điểm | Cách đặt | Ca chủ |
+|---|---|---|
+| HWA đang chạy ổn định | Giờ bắt đầu của lỗi | S1 (a, c) |
+| Lúc LKA hoặc ELK kích hoạt | Chu kỳ đầu tiên PathStatus báo pha ACTIVE của chức năng đó | S4 (a), S5 (a) |
+| Giữa lúc can thiệp | 0,2 s sau thời điểm trên (nhóm tự thống nhất) | S4 (a), S5 (a) |
+
+- Thời điểm đọc từ output của planner, như bên chấm thấy. Planner không vào pha ACTIVE thì lỗi không được bơm; báo cáo ghi rõ, ca vẫn chấm requirement về can thiệp.
+- Lỗi kéo dài suốt ca (F13, F14, F18) không có thời điểm.
 
 | Mã | Nhóm | Lỗi | Mức hoặc dạng | Yêu cầu |
 |---|---|---|---|---|
@@ -382,7 +392,11 @@ Mỗi lỗi bơm ở ba thời điểm: HWA đang chạy ổn định, ngay lúc
 ### 6.2 Ghép lỗi
 
 1. Mỗi kịch bản và biến thể với từng lỗi một, ở ba thời điểm, vòng hở và vòng kín. Lỗi nhiều mức chạy đủ mức trên biến thể khó nhất, mức giữa trên các biến thể còn lại.
-2. Ca gộp "đêm mưa": nhiễu × 2,5, μ = 0,5, mất một vạch, trễ camera 150 ms.
+2. Ca gộp, mã cố định:
+
+| Mã | Ca | Lỗi và điều kiện | Ca chủ |
+|---|---|---|---|
+| G01 | Đêm mưa | F01 (c), F04 (a), μ = 0,5, trễ camera 150 ms | S1 (c), S4 (c) |
 
 ### 6.3 Mã không truy về requirement của planner {#benchmark-trace-exempt}
 
@@ -505,7 +519,7 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | 5 | Thời gian tính |
 
 - Ứng viên: quintic hoặc clothoid theo thời lượng; lấy mẫu trong Frenet (Werling 2010); QP hoặc MPC (Software Detailed Design). Mỗi kỹ thuật chạy với bộ calibration tốt nhất của chính nó (mục 7).
-- Kết quả cho báo cáo: một bảng so sánh, và ít nhất một kỹ thuật bị loại kèm lý do bằng số liệu (đề bài).
+- Kết quả cho báo cáo: một bảng so sánh, và ít nhất một kỹ thuật bị loại kèm lý do bằng số liệu (đề bài). Bảng lập từ kết quả suite của từng kỹ thuật: `python3 -m eval.techniques`.
 - Thời gian tính trên Python chỉ dùng để so sánh các kỹ thuật, không khẳng định chạy được trên ECU.
 
 ### 9.2 So sánh giữa các planner {#planner-comparison}
@@ -585,7 +599,8 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 ## 12. Kiểm bên chấm {#evaluator-check}
 
 - Benchmark là công cụ kiểm chứng, nên phải chứng minh được nó phát hiện lỗi (ISO 26262-8:2018, mục 11).
-- Bên test giữ một bộ planner mồi. Mỗi planner mồi là thư viện C theo `pp_planner.h`, viết riêng ở phía test, cố ý sai một điểm.
+- Bên test giữ một bộ planner mồi. Mỗi planner mồi là thư viện C theo `pp_planner.h`, viết riêng ở phía test, cố ý sai một điểm. Planner đối chứng PM-00 lái HWA, LKA, ELK theo tâm làn và không cố ý sai.
+- Planner mồi chấm qua kịch bản (PM-01 đến PM-04, PM-10) chạy trên hai ca. Một planner mồi bị phát hiện khi trượt requirement ở bảng với đúng mức, còn PM-00 không trượt requirement đó ở cùng ca.
 - Benchmark chỉ được dùng khi mọi planner mồi bị báo đúng requirement và đúng mức ở bảng dưới. Trượt thêm ở chỗ khác không ảnh hưởng.
 - Chạy lại bộ planner mồi mỗi khi sửa `sim/`, `eval/` hoặc `benchmark/`.
 
@@ -600,6 +615,7 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | PM-07 | Giữ trạng thái trong biến toàn cục | C3 |
 | PM-08 | Ghi quá cuối vùng nhớ trạng thái | C3 |
 | PM-09 | Đọc đồng hồ hệ thống | C3 |
+| PM-10 | Path LKA, ELK lệch 1,5 m về phía vạch đang trôi tới | PP-SWR-086; BLOCKER |
 
 ## Appendix A. Nguồn số liệu {#test-appendix}
 
@@ -640,3 +656,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.25 | 2026-11-12 | Mục 5.3: luật suy độ khó từ giá trị của ca |
 | 1.26 | 2026-11-12 | Mục 6.1: Q3 ở 60 ms là ca FunctionRequests quá tuổi (PP-SWR-048, PP-PR-023) |
 | 1.27 | 2026-11-12 | Mục 8.2: cách tính PP-SWR-013 từ kết quả Q1 |
+| 1.28 | 2026-11-12 | Mục 4.1: môi trường của ca; 4.5: lane model khi xe sang làn; 4.7: cách đo khoảng cách bám xe; 5.3: đếm lỗi theo định nghĩa; 6: ba thời điểm bơm lỗi theo pha của planner; 6.2: ca ghép G01; 9.1: bảng từ `eval.techniques`; 12: PM-00 lái LKA, ELK, thêm PM-10, mỗi planner mồi hai ca |

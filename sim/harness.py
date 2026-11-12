@@ -61,6 +61,7 @@ from sim.can.frames import CanReceiver, CanSender
 from sim.faults.channel import ChannelFaultInjector
 from sim.faults.ego_motion import EgoMotionFaults
 from sim.faults.lane import LaneFaultInjector
+from sim.faults import trigger as fault_trigger
 from sim.faults import sensor as sensor_faults
 from sim.runtime.clock import clocks
 from sim.messages import DriverSignals, SteeringRequest
@@ -82,7 +83,7 @@ from sim.stand_ins.adas_observation import VehicleMotion
 from sim.stand_ins.eps import Eps
 from sim.stand_ins.hwa_view_gate import HwaViewGate
 from sim.stand_ins.lateral_controller import CONTROLLER_PERIOD_US, EgoState, LateralController
-from sim.stand_ins.acc import Acc, LongitudinalActuator
+from sim.stand_ins.acc import Acc, LeadSelector, LongitudinalActuator
 from sim.stand_ins.scripted import ScriptedFunctionRequests, ScriptedLongitudinal
 from sim.vehicle.bicycle import Bicycle, BicycleState, steady_cornering
 from sim.vehicle.profiles import PROFILES
@@ -187,6 +188,12 @@ class RunLog:
     # Per channel fault of the scenario, in its order: indices of the messages it made unusable
     fault_hits: list[list[int]] = field(default_factory=list)
     can_stats: dict | None = None  # frames dropped and lost per frame ID, CAN receive layer
+    # Faults started by a planner-output event (sim.faults.trigger): event -> planner t0 [us]
+    # of the first cycle that showed it, None when it never happened (fault not injected)
+    fault_events: dict[str, int | None] = field(default_factory=dict)
+    # Lane of base_link as the camera indexes it, at each change: (capture stamp, lanes to the
+    # left of the reference lane). Ground truth for lane-change cases (S17).
+    lane_index_changes: list[tuple[int, int]] = field(default_factory=list)
 
 
 def _ego_view_end(lane: LaneModel) -> float | None:
@@ -225,12 +232,12 @@ class Harness:
             # Body heading differs by the slip angle in a steady turn.
             psi -= atan2(v_y0 - lr * r0, scenario.speed_mps)
         self.vehicle = Bicycle(self.profile, BicycleState(x + lr * cos(psi), y + lr * sin(psi),
-                                                          psi, v_y0, r0))
+                                                          psi, v_y0, r0), mu=scenario.road_mu)
         self.vehicle.v_x = scenario.speed_mps
         self._s_hint = scenario.start_s
         self._road_curvature = kappa0
 
-        self.eps = Eps(self.vehicle_config, moving_driver_target=scenario.driver is not None)
+        self.eps = Eps(self.vehicle_config, scenario.eps_delay_s, moving_driver_target=scenario.driver is not None)
         self.eps.hold_driver_angle(delta0 * self.vehicle_config.steering_ratio)
         # S2: the car keeps the start offset and heading until HWA starts driving.
         self._holding = scenario.hold_until_hwa
@@ -242,7 +249,7 @@ class Harness:
                                  view_start_m=scenario.camera_view_start_m)
         self.lane_faults = LaneFaultInjector(scenario.lane_faults, self.rngs["lane_camera"])
         self.traffic = Traffic(self.road, scenario.traffic)
-        self.objects = ObjectSensor(self.rngs["perception"])
+        self.objects = ObjectSensor(self.rngs["perception"], scenario.perception_noise_scale)
         self.chassis = ChassisSensors()
         self.estimator = StateEstimator()
         self.ego_motion = EgoMotion()
@@ -288,6 +295,7 @@ class Harness:
         self.acc = (Acc(scenario.speed_mps, read_limits=scenario.acc == "on")
                     if scenario.acc != "off" else None)
         self.long_act = LongitudinalActuator(scenario.speed_mps)
+        self._lead = LeadSelector(self.vehicle_config.vehicle_width, self.vehicle_config.wheelbase)
 
         camera_us = round(scenario.camera_latency_ms * 1000)  # Software Qualification Test Specification 4.5, Q1
         jitter_us = round(scenario.camera_jitter_ms * 1000)
@@ -337,6 +345,16 @@ class Harness:
         if self.acc is not None:
             self.ch["lateral_limits"].subscribers.append(self.acc.on_lateral_limits)
         self.ch["path_status"].subscribers.append(self._release_on_hwa)
+        # Faults that wait for an event of the planner output: inactive until it happens.
+        self._pending: list[tuple[object, int, object]] = []
+        self._fault_events: dict[str, int | None] = {}
+        for owner in (self.lane_faults, self.sensor_errors, self.ego_faults, *self._injectors.values()):
+            owner.faults = list(owner.faults)
+            for i, fault in enumerate(owner.faults):
+                if getattr(fault, "trigger", None) is not None:
+                    owner.faults[i] = replace(fault, start_s=fault_trigger.NEVER_S)
+                    self._pending.append((owner, i, fault))
+                    self._fault_events[fault.trigger] = None
 
         self.log = RunLog(
             scenario=scenario, seed=seed, road=self.road,
@@ -444,7 +462,10 @@ class Harness:
     def _camera(self, now_us: int) -> None:
         x, y, yaw = self.vehicle.rear_axle()
         pose = CameraPose(x, y, yaw, self._s_hint)
+        before = self.camera.lane_index
         msg = self.camera.capture(now_us, pose, self.lane_faults.view_limits(now_us))
+        if self.camera.lane_index != before:
+            self.log.lane_index_changes.append((now_us, self.camera.lane_index))
         sent = self._camera_stamp(self.lane_faults.apply(msg))
         self._observed_view[sent.header.stamp_us] = _ego_view_end(msg)
         for stamp in [t for t in self._observed_view if t < sent.header.stamp_us - 1_000_000]:
@@ -608,7 +629,13 @@ class Harness:
         if self.acc is None:
             msg = self.longitudinal.message(now_us)
         else:
-            msg = self.acc.step(now_us, self.vehicle.v_x)
+            ch = self.ch
+            lead = self._lead.update(
+                now_us, _fresh(ch["object_list"].latest, now_us, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US),
+                ch["trajectory"].latest.message if ch["trajectory"].latest is not None else None,
+                _fresh(ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US),
+                self.vehicle.v_x)
+            msg = self.acc.step(now_us, self.vehicle.v_x, lead)
             self.long_act.command(now_us, self.acc.command)
         self.ch["longitudinal_plan"].publish(msg, now_us)
 
@@ -646,6 +673,8 @@ class Harness:
             ch["path_status"].publish(out.path_status, now_us)
         if out.lateral_limits is not None:
             ch["lateral_limits"].publish(out.lateral_limits, now_us)
+        if self._pending and out.path_status is not None:
+            self._start_triggered(out.path_status, now_us)
         lane = inputs.lane_model
         lane_view = None
         reported = None
@@ -670,6 +699,19 @@ class Harness:
         if self.scenario.loop == "open":
             self._open_loop_path(now_us)
 
+    def _start_triggered(self, status: PathStatus, now_us: int) -> None:
+        for event, seen in self._fault_events.items():
+            if seen is None and fault_trigger.happened(event, status):
+                self._fault_events[event] = now_us
+        waiting = []
+        for owner, i, fault in self._pending:
+            t_us = self._fault_events[fault.trigger]
+            if t_us is None:
+                waiting.append((owner, i, fault))
+            else:
+                owner.faults[i] = replace(fault, start_s=t_us * 1e-6 + fault.start_s)
+        self._pending = waiting
+
     def _controller(self, now_us: int) -> None:
         speed = self.ch["speed"].latest
         imu = self.ch["imu"].latest
@@ -691,6 +733,18 @@ class Harness:
             injector = self._injectors[fault.channel]
             self.log.fault_hits.append(injector.fault_hits()[position[fault.channel]])
             position[fault.channel] += 1
+        self.log.fault_events = dict(self._fault_events)
+        if self._fault_events:
+            # Faults as injected: a triggered fault carries its real start (NEVER_S if not injected).
+            channel = list(self.scenario.channel_faults)
+            position = {name: 0 for name in self._injectors}
+            for k, fault in enumerate(channel):
+                channel[k] = self._injectors[fault.channel].faults[position[fault.channel]]
+                position[fault.channel] += 1
+            self.log.scenario = replace(
+                self.scenario, lane_faults=tuple(self.lane_faults.faults), channel_faults=tuple(channel),
+                sensor_faults=tuple(self.sensor_errors.faults[:len(self.scenario.sensor_faults)]),
+                ego_motion_faults=tuple(self.ego_faults.faults))
         if self.can:
             self.log.can_stats = {"dropped": dict(self._can_rx.dropped), "lost": dict(self._can_rx.lost)}
         return self.log

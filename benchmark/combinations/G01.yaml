@@ -1,0 +1,8 @@
+# Combined faults (Software Qualification Test Specification 6.2): case "đêm mưa".
+# Noise x 2.5 (F01 c), mu = 0.5, one line lost (F04 a), camera delay 150 ms. Each fault keeps
+# its own timing; the hosts give the road and the function. Fixed code: never renumbered.
+id: G01
+title: Đêm mưa
+hosts: [[S1, c], [S4, c]]
+faults: [[F01, c], [F04, a]]
+sim: {road_mu: 0.5, camera_latency_ms: 150.0}

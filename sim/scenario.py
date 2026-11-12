@@ -64,6 +64,11 @@ class Scenario:
     # errors). Off until switched on in one batch with a new regression baseline.
     realism: bool = False
     loop: Literal["closed", "open"] = "closed"  # 4.1: open loop follows a predefined path
+    # Environment and actuator of the test side (Software Qualification Test Specification 4.4 to
+    # 4.6; S12, S13, 6.2). None: the nominal value of 4.4 (mu 1.0 dry) and VehicleConfig.
+    road_mu: float = 1.0  # tyre-road friction of the vehicle model (0.5 wet, 4.4)
+    eps_delay_s: float | None = None  # real EPS delay; the planner still gets VehicleConfig's
+    perception_noise_scale: float = 1.0  # ObjectList sigmas x this (rain 1.5, 4.5)
 
     def __post_init__(self) -> None:
         if self.adas_mode not in ("scripted", "A", "B"):

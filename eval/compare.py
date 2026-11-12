@@ -64,6 +64,8 @@ LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}  # 8.2 "Tốt hơn
 # ---- loading ---------------------------------------------------------------------------
 
 def _scope(case: dict) -> list[str]:
+    if "scope_keys" in case:
+        return sorted(set().union(*(matrix.scope(SCOPE, k) for k in case["scope_keys"])))
     family, anchor = case["family"], case["anchor"] or "a"
     spec = ["S1", "a", family, anchor] if family.startswith("F") else [family, anchor]
     return sorted(matrix.scope(SCOPE, spec))

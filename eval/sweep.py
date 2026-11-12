@@ -80,7 +80,10 @@ def check_sim(scenario) -> None:
           and 0.0 <= scenario.camera_jitter_ms <= scenario.camera_latency_ms + 50.0
           and 0.0 <= scenario.yaw_filter_delay_ms <= 500.0
           and 0.0 <= scenario.function_requests_latency_ms <= 500.0
-          and scenario.acc in ("off", "on", "ignore_limits"))
+          and scenario.acc in ("off", "on", "ignore_limits")
+          and 0.1 <= scenario.road_mu <= 1.2
+          and (scenario.eps_delay_s is None or 0.0 <= scenario.eps_delay_s <= 0.5)
+          and 1.0 <= scenario.perception_noise_scale <= 5.0)
     if not ok:
         raise ValueError("simulator values outside the supported ranges")
 

@@ -6,7 +6,9 @@
  * Without a PM_xx define this is PM-00, the control: a simple HWA planner that meets the
  * call contract. It follows the lane centre (mean of L1 and R1), low-pass filtered across
  * camera frames and moved to t0 with EgoMotionQuery, and cuts curvature so that the path
- * a_y stays below aysmax. It does not handle LKA or ELK. Each PM_xx define adds one fault:
+ * a_y stays below aysmax. On an LKA or ELK REQUEST it drives the same centre path as that
+ * function, phase ACTIVE until the car is back near the centre, then COMPLETED while the
+ * request stays. Each PM_xx define adds one fault:
  *
  *   PM_01  0.1 m lateral step added to the path every 40 cycles
  *   PM_02  no a_y limit
@@ -17,6 +19,7 @@
  *   PM_07  state kept in a global variable
  *   PM_08  writes past the end of the state memory
  *   PM_09  reads the system clock
+ *   PM_10  LKA and ELK path 1.5 m towards the line the car drifts to
  */
 #include <math.h>
 #include <stdint.h>
@@ -35,6 +38,9 @@
 #define FILTER_ALPHA (0.15F)    /* per camera frame */
 #define V_MAX_MPS (70.0F)
 #define SUBSTEPS (10U)
+#define DONE_OFFSET_M (0.3F)   /* intervention done: centre within 0.3 m ... */
+#define DONE_SLOPE (0.02F)     /* ... and heading to it within 0.02 rad */
+#define WRONG_SIDE_M (1.5F)    /* PM_10 */
 
 typedef struct {
     float c[4];          /* filtered lane centre, base_link at capture time */
@@ -45,6 +51,7 @@ typedef struct {
     uint32_t cycles;
     float wheelbase;
     float max_wheel_angle;
+    uint8_t done[2];     /* LKA, ELK intervention reached the end condition for this request */
 #ifdef PM_09
     double compute_s;
 #endif
@@ -151,6 +158,8 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
     float v = 0.0F;
     int valid = 0;
     int hwa = 0;
+    int iv = 0;                       /* 1 LKA, 2 ELK, 0 none */
+    pp_side_t side = PP_SIDE_NONE;
     int limited = 0;
     float c[4] = {0.0F, 0.0F, 0.0F, 0.0F};
     float horizon = 0.0F;
@@ -165,7 +174,19 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
     }
     if (in->function_requests.present && in->function_requests.message.header.valid
         && fresh(t0, in->function_requests.rx_us, PP_FUNCTION_REQUESTS_TIMEOUT_US)) {
-        hwa = in->function_requests.message.requests[0].state == PP_REQUEST_STATE_REQUEST;
+        const pp_function_request_t *r = in->function_requests.message.requests;
+        hwa = r[0].state == PP_REQUEST_STATE_REQUEST;
+        for (unsigned f = 1U; f <= 2U && iv == 0; ++f) {
+            if (r[f].state == PP_REQUEST_STATE_REQUEST && r[f].side != PP_SIDE_NONE) {
+                iv = (int)f;
+                side = r[f].side;
+            }
+        }
+        for (unsigned f = 1U; f <= 2U; ++f) {
+            if (r[f].state != PP_REQUEST_STATE_REQUEST) {
+                s->done[f - 1U] = 0U;
+            }
+        }
     }
 
     /* New camera frame: move the filtered centre to its capture time, then blend. */
@@ -207,7 +228,17 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
             }
         }
     }
-    valid = valid && hwa && v > 1.0F && s->ok;
+    /* A usable centre is a valid path; it drives only on a request (NONE otherwise). */
+    valid = valid && v > 1.0F && s->ok;
+    if (valid && iv && fabsf(c[0]) < DONE_OFFSET_M && fabsf(c[1]) < DONE_SLOPE) {
+        s->done[iv - 1] = 1U;  /* back near the centre and parallel: done while the request stays */
+    }
+#ifdef PM_10
+    if (valid && iv) {
+        c[0] += (side == PP_SIDE_LEFT) ? WRONG_SIDE_M : -WRONG_SIDE_M;
+    }
+#endif
+    (void)side;  /* used by PM_10 only */
 #ifdef PM_04
     if (hwa) {
         valid = 0;
@@ -287,9 +318,20 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
         s->counter[1]++;
 #endif
         ps->path_valid = valid != 0;
-        ps->active_function = valid ? PP_ACTIVE_FUNCTION_HWA : PP_ACTIVE_FUNCTION_NONE;
+        ps->active_function = !valid ? PP_ACTIVE_FUNCTION_NONE
+                              : iv == 1 ? PP_ACTIVE_FUNCTION_LKA : iv == 2 ? PP_ACTIVE_FUNCTION_ELK
+                              : hwa ? PP_ACTIVE_FUNCTION_HWA : PP_ACTIVE_FUNCTION_NONE;
         ps->lka_phase = PP_INTERVENTION_PHASE_NONE;
         ps->elk_phase = PP_INTERVENTION_PHASE_NONE;
+        if (valid && iv) {
+            pp_intervention_phase_t phase = (s->done[iv - 1] != 0U) ? PP_INTERVENTION_PHASE_COMPLETED
+                                                                    : PP_INTERVENTION_PHASE_ACTIVE;
+            if (iv == 1) {
+                ps->lka_phase = phase;
+            } else {
+                ps->elk_phase = phase;
+            }
+        }
         ps->lateral_limit_reached = valid && limited;
         ps->lane_too_narrow = false;
         out->path_status_sent = true;

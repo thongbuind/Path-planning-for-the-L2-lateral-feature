@@ -12,6 +12,8 @@ valid = false. The Lateral Controller and the ADAS function stand-in keep their 
 
 from dataclasses import dataclass
 
+from sim.faults import trigger
+
 KINDS = ("once", "continuous", "alternate")
 
 
@@ -20,8 +22,10 @@ class EgoMotionFault:
     kind: str
     start_s: float = 0.0
     duration_s: float | None = None
+    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
 
     def __post_init__(self) -> None:
+        trigger.check(self.trigger)
         if self.kind not in KINDS or self.start_s < 0 or (self.duration_s is not None and self.duration_s <= 0):
             raise ValueError(f"invalid ego-motion fault {self.kind!r}")
 

@@ -2,7 +2,7 @@
 
     python3 -m eval.selfcheck [--only PM-05,PM-06] [--b0-only] [--jobs 2] [--record]
 
-Builds eval/bait/pm_planner.c once per bait (PM-00 control and PM-01 to PM-09, `cc`), runs
+Builds eval/bait/pm_planner.c once per bait (PM-00 control and PM-01 to PM-10, `cc`), runs
 conformance B0 on each, then the scenario runs of benchmark/suites/selfcheck.yaml on baits
 that B0 does not block, each run in its own process (eval.runner --planner). A bait is
 detected when one of its expected ids fails with the expected level and the control PM-00

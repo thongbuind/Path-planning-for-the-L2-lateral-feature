@@ -31,7 +31,14 @@ python3 -m eval.runner S5 a --seed 1
 python3 -m eval.runner S5 a --seed 1 --adas-mode A
 python3 -m eval.runner build/concrete/smoke/cases/<case-id>.xosc --seed 1
 python3 -m eval.runner S1 a --seed 1 --planner <thư-viện>.so
+python3 -m eval.runner S4 a --fault F20 b --at lka_active+0.2
+python3 -m eval.runner S1 c --fault F01 c --fault F04 a
+python3 -m eval.check_case S11 --run
+python3 -m eval.techniques build/suites/reg-quintic build/suites/reg-qp --name quintic --name qp
+python3 -m eval.fetch_schemas
 ```
+
+Viết ca mới: [AUTHORING.md](AUTHORING.md). `--at` bơm mọi lỗi của lần chạy sau một sự kiện ở output của planner (`lka_active`, `elk_active`, `intervention_active`); `--fault` lặp lại để ghép lỗi. Mỗi lần chạy của `eval.runner` ghi thêm hình theo thời gian (`.png`); `eval.suite` vẽ hình cho lần chạy có trượt (`figures/runs/`) và thêm vào `report.md` các mục Flexibility, Thời gian tính, DTLE theo v_lat (Software Qualification Test Specification 10); `eval.matrix` thêm đồ thị quét. Suite khai báo thêm `event_hosts`, `event_faults`, `event_offsets_s` (lỗi trên ca LKA, ELK theo thời điểm của mục 6) và `combinations` (ca ghép `combinations/G*.yaml`, mục 6.2). Phạm vi chấm của mỗi lần chạy ở `suites/scope.yaml`. XSD của ASAM thuộc điều khoản license của ASAM: `eval.fetch_schemas` tải bản chính thức và kiểm SHA-256 theo `schema/sources.json`.
 
 Planner được chấm là thư viện C bất kỳ build theo `interfaces/c/pp_planner.h` (Software Qualification Test Specification mục 11). `eval.runner`, `eval.suite`, `eval.matrix` nhận `--planner <file>`; không có thì dùng `PP_PLANNER_LIB`, rồi `build/planner/libpp_planner`. Thư viện thiếu `pp_state_size`, `pp_init` hoặc `pp_step` bị từ chối trước khi chạy. Chạy B0 conformance trước mọi bộ khác: `python3 -m eval.conformance --planner <thư-viện>.so` (C1, C2, C3; kết quả ở `build/conformance/`; trượt C1 hoặc C2 thì thoát với mã 1). `eval.suite` chạy B0 trước, bị chặn thì dừng; `eval.matrix` chạy B0 rồi vẫn chạy tiếp (ma trận phát triển). Mỗi lượt chạy trong một tiến trình riêng: planner crash hoặc treo là lỗi thực thi của lượt đó. Kết luận theo Software Qualification Test Specification 8.4 nằm ở đầu `report.md` (suite) hoặc `summary.md` (matrix), kèm mọi trượt theo mức; `conclusion.json` giữ cùng nội dung. Log MCAP (xem bằng Foxglove) ở `mcap/` cho lượt có trượt trong phạm vi; `eval.suite --mcap all` ghi mọi lượt; `eval.runner` luôn ghi. So sánh giữa các planner (Software Qualification Test Specification 9.2): chạy cùng manifest cho từng thư viện (`eval.suite <manifest> --planner <lib> --out build/suites/<tên>`), rồi `python3 -m eval.compare build/suites/<A> build/suites/<B> [--name A --name B]`; kết quả ở `build/compare/`. Mỗi kịch bản và lỗi khai báo `expected_outcome` (`drive`, `drive_limited`, `refuse`; Software Qualification Test Specification 5.3); lỗi ghép với ca chủ giữ giá trị nghiêm hơn. Độ khó L0–L5 do `eval/labels.py` suy từ giá trị của ca. Bộ B1–B8 là bộ lọc theo nhãn trong `suites/aspects.yaml`: `eval.suite <manifest> --aspect B3` chỉ chạy ca của bộ đó; báo cáo có bảng theo bộ. Với `--record`, thư viện từ nguồn ngoài repository được định danh bằng SHA-256 và `pp_version`; thư viện build từ repository này vẫn phải từ đúng commit.
 
@@ -39,11 +46,11 @@ Thay `smoke` bằng `regression` hoặc `full` để sinh hai bộ còn lại. `
 
 | Bộ | Cách chọn | Profile | Seed | Lượt chạy hiện tại |
 |---|---|---|---|---|
-| Smoke | Mọi neo đã hỗ trợ và S8 late | VP-0 | 1 | 101 (0,58 giờ mô phỏng) |
-| Regression | Neo, biên, lưới chuẩn | VP-0…VP-5 | 1, 2 | 3.192 (19,46 giờ mô phỏng) |
-| Full | Neo, biên, pairwise, Latin hypercube, lưới chuẩn | VP-0…VP-5 | 1. Riêng F01: 1…10 | 5.742 (41,52 giờ mô phỏng) |
+| Smoke | Mọi neo đã hỗ trợ, S8 late, F04 trên ca LKA và ELK, G01 | VP-0 | 1 | 131 (0,75 giờ mô phỏng) |
+| Regression | Neo, biên, lưới chuẩn | VP-0…VP-5 | 1, 2 | 6.192 (38,02 giờ mô phỏng) |
+| Full | Neo, biên, pairwise, Latin hypercube, lưới chuẩn | VP-0…VP-5 | 1. Riêng F01: 1…10 | 9.138 (61,02 giờ mô phỏng) |
 
-Ca lỗi chạy trên hai đường chủ: S1a (cua nhẹ) và S1c (cua chạm aysmax), như M1. Mã ca lỗi ghi đường chủ, ví dụ `F06-e-S1c-VP-0-<hash>`.
+Ca lỗi chạy trên hai đường chủ S1a (cua nhẹ) và S1c (cua chạm aysmax), như M1; lỗi của `event_faults` chạy thêm trên S4a, S5a lúc pha ACTIVE và 0,2 s sau. Mã ca lỗi ghi đường chủ, ví dụ `F06-e-S1c-VP-0-<hash>`.
 
 S14 luôn có cả ACC đọc và bỏ qua LateralLimits. `eval.suite` chạy `--jobs` tiến trình (mặc định 1), mỗi tiến trình chỉ giữ log của một lượt trong RAM; kết quả ghi vào `results.jsonl` theo đúng thứ tự của manifest. Máy 8 GB: tối đa 2. Một lượt lỗi thực thi được ghi rõ, không làm mất các lượt khác. `summary.json` tách trượt trong phạm vi, trượt ngoài phạm vi và lỗi thực thi. Phạm vi chấm dùng P1 như M1 hiện có. `--max-runs N` dành cho kiểm tích hợp một phần, báo `partial`; không được dùng với `--record`.
 
@@ -82,6 +89,14 @@ Adapter hỗ trợ một ego trên đường phẳng từ một đến ba làn c
 | `CustomCommandAction type="pp:sensor_fault:v1"` | `kind` (noise, bias, scale), `signal` (yaw_rate, accel_x, accel_y, speed, steering_angle, lateral_velocity), `value` theo SI; F07, F08 |
 | `CustomCommandAction type="pp:clock_fault:v1"` | `kind` (drift, sync_loss), `ecu` (camera, adas), `value` [ppm]; F14 |
 | `CustomCommandAction type="pp:ego_motion_fault:v1"` | `kind` (once, continuous, alternate); F20 |
+| `"trigger"` trong JSON của mọi lệnh lỗi trừ `pp:clock_fault:v1` | `lka_active`, `elk_active`, `intervention_active`: `start_s` tính từ chu kỳ đầu PathStatus báo pha ACTIVE (`sim/faults/trigger.py`); không có sự kiện thì lỗi không được bơm và kết quả ghi `faults_not_injected` |
+| `pp:lane_fault:v1` `lane_change_late` | Cờ `lane_change` đến sau một frame (S17 e) |
+| `pp:road_mu`, `pp:eps_delay_s`, `pp:perception_noise_scale`, `pp:camera_latency_ms` | Môi trường của ca (Software Qualification Test Specification 4.1): μ mặt đường, trễ EPS thật (planner vẫn nhận VehicleConfig), hệ số σ của ObjectList, trễ camera |
+| `pp:faults` | Tên các định nghĩa lỗi đã ghép vào ca, ghi bởi bộ sinh; dùng để suy L3, L4 |
+| `CustomCommandAction type="pp:traffic_speed:v1"` | `entity`, `profile` [[t_s, v_mps], ...]: tốc độ xe khác tuyến tính từng đoạn, bắt đầu ở t = 0 bằng tốc độ ban đầu (S11) |
+| `CustomCommandAction type="pp:traffic_lateral:v1"` | `entity`, `start_s`, `duration_s`, `target_offset_m`: xe khác đổi làn hoặc cắt vào (S3b, S8b, S11 d) |
+| `CustomCommandAction type="pp:requests:v1"` | `events`: [{`at_s`, `requests` [[state, side, elk_reason] × HWA, LKA, ELK], `driver_override`}]; chuỗi FunctionRequests định sẵn ở chế độ `scripted` (S9, S16) |
+| `pp:departure:v1` `repeats` | [[t_start_s, 1 hoặc −1], ...]: tài xế trôi lại, cùng chiều hoặc ngược chiều (S16, S8c) |
 | `pp:can_bus`, `pp:realism`, `pp:loop` | Tín hiệu khung gầm qua CAN ảo theo DBC (F15–F18 trên khung CAN); lô độ thực tế danh định (CAN, đồng hồ ECU, nhiễu tốc độ, góc lái, v_y; mặc định tắt); `open` là vòng hở |
 | `lane_width_m`, `curvature_scale`, `direction` | Bộ sinh dựng lại `.xodr` với số cụ thể; OpenDRIVE không chứa biểu thức `$parameter` |
 
