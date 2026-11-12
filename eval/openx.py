@@ -23,7 +23,10 @@ from sim.faults.sensor import SensorFault
 from sim.runtime.clock import ClockFault
 from sim.scenario import Scenario
 from sim.vehicle.profiles import PROFILES
-from sim.world.road import Marking, RoadEdgeSpec, RoadLayout, Segment
+from sim.world.road import (
+    Lane, LaneGeometry, LanePaint, LaneSection, Marking, RoadEdgeSpec, RoadLayout, Segment,
+    WidthPolynomial, lane_boundaries,
+)
 from sim.world.traffic import LateralMotion, TrafficSpec
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -283,7 +286,126 @@ def _layout_from_road(road, segments, width, ego, lanes):
     return RoadLayout(tuple(markings.get(index) for index in range(ego - 1, ego + 3)), tuple(edges))
 
 
+def _legacy_layout(road):
+    """Keep the fixed-width adapter, including its historical paint offsets."""
+    sections = road.findall('./lanes/laneSection')
+    if len(sections) != 1 or sections[0].find('left') is not None:
+        return False
+    lanes = sections[0].findall('./right/lane')
+    widths = [lane.findall('width') for lane in lanes]
+    return (bool(lanes) and all(lane.get('type') == 'driving' for lane in lanes)
+            and all(len(w) == 1 and all(number(w[0].attrib[k]) == 0
+                                        for k in ('sOffset', 'b', 'c', 'd')) for w in widths)
+            and len({number(w[0].attrib['a']) for w in widths}) == 1)
+
+
+def _lane_paint(lane):
+    marks = lane.findall('roadMark')
+    if not marks:
+        return None
+    if len(marks) != 1 or number(marks[0].attrib['sOffset']) != 0:
+        raise ValueError('one marking starting at the lane section is supported')
+    kind = marks[0].attrib['type']
+    if kind == 'none':
+        return None
+    if kind not in {'solid', 'broken'} | _DOUBLE_MARKS:
+        raise ValueError(f'unsupported marking on a variable-width road: {kind}')
+    width = number(marks[0].attrib['width'])
+    if width <= 0:
+        raise ValueError('marking width must be positive')
+    paint_type = (LineType.DOUBLE if kind in _DOUBLE_MARKS else
+                  LineType.DASHED if kind == 'broken' else LineType.SOLID)
+    return LanePaint(width, paint_type, kind.split()[-1] == 'broken', kind.split()[0] == 'broken')
+
+
+def _width_polynomials(lane, length):
+    widths = tuple(WidthPolynomial(*(number(w.attrib[k]) for k in ('sOffset', 'a', 'b', 'c', 'd')))
+                   for w in lane.findall('width'))
+    starts = [width.start_m for width in widths]
+    if not starts or starts[0] != 0 or any(a >= b for a, b in zip(starts, starts[1:] + [length])):
+        raise ValueError('width records must start at zero and increase within the lane section')
+    for i, (width, stop) in enumerate(zip(widths, starts[1:] + [length])):
+        length_m = stop - width.start_m
+        extrema = np.roots([3 * width.d, 2 * width.c, width.b])
+        samples = [0.0, length_m, *(float(r.real) for r in extrema
+                                   if np.isreal(r) and 0 < r.real < length_m)]
+        values = [width.at(width.start_m + ds) for ds in samples]
+        if min(values) < -1e-9:
+            raise ValueError('lane width becomes negative')
+        if i + 1 < len(widths) and not math.isclose(values[1], widths[i + 1].a, abs_tol=1e-7):
+            raise ValueError('discontinuous width records')
+    return widths
+
+
+def _variable_layout(road):
+    length = number(road.attrib['length'])
+    offsets = road.findall('./lanes/laneOffset')
+    if (len(offsets) != 1 or any(number(offsets[0].attrib[k]) != 0 for k in ('s', 'b', 'c', 'd'))
+            or road.find('objects') is not None):
+        raise ValueError('variable-width roads need one constant laneOffset and no road objects')
+    offset = number(offsets[0].attrib['a'])
+    source = road.findall('./lanes/laneSection')
+    starts = [number(section.attrib['s']) for section in source]
+    if not starts or starts[0] != 0 or any(a >= b for a, b in zip(starts, starts[1:] + [length])):
+        raise ValueError('lane sections must start at zero and increase within the road')
+    sections = []
+    driving = {'driving', 'entry', 'exit', 'onRamp', 'offRamp'}
+    for section, start, stop in zip(source, starts, starts[1:] + [length]):
+        centers = section.findall('./center/lane')
+        if len(centers) != 1 or centers[0].get('id') != '0' or centers[0].get('type') != 'none':
+            raise ValueError('lane section needs a single center lane with id 0')
+        bands = []
+        for side, sign in (('left', 1), ('right', -1)):
+            lanes = sorted(section.findall(f'./{side}/lane'), key=lambda lane: abs(int(lane.attrib['id'])))
+            for i, lane in enumerate(lanes, 1):
+                lane_id = int(lane.attrib['id'])
+                kind = lane.attrib['type']
+                if lane_id != sign * i or kind not in driving | {'stop', 'shoulder', 'restricted'}:
+                    raise ValueError('expected consecutive supported lane IDs on each side')
+                if any(int(link.attrib['id']) != lane_id for link in lane.findall('./link/*')):
+                    raise ValueError('variable-width lane links must keep their lane ID')
+                bands.append(Lane(lane_id, _width_polynomials(lane, stop - start),
+                                  _lane_paint(lane), kind in driving))
+        if not 1 <= len(bands) <= 3:
+            raise ValueError('expected one to three lanes per section')
+        sections.append(LaneSection(start, offset, tuple(bands), _lane_paint(centers[0])))
+    entry = sections[0]
+    ego = []
+    for lane in entry.lanes:
+        low, high = entry.bounds(lane.id, 0.0)
+        if lane.driving and high > low and math.isclose(low + high, 0.0, abs_tol=1e-9):
+            ego.append((lane.id, high - low))
+    if len(ego) != 1:
+        raise ValueError('the ego lane must be centred on the reference line at entry')
+    ego_id, width = ego[0]
+    if any(not any(lane.id == ego_id and lane.driving for lane in section.lanes) for section in sections):
+        raise ValueError('the reference lane must continue through all sections')
+    for before, after in zip(sections, sections[1:]):
+        at = after.start_m
+        # A lane can appear or disappear only at zero width. Shared boundaries stay continuous.
+        boundaries = {lane.id for lane in before.lanes + after.lanes}
+        if any(not math.isclose(before.boundary_at(i, at), after.boundary_at(i, at), abs_tol=1e-7)
+               for i in boundaries):
+            raise ValueError('discontinuous lane boundary at a section change')
+    geometry = LaneGeometry(tuple(sections), ego_id)
+    right, left = lane_boundaries(ego_id)
+    markings = tuple(paint.marking(entry.boundary_at(boundary, 0.0), side) if paint else None
+                     for boundary, side in ((left + 1, 1), (left, 1), (right, -1), (right - 1, -1))
+                     for paint in (entry.paint(boundary),))
+    return width, RoadLayout(markings, geometry=geometry)
+
+
 def _set_road_width(road, new_width):
+    if not _legacy_layout(road):
+        width, _ = _variable_layout(road)
+        if not math.isclose(new_width, width, rel_tol=0.0, abs_tol=1e-12):
+            scale = new_width / width
+            offset = road.find('./lanes/laneOffset')
+            offset.set('a', text(number(offset.attrib['a']) * scale))
+            for record in road.findall('./lanes/laneSection/*/lane/width'):
+                for coefficient in ('a', 'b', 'c', 'd'):
+                    record.set(coefficient, text(number(record.attrib[coefficient]) * scale))
+        return
     width, ego, lanes = _road_cross_section(road)
     if new_width == width:
         return
@@ -302,10 +424,11 @@ def _set_road_width(road, new_width):
 
 def _read_road(root, width_override=None):
     allowed = {'OpenDRIVE', 'header', 'road', 'planView', 'geometry', 'line', 'arc',
-               'spiral', 'lanes', 'laneOffset', 'laneSection', 'center', 'right',
+               'spiral', 'lanes', 'laneOffset', 'laneSection', 'center', 'left', 'right',
+               'link', 'predecessor', 'successor',
                'lane', 'width', 'roadMark', 'objects', 'object', 'repeat'}
     if root.tag != 'OpenDRIVE' or any(e.tag not in allowed for e in root.iter()) or len(root.findall('road')) != 1:
-        raise ValueError('unsupported OpenDRIVE subset: one flat road with constant-width lanes required')
+        raise ValueError('unsupported OpenDRIVE subset: one flat road required')
     road = root.find('road')
     if road is None or road.get('id') != '1' or road.get('junction') != '-1' or road.get('rule') != 'RHT':
         raise ValueError('expected non-junction road 1')
@@ -331,8 +454,11 @@ def _read_road(root, width_override=None):
         raise ValueError('road length mismatch')
     if width_override is not None:
         _set_road_width(road, width_override)
-    width, ego, lanes = _road_cross_section(road)
-    layout = _layout_from_road(road, segments, width, ego, lanes)
+    if _legacy_layout(road):
+        width, ego, lanes = _road_cross_section(road)
+        layout = _layout_from_road(road, segments, width, ego, lanes)
+    else:
+        width, layout = _variable_layout(road)
     return tuple(segments), width, layout
 
 
@@ -659,7 +785,7 @@ def concrete(path, destination, overrides=None):
     if scenario.road_layout is not None:
         source_path = path.parent / root.find('./RoadNetwork/LogicFile').attrib['filepath']
         source_road = parse(source_path).find('road')
-        _set_road_width(source_road, scenario.lane_width)
+        _set_road_width(source_road, number(params.get('lane_width_m', scenario.lane_width)))
         road = output_road.find('road')
         road.remove(road.find('lanes'))
         road.append(source_road.find('lanes'))

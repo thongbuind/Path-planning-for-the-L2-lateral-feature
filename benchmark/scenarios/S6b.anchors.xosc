@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S6b" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S6b.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Làn dừng khẩn cấp bên phải mở rộng 1,5 m trong 100 m" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Làn lối ra bên phải tách khỏi làn chính qua dải phân cách mở rộng" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6bb.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Làn chạy mới mở dần bên trái" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6bc.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Làn ego mở rộng về bên phải trong cua R = 500 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6bd.xodr" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Làn ego mở rộng về bên phải khi xe tải đi ngang bên trái" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6be.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="128" />
+            <ParameterAssignment parameterRef="truck_t_m" value="3.2" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
