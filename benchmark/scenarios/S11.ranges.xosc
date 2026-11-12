@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S11" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S11.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="target_s_m">
+        <DistributionRange stepWidth="5">
+          <Range lowerLimit="115" upperLimit="130" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

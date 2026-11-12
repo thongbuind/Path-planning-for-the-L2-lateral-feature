@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S12" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S12.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="road_mu">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="0.5" upperLimit="1" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="perception_noise_scale">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="1" upperLimit="1.5" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

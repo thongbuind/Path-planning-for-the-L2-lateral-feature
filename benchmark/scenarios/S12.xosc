@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S1c trong mưa, HWA, R = 250 m" revMajor="1" revMinor="3" />
+  <ParameterDeclarations>
+    <ParameterDeclaration name="scenario_id" parameterType="string" value="S12" />
+    <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S12a.xodr" />
+    <ParameterDeclaration name="profile" parameterType="string" value="VP-0" />
+    <ParameterDeclaration name="speed_mps" parameterType="double" value="25.0" />
+    <ParameterDeclaration name="lane_width_m" parameterType="double" value="3.5" />
+    <ParameterDeclaration name="duration_s" parameterType="double" value="22" />
+    <ParameterDeclaration name="start_s_m" parameterType="double" value="10" />
+    <ParameterDeclaration name="start_offset_m" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="start_heading_rad" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="hwa_request_s" parameterType="string" value="1.0" />
+    <ParameterDeclaration name="hold_until_hwa" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="acc" parameterType="string" value="off" />
+    <ParameterDeclaration name="curvature_scale" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="direction" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="adas_mode" parameterType="string" value="scripted" />
+    <ParameterDeclaration name="lka_enabled" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="elk_enabled" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="expect_intervention" parameterType="string" value="" />
+    <ParameterDeclaration name="protocol" parameterType="string" value="" />
+    <ParameterDeclaration name="departure_side" parameterType="string" value="left" />
+    <ParameterDeclaration name="departure_radius_m" parameterType="double" value="1200.0" />
+    <ParameterDeclaration name="departure_boundary" parameterType="string" value="marking" />
+    <ParameterDeclaration name="departure_target" parameterType="string" value="none" />
+    <ParameterDeclaration name="steer_start_s" parameterType="double" value="2.0" />
+    <ParameterDeclaration name="driver_torque_nm" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="wind_force_n" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="bank_grade" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="indicated" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="passive_hands_on" parameterType="boolean" value="true" />
+    <ParameterDeclaration name="late_request" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="target_s_m" parameterType="double" value="890" />
+    <ParameterDeclaration name="target_t_m" parameterType="double" value="3.5" />
+    <ParameterDeclaration name="target_speed_mps" parameterType="double" value="0" />
+    <ParameterDeclaration name="target_width_m" parameterType="double" value="1.9" />
+    <ParameterDeclaration name="target_length_m" parameterType="double" value="4.8" />
+    <ParameterDeclaration name="target_heading_rad" parameterType="double" value="0" />
+    <ParameterDeclaration name="variant" parameterType="string" value="a" />
+    <ParameterDeclaration name="description" parameterType="string" value="S1c trong mưa, HWA, R = 250 m" />
+    <ParameterDeclaration name="departure_v_lat_mps" parameterType="double" value="0" />
+    <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.7" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
+    <ParameterDeclaration name="road_mu" parameterType="double" value="0.5" />
+    <ParameterDeclaration name="perception_noise_scale" parameterType="double" value="1.5" />
+    <ParameterDeclaration name="faults" parameterType="string" value="F01c" />
+    <ParameterDeclaration name="fault_kind" parameterType="string" value="noise" />
+    <ParameterDeclaration name="fault_sigma_c0" parameterType="double" value="0.075" />
+    <ParameterDeclaration name="fault_sigma_c1" parameterType="double" value="0.005" />
+  </ParameterDeclarations>
+  <CatalogLocations />
+  <RoadNetwork>
+    <LogicFile filepath="$road_file" />
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="Ego">
+      <Vehicle name="Ego" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="1.45" y="0" z="0.75" />
+          <Dimensions width="1.9" length="4.9" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.61" wheelDiameter="0.65" trackWidth="1.6" positionX="2.9" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+        <Properties>
+          <Property name="pp:adapter" value="single-ego-v1" />
+          <Property name="pp:profile" value="$profile" />
+          <Property name="pp:acc" value="$acc" />
+          <Property name="pp:hwa_request_s" value="$hwa_request_s" />
+          <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:adas_mode" value="$adas_mode" />
+          <Property name="pp:lka_enabled" value="$lka_enabled" />
+          <Property name="pp:elk_enabled" value="$elk_enabled" />
+          <Property name="pp:expect_intervention" value="$expect_intervention" />
+          <Property name="pp:protocol" value="$protocol" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
+          <Property name="pp:road_mu" value="$road_mu" />
+          <Property name="pp:perception_noise_scale" value="$perception_noise_scale" />
+          <Property name="pp:faults" value="$faults" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
+    <ScenarioObject name="Target">
+      <Vehicle name="Target" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="0" y="0" z="0.75" />
+          <Dimensions width="$target_width_m" length="$target_length_m" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.61" wheelDiameter="0.65" trackWidth="1.6" positionX="1.45" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="-1.45" positionZ="0.325" />
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request}</CustomCommandAction>
+        </UserDefinedAction>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:lane_fault:v1">{"kind":"$fault_kind","start_s":0,"duration_s":-1,"lines":[0,1,2,3],"sigma_c0":$fault_sigma_c0,"sigma_c1":$fault_sigma_c1}</CustomCommandAction>
+        </UserDefinedAction>
+        <Private entityRef="Ego">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$start_s_m" t="$start_offset_m">
+                  <Orientation type="relative" h="$start_heading_rad" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="Target">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$target_s_m" t="$target_t_m">
+                  <Orientation type="relative" h="$target_heading_rad" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$target_speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="none">
+          <ByValueCondition>
+            <SimulationTimeCondition value="$duration_s" rule="greaterOrEqual" />
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>
