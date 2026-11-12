@@ -19,7 +19,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-011 | Quyền sở hữu pha can thiệp trong PathStatus | Đã quyết | V1 | [study](studies/PP-TS-011-path-status-phases/study.md) |
 | PP-TS-012 | Tuổi của VehicleStateEstimate khi T9 kiểm điều kiện kết thúc | Mở | Kiểm V1 | [study](studies/PP-TS-012-intervention-end-estimate-age/study.md) |
 | PP-TS-013 | Path êm trong hành lang an toàn (ý tưởng racing line) | Mở; nguyên mẫu nghiên cứu | — | [study](studies/PP-TS-013-comfort-line/study.md) |
-| PP-TS-014 | Liên tục của path khi phần xa ngoài tầm nhìn: V0–V3 | Đang chạy; V1 cần sửa (V1b) | — | [study](studies/PP-TS-014-continuity-beyond-view/study.md) |
+| PP-TS-014 | Liên tục của path khi phần xa ngoài tầm nhìn: V0–V3 | Đã quyết; chờ hồi quy sạch | Đổi PP-SWR-100 đến 102 về tầm nhìn; T4 một λ trong tầm nhìn | [study](studies/PP-TS-014-continuity-beyond-view/study.md) |
 
 ## Problem reports
 
@@ -45,5 +45,5 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-018 | T9 dùng v_y trước t0 khi kiểm COMPLETED | Đã cài PP-TS-012 V1, chờ xác nhận chính thức | PP-SWR-032, 090 | [report](problems/PP-PR-018-intervention-completion-state-age.md) |
 | PP-PR-019 | ELK mép đường mất path trong tick nhận OFF | Đã sửa, chờ xác nhận chính thức | PP-SWR-037 | [report](problems/PP-PR-019-road-edge-cancellation.md) |
 | PP-PR-020 | Tick COMPLETED còn lệch ở một số neo cua và mép đường | Mở | PP-SWR-032, 090 | [report](problems/PP-PR-020-completion-mismatch-on-curves-and-edges.md) |
-| PP-PR-021 | Xe rời làn trong cua khi tầm nhìn camera ngắn (Q4) | Mở; đã rõ nguyên nhân (T4 chặn vì phần xa ngoài tầm nhìn); sửa theo PP-TS-014 | PP-SWR-051, 100 | [report](problems/PP-PR-021-short-view-curve-departure.md) |
-| PP-PR-022 | S14a tầm nhìn ngắn: ACC đọc LateralLimits rời làn xa hơn | Mở | PP-SWR-051, 151, 152 | [report](problems/PP-PR-022-s14a-short-view-acc-on.md) |
+| PP-PR-021 | Xe rời làn trong cua khi tầm nhìn camera ngắn (Q4) | Đã sửa, xác nhận ở 20261112-1239-matrix-Q4-1bfd184 | PP-SWR-051, 100 | [report](problems/PP-PR-021-short-view-curve-departure.md) |
+| PP-PR-022 | S14a tầm nhìn ngắn: ACC đọc LateralLimits rời làn xa hơn | Đã sửa cùng PP-PR-021 | PP-SWR-051, 151, 152 | [report](problems/PP-PR-022-s14a-short-view-acc-on.md) |

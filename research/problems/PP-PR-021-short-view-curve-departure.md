@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đã sửa |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-051, 100; target PP-SWR-050 |
 | Tái hiện | Lần chạy nháp `build/matrix/Q4` (Q4, VP-0, seed 1), cây làm việc chưa commit; tái hiện riêng S1c 10 m, S1f 40 m, S1f 80 m |
@@ -75,3 +75,4 @@ PP-SWR-100 lấy từ đề bài và đo trên cả đoạn hai path cùng mô t
 
 | Run ID | Kết quả |
 |---|---|
+| [20261112-1239-matrix-Q4-1bfd184](../runs/20261112-1239-matrix-Q4-1bfd184/summary.md) | Sau khi đổi PP-SWR-100 đến 102 (SRS 1.9) và T4: S1 a, c, f đạt ở 10, 20, 40, 80, 126 m; DLC nhỏ nhất của S1c 10 m từ −15,4 lên 0,55 m |

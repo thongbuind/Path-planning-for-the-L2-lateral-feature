@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đã sửa |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-051, 151, 152 |
 | Tái hiện | Lần chạy nháp `build/matrix/Q4` (Q4, VP-0, seed 1), cây làm việc chưa commit |
@@ -22,13 +22,14 @@
 
 ## 2. Nguyên nhân
 
-Chưa điều tra. Cần xem `v_max`, `distance` của LateralLimits theo thời gian, và tương tác giữa giảm tốc với path khi tầm nhìn ngắn. Có thể cùng gốc với PP-PR-021.
+Cùng gốc với PP-PR-021: T4 giữ path vì phần ngoài tầm nhìn. Khi ACC giảm tốc, phần xa của path đổi thêm theo tốc độ, nên T4 chặn mạnh hơn.
 
 ## 3. Cách sửa
 
-Chưa có.
+Như PP-PR-021 (SRS 1.9, PP-TS-014).
 
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+| [20261112-1239-matrix-Q4-1bfd184](../runs/20261112-1239-matrix-Q4-1bfd184/summary.md) | S14a đạt ở mọi mức tầm nhìn, cả hai chế độ ACC; DLC nhỏ nhất ở 20 m, ACC đọc LateralLimits: từ −6,51 lên 0,72 m |
