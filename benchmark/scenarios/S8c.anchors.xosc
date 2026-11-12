@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8c" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S8c.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Bẻ trái 1.2 m/s, không xi-nhan" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Bẻ trái 1.5 m/s, không xi-nhan" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="1.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Bẻ trái rồi bẻ trả ngay, không xi-nhan" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="departure_repeats" value="[[2.9005418766791764,-1]]" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

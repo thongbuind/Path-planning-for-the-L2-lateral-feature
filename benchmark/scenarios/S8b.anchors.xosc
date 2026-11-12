@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8b" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S8b.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 20 m tại TLC 0,8 s, Δv 2.2 m/s, không yêu cầu LKA/ELK" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 10 m tại TLC 0,8 s, Δv 2.2 m/s, không yêu cầu LKA/ELK" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="target_s_m" value="78.0029986284195" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 20 m tại TLC 0,8 s, Δv 8 m/s, không yêu cầu LKA/ELK" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="target_s_m" value="45.353092123441826" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="28" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 12 m tại TLC 0,8 s, Δv 10 m/s, yêu cầu ELK" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="target_s_m" value="45.54277953551849" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="30" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 30 m tại TLC 0,8 s, Δv 14 m/s, yêu cầu ELK" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="target_s_m" value="11.922154359671822" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="34" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
