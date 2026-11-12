@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S7 anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S7.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Hai xe 72 km/h, trôi 0,2 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Hai xe 72 km/h, trôi 0,4 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Hai xe 72 km/h, trôi 0,6 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Xe ngược chiều 90 km/h" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="25.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Gặp xe ngược chiều trong cua R 500 m" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S7e.xodr" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

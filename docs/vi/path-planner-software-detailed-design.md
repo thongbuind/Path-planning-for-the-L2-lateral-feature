@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.6 |
+| Phiên bản | 1.7 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-12 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -37,7 +37,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | T4 Stitching và continuity | Stitching và continuity | `stitching.c` |
 | T5 Curvature fusion | Reference line | `curvature.c` |
 | T6 Lateral state | Path generation (trạng thái đầu) | `lateral_state.c`, riêng của planner (PP-ADR-014) |
-| T7 Path generation | Path generation | `generators/quintic.c`, `generators/frenet_sampling.c`, `generators/qp.c` |
+| T7 Path generation | Path generation | `generators/quintic.c`, `generators/qp.c`, `intervention.c` |
 | T8 Offset | Path generation (HWA) | `offset.c` |
 | T9 Arbitration | Arbitration | `arbitration.c` |
 | T10 Feasibility | Feasibility | `feasibility.c` |
@@ -140,8 +140,14 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 |---|---|---|
 | HWA giữ làn | Offset của T8 (0 khi không có xe lớn) | `T_hwa` |
 | HWA đưa về giữa | 0 | `T_recenter`. Bắt đầu khi HWA ở REQUEST mà chu kỳ trước chưa lái; kết thúc khi lệch ngang ≤ `recenter_done` hoặc HWA rời REQUEST |
-| LKA | Điểm có DLC phía đã trôi = `dlc_target_lka` | `T_lka`, ngắn lại nếu TLC nhỏ |
-| ELK | Trong làn, cách biên phía nguy hiểm ít nhất `dlc_target_lka` | `T_elk` |
+| LKA | Điểm có DLC phía đã trôi = `dlc_target_lka`, giới hạn từ tâm làn tới phía đó | Khởi đầu bằng `T_lka` |
+| ELK | Trong hành lang theo biên nguy hiểm, cách biên ít nhất `dlc_target_lka` nếu còn chỗ | Khởi đầu bằng `T_elk` |
+
+LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step` nếu path ban đầu chưa đạt. Giới hạn thời lượng là phần còn lại của 10 s kể từ lúc nhận REQUEST (PP-SWR-083).
+
+- Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ưu tiên ứng viên thoả giới hạn và giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
+- Giữ hệ số quintic và mốc bắt đầu trong suốt lần can thiệp. Mỗi chu kỳ lấy mẫu theo thời gian đã qua, dùng reference line hiện tại. Sau thời lượng quintic, mẫu ngang giữ đích và vận tốc ngang bằng 0 cho tới khi T9 kết thúc hoặc hủy.
+- Với ELK mép đường, dựng reference line từ mép nguy hiểm và biên đối diện đủ tin. Khi biên đối diện mất, dùng lại bề rộng đã nhớ nếu mép còn MEASURED và vị trí khớp mép đã gắn với làn sau bù ego-motion. Vạch ngoài làn đo được ở cùng phía loại mép đó khỏi hành lang làn đang chạy (PP-SWR-047).
 
 **Ba kỹ thuật ứng viên** (đề bài: chọn một, ít nhất một phương án bị loại kèm lý do; chọn theo Software Qualification Test Specification mục 9):
 
@@ -149,9 +155,9 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 |---|---|---|
 | A. Quintic theo thời lượng | d(t) bậc 5 từ trạng thái đầu tới (d mục tiêu, 0, 0) trong T. Chưa đạt `ay_add_max_hwa`, `jerk_target_hwa` thì tăng T theo bước 0,25 s tới `T_max`; giới hạn cứng do T10 cắt | `T_max` |
 | B. Lấy mẫu Frenet | Sinh quintic với d cuối trong d mục tiêu ± `d_sample_span` bước `d_sample_step`, T trong `T_set`. Bỏ path vượt giới hạn hoặc ra khỏi corridor. Chọn path có J = `w_jerk`·∫d⃛² + `w_time`·T + `w_dev`·(d cuối − d mục tiêu)² + `w_cons`·∫(d − d_cũ)² nhỏ nhất | `d_sample_span`, `d_sample_step`, `T_set`, `w_jerk`, `w_time`, `w_dev`, `w_cons` |
-| C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); |a_y| ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất HWA. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ thích nghi, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định, warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
+| C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); trị tuyệt đối của a_y ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất HWA. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ thích nghi, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định, warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
 
-Mọi kỹ thuật cùng dùng T2 đến T6, T8 đến T11; chỉ T7 khác nhau, nên Software Qualification Test Specification so sánh được trên cùng điều kiện. Kỹ thuật chọn lúc build (`PP_T7` = `quintic` hoặc `qp`, ghi trong `pp_version()`); bản giao chỉ giữ kỹ thuật được chọn ở PP-TS-003.
+Với HWA, `PP_T7` chọn `quintic` hoặc `qp` lúc build và được ghi trong `pp_version()` (PP-TS-003). Với LKA và ELK, bản `qp` cũng dùng quintic. PP-TS-006 theo dõi so sánh kỹ thuật cho can thiệp.
 
 ## 11. T8 Offset {#dd-t8}
 
@@ -166,16 +172,16 @@ Mọi kỹ thuật cùng dùng T2 đến T6, T8 đến T11; chỉ T7 khác nhau,
 
 ## 12. T9 Arbitration {#dd-t9}
 
-Trạng thái giữ qua chu kỳ: `active_function`, `intervention_phase`, cờ COMPLETED của LKA và ELK (giữ tới khi chức năng rời REQUEST), state của chu kỳ trước, cờ path không hợp lệ.
+Mỗi chức năng LKA và ELK giữ riêng pha, mốc nhận REQUEST, side, lý do ELK, mốc bắt đầu giữ điều kiện kết thúc và cờ chặn REQUEST. PathStatus công bố `lka_phase` và `elk_phase` theo PP-ADR-015.
 
 | Bước | Việc |
 |---|---|
-| 1 | FunctionRequests quá timeout: coi cả ba chức năng tắt |
-| 2 | Xoá cờ COMPLETED của chức năng nào đã rời REQUEST |
-| 3 | Ứng viên = chức năng ở REQUEST, chưa có cờ COMPLETED; LKA, ELK cần thêm: v_y hợp lệ, tâm làn không phải suy ra, input đã hồi phục thì cần REQUEST mới. Ngoại lệ: lần can thiệp đang chạy được tiếp tục khi chỉ v_y không hợp lệ (PP-SWR-046) |
-| 4 | Chọn ứng viên ưu tiên cao nhất ELK > LKA > HWA; không có thì NONE |
-| 5 | Can thiệp đang chạy: điều kiện kết thúc giữ `T_end_hold` thì COMPLETED, đặt cờ, chọn lại theo bước 3–4 |
-| 6 | `path_valid = false` thì `active_function = NONE` |
+| 1 | Kiểm timeout FunctionRequests theo thời gian nhận. Khi quá 75 ms, vô hiệu path ở cả PathStatus và Trajectory (PP-SWR-145) |
+| 2 | Khi state rời REQUEST, xóa pha và cờ chặn của chức năng đó. Khi vừa nhận ELK REQUEST, chặn yêu cầu nếu lốp trước đã qua vạch phía yêu cầu quá 0,3 m (PP-SWR-089) |
+| 3 | Lần can thiệp đang ACTIVE: tính điều kiện kết thúc từ DLC hai phía, v_lat, góc lệch và trị tuyệt đối a_y thêm vào của path đang áp dụng tại t0. Đưa v_y về t0 bằng ngoại suy tuyến tính từ hai VehicleStateEstimate hợp lệ gần nhất. Đặt COMPLETED khi giữ liên tục `T_end_hold`. Giữ pha tới khi state rời REQUEST (PP-SWR-032, 041, 090) |
+| 4 | Chọn ELK > LKA > HWA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện hoặc đã tới giới hạn thời gian của PP-SWR-083 |
+| 5 | Khi hoàn tất hoặc hủy, chọn chức năng kế tiếp ngay trong cùng chu kỳ. Nếu không còn ứng viên, báo NONE và giữ path bàn giao hợp lệ khi input cho phép. ELK mép đường vẫn xét hành lang theo biên trực tiếp ở tick nhận OFF. Trộn T4 theo PP-SWR-031, 036, 037 |
+| 6 | Khi path không hợp lệ, báo NONE. Chặn các REQUEST can thiệp đang giữ cho tới khi rời REQUEST rồi yêu cầu lại (PP-SWR-043, 045) |
 
 Kết quả khớp bảng arbitration state ở Software Architectural Design mục 5.1; unit test kiểm từng ô của bảng đó.
 
@@ -217,6 +223,7 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | `sigma_kappa_min` | 1/m | 1·10⁻⁴ | 5·10⁻⁵–5·10⁻⁴ | T5 |
 | `T_hwa` | s | 3,0 | 2,0–4,0 | T7 |
 | `T_max` | s | 5,0 | 4,0–8,0 | T7 |
+| `intervention_T_step` | s | 0,25 | 0,1–0,5 | T7 A |
 | `recenter_done` | m | 0,1 | 0,05–0,2 | T7 |
 | `d_sample_span`, `d_sample_step` | m | 0,3; 0,05 | 0,2–0,5; 0,025–0,1 | T7 B |
 | `T_set` | s | 1,5 đến 4,0, bước 0,5 | — | T7 B |
@@ -242,3 +249,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.4 | 2026-11-11 | T2: thay đổi chỉ được nhận khi vị trí mới ổn định suốt `T_confirm`; sau khi nhận, biên quay về vị trí cũ trong `T_confirm` thì nhận ngay |
 | 1.5 | 2026-11-11 | T7 C viết lại thành QP hợp nhất dạng nén, giải bằng ADMM (PP-TS-003); calibration của T7 C; kỹ thuật chọn lúc build |
 | 1.6 | 2026-11-11 | T7 C: liên tục với path cũ thành chi phí `qp_w_cont`, T4 vẫn trộn; a_y theo công thức của T11; dải a_y của PP-SWR-006; ràng buộc jerk; ρ theo khối hàng; `qp_ay_margin` 1,0. T8: offset theo khoảng hở tới xe lớn và `gap_truck_min`; T7 C dời path cũ theo phần offset vừa đổi |
+| 1.7 | 2026-11-12 | T7 quintic cho LKA, ELK trong cả hai bản build. T9 giữ pha riêng, áp PP-SWR-145 tại output và chọn lại trong cùng chu kỳ khi hoàn tất hoặc hủy |

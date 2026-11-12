@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S7 protocol" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S7.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-oncoming-left-2" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS oncoming-left-2" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-oncoming-left-3" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS oncoming-left-3" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-oncoming-left-4" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS oncoming-left-4" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-oncoming-left-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS oncoming-left-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-oncoming-left-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS oncoming-left-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.85" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

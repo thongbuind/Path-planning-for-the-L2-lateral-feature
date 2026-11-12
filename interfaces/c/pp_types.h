@@ -214,7 +214,7 @@ typedef struct {
     pp_request_state_t state;
     pp_side_t side; /* Drift side; HWA uses NONE */
     float tlc; /* [s]; Computed by the ADAS function block; HWA ignores it */
-    pp_elk_reason_t elk_reason; /* Log only */
+    pp_elk_reason_t elk_reason; /* ROAD_EDGE selects the observed road edge for ELK; other values are for logging */
     pp_cancel_reason_t cancel_reason; /* Log only */
 } pp_function_request_t;
 
@@ -367,7 +367,8 @@ typedef struct {
     pp_basic_header_t header;
     bool path_valid;
     pp_active_function_t active_function; /* NONE when path_valid is false */
-    pp_intervention_phase_t intervention_phase;
+    pp_intervention_phase_t lka_phase; /* LKA intervention phase */
+    pp_intervention_phase_t elk_phase; /* ELK intervention phase */
     bool lateral_limit_reached;
     bool lane_too_narrow;
 } pp_path_status_t;

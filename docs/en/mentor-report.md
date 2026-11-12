@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-MR` |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer |   |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-11 |
 
 ## 1. Purpose and scope {#summary-scope}
 
@@ -32,7 +32,7 @@
 | c0 jump flag | The planner checks boundary consistency at two time scales, using the same check for marking jumps, misidentified markings, and lane widening | Rely on a lane model flag | 006 |
 | Loss of ego-lane markings | Infer the lane center from reliable adjacent-lane markings and road edges; only HWA uses it | Follow the previous path for 1 s, then mark it invalid; have the lane model reconstruct the markings | 011 |
 | No remaining boundaries | Follow the previous path for up to 1 s, then mark it invalid | 0.5 s; 2 s; 3 s | 009 |
-| Center offset near a large vehicle | Balance clearances and limit the offset to the actual free space for any lane and vehicle | Fixed offset of ±0.3 m | 008 |
+| Center offset near a large vehicle | Shift away by the shortfall from `gap_truck_min`. Limit the offset to the actual free space for any lane and vehicle | Fixed offset of ±0.3 m. Balancing clearances | 008 |
 | Noise and continuity | Start from the previous path, rate-limit reference changes, and penalize jerk; project the path to satisfy continuity limits | Filter sensor data again in the planner | 004, 007 |
 | Calibration | One set for all vehicles; the planner obtains vehicle information only through VehicleConfig | One set per vehicle | 012 |
 
@@ -87,3 +87,4 @@ The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², add
 | Version | Date | Changes |
 |---|---|---|
 | 1.0 | 2026-11-10 | Rewritten as the Technical Summary for the BL1 technical document set |
+| 1.1 | 2026-11-11 | Updated the center offset to follow the revised PP-ADR-008 |

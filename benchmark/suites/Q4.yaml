@@ -1,0 +1,22 @@
+# Q4 View-range sweep of the lane camera (Software Qualification Test Specification 6.1).
+# End of the view range 10-126 m and its start 0-10 m, one at a time, the other at the
+# scenario value (0-80 m). Levels with a preview under t_view_hwa still run, to show what
+# the algorithm can do. Judged with the scope of P1; S14 adds its interface requirements.
+id: Q4
+title: Quét tầm nhìn camera
+profiles: [VP-0]
+seeds: [1]
+blocks:
+  - acc: ["off"]
+    runs: [[S1, a], [S1, c], [S1, f]]
+    sim_sweep:
+      camera_view_m: [10, 20, 40, 80, 126]
+      camera_view_start_m: [0, 5, 10]
+  - acc: ["ignore_limits", "on"]
+    runs: [[S14, a], [S14, e]]
+    sim_sweep:
+      camera_view_m: [10, 20, 40, 80, 126]
+      camera_view_start_m: [0, 5, 10]
+scope_from: P1
+extra_scope:
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-051, PP-SWR-151]

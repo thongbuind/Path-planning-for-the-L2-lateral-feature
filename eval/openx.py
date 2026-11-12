@@ -13,15 +13,19 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 
+from eval import departure
+from interfaces import LineType, RoadEdgeType
 from sim.faults.lane import LaneFault
 from sim.scenario import Scenario
 from sim.vehicle.profiles import PROFILES
-from sim.world.road import Segment
+from sim.world.road import Marking, RoadEdgeSpec, RoadLayout, Segment
 from sim.world.traffic import TrafficSpec
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / 'benchmark' / 'schema'
 TOKEN = re.compile(r'\$([A-Za-z_][A-Za-z0-9_]*)')
+# Largest camera view the planner uses: curvature buffer 0-126 m (Interface Control Document 5.1).
+CAMERA_VIEW_MAX_M = 126.0
 
 
 def number(value):
@@ -101,20 +105,24 @@ def resolve(root, overrides=None):
     return root, params
 
 
-def anchors(path):
-    """Named, coupled assignments. Anchor IDs never depend on list position."""
-    root = parse(Path(path).with_suffix('.anchors.xosc'))
+def parameter_sets(path, suffix):
+    """Named, coupled assignments. IDs never depend on list position."""
+    root = parse(Path(path).with_suffix(suffix))
     reference = root.find('./ParameterValueDistribution/ScenarioFile')
     if reference is None or reference.get('filepath') != Path(path).name:
-        raise ValueError('anchor distribution references the wrong scenario')
+        raise ValueError('parameter distribution references the wrong scenario')
     result = {}
     for values in root.findall('.//ParameterValueSet'):
         params = {p.attrib['parameterRef']: p.attrib['value'] for p in values}
         key = params['variant']
         if key in result:
-            raise ValueError(f'duplicate anchor {key}')
+            raise ValueError(f'duplicate parameter set {key}')
         result[key] = params
     return result
+
+
+def anchors(path):
+    return parameter_sets(path, '.anchors.xosc')
 
 
 @lru_cache(maxsize=4096)
@@ -167,11 +175,130 @@ def road_xml(segments, lane_width):
     return root
 
 
-def read_road(path):
-    root = parse(path)
+def _road_signature(element):
+    def value(v):
+        try:
+            return number(v)
+        except ValueError:
+            return v
+    return (element.tag, sorted((key, value(v)) for key, v in element.attrib.items()),
+            [_road_signature(child) for child in element])
+
+
+def _road_cross_section(road):
+    lanes = road.find('lanes')
+    if lanes is None or len(lanes.findall('laneSection')) != 1 or len(lanes.findall('laneOffset')) != 1:
+        raise ValueError('one lane section and offset required')
+    section = lanes.find('laneSection')
+    rights = section.findall('./right/lane')
+    centre = section.findall('./center/lane')
+    if (number(section.attrib['s']) != 0 or not 1 <= len(rights) <= 3
+            or [lane.get('id') for lane in rights] != [str(-i - 1) for i in range(len(rights))]
+            or len(centre) != 1 or centre[0].get('id') != '0' or centre[0].get('type') != 'none'):
+        raise ValueError('expected one to three right driving lanes starting at zero')
+    widths = []
+    for lane in rights:
+        if lane.get('type') != 'driving' or len(lane.findall('width')) != 1:
+            raise ValueError('one constant width per driving lane required')
+        w = lane.find('width')
+        if any(number(w.attrib[k]) != 0 for k in ('sOffset', 'b', 'c', 'd')):
+            raise ValueError('variable lane width unsupported')
+        widths.append(number(w.attrib['a']))
+    offset = lanes.find('laneOffset')
+    if len(set(widths)) != 1 or widths[0] <= 0 or any(number(offset.attrib[k]) != 0 for k in ('s', 'b', 'c', 'd')):
+        raise ValueError('unequal lane widths or variable lane offset unsupported')
+    width = widths[0]
+    lane_position = number(offset.attrib['a']) / width - 0.5
+    ego = round(lane_position)
+    if not 0 <= ego < len(rights) or not math.isclose(lane_position, ego, abs_tol=1e-9):
+        raise ValueError('the ego lane must be centred on the reference line')
+    return width, ego, centre + rights
+
+
+_EDGE_MARKS = {'edge': RoadEdgeType.UNKNOWN, 'grass': RoadEdgeType.GRASS_GRAVEL,
+               'curb': RoadEdgeType.CURB}
+_DOUBLE_MARKS = {'solid solid', 'broken solid', 'solid broken', 'broken broken'}
+
+
+def _barrier_geometry(obj, road_length):
+    repeat = obj.findall('repeat')
+    if (obj.get('type') != 'barrier' or obj.get('dynamic', 'no') != 'no'
+            or any(number(obj.get(name, 0)) != 0 for name in ('s', 'hdg', 'pitch', 'roll'))
+            or len(repeat) != 1 or repeat[0].get('detachFromReferenceLine', 'false') != 'false'):
+        raise ValueError('only static barriers following the full road are supported')
+    span = repeat[0]
+    t, width = number(span.attrib['tStart']), number(span.get('widthStart', obj.get('width', 0)))
+    if (number(span.attrib['s']) != 0 or number(span.attrib['distance']) != 0
+            or not math.isclose(number(span.attrib['length']), road_length, abs_tol=1e-7)
+            or number(span.attrib['tEnd']) != t or number(span.get('widthEnd', obj.get('width', 0))) != width
+            or width <= 0 or abs(t) <= width / 2):
+        raise ValueError('a barrier must have a constant offset and width along the full road')
+    return t, width, span
+
+
+def _layout_from_road(road, segments, width, ego, lanes):
+    expected = road_xml(segments, width).find('road/lanes')
+    if road.find('objects') is None and _road_signature(road.find('lanes')) == _road_signature(expected):
+        return None  # preserve the original HWA boundary offsets
+
+    markings = {}
+    edges = [None, None]
+    for index, lane in enumerate(lanes):
+        marks = lane.findall('roadMark')
+        if not marks:
+            continue
+        if len(marks) != 1 or number(marks[0].attrib['sOffset']) != 0:
+            raise ValueError('only one constant marking per boundary is supported')
+        mark = marks[0]
+        kind = mark.attrib['type']
+        offset = (ego + 0.5 - index) * width
+        if kind == 'none':
+            continue
+        if kind in _EDGE_MARKS:
+            if index not in (0, len(lanes) - 1):
+                raise ValueError('physical road edge must delimit the road')
+            edges[0 if offset > 0 else 1] = RoadEdgeSpec(offset, _EDGE_MARKS[kind])
+            continue
+        if kind not in {'solid', 'broken'} | _DOUBLE_MARKS:
+            raise ValueError(f'unsupported road marking: {kind}')
+        paint_width = number(mark.attrib['width'])
+        if not 0 < paint_width < width:
+            raise ValueError('invalid marking width')
+        near_side = kind.split()[-1 if index <= ego else 0]
+        line_type = LineType.DOUBLE if kind in _DOUBLE_MARKS else (
+            LineType.DASHED if kind == 'broken' else LineType.SOLID)
+        markings[index] = Marking(offset - math.copysign(paint_width / 2, offset), line_type,
+                                  near_side == 'broken')
+    for obj in road.findall('./objects/object'):
+        t, thickness, _ = _barrier_geometry(obj, number(road.attrib['length']))
+        side = 0 if t > 0 else 1
+        face = t - math.copysign(thickness / 2, t)
+        if edges[side] is None or abs(face) <= abs(edges[side].offset_m):
+            edges[side] = RoadEdgeSpec(face, RoadEdgeType.BARRIER)
+    return RoadLayout(tuple(markings.get(index) for index in range(ego - 1, ego + 3)), tuple(edges))
+
+
+def _set_road_width(road, new_width):
+    width, ego, lanes = _road_cross_section(road)
+    if new_width == width:
+        return
+    offset = road.find('./lanes/laneOffset')
+    offset.set('a', text((ego + 0.5) * new_width))
+    for lane in lanes[1:]:
+        lane.find('width').set('a', text(new_width))
+    for obj in road.findall('./objects/object'):
+        t, thickness, span = _barrier_geometry(obj, number(road.attrib['length']))
+        half = math.copysign(thickness / 2, t)
+        scaled_t = (t - half) * new_width / width + half
+        obj.set('t', text(scaled_t))
+        span.set('tStart', text(scaled_t))
+        span.set('tEnd', text(scaled_t))
+
+
+def _read_road(root, width_override=None):
     allowed = {'OpenDRIVE', 'header', 'road', 'planView', 'geometry', 'line', 'arc',
                'spiral', 'lanes', 'laneOffset', 'laneSection', 'center', 'right',
-               'lane', 'width', 'roadMark'}
+               'lane', 'width', 'roadMark', 'objects', 'object', 'repeat'}
     if root.tag != 'OpenDRIVE' or any(e.tag not in allowed for e in root.iter()) or len(root.findall('road')) != 1:
         raise ValueError('unsupported OpenDRIVE subset: one flat road with constant-width lanes required')
     road = root.find('road')
@@ -197,40 +324,16 @@ def read_road(path):
         previous = k1
     if not segments or not math.isclose(number(road.attrib['length']), distance, abs_tol=1e-7):
         raise ValueError('road length mismatch')
-    lanes = road.find('lanes')
-    if lanes is None or len(lanes.findall('laneSection')) != 1 or len(lanes.findall('laneOffset')) != 1:
-        raise ValueError('one lane section and offset required')
-    section = lanes.find('laneSection')
-    rights = section.findall('./right/lane')
-    if number(section.attrib['s']) != 0 or [r.get('id') for r in rights] != ['-1', '-2', '-3']:
-        raise ValueError('expected three right driving lanes starting at zero')
-    widths = []
-    for lane in rights:
-        if lane.get('type') != 'driving' or len(lane.findall('width')) != 1:
-            raise ValueError('one constant width per driving lane required')
-        w = lane.find('width')
-        if any(number(w.attrib[k]) != 0 for k in ('sOffset', 'b', 'c', 'd')):
-            raise ValueError('variable lane width unsupported')
-        widths.append(number(w.attrib['a']))
-    offset = lanes.find('laneOffset')
-    if len(set(widths)) != 1 or widths[0] <= 0 or any(number(offset.attrib[k]) != 0 for k in ('s', 'b', 'c', 'd')):
-        raise ValueError('unequal lane widths or variable lane offset unsupported')
-    if not math.isclose(number(offset.attrib['a']), 1.5 * widths[0]):
-        raise ValueError('ego lane -2 must be centred on reference line')
-    # The sensor model has fixed marking types and no elevation/banking. Reject
-    # lane content that it cannot reproduce instead of discarding it.
-    expected_lanes = road_xml(segments, widths[0]).find('road/lanes')
-    def signature(element):
-        def value(v):
-            try:
-                return number(v)
-            except ValueError:
-                return v
-        return (element.tag, sorted((k, value(v)) for k, v in element.attrib.items()),
-                [signature(child) for child in element])
-    if signature(lanes) != signature(expected_lanes):
-        raise ValueError('unsupported lane layout or road markings')
-    return tuple(segments), widths[0]
+    if width_override is not None:
+        _set_road_width(road, width_override)
+    width, ego, lanes = _road_cross_section(road)
+    layout = _layout_from_road(road, segments, width, ego, lanes)
+    return tuple(segments), width, layout
+
+
+def read_road(path):
+    segments, width, _ = _read_road(parse(path))
+    return segments, width
 
 
 def fault_from_command(command):
@@ -244,7 +347,8 @@ def fault_from_command(command):
     if (fault.start_s < 0 or (fault.duration_s is not None and fault.duration_s <= 0)
             or not fault.lines or any(i not in (0, 1, 2, 3) for i in fault.lines)
             or fault.sigma_c0 < 0 or fault.sigma_c1 < 0
-            or (fault.kind == 'fade_line' and fault.value <= 0)):
+            or (fault.kind == 'fade_line' and fault.value <= 0)
+            or (fault.kind.startswith('view_') and not fault.value > 0)):
         raise ValueError('invalid lane fault parameters')
     for v in (fault.start_s, fault.value, fault.sigma_c0, fault.sigma_c1):
         number(v)
@@ -279,7 +383,9 @@ def load_scenario(path, overrides=None):
         raise ValueError('Ego must be the first entity; entity names must be unique')
     properties = {p.get('name'): p.get('value') for p in objects[0].findall('./Vehicle/Properties/Property')}
     required = {'pp:adapter', 'pp:profile', 'pp:acc', 'pp:hwa_request_s', 'pp:hold_until_hwa'}
-    if not required <= set(properties) <= required | {'pp:camera_view_m'}:
+    optional = {'pp:camera_view_m', 'pp:camera_view_start_m', 'pp:adas_mode', 'pp:lka_enabled', 'pp:elk_enabled',
+                'pp:expect_intervention', 'pp:protocol', 'pp:hwa_view_gate'}
+    if not required <= set(properties) <= required | optional:
         raise ValueError('unsupported or missing simulator properties')
     if properties.get('pp:adapter') != 'single-ego-v1':
         raise ValueError('missing pp:adapter single-ego-v1')
@@ -307,8 +413,16 @@ def load_scenario(path, overrides=None):
         dims = obj.find('./Vehicle/BoundingBox/Dimensions')
         if obj.find('./Vehicle/Properties') is not None or dims is None:
             raise ValueError('traffic vehicles need a bounding box and no simulator properties')
+        heading = pos.find('Orientation')
+        travel_direction = 1
+        if heading is not None:
+            angle = abs(math.remainder(number(heading.get('h', 0)), 2 * math.pi))
+            if (heading.get('type') != 'relative' or any(number(heading.get(axis, 0)) != 0 for axis in ('p', 'r'))
+                    or not (angle == 0 or math.isclose(angle, math.pi, abs_tol=1e-9))):
+                raise ValueError('traffic heading must be relative to the road, 0 or pi')
+            travel_direction = 1 if angle == 0 else -1
         traffic.append(TrafficSpec(i, number(pos.get('s')), number(pos.get('t')), number(spd.get('value')),
-                                   number(dims.get('length')), number(dims.get('width'))))
+                                   number(dims.get('length')), number(dims.get('width')), travel_direction))
     stop = root.find('./Storyboard/StopTrigger/ConditionGroup/Condition/ByValueCondition/SimulationTimeCondition')
     if stop is None:
         raise ValueError('time stop required')
@@ -319,35 +433,62 @@ def load_scenario(path, overrides=None):
     if stop.get('rule') != 'greaterOrEqual':
         raise ValueError('only greaterOrEqual time stop supported')
     road_file = root.find('./RoadNetwork/LogicFile')
-    segments, width = read_road(path.parent / road_file.attrib['filepath'])
+    width_override = number(params['lane_width_m']) if 'lane_width_m' in params else None
+    segments, width, layout = _read_road(parse(path.parent / road_file.attrib['filepath']), width_override)
     scale = number(params.get('curvature_scale', 1))
     direction = number(params.get('direction', 1))
     if scale <= 0 or direction not in (-1, 1):
         raise ValueError('positive curvature_scale and direction +/-1 required')
     segments = tuple(Segment(s.kind, s.length, s.curvature_end * scale * direction) for s in segments)
-    width = number(params.get('lane_width_m', width))
-    faults = tuple(fault_from_command(c) for c in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'))
+    faults, departure_specs = [], []
+    for command in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
+        if command.get('type') == 'pp:departure:v1':
+            departure_specs.append(json.loads(command.text or '{}'))
+        else:
+            faults.append(fault_from_command(command))
+    if len(departure_specs) > 1:
+        raise ValueError('only one departure setup is supported')
     orientation = position.find('Orientation')
     if orientation is None or orientation.get('type') != 'relative' or any(number(orientation.get(k, 0)) != 0 for k in ('p', 'r')):
         raise ValueError('relative road orientation required')
-    hold = properties['pp:hold_until_hwa']
-    if hold not in ('true', 'false'):
-        raise ValueError('invalid hold_until_hwa')
+    def flag(key):
+        value = properties.get('pp:' + key, 'false')
+        if value not in ('true', 'false'):
+            raise ValueError(f'invalid {key}')
+        return value == 'true'
+
+    hwa = properties['pp:hwa_request_s']
+    expect = properties.get('pp:expect_intervention', '')
+    protocol = properties.get('pp:protocol', '')
+    if expect not in ('', 'LKA', 'ELK', 'late ELK') or protocol not in ('', 'Euro NCAP LSS', 'EU 2021/646'):
+        raise ValueError('unknown intervention expectation or protocol')
+    notes = {'description': params.get('description', '')}
+    if expect:
+        notes['expect_intervention'] = expect
+    if protocol:
+        notes['protocol'] = protocol
     scenario = Scenario(
         name=params['scenario_id'] + params['variant'], segments=segments, lane_width=width,
         speed_mps=number(speed.attrib['value']), profile=properties['pp:profile'],
-        duration_s=number(stop.attrib['value']), hwa_request_s=number(properties['pp:hwa_request_s']),
+        duration_s=number(stop.attrib['value']), hwa_request_s=None if hwa == 'off' else number(hwa),
         start_s=number(position.attrib['s']), start_offset_m=number(position.attrib['t']),
-        start_heading_rad=number(orientation.attrib['h']), hold_until_hwa=hold == 'true',
-        acc=properties['pp:acc'], lane_faults=faults,
+        start_heading_rad=number(orientation.attrib['h']), hold_until_hwa=flag('hold_until_hwa'),
+        acc=properties['pp:acc'], lane_faults=tuple(faults),
         camera_view_m=number(properties.get('pp:camera_view_m', 80.0)),
+        camera_view_start_m=number(properties.get('pp:camera_view_start_m', 0.0)),
         traffic=tuple(traffic),
-        notes={'description': params.get('description', '')})
+        notes=notes, road_layout=layout, adas_mode=properties.get('pp:adas_mode', 'scripted'),
+        lka_enabled=flag('lka_enabled'), elk_enabled=flag('elk_enabled'),
+        hwa_view_gate=flag('hwa_view_gate'))
+    if departure_specs:
+        scenario = departure.configure(scenario, **departure_specs[0])
     if not 2.5 <= width <= 5.5 or not 0 <= scenario.speed_mps <= 130 / 3.6 + 1e-10:
         raise ValueError('lane width or speed outside benchmark ODD')
-    if not 10.0 <= scenario.camera_view_m <= 80.0:
-        raise ValueError('camera view outside 10..80 m')
-    if scenario.duration_s <= 0 or not 0 <= scenario.hwa_request_s <= scenario.duration_s:
+    if not (10.0 <= scenario.camera_view_m <= CAMERA_VIEW_MAX_M
+            and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m):
+        raise ValueError('camera view outside 0 <= start < end, 10 <= end <= 126 m')
+    if (scenario.duration_s <= 0 or (scenario.hwa_request_s is None and scenario.hold_until_hwa)
+            or (scenario.hwa_request_s is not None and not 0 <= scenario.hwa_request_s <= scenario.duration_s)):
         raise ValueError('invalid scenario time')
     if not 0 <= scenario.start_s < sum(s.length for s in segments):
         raise ValueError('start position outside road')
@@ -374,7 +515,8 @@ def scenario_xml(params, fault=False):
     node(axles, 'RearAxle', maxSteering=0, wheelDiameter=.65, trackWidth=1.6, positionX=0, positionZ=.325)
     properties = node(vehicle, 'Properties')
     node(properties, 'Property', name='pp:adapter', value='single-ego-v1')
-    for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa', 'camera_view_m'):
+    for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa', 'camera_view_m', 'camera_view_start_m',
+                'adas_mode', 'lka_enabled', 'elk_enabled', 'expect_intervention', 'protocol', 'hwa_view_gate'):
         if key in params:
             node(properties, 'Property', name='pp:' + key, value='$' + key)
     story = node(root, 'Storyboard')
@@ -401,7 +543,18 @@ def concrete(path, destination, overrides=None):
     scenario = load_scenario(path, overrides)
     root, params = resolve(parse(path), overrides)
     road_path = destination.with_suffix('.xodr')
-    write(road_xml(scenario.segments, scenario.lane_width), road_path)
+    output_road = road_xml(scenario.segments, scenario.lane_width)
+    if scenario.road_layout is not None:
+        source_path = path.parent / root.find('./RoadNetwork/LogicFile').attrib['filepath']
+        source_road = parse(source_path).find('road')
+        _set_road_width(source_road, scenario.lane_width)
+        road = output_road.find('road')
+        road.remove(road.find('lanes'))
+        road.append(source_road.find('lanes'))
+        objects = source_road.find('objects')
+        if objects is not None:
+            road.append(objects)
+    write(output_road, road_path)
     root.find('./RoadNetwork/LogicFile').set('filepath', road_path.name)
     root.find('FileHeader').set('description', scenario.notes['description'])
     for p in root.findall('./ParameterDeclarations/ParameterDeclaration'):
@@ -410,6 +563,15 @@ def concrete(path, destination, overrides=None):
         if p.get('name') in ('curvature_scale', 'direction'):
             p.set('value', '1')
     profile = PROFILES[scenario.profile]
+    if scenario.driver is not None:
+        positions = {p.attrib['entityRef']: p.find('./PrivateAction/TeleportAction/Position/RoadPosition')
+                     for p in root.findall('./Storyboard/Init/Actions/Private')}
+        positions['Ego'].set('t', text(scenario.start_offset_m))
+        names = [e.attrib['name'] for e in root.findall('./Entities/ScenarioObject')[1:]]
+        for name, obj in zip(names, scenario.traffic, strict=True):
+            position = positions[name]
+            position.set('s', text(obj.s0))
+            position.set('t', text(obj.d))
     vehicle = root.find('./Entities/ScenarioObject/Vehicle')
     vehicle.set('mass', text(profile.mass))
     vehicle.find('./BoundingBox/Dimensions').set('width', text(profile.width_with_mirrors))

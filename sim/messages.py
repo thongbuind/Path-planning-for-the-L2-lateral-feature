@@ -6,6 +6,19 @@ and so do not belong in interfaces/.
 
 from dataclasses import dataclass
 
+from interfaces import Side
+
+
+@dataclass(frozen=True, slots=True)
+class DriverSignals:
+    """Driver and ESC signals read by the stand-in ADAS function (ADAS-FS 8, 12)."""
+
+    torque_nm: float = 0.0  # left positive at the steering wheel
+    indicator: Side = Side.NONE
+    hands_on: bool = False
+    esc_enabled: bool = True
+    esc_active: bool = False
+
 
 @dataclass(frozen=True, slots=True)
 class SteeringRequest:

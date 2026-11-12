@@ -1,16 +1,18 @@
 """Road ground truth: centre line of the ego lane from a curvature profile.
 
 The road is a chain of segments (straight, clothoid, arc), each given by its length
-and the curvature at its end. Curvature is positive to the left. The ego lane is the
-middle one of three; lines and road edges are parallels of the ego-lane centre.
+and the curvature at its end. Curvature is positive to the left. Lane markings and
+road edges are parallels of the ego-lane centre.
 
 Lines, left to right, as in Interface Control Document 5.1: L2, L1, R1, R2.
 """
 
 from dataclasses import dataclass
-from math import cos, sin
+from math import cos, isfinite, sin
 
 import numpy as np
+
+from interfaces import LANE_LINES, ROAD_EDGES, LineType, RoadEdgeType
 
 SAMPLE_STEP_M = 0.1  # Integration and storage step along the centre line
 
@@ -38,11 +40,48 @@ class LaneProjection:
     curvature: float  # [1/m] centre-line curvature at s
 
 
+@dataclass(frozen=True, slots=True)
+class Marking:
+    offset_m: float  # From the ego-lane centre to the near edge of the paint
+    type: LineType
+    crossable: bool  # From the ego side, including mixed double markings
+
+
+@dataclass(frozen=True, slots=True)
+class RoadEdgeSpec:
+    offset_m: float  # From the ego-lane centre to the physical edge
+    type: RoadEdgeType
+
+
+@dataclass(frozen=True, slots=True)
+class RoadLayout:
+    markings: tuple[Marking | None, ...]  # L2, L1, R1, R2
+    edges: tuple[RoadEdgeSpec | None, ...] = (None, None)  # left, right
+
+    def __post_init__(self) -> None:
+        if len(self.markings) != LANE_LINES or len(self.edges) != ROAD_EDGES:
+            raise ValueError("expected four markings and two road edges")
+        if any(bound is not None and not isfinite(bound.offset_m)
+               for bound in (*self.markings, *self.edges)):
+            raise ValueError("boundary offsets must be finite")
+        left, right = self.edges
+        if (left is not None and left.offset_m <= 0) or (right is not None and right.offset_m >= 0):
+            raise ValueError("road edges must be on their declared sides")
+
+
 class Road:
-    def __init__(self, segments: list[Segment], lane_width: float) -> None:
+    def __init__(self, segments: list[Segment], lane_width: float,
+                 layout: RoadLayout | None = None) -> None:
         if not segments:
             raise ValueError("a road needs at least one segment")
         self.lane_width = lane_width
+        if layout is None:
+            # Legacy three-lane geometry (the old nominal offsets already describe
+            # the boundaries seen by the camera).
+            types = (LineType.SOLID, LineType.DASHED, LineType.DASHED, LineType.SOLID)
+            layout = RoadLayout(tuple(Marking(offset, kind, kind == LineType.DASHED)
+                                      for offset, kind in zip(self.line_offsets(), types)))
+        self.layout = layout
         kappa_at = []  # curvature at each sample
         k_prev = 0.0
         for seg in segments:

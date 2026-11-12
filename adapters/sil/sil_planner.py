@@ -23,6 +23,7 @@ from interfaces import (
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_DIR = ROOT / "build" / "planner"
 STATE_ALIGNMENT = 8  # PP_STATE_ALIGNMENT in interfaces/c/pp_planner.h
+_VERSION_PREFIX = "pp_planner 0.2."  # PathStatus with independent LKA and ELK phases
 
 _EGO_MOTION_FN = ctypes.CFUNCTYPE(
     None,
@@ -69,6 +70,9 @@ class SilPlanner:
 
     def __init__(self, vehicle_config: VehicleConfig | None, library: ctypes.CDLL | None = None) -> None:
         self._lib = library or load_library()
+        version = self._lib.pp_version().decode("ascii") if hasattr(self._lib, "pp_version") else ""
+        if not version.startswith(_VERSION_PREFIX):
+            raise ValueError(f"Incompatible PathStatus ABI in {self._lib._name}: {version or 'unknown version'}")
         size = int(self._lib.pp_state_size())
         words = (size + STATE_ALIGNMENT - 1) // STATE_ALIGNMENT
         self._state = (ctypes.c_uint64 * words)()  # 8-byte aligned, owned here, no heap in C

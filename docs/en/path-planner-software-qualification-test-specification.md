@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SQTS` |
-| Version | 1.1 |
+| Version | 1.15 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -26,6 +26,9 @@
 | Euro NCAP LSS Test Protocol v4.3 | Test speed of 72 km/h, drift along an arc of R = 1200 m, v_lat of 0.2–0.6 m/s |
 | Bosch SMI230 (2018 product brief) | IMU noise and bias levels |
 | ISO 15622:2018 | ACC stub |
+| UN R79 Annex 8, UN R171 Annex 4, EU 2021/646 Annex I Part 2, Euro NCAP Assessment Protocol SA v10.4.1 | Tests specified in these documents (Section 5.1). Local copies are in `docs/reference/standards/` |
+| Menzel, Bagschik, Maurer, Scenarios for Development, Test and Validation of Automated Vehicles, IEEE IV 2018 (PEGASUS) | Three scenario levels: functional, logical, and concrete (Section 5.2) |
+| ASAM OpenSCENARIO XML 1.x, ASAM OpenDRIVE 1.x | Logical scenario and road formats (Section 5.2) |
 
 ## 3. Test principles {#test-principles}
 
@@ -47,7 +50,7 @@
 | Open loop | The vehicle follows a predefined trajectory independently of the path; measure path quality |
 | Closed loop | The path goes through the Lateral Controller and EPS stubs into the vehicle model. The stubs are fixed across all techniques |
 | Smoothness | Always measured on planner output, including in closed loop |
-| ADAS Functions stub | Mode B (reads ground truth) for scoring the planner; mode A (reads noisy messages) for reporting the full chain. Log both measured and ground-truth TLC |
+| ADAS Functions stub | Mode B uses ideal signals from ground truth to score the planner. Mode A uses received messages to compare activation timing. Arbitration and late-request cases can use predefined FunctionRequests sequences. See Section 4.8 |
 | Noise-free baseline | Each scenario has a noise-free run to separate algorithm errors from noise effects |
 | IMU | Main scenarios use clean IMU signals (mentor). IMU noise and bias are introduced through fault injection |
 | Rate | Planner and ADAS Functions: 40 Hz. Vehicle signals follow the signal list (mentor) |
@@ -59,7 +62,7 @@
 
 | Item | Specification |
 |---|---|
-| Architecture | Components communicate only through interfaces. The two modes share code and differ only in transport and scheduling layers. Pure Python plus numpy |
+| Architecture | Components communicate only through interfaces. The two modes share code and differ only in transport and scheduling. The simulator uses Python and numpy. The planner runs as a C library through the SIL adapter (PP-ADR-013) |
 | Step | 1 ms. Order within each step: integrate the vehicle model, sample sensors, deliver due messages, then run scheduled modules in fixed priority order |
 | Phase offset | Each module starts at a random phase determined by the seed |
 | Transport channel | Latency = nominal latency + uniform jitter. Messages can be lost with a specified probability. The receiver retains the latest message and checks counter, CRC, and qualifier on receipt |
@@ -80,7 +83,8 @@ Chassis signals pass through a virtual CAN bus using the DBC in the Interface Co
 | Grip limit | Lateral force per axle ≤ μ·F_z; μ = 1.0 dry, 0.5 wet |
 | Low speed | Gradually blend into the kinematic model over 3–5 m/s |
 | Longitudinal speed | From the ACC stub (Section 4.7). Scenarios with HWA run with ACC enabled; scenarios with only LKA or ELK and scenario S11 maintain the scenario-defined speed |
-| Lane drift sources | Simulated driver adds a small steering angle offset, or a constant lateral force from road cross slope or crosswind |
+| Lane drift sources | The simulated driver sets a steering angle to create a drift arc, then releases the steering input. Crosswind and cross slope produce a sustained lateral force at the center of gravity. See Section 4.8 |
+| Initial state | A vehicle starting in a curve begins in steady-state cornering at the local curvature. The simulated driver holds the corresponding steering angle |
 
 **Vehicle profiles.** The planner receives the profile through VehicleConfig. VP-0 is the default for all scenarios; VP-1 through VP-5 are used for S19 and the flexibility suite (Section 8.3).
 
@@ -111,16 +115,20 @@ The test system sets fault levels using datasheets or other documentation, indep
 
 | Channel | Generation | Level |
 |---|---|---|
-| Lane model | Transform visible lane geometry into `base_link` and fit a cubic polynomial to each marking across the three lanes and to each road edge; inject faults per Section 6 | Section 6 |
-| ObjectList | Transform scenario objects into `base_link` | x: σ = 0.2 m + 1 % of distance; y: σ = 0.1 m + 0.5 %; vx, vy: σ = 0.3 and 0.2 m/s; size σ = 0.1 m; missed detections in 2 % of frames; ghost objects at 0.05 per second, lasting 0.2 s; rain: σ × 1.5 |
+| Lane model | Transform visible lane geometry into `base_link` and fit a degree-3 polynomial to each marking across the three lanes and to each road edge. Inject faults per Section 6. Visible range is 0–80 m and capture-to-publish latency is 100 ms | With no fault, report σ_c0 = 0.03 m and σ_c1 = 0.002 (level F01 a). See Section 6 for fault levels |
+| ObjectList | Transform scenario objects into `base_link` at the same period and latency as the lane model. Detection range is 150 m ahead and 80 m behind. `existence_probability` is 0.95 for real objects and 0.6 for ghost objects (team agreement) | σ_x = 0.2 m + 1% of distance, σ_y = 0.1 m + 0.5%, σ_vx = 0.3 m/s, σ_vy = 0.2 m/s, and size σ = 0.1 m. Miss detections in 2% of frames. Generate ghost objects at 0.05 per second for 0.2 s each. In rain, multiply σ by 1.5 |
 | Yaw rate | Clean in the main scenarios | Fault injection: σ = 0.07 or 0.14 °/s (0.02 °/s/√Hz × √12 or √50 Hz); bias 0.1 / 0.3 / 1 °/s |
 | a_x, a_y | Clean in the main scenarios; on a cross slope, still includes g·sin(slope angle) | Fault injection: σ = 0.004 or 0.008 m/s²; bias up to 0.2 m/s² |
 | Speed | From the vehicle model before CAN encoding | σ = 0.02 m/s; scale error ±0.5 % |
-| Steering wheel angle | Same as above | σ = 0.001 rad; zero offset ±0.01 rad |
+| Steering wheel angle | Same as above | σ = 0.001 rad, offset from 0 of ±0.01 rad |
 | VehicleStateEstimate | Ground-truth v_y plus noise | σ = 0.05 m/s |
-| Ego-motion | Integrate the CAN signals themselves, so errors arise naturally when IMU faults are injected | — |
+| Ego-motion | Integrate speed and yaw rate from the CAN signals and include v_y from VehicleStateEstimate to capture lateral slip (Interface Control Document 5.5). Errors arise naturally when IMU or v_y faults are injected | — |
 
-Basis: IMU noise and bias follow the Bosch SMI230 (raw sensor, so these are upper bounds for filtered signals). The team agreed on the noise levels for speed, steering angle, perception, and v_y.
+Traffic travels in the direction of increasing or decreasing `s`. An oncoming vehicle has negative `vx` when the vehicles are aligned. Lateral moves use a time-based quintic, with lateral velocity and acceleration of the move equal to 0 at both ends. The S7 and S8 targets maintain the lateral offset specified by Euro NCAP LSS 7.2.4.3 and 7.2.4.4. ObjectList has 32 slots, and `num_objects` counts occupied slots.
+
+Roads have dashed, solid, and double markings and fixed edges. LaneModel represents the edge of the marking or face of the barrier nearest the vehicle. For double markings, `crossable` follows the line nearest the vehicle. Absent boundaries are reported as LOST.
+
+IMU noise and bias follow the Bosch SMI230. These raw sensor values bound the filtered signals from above. The team set the noise levels for speed, steering angle, perception, and v_y. Nominal camera latency is 100 ms, below the 120 ms worst case of PP-ASM-001. Q1 sweeps other latencies. The team set the 80 m visible range.
 
 ### 4.6 Lateral Controller and EPS stubs {#sim-controller}
 
@@ -130,9 +138,10 @@ Closed-loop test equipment, fixed across all planner versions.
 |---|---|
 | Controller | 100 Hz. Read a path point by `stamp_us + time_from_start` and transform it into current `base_link`. δ = L·κ + K·v²·κ + k_y·e_y + k_ψ·e_ψ; tune k_y and k_ψ once and keep them fixed |
 | Path sampling time | κ at current time plus `actuator_delay` (PP-ADR-010); e_y and e_ψ at a 0.5 s lookahead point |
+| Heading error | e_ψ compares path `pose.yaw` with the direction of vehicle motion at `base_link`, given by body heading plus atan(v_y / v). `pose.yaw` describes the path tangent (Interface Control Document 6.1) |
 | Understeer coefficient K | From the simulator's vehicle model (Section 4.4), without using VehicleConfig |
 | Invalid path or 75 ms timeout | Hold the last command and signal that control has stopped; EPS hands steering back to the driver over 1 s |
-| EPS | Track the requested steering wheel angle: pure delay per `actuator_delay`, first-order response with τ = 0.1 s, rate and angle limits per VehicleConfig. When not controlling, blend to the simulated driver's angle over 1 s |
+| EPS | Track the requested steering wheel angle with pure delay `actuator_delay`, first-order response with τ = 0.1 s, and rate and angle limits from VehicleConfig. When control stops, blend to the simulated driver's angle over 1 s. At startup, the simulated driver already holds the steering angle, so no handover occurs |
 
 The simulated EPS takes an angle for simplicity. EPS in a real L2 vehicle typically takes torque. The values are typical and do not come from measurements of a specific EPS.
 
@@ -148,35 +157,59 @@ The simulator's longitudinal module belongs to the test system and is fixed acro
 | Stationary objects | Do not respond to objects that have never moved | ISO 15622:2018 6.2.2 |
 | Lead vehicle following | c_des = 5 m + τ·v, τ = 1.8 s. a = 0.5·(c − c_des) + 1.0·(v_lead − v); limit the contribution from gap error to ±1.0 m/s² | τ: ISO 15622:2018 6.2.3.1 (1.5–2.2 s); remaining values: team agreement |
 | Curve speed | v_t = v_max·√(1 − 0.3 / 2.5), reserving 0.3 m/s² of a_y for HWA to correct deviation. v_allowed = √(v_t² + 2·2.0·max(0, d − 0.5·v)), where d is the distance to the point of maximum curvature. If v_max changes by no more than 5 %, decrease d by the distance traveled | team agreement |
+| Tracking law | For set speed, a = 0.4·(v_set − v). For the speed envelope, a = dv_allowed/dt + 1.0·(v_allowed − v) | team agreement |
 | `lateral_limit_reached` | Do not accelerate while the flag is set | team agreement |
 | Limits | Acceleration −3.0 to +1.5 m/s²; jerk ≤ 2.5 m/s³; no AEB | team agreement |
 | LongitudinalPlan | Propagate the above law for 3 s and sample v(t) and a(t) on a 0.1 s grid | team agreement |
-| LateralLimits lost; ACC disabled | Do not accelerate. If ACC is disabled, send OFF, current speed, and zero acceleration | team agreement |
+| LateralLimits lost (75 ms timeout, as with PathStatus) or ACC disabled | Do not accelerate. If ACC is disabled, send OFF, current speed, and acceleration of 0 | team agreement |
 | Actuation | Pass the acceleration command through a 0.1 s delay and a first-order response with τ = 0.3 s | team agreement |
+
+### 4.8 Simulated driver and ADAS Functions stub {#sim-adas-function}
+
+| Part | Specification | Source |
+|---|---|---|
+| LKA and ELK stub | Compute DLC, TLC, intent, and hazards from the supplied signals. Publish FunctionRequests at 40 Hz. Read intervention results from PathStatus | ADAS Function Specification Sections 5–9 and 12, PP-ADR-014, PP-TS-008 |
+| Mode A | Read sensor messages after delay and fault injection. Compensate for motion since measurement with EgoMotionQuery. Use this mode to compare activation timing | Sections 4.1, 4.5 |
+| Mode B | Use the same 20 Hz lane and object sampling cadence. Take geometry and kinematics from the simulator without injecting errors into the stub's signals. Compensate for motion using the actual pose. Score the planner from the FunctionRequests it receives, ICD outputs, and ground truth | Sections 4.1, 4.5 |
+| Log | Record TLC from modes A and B for the same vehicle state. Log the received FunctionRequests and receipt time at every planner tick | Section 8.2, Interface Control Document Section 4 |
+| Steering angle during drift | Set the steering angle for the sum of the drift-arc and road curvatures. At release, restore the target steering angle for tracking the road curvature and let the bicycle model integrate the motion | Euro NCAP LSS 7.2.2, EU 2021/646 Annex I Part 2, 5.3.3.1.2 |
+| Initialization in a curve | Use the curvature of the offset path as the nominal curvature. Initially align rear-axle motion with the offset path tangent, accounting for the bicycle model's slip angle | Section 4.4 model, PP-PR-015 |
+| Steering onset | Euro NCAP tests have a 2 s straight segment from T0 to Tsteer | Euro NCAP LSS 4.2.1 |
+| Release of steering input | At Tsteer + R·asin(v_lat/v)/v. In the drift-arc anchors, release occurs between 2.576 and 3.800 s. Report actual v_lat at intervention onset to check the protocol tolerance of ±0.05 m/s | Euro NCAP LSS 7.2.2.1–7.2.2.4, 7.2.3, 7.4.3, EU 2021/646 Annex I Part 2, 5.3.3.1.2–5.3.3.1.3 |
+| S8(c, d) turn indicator | Switch on at 1.0 s, which is 1.0 s before Tsteer. Hold until the end of the run | Euro NCAP LSS 7.2.4.4.5 for onset. The team set the switch-off time |
+| Hands and torque | Sample at 50 Hz. Apply 1.0 N·m in the steering direction through the drift arc. Set torque to 0 afterward. Use passive hands for Euro NCAP and hands off for the EU grid | ADAS Function Specification Sections 8, 12. Euro NCAP LSS 7.2.2.4. EU 2021/646 Annex I Part 2, 5.3.3.1.2 |
+| S4(d) crosswind | Apply a constant 300 N at the center of gravity toward the right from 2.0 s to the end of the 20 s run, equivalent to 0.15 m/s² initially for VP-0 | team agreement, model in Section 4.4 |
+| S4(e) cross slope | Apply a 2% leftward downslope from 2.0 s to the end of the 20 s run, equivalent to about 1.15° | team agreement, model in Section 4.4 |
+| S6(d) barrier | 0.2 m wide, 0.8 m high, along the road. The face nearest the vehicle coincides with the right lane boundary | team agreement |
+| S7 and S8 target vehicles | 1.9 m wide and 4.8 m long. The target center is 1.5 m from the inner marking edge. Synchronize with the nominal trajectory without intervention. Use 10% front overlap in S7 and align the front of the target with the test vehicle's rear axle in S8 | The team set the dimensions. Euro NCAP LSS 7.2.4.3–7.2.4.4 for synchronization |
+| S8 late | Keep the vehicle drifting and publish ELK REQUEST from the instant the nominal trajectory takes the tire 0.45 m beyond the marking. Verify actual DLC on receipt per Section 8.1 | 0.3 m from PP-SWR-089. The team set a 0.15 m margin for model error |
+| v_lat in additional anchors | S4b(b–e) uses 0.3 m/s as in S4b(a). S5(e), S6(c, d), and S7(d, e) use 0.4 m/s | team agreement within the Euro NCAP LSS 7.2.4–7.2.5 range |
+| Run length and duration | Start at s = 100 m on a 1,200 m road. Drift-arc anchors run for 17 s, with S8 late running for 10 s | team agreement |
+| S4(d, e) repeated drift | Lateral force persists after COMPLETED. A new intervention is eligible once the reactivation conditions are met. Score each intervention | ADAS Function Specification Section 9, PP-SWR-035 |
 
 ## 5. Test cases {#benchmark-scenarios}
 
 **Minimum set required by the assignment.** HWA curve tracking (S1), LKA lane drift (S4), and ELK with an oncoming vehicle (S7), each under 5 conditions: no fault, noise (F01), c0 jump (F02), loss of one marking (F04), and incorrect c2 (F06).
 
 - Euro NCAP LSS test speed: 72 km/h. Induce drift along an arc of R = 1200 m, then hold v_lat. Also test 90 km/h.
-- Use 3–5 variants per scenario, from easy to difficult, with at least one at the requirement boundary. Run scenarios that apply to both sides on both sides.
-- Defaults: 3.5 m lane, profile VP-0.
+- The table lists the concrete anchor cases. These cover every protocol test point in Section 5.1 plus at least one variant at the requirement boundary. Generate other concrete cases from the parameter ranges (Section 5.2). Run applicable scenarios on both sides.
+- Default to a 3.5 m lane and profile VP-0. Use a 100 m entry clothoid unless the variant specifies another length.
 - The Requirement column is generated by `python3 tools/trace.py --write` from the Verification column of the Software Requirements Specification. Do not edit it by hand. IDs are fixed: do not renumber or reuse them.
 
 | # | Scenario | Variants | Requirement |
 |---|---|---|---|
-| S1 | HWA tracks a curve | 90 km/h, clothoid curve entry. a) R = 1000 m (curve a_y 0.6 m/s²); b) R = 500 m (1.25); c) R = 250 m (2.5, reaches aysmax); d) S-curve, R = 500 m; e) 130 km/h, R = 1000 m (1.3) | PP-SWR-001, 003, 004, 008 (a, b, d, e), 050 (a, b, d, e), 051 (closed loop) |
-| S1b | HWA on a curve requiring more than aysmax | a) 90 km/h, R = 200 m (3.1 m/s²); b) 90 km/h, R = 150 m (4.2); c) 110 km/h, R = 300 m (3.1); d) R = 200 m immediately after a crest, with 40 m of camera visibility | PP-SWR-001, 005, 006, 007 |
-| S2 | HWA activates with the vehicle off center | a) 0.2 m offset, 0° heading error; b) 0.4 m, 1°; c) 0.5 m, 2° outward; d) 0.4 m on a curve with R = 500 m; e) 0.5 m at 130 km/h | PP-SWR-002, 052, 053 |
-| S3 | HWA offsets the center when passing a truck in an adjacent lane | Truck width 2.5 m. a) 5 m/s slower; b) 2 m/s slower; c) 10 m/s slower; d) truck 0.1 m from the marking; e) truck encroaches 0.3 m beyond the marking | PP-SWR-002, 055, 058, 059 |
-| S3b | A large vehicle overtakes from behind in a narrow lane | Truck is 5 m/s faster and detected only by corner radar before drawing alongside. a) opposite side empty, lane 3.5 m; b) passenger car on the opposite side; c) truck on the opposite side; d) as a, lane 3.0 m; e) as c, lane 2.75 m | PP-SWR-055, 056, 057 |
+| S1 | HWA tracks a curve | 90 km/h with clothoid curve entry. a) R = 1000 m (curve a_y 0.6 m/s²). b) R = 500 m (1.25). c) R = 250 m (2.5, reaches aysmax). d) S-curve, R = 500 m. e) 130 km/h, R = 1000 m (1.3). f) R171 Annex 4, 4.2.4.1 S-curve (R = 787 m then 374 m). g) R = 300 m (2.08 m/s², 83% of aysmax) | PP-SWR-001, 003, 004, 008 (a, b, d, e), 050 (a, b, d, e), 051 (closed loop) |
+| S1b | HWA on a curve requiring more than aysmax | a) 90 km/h, R = 200 m (3.1 m/s²). b) 90 km/h, R = 150 m (4.2). c) 110 km/h, R = 300 m (3.1). d) R = 200 m immediately after a crest, with a 40 m camera range throughout the run (flat road with simulated visibility). e) As a with a 60 m clothoid. f) 90 km/h, R = 230 m (2.72 m/s², within aysmax + 0.1 to + 0.4) | PP-SWR-001, 005, 006, 007 (closed loop), 064 |
+| S2 | HWA activates with the vehicle off center | 90 km/h. Measure offset and heading error when HWA takes control. a) 0.2 m offset, 0° heading error. b) 0.4 m, 1° inward. c) 0.5 m, 2° outward. d) 0.4 m on the outside of a curve with R = 500 m. e) 0.5 m at 130 km/h | PP-SWR-002, 052, 053 |
+| S3 | HWA offsets the center when passing a truck in an adjacent lane | Truck width 2.5 m. a) 5 m/s slower. b) 2 m/s slower. c) 10 m/s slower. d) Truck 0.1 m from the marking. e) Truck encroaches 0.3 m beyond the marking | PP-SWR-002, 055, 056, 057, 058, 059 |
+| S3b | A large vehicle overtakes from behind in a narrow lane | Truck is 5 m/s faster and detected only by corner radar before drawing alongside. a) Opposite side empty, lane 3.5 m. b) Passenger car on the opposite side. c) Truck on the opposite side. d) As a, lane 3.0 m. e) As c, lane 2.75 m | PP-SWR-056, 057 |
 | S4 | LKA for lane drift on a straight road | a) 72 km/h, dashed marking, v_lat 0.2 m/s; b) 72 km/h, solid marking, 0.4; c) 90 km/h, 0.6; d) crosswind-induced drift; e) cross slope-induced drift | PP-SWR-032, 080, 081, 083, 084 (closed loop), 085 (closed loop), 086 (closed loop), 087 (closed loop), 090, 110, 112, 114 |
 | S4b | LKA for lane drift in a curve | 90 km/h. a) R = 1000 m, outward drift at 0.3 m/s; b) R = 500 m, outward; c) R = 500 m, inward; d) R = 250 m, outward, with only 0.5 m/s² remaining within the LKA limit; e) outward drift in the clothoid | PP-SWR-083, 085 (closed loop), 110, 112, 114 |
-| S5 | Solid-marking ELK with LKA disabled | a) 72 km/h, v_lat 0.2; b) 0.4; c) 0.6; d) 90 km/h, 0.4; e) double marking | PP-SWR-032, 080, 082, 083, 085 (closed loop), 086 (closed loop), 090, 111, 113, 115 |
+| S5 | Solid-marking ELK with LKA disabled | a) 72 km/h, v_lat 0.2. b) 0.4. c) 0.6. d) 90 km/h, 0.4. e) Double marking. f) 72 km/h, 0.5 | PP-SWR-032, 080, 082, 083, 085 (closed loop), 086 (closed loop), 090, 111, 113, 115 |
 | S6 | Road-edge ELK | Passenger side. a) road edge only, v_lat 0.2; b) road edge only, 0.6; c) dashed center marking with no marking by the edge; d) barrier as the road edge; e) 90 km/h, 0.4 | PP-SWR-080, 082, 083, 085 (closed loop), 086 (closed loop), 111, 113, 115 |
 | S6b | Lane widening | HWA enabled. a) emergency lane widens by 1.5 m over 100 m on the right; b) exit branch; c) new lane on the left; d) widening on a curve with R = 500 m; e) widening while offsetting the center due to a truck on the other side | PP-SWR-050, 060 (closed loop) |
 | S7 | ELK for an oncoming vehicle | Other vehicle 1.5 m from the inner edge of the center marking, with 10 % overlap without intervention. a) both at 72 km/h, v_lat 0.2; b) 0.4; c) 0.6; d) other vehicle at 90 km/h; e) on a curve with R = 500 m | PP-SWR-082, 083, 085 (closed loop), 088 (closed loop), 111, 113, 115 |
-| S8 | ELK for an overtaking vehicle | a) other vehicle at 80 km/h, ego vehicle at 72 km/h, drift at 0.2 m/s; b) both at 72 km/h, drift at 0.4; c) turn indicator 1.0 ± 0.5 s before steering, 0.5 m/s; d) as c, 0.7 m/s; e) other vehicle at 100 km/h, drift at 0.4 | PP-SWR-082, 083, 085 (closed loop), 088 (closed loop), 089, 111, 113, 115 |
+| S8 | ELK for an overtaking vehicle | a) Other vehicle at 80 km/h, ego vehicle at 72 km/h, drift at 0.2 m/s. b) Both at 72 km/h, drift at 0.4. c) Turn indicator 1.0 ± 0.5 s before steering, 0.5 m/s. d) As c, 0.7 m/s. e) Other vehicle at 100 km/h, drift at 0.4. The additional late case injects ELK REQUEST after the front tire has crossed the marking | PP-SWR-082, 083, 085 (closed loop), 088 (closed loop), 089, 111, 113, 115 |
 | S8b | Signaled lane change with a rear vehicle at different distances | a) 20 m away, 2.2 m/s faster; b) 10 m, 2.2 m/s; c) 20 m, 8 m/s; d) 12 m, 10 m/s (TTC 1.2 s); e) 30 m, 14 m/s (requires 3.3 m/s²). a–c: no intervention; d, e: intervene per ADAS Function Specification Section 6, step 5 | PP-SWR-082 (d, e), 083 (d, e), 085 (d, e, closed loop), 111 (d, e), 113 (d, e), 115 (d, e) |
 | S8c | Sudden evasive steering with a vehicle in the adjacent lane | No turn indicator. a) v_lat 1.2 m/s; b) 1.5 m/s; c) steer and immediately steer back; d) steer during LKA intervention | PP-SWR-031 (d), 036 (d), 037 (d) |
 | S9 | Function transitions | a) LKA to ELK; b) ELK finishes and returns to HWA; c) HWA overridden, then override released; d) request cancelled due to turn indicator; e) driver switches off HWA mid-curve at R = 500 m | PP-SWR-030 (a), 031, 033 (b), 036 (d), 037 (d), 038, 039 (c), 040 (c), 042 (e) |
@@ -184,24 +217,81 @@ The simulator's longitudinal module belongs to the test system and is fixed acro
 | S11 | Motorway traffic congestion | HWA enabled. a) 0–30 km/h; b) 0–60 km/h; c) stop for 10 s, then resume; d) another vehicle cuts in at 20 km/h | PP-SWR-050, 054 |
 | S12 | Rain | μ = 0.5, nighttime camera noise, perception noise × 1.5. a) S1c; b) S4c; c) S7c; d) S4b-d | PP-SWR-001 (a) |
 | S13 | Slow EPS | S4c and S5c with EPS delay of a) 75 ms; b) 100 ms; c) 150 ms | PP-SWR-091 (a, b, closed loop) |
-| S14 | Lateral and longitudinal modules exchange constraints | Run twice: ACC reads and ignores LateralLimits, respectively. a) S1b-a; b) another vehicle encroaches by 0.5 m; c) both; d) loss of LongitudinalPlan mid-curve | PP-SWR-009, 150, 151, 152, 153, 154 (d), 155 (d) |
-| S15 | Center offset with objects on both sides | a) trucks on both sides; b) truck and barrier; c) truck and passenger car; d) trucks on both sides, lane 3.0 m; e) barriers on both sides | PP-SWR-055, 056, 057 |
+| S14 | Lateral and longitudinal modules exchange constraints | Run twice, once with ACC reading LateralLimits and once with ACC ignoring it. a) S1b-a. b) Another vehicle encroaches by 0.5 m. c) Both. d) Loss of LongitudinalPlan mid-curve. e) S1f S-curve at 130 km/h (the R = 374 m segment requires 3.5 m/s²) | PP-SWR-009, 150, 151, 152, 153, 154 (d), 155 (d) |
+| S15 | Center offset with objects on both sides | a) Trucks on both sides. b) Truck and barrier. c) Truck and passenger car. d) Trucks on both sides, lane 3.0 m. e) Barriers on both sides | PP-SWR-056, 057 |
 | S16 | Repeated interventions | a) LKA COMPLETED, REQUEST holds for another 1 s; b) as a, REQUEST clears for 0.2 s, then returns; c) three drifts at 0.4 m/s, 2 s apart; d) as c, with solid-marking ELK; e) second intervention starts 0.2 s after COMPLETED | PP-SWR-034 (a, b), 035 (c, d, e), 041 (a, b) |
 | S17 | Driver changes lanes with HWA enabled | The lane model switches lanes as the vehicle crosses the marking. a) straight road at 90 km/h, 4 s; b) 2.5 s; c) curve with R = 500 m; d) two consecutive lane changes; e) lane change flag delayed by one frame | PP-SWR-039, 040, 061 |
 | S19 | Lane width and vehicle width | HWA at 90 km/h, straight road then curve with R = 500 m. a) lane 2.5 m, VP-1; b) lane 2.5 m, VP-5; c) lane 5.5 m, VP-2; d) lane 3.0 m, VP-4, 2.5 m-wide truck in an adjacent lane traveling 5 m/s slower; e) as d, with trucks on both sides | PP-SWR-050, 062, 063 (b) |
 
+### 5.1 Regulatory and assessment test cases {#benchmark-regulatory}
+
+The table maps each protocol test to a scenario. Tests assigned to other modules (Lateral Controller, EPS, ADAS Functions) are marked "None".
+
+| Document and section | Test | Protocol test points | Pass criteria | Scenario | Notes |
+|---|---|---|---|---|---|
+| R79 Annex 8, 3.2.1 and R171 Annex 4, 4.2.5.1.1.1.1 | Lane keeping in a curve | Hands off at constant speed. The curve requires 80–90% of aysmax | The front tire does not cross the outer edge of the marking. Jerk ≤ 5 m/s³ | S1 (g) | aysmax is constant over 10–130 km/h, so test one range |
+| R79 Annex 8, 3.2.2 and R171 Annex 4, 4.2.5.1.1.1.2 | Maximum a_y | The curve requires > aysmax + 0.3 m/s². Disable curve deceleration | a_y within the R79 5.6.2.1.1 limits and jerk ≤ 5 m/s³ | S1b (a, b, c), ACC ignores LateralLimits | |
+| R79 Annex 8, 3.2.5 | Lane departure warning | The curve requires aysmax + 0.1 to + 0.4 m/s² | Warn by the time the front tire crosses the marking and continue assistance | S1b (f) | Warning uses `lateral_limit_reached` |
+| R79 Annex 8, 3.1, 3.2.3, 3.2.4 | CSF warning, override force, hands off | — | — | None | ADAS Functions, Lateral Controller, EPS |
+| R79 Annex 8, 3.3.1, 3.3.2 | ESF with an adjacent-lane vehicle | An adjacent-lane vehicle approaches. The driver intentionally changes lanes | Stay in the original lane and warn no later than intervention onset | S7, S8 | ADAS Functions is responsible for the warning |
+| R79 Annex 8, 3.3.3 to 3.3.5 | ESF with objects in the road, missing markings, or incorrect response | — | — | None | Outside the ELK function and the project's ODD |
+| R171 Annex 4, 4.2.4.1, 4.2.5.1.1.2 | Lane position, extended tests | Standard S-curve and multiple curvatures and speeds. At least one case exceeds declared a_y. Include markings, road edges, and a single marking | Stay in the lane with stable motion | S1 (f), S14 (e), F04, F21 | R171 requires ≥ 90% of tests to pass (Annex 3 Appendix 4). The project requires all tests to pass |
+| R171 5.3.7.1.1.1, 5.3.7.1.3 | Adjust speed to curvature | — | A speed strategy is defined and can be described | S14 | Software Architectural Design Section 6.2 |
+| EU 2021/646 Annex I Part 2, 5.3.3 and 3.6.2 | ELK lane keeping | Solid marking, left and right. 72 ± 1 km/h. Drift arc R ≥ 1200 m followed by hands off. v_lat 0.2 and 0.5 ± 0.05 m/s | DTLM stays within the −0.3 m departure limit | S5 (a, f) | Section 3.6.2 gives v_lat ranges of 0.2–0.5 m/s up to 100 km/h and 0.2–0.3 m/s above 100 km/h |
+| EU 2021/646 Annex I Part 2, 5.3.2 | ELK override | Driver overrides during intervention | Steering assistance does not drop abruptly after override | S9 (c) | EPS is responsible for force ≤ 50 N |
+| EU 2021/646 Annex I Part 2, 4.3 and Euro NCAP LSS 7.2.6 | LDW | — | — | None | ADAS Functions is responsible for the warning |
+| Euro NCAP LSS 7.2.3, 7.2.5 and SA 4.3.2 | LKA with dashed and solid markings | 72 km/h, drift arc R = 1200 m, v_lat 0.2–0.6 m/s in 0.1 m/s steps, both sides | DTLE ≥ −0.3 m | S4 | |
+| Euro NCAP LSS 7.2.4.1, 7.2.4.2 and SA 4.3.3 | ELK with a road edge or solid marking | Passenger-side road edge alone, or a dashed center marking with no marking at the edge. Solid marking on either side. v_lat 0.2–0.6 m/s in 0.1 m/s steps | DTLE ≥ −0.1 m for road edges and ≥ −0.3 m for markings | S5, S6 | |
+| Euro NCAP LSS 7.2.4.3 and SA 4.3.3.4 | ELK with an oncoming vehicle | Other vehicle 1.5 m from the inner edge of the center marking, with 10% overlap without intervention. Driver side, v_lat 0.2–0.6 m/s | No collision | S7 | |
+| Euro NCAP LSS 7.2.4.4 and SA 4.3.3.4 | ELK with an overtaking vehicle | Both at 72 km/h, and 80 versus 72 km/h. Unintentional drift v_lat 0.2–0.6 m/s. Intentional drift with turn indicator at 1.0 ± 0.5 s, v_lat 0.5–0.7 m/s, and arc R = 800 m | No collision | S8 | |
+| R79 Annex 8, 2.4 | Measuring a_y and jerk | At the center of gravity, sample at ≥ 100 Hz. Apply a fourth-order Butterworth filter with 0.5 Hz cutoff. Jerk is a 0.5 s moving average of the derivative | — | Closed-loop HWA, LKA, ELK | Score Trajectory. Report vehicle measurements for information (Section 8.2) |
+
+Each row of the protocol grid is defined in `*.protocol.xosc` and runs in the regression and full suites. The Euro NCAP grid uses both sides for markings, the passenger side for road edges, and the driver side for target vehicles. It uses a width of 3.7 m between the inner edges per Section 6.1.3.1 so all profiles use the same geometry. The EU grid uses both sides and v_lat of 0.2 and 0.5 m/s. Anchor cases and coverage samples use separate distributions.
+
+### 5.2 Functional, logical, and concrete scenarios {#benchmark-scenario-levels}
+
+The three PEGASUS scenario levels also form the framework of ISO 34502.
+
+| Level | Definition | Location |
+|---|---|---|
+| Functional | Written description of the road, ego vehicle, other vehicles, faults, and pass criteria | Section 5 tables |
+| Logical | Range of values for each parameter | `benchmark/scenarios/` contains ASAM OpenSCENARIO XML scenarios (`.xosc`) with `ParameterDeclarations`, parameter ranges (`ParameterValueDistribution` with `DistributionRange` or `DistributionSet`), and ASAM OpenDRIVE roads (`.xodr`) |
+| Concrete | One value for every parameter | Generated from the logical scenario. Variants a, b, c, and so on in Section 5 are concrete anchors with fixed IDs |
+
+| Group | Common parameters | Range |
+|---|---|---|
+| Road | Lane width and boundary type on each side | 2.5–5.5 m (Software Requirements Specification Section 5). Dashed, solid, and double markings, and road edges |
+| Ego vehicle | Speed and vehicle profile | Operating range of the function (ADAS Function Specification Section 7). VP-0 to VP-5 |
+| Sensors and timing | Lane model noise and camera latency | F01 and Q1 |
+| Longitudinal module | ACC mode | Reads or ignores LateralLimits |
+
+Scenario-specific parameters (radius, v_lat, other vehicles, and so on) and their ranges are declared in the scenario files. Where a protocol specifies a range, use the test points in Section 5.1.
+
+**Selecting concrete cases**
+
+1. Anchors. Use every variant in Section 5.
+2. Boundaries. Use each parameter at the minimum and maximum of its range with the other parameters at nominal values.
+3. Pairwise. Use all pairs of minimum, nominal, and maximum values for any two parameters.
+4. Random. Use Latin hypercube sampling within the ranges with a fixed seed.
+
+| Suite | Coverage | When to run |
+|---|---|---|
+| Smoke | Anchors, VP-0, one seed | On every code change |
+| Regression | Anchors and boundaries, all profiles, two seeds | For each major planner change and before closing a trade study |
+| Full | All four selection methods, all profiles, ten seeds per cell with noise (Section 4.1) | Before each baseline |
+
 ## 6. Fault injection {#benchmark-faults}
 
-Inject each fault at three times: during steady HWA operation, at LKA or ELK activation, and during an intervention. The Requirement column is generated as in Section 5.
+Inject each fault at three times: during steady HWA operation, at LKA or ELK activation, and during an intervention. Fault timing follows frame capture time. The lane model sends no flag (PP-ASM-009). The Requirement column is generated as in Section 5.
 
 | ID | Group | Fault | Level or form | Requirement |
 |---|---|---|---|---|
 | F01 | Lane model | c0 and c1 noise | a) daytime σ_c0 = 0.03 m, σ_c1 = 0.002; b) × 1.5; c) night or rain × 2.5 | PP-SWR-120 |
-| F02 | Lane model | c0 jump without a flag | a) 0.3 m; b) 0.6 m; c) 1.0 m within one frame; d) jump and return after one frame; e) jump and hold | PP-SWR-121 |
+| F02 | Lane model | c0 jump without a flag | The entire lane model jumps in one frame. a) 0.3 m. b) 0.6 m. c) 1.0 m. In a–c, hold for 1 s before returning. d) 0.6 m, return after one frame. e) 0.6 m, hold | PP-SWR-121 |
 | F03 | Lane model | Misidentified adjacent-lane marking | a) left marking jumps to L2 in one frame; b) as a, lasting 0.5 s; c) both markings jump to the adjacent lane with no lane change flag; d) old marking or crack offset by 0.5 m, lasting 2 s; e) as a, during ELK | PP-SWR-050, 122 (closed loop) |
-| F04 | Lane model | Loss of one marking | a) left; b) right; c) confidence drops to 0 over 2 s; d) immediate loss; e) loss while lane width changes | PP-SWR-050, 123 (a–d, closed loop) |
+| F04 | Lane model | Loss of one marking | a) Immediate loss on the left. b) Immediate loss on the right. c) Left-side confidence falls to 0 over 2 s. d) Right-side confidence falls to 0 over 2 s. e) Loss while lane width changes | PP-SWR-050, 123 (a–d, closed loop) |
 | F05 | Lane model | Loss of all boundaries: both ego-lane markings, adjacent-lane markings, and road edges | a) reconstruct for 0.5 s, then lose them; b) reconstruct for 1 s, then lose them; c) lose them for 0.5 s, then recover; d) loss mid-curve at R = 500 m | PP-SWR-043, 124 |
-| F06 | Lane model | Incorrect curvature | a) c2 +0.0005 1/m on a straight road; b) −0.0005 1/m in a curve; c) incorrect c3; d) error lasts 2 s; e) error on curve entry | PP-SWR-125 |
+| F06 | Lane model | Incorrect curvature | All markings. a) c2 +0.0005 1/m on a straight road. b) −0.0005 1/m in a curve. c) c3 +4·10⁻⁶ 1/m², with the same curvature error as a at 40 m. d) As a, for 2 s. e) As a, during curve entry. Cases a, b, c, and e last 1 s | PP-SWR-125 |
 | F07 | IMU | Noise | a) yaw-rate σ = 0.07 °/s, a_y σ = 0.004 m/s²; b) 0.14 °/s and 0.008 m/s² | PP-SWR-135 (a, b, closed loop) |
 | F08 | IMU | Yaw-rate bias | a) 0.1 °/s; b) 0.3 °/s; c) 1 °/s (uncompensated raw sensor) | PP-SWR-136 (a, b, closed loop) |
 | F09 | Timing | Latency | Sweeps in Section 6.1 |   |
@@ -216,7 +306,7 @@ Inject each fault at three times: during steady HWA operation, at LKA or ELK act
 | F18 | Integrity | CAN quantization | Per DBC scaling factor, always present | PP-SWR-139 (closed loop) |
 | F19 | Timing | Future timestamp | a) lane model +5 ms; b) +15 ms; c) +50 ms; d) one frame at +50 ms; e) ObjectList +15 ms | PP-SWR-132 |
 | F20 | Ego-motion | Invalid result | a) once; b) continuously; c) every other cycle; d) as b, during LKA | PP-SWR-043, 143 |
-| F21 | Lane model | Both ego-lane markings lost, other boundaries remain | a) L2 and R2 remain, confidence ≥ `conf_inferred`; b) only L2 remains; c) only the right road edge remains for 5 s; d) as a, on a curve with R = 500 m; e) as a, with confidence between `conf_ego` and `conf_inferred` | PP-SWR-047, 050, 124 (e), 147 (a–d), 148 (a–d, closed loop) |
+| F21 | Lane model | Both ego-lane markings lost, other boundaries remain | a) L2 and R2 remain, confidence ≥ `conf_inferred`. b) Only L2 remains. c) Only the right road edge outside the ego-lane corridor remains, for 5 s. d) As a, on a curve with R = 500 m. e) As a, with confidence between `conf_ego` and `conf_inferred` | PP-SWR-047, 050, 124 (e), 147 (a–d), 148 (a–d, closed loop) |
 
 ### 6.1 Latency sweeps
 

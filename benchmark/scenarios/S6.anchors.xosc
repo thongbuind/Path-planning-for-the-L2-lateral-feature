@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S6 anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S6.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Chỉ mép đường, 0,2 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Chỉ mép đường, 0,6 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Vạch giữa đứt và mép đường" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Mép đường là rào chắn" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6d.xodr" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Chỉ mép đường, 90 km/h" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

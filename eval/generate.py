@@ -131,6 +131,11 @@ def plan(name):
             for method in suite['methods']:
                 if method == 'anchor':
                     continue
+                if method == 'protocol':
+                    if path.with_suffix('.protocol.xosc').is_file():
+                        selections.extend((method, openx.resolve(raw, values)[1])
+                                          for values in openx.parameter_sets(path, '.protocol.xosc').values())
+                    continue
                 samples = (boundary_samples(space) if method == 'boundary' else pairwise_samples(space)
                            if method == 'pairwise' else latin_hypercube(space, suite['lhs_count'], suite['sampling_seed']))
                 for sample in samples:

@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.5 |
+| Phiên bản | 1.8 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-12 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -68,18 +68,19 @@
 | Lệch ngang của path | Khoảng cách ngang lớn nhất giữa path và tâm làn thật, đo tại cùng vị trí dọc, trên đoạn 0–1 s của path, trừ khi requirement nêu đoạn khác |
 | a_y của path | v²·κ tại từng điểm của Trajectory, với v = `longitudinal_velocity`, κ = `curvature` |
 | a_y cần | v²·κ của tâm làn thật tại điểm tương ứng trên path |
+| Tầm nhìn của lane model | Đoạn camera thật sự quan sát được trên cả hai biên làn đang dùng, trong mô hình cảm biến của simulator. Không tính phần lane model báo dài hơn đoạn đã quan sát |
 | a_y cần lớn nhất | Giá trị lớn nhất của a_y cần trên đoạn 0–3 s, chỉ xét phần trong tầm nhìn của lane model |
 | a_y thêm vào | a_y của path trừ a_y cần, tại cùng một điểm |
 | Jerk ngang của path | Đạo hàm theo thời gian của a_y của path, trung bình trượt 0,5 s |
 | Hai path liên tiếp | So trên đoạn thời gian cả hai cùng mô tả, sau khi đưa path cũ về base_link của path mới bằng chuyển động thật của xe |
 | Biên làn đủ tin | Vạch L1, R1: status MEASURED, confidence ≥ `conf_ego`. Vạch L2, R2 hoặc mép đường, khi dùng để suy ra tâm làn: status MEASURED, confidence ≥ `conf_inferred` |
-| DLC | Như ADAS Function Specification, mục 3, tính trên làn thật và vị trí thật của xe |
+| DLC | Như ADAS Function Specification, mục 5, tính trên làn thật và vị trí thật của xe |
 | DTLE | Khoảng cách từ mép ngoài lốp tới mép trong của vạch, nhỏ nhất trong một lần can thiệp; âm là đã vượt vạch (Euro NCAP) |
 | Khoảng trống mỗi bên | (bề rộng làn thật − bề rộng xe kể cả gương) / 2 |
 | Xe lớn | Vật thể ở làn bên kề, bề rộng ≥ 2,3 m |
 | Ngang hàng | Phần dọc của xe lớn chồng lên thân xe |
 | Khoảng hở tới xe lớn | Khoảng cách ngang từ thân xe (kể cả gương), khi xe ở tâm làn thật, tới mép gần nhất của xe lớn |
-| Điều kiện kết thúc | DLC ≥ 0 ở cả hai phía; trị tuyệt đối của v_lat ≤ `v_lat_end`; trị tuyệt đối của góc lệch so với hướng làn ≤ `heading_end`; a_y thêm vào ≤ `ay_add_end` |
+| Điều kiện kết thúc | DLC ≥ 0 ở cả hai phía, trị tuyệt đối của v_lat ≤ `v_lat_end`, trị tuyệt đối của góc lệch so với hướng làn ≤ `heading_end`, trị tuyệt đối của a_y thêm vào ≤ `ay_add_end` |
 
 ## 5. Operating conditions (ODD) {#req-odd}
 
@@ -116,6 +117,7 @@ Mỗi dòng ghi requirement nào dựa vào nó và cách kiểm lại khi có x
 | PP-ASM-017 | Lateral Controller bù phần trễ sau planner, bằng cách đọc điểm path theo `header.stamp_us` và `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Thống nhất với đội Lateral Controller | nhóm tự thống nhất |
 | PP-ASM-018 | ASIL của các safety requirement lấy theo kết quả confirmation review của phòng an toàn trên HARA | Mọi requirement loại Safety | Kết quả review của phòng an toàn | nhóm tự thống nhất |
 | PP-ASM-019 | Nền tảng đích (ECU, hệ điều hành, middleware, coding standard) chưa biết; planner chỉ cần trình biên dịch C11 (PP-ADR-013) | Mọi requirement, qua cách triển khai | Hỏi mentor nền tảng đích và coding standard | nhóm tự thống nhất |
+| PP-ASM-020 | Tầm nhìn của lane model thay đổi theo từng vạch và từng frame; điểm đầu, điểm cuối thật chưa biết. Benchmark dùng 0–80 m danh định, quét điểm cuối 10–126 m | PP-SWR-017, 149, 151 | Đọc phân bố `line start distance`, `line end distance` trong log xe thật | nhóm tự thống nhất |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
 
@@ -124,6 +126,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | Tham số | Ý nghĩa | Giới hạn | Nguồn của giới hạn |
 |---|---|---|---|
 | `conf_ego` | Độ tin tối thiểu của vạch L1, R1 | 0–1 | — |
+| `conf_edge` | Độ tin tối thiểu của mép đường ELK đo trực tiếp | 0–1 | PP-SWR-047 |
 | `conf_inferred` | Độ tin tối thiểu của biên dùng để suy ra tâm làn | > `conf_ego` | Biên suy ra cộng thêm sai số của khoảng cách nhớ được |
 | `T_coast` | Thời gian bám path cũ khi không còn biên làn đủ tin | 0–1 s | Analysis: lệch dead reckoning 0,06 m sau 1 s (Software Architectural Design Appendix A.4) |
 | `free_space_min` | Khoảng trống tối thiểu mỗi bên để HWA khả dụng | ≥ 0 m | PP-SWR-051 |
@@ -142,6 +145,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-011 | Trajectory phải theo định dạng ở Interface Control Document: 31 điểm, bước 0,1 s, phủ 0–3 s, frame_id = base_link | Inspection | Interface | nhóm tự thống nhất (Autoware Trajectory) |
 | PP-SWR-012 | `header.stamp_us` của Trajectory phải là thời điểm mà path mô tả, đã bù trễ của lane model | Inspection; Test: Q1 | Interface | nhóm tự thống nhất |
 | PP-SWR-014 | `header.counter` phải tăng 1 sau mỗi message, quay vòng 0–255 | Inspection; Test: mọi kịch bản | Interface | nhóm tự thống nhất |
+| PP-SWR-017 | Planner phải nhận lane model với mọi `view_range_end > view_range_start` của từng vạch và mép đường. Phần tầm nhìn vượt 126 m không được làm input bị coi là không hợp lệ | Test: F22 (e), Q4 | Interface | nhóm tự thống nhất |
 | PP-SWR-015 | Planner phải ghi thời gian tính của từng chu kỳ | Inspection | Interface | nhóm tự thống nhất |
 
 ### 8.2 Arbitration {#req-arbitration}
@@ -150,22 +154,22 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 |---|---|---|---|---|
 | PP-SWR-030 | Planner phải chọn chức năng đang lái theo thứ tự ELK > LKA > HWA, chỉ xét chức năng có state = REQUEST | Test: S9 (a) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-031 | Khi chức năng đang lái đổi, path phải thoả PP-SWR-100 đến 102, trừ lúc LKA hoặc ELK bắt đầu mà xe thật đang lệch khỏi path cũ hơn 0,1 m hoặc 0,1 m/s; khi đó áp PP-SWR-080 | Test: S9, S8c (d) | Safety, SG-04 | đề bài |
-| PP-SWR-032 | Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục `T_end_hold`, planner phải đặt `intervention_phase = COMPLETED` | Test: S4, S5 | Functional | nhóm tự thống nhất |
+| PP-SWR-032 | Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục `T_end_hold`, planner phải đặt pha của chức năng đó thành COMPLETED | Test: S4, S5 | Functional | nhóm tự thống nhất |
 | PP-SWR-033 | Sau COMPLETED, planner phải chọn chức năng đang lái theo PP-SWR-030 trong các chức năng còn ở REQUEST, không tính chức năng vừa COMPLETED; không còn chức năng nào thì chọn NONE | Test: S9 (b) | Functional | nhóm tự thống nhất |
 | PP-SWR-034 | Nếu chức năng vừa COMPLETED vẫn giữ REQUEST, thì planner không được bắt đầu lần can thiệp mới cho chức năng đó cho tới khi state rời REQUEST rồi quay lại | Test: S16 (a, b) | Functional | nhóm tự thống nhất |
 | PP-SWR-035 | Mỗi lần can thiệp mới của LKA hoặc ELK phải có cùng giới hạn như lần đầu, không phụ thuộc số lần đã can thiệp | Test: S16 (c, d, e) | Functional | nhóm tự thống nhất |
-| PP-SWR-036 | Khi chức năng đang can thiệp rời REQUEST giữa chừng và HWA ở REQUEST, planner phải chuyển sang HWA từ trạng thái hiện tại | Test: S9 (d), S8c (d) | Functional | nhóm tự thống nhất |
-| PP-SWR-037 | Khi chức năng đang can thiệp rời REQUEST giữa chừng và HWA không ở REQUEST, planner phải đặt `active_function = NONE` và giữ `path_valid = true` | Test: S9 (d), S8c (d) | Safety, SG-02 | nhóm tự thống nhất |
+| PP-SWR-036 | Khi chức năng đang can thiệp rời REQUEST giữa chừng, planner phải chuyển từ trạng thái hiện tại sang chức năng được chọn theo PP-SWR-030 trong các chức năng còn ở REQUEST | Test: S9 (d), S8c (d) | Functional | nhóm tự thống nhất |
+| PP-SWR-037 | Khi chức năng đang can thiệp rời REQUEST giữa chừng qua một message hợp lệ và không còn chức năng đủ điều kiện, planner phải báo `active_function = NONE` với `path_valid = true` nếu các input bắt buộc còn hợp lệ | Test: S9 (d), S8c (d) | Safety, SG-02 | nhóm tự thống nhất |
 | PP-SWR-038 | Planner phải phản ánh thay đổi của FunctionRequests vào output trong không quá một chu kỳ kể từ lúc nhận message | Test: S9, Q3 | Functional | nhóm tự thống nhất |
 | PP-SWR-039 | Trong khi `driver_override = true`, điểm đầu của path phải trùng vị trí ngang hiện tại của xe, lệch ≤ 0,05 m | Test: S9 (c), S17 | Safety, SG-05 | nhóm tự thống nhất |
 | PP-SWR-040 | Khi `driver_override` chuyển về false trong lúc HWA ở REQUEST, điểm đầu của path HWA phải trùng vị trí ngang của xe lúc đó, lệch ≤ 0,05 m | Test: S9 (c), S17 | Safety, SG-05 | nhóm tự thống nhất |
-| PP-SWR-041 | Planner phải giữ `intervention_phase = COMPLETED` cho tới khi state của chức năng đó rời REQUEST | Test: S16 (a, b) | Functional | nhóm tự thống nhất |
-| PP-SWR-042 | Khi HWA rời REQUEST và không chức năng nào ở REQUEST, planner phải đặt `active_function = NONE` và giữ `path_valid = true` | Test: S9 (e) | Safety, SG-02 | nhóm tự thống nhất |
+| PP-SWR-041 | Planner phải giữ pha của mỗi chức năng ở COMPLETED tới khi state của chức năng đó rời REQUEST | Test: S16 (a, b) | Functional | nhóm tự thống nhất |
+| PP-SWR-042 | Khi HWA rời REQUEST và không chức năng nào ở REQUEST, planner phải đặt `active_function = NONE` và giữ `path_valid = true` | Test: S9 (e), F22 (f) | Safety, SG-02 | nhóm tự thống nhất |
 | PP-SWR-043 | Trong khi `path_valid = false`, `active_function` phải bằng NONE | Test: F05, F12 (Lane Model), F20 | Functional | nhóm tự thống nhất |
 | PP-SWR-044 | Khi input hồi phục sau lúc `path_valid = false`, điểm đầu của path mới phải khớp trạng thái ngang thật của xe theo dung sai của PP-SWR-080 | Test: F12 (Lane Model, hồi phục) | Functional | nhóm tự thống nhất |
 | PP-SWR-045 | Sau khi input hồi phục, planner chỉ được bắt đầu can thiệp LKA hoặc ELK khi state của chức năng đó rời REQUEST rồi quay lại | Test: F12 (Lane Model, hồi phục) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-046 | Nếu VehicleStateEstimate không hợp lệ trong lúc LKA hoặc ELK đang can thiệp, thì planner phải tiếp tục path can thiệp đó tới khi kết thúc | Test: F12 (v_y, trong S5) | Safety, SG-03 | nhóm tự thống nhất |
-| PP-SWR-047 | Trong khi tâm làn chỉ suy được từ vạch làn bên hoặc mép đường, planner không được chọn LKA hoặc ELK làm chức năng đang lái | Test: F21 | Safety, SG-01 | mentor |
+| PP-SWR-047 | Trong khi tâm làn chỉ suy được từ biên ngoài làn đang chạy, planner không được chọn LKA hoặc ELK. Ngoại lệ cho ELK mép đường khi biên nguy hiểm của làn đang chạy là mép MEASURED với confidence ≥ `conf_edge` và có biên đối diện đủ tin hoặc bề rộng làn đã nhớ | Test: F21 | Safety, SG-01 | mentor, nhóm làm rõ phạm vi ELK mép đường theo PP-TS-007 |
 
 ### 8.3 HWA: giới hạn a_y {#req-hwa-lateral-limit}
 
@@ -202,15 +206,17 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
-| PP-SWR-080 | Khi LKA hoặc ELK bắt đầu can thiệp, điểm đầu của path phải khớp trạng thái ngang thật của xe: lệch vị trí ≤ 0,1 m, lệch v_lat ≤ 0,1 m/s | Test: S4, S5, S6 | Functional | đề bài |
-| PP-SWR-083 | Một lần LKA hoặc ELK phải kết thúc, bằng COMPLETED hoặc bị hủy, trong ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Regulatory | R79 5.1.6.1.2.1 |
+| PP-SWR-080 | Khi LKA hoặc ELK bắt đầu can thiệp, điểm đầu của path phải khớp trạng thái ngang thật của xe: lệch vị trí ≤ 0,1 m, lệch v_lat ≤ 0,1 m/s | Test: S4, S5, S6 | Functional | đề bài, dung sai do nhóm tự thống nhất |
+| PP-SWR-083 | Một lần LKA hoặc ELK phải kết thúc, bằng COMPLETED hoặc bị hủy, trong ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất, dựa trên R79 5.1.6.1.2.1 (quá 10 s phải cảnh báo âm thanh) |
 | PP-SWR-084 | Khi LKA báo COMPLETED, DLC ở phía xe đã trôi về phải ≥ 0 | Test, vòng kín: S4 | Functional | đề bài |
 | PP-SWR-085 | Sau một lần LKA hoặc ELK, DLC nhỏ nhất ở phía đối diện phải ≥ 0 | Test, vòng kín: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | đề bài |
 | PP-SWR-086 | DTLE nhỏ nhất trong một lần can thiệp phải ≥ −0,3 m với LKA và ELK vạch liền, và ≥ −0,1 m với ELK mép đường | Test, vòng kín: S4, S5, S6 | Regulatory, SG-03 | Euro NCAP Assessment 4.3.2, 4.3.3.3; EU 2021/646 3.6.2 |
-| PP-SWR-088 | Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó phải ≥ 0,3 m | Test, vòng kín: S7, S8 | Regulatory, SG-03 | Euro NCAP 4.3.3.4; LSS 7.4.7 |
+| PP-SWR-088 | Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó phải ≥ 0,3 m | Test, vòng kín: S7, S8 | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) là mức tối thiểu, 0,3 m theo LSS 7.4.7, nhóm chọn chặt hơn |
 | PP-SWR-089 | Nếu ELK được yêu cầu khi lốp trước đã sang quá 0,3 m qua vạch phía side, thì planner không được bắt đầu can thiệp ELK đó | Test: S8 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-090 | Planner không được báo COMPLETED khi điều kiện kết thúc chưa giữ liên tục `T_end_hold` | Test: S4, S5 | Functional | nhóm tự thống nhất |
 | PP-SWR-091 | Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086 | Test, vòng kín: S13 (a, b) | Safety, SG-03 | nhóm tự thống nhất |
+
+Giới hạn 083 khống chế thời gian planner giữ quyền lái của chức năng can thiệp khi xe chưa ổn định. Khi hết hạn, arbitration nhả chức năng can thiệp và controller áp dụng cơ chế bàn giao hiện có.
 
 ### 8.7 Giới hạn, liên tục, khả thi {#req-limits}
 
@@ -223,7 +229,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-111 | Trong khi ELK đang lái, a_y của path phải ≤ 4,0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-112 | Trong khi LKA đang lái, a_y thêm vào phải ≤ 1,5 m/s² | Test: S4, S4b | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-113 | Trong khi ELK đang lái, a_y thêm vào phải ≤ 3,0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
-| PP-SWR-114 | Trong khi LKA đang lái, jerk ngang của path phải ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270 |
+| PP-SWR-114 | Trong khi LKA đang lái, jerk ngang của path phải ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270, cần kiểm số mục |
 | PP-SWR-115 | Trong khi ELK đang lái, jerk ngang của path phải ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-116 | `front_wheel_angle` tại mọi điểm của path phải ≤ `max_wheel_angle` của VehicleConfig | Test: mọi kịch bản | Safety | VehicleConfig |
 | PP-SWR-117 | Tốc độ quay vô lăng suy ra từ path (tốc độ đổi `front_wheel_angle` nhân `steering_ratio`) phải ≤ `max_steering_wheel_rate` của VehicleConfig | Test: mọi kịch bản | Safety | VehicleConfig |
@@ -236,6 +242,7 @@ Nguồn của giới hạn quyền lái: R79 không giới hạn a_y của CSF. 
 |---|---|---|---|---|
 | PP-SWR-120 | Khi lane model có nhiễu c0, c1 tới mức ban đêm (gấp 2,5 lần ban ngày), path phải thoả giới hạn jerk của chức năng đang lái và PP-SWR-100 đến 102 | Test: F01 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-121 | Khi c0 nhảy 0,3–1,0 m trong một frame, path phải thoả PP-SWR-100 đến 102 | Test: F02 | Safety, SG-04 | đề bài |
+| PP-SWR-149 | Khi tầm nhìn của lane model ngắn lại trong chốc lát, khác nhau giữa các vạch, đổi theo từng frame, hoặc được báo dài hơn đoạn đã thật sự quan sát, PP-SWR-051 và 100 đến 102 phải vẫn thoả | Test, vòng kín: F22 (a, b, c, d, e, f) | Safety, SG-01 | đề bài (detection range là một tín hiệu chất lượng) |
 | PP-SWR-122 | Khi lane model nhận nhầm vạch làn bên, PP-SWR-051 và 100 đến 102 phải vẫn thoả | Test, vòng kín: F03 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-123 | Khi lane model mất một vạch, PP-SWR-051 và 100 đến 102 phải vẫn thoả | Test, vòng kín: F04 (a–d) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-124 | Khi lane model không còn biên làn đủ tin nào (vạch làn mình, vạch làn bên, mép đường) hoặc không hợp lệ, planner phải giữ `path_valid = true` trong `T_coast` rồi đặt `path_valid = false`, sai lệch thời điểm không quá một chu kỳ | Test: F05, F21 (e), F12 (Lane Model) | Safety, SG-02 | nhóm tự thống nhất |
@@ -285,7 +292,7 @@ Nguồn: 170 ms = trễ giả định lớn nhất 120 ms (PP-ASM-001) cộng 50
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
 | PP-SWR-150 | Planner phải gửi LateralLimits mỗi chu kỳ | Test: S14 | Interface | nhóm tự thống nhất |
-| PP-SWR-151 | `LateralLimits.v_max` phải bằng √(giới hạn a_y của chức năng đang lái / κ_max), với κ_max là độ cong lớn nhất của tâm làn thật trong tầm nhìn của lane model, sai lệch ≤ 5 % | Test: S14 | Interface | nhóm tự thống nhất |
+| PP-SWR-151 | `LateralLimits.v_max` phải bằng √(giới hạn a_y của chức năng đang lái / κ_max), với κ_max là độ cong lớn nhất của tâm làn thật trong tầm nhìn của lane model, tối đa 126 m, sai lệch ≤ 5 % | Test: S14, Q4 | Interface | nhóm tự thống nhất |
 | PP-SWR-152 | `LateralLimits.distance` phải bằng khoảng cách dọc tới điểm có κ_max, sai lệch ≤ 5 m | Test: S14 | Interface | nhóm tự thống nhất |
 | PP-SWR-153 | Khi LongitudinalPlan hợp lệ, `longitudinal_velocity` và `acceleration` của Trajectory phải lấy theo LongitudinalPlan | Test: S14 | Interface | nhóm tự thống nhất |
 | PP-SWR-154 | Nếu LongitudinalPlan mất hoặc quá timeout 75 ms, thì Trajectory phải dùng tốc độ hiện tại không đổi và gia tốc 0 | Test: S14 (d) | Interface | nhóm tự thống nhất |
@@ -297,7 +304,7 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
-| PP-SWR-050 | Lệch ngang của path nên nhỏ, trong toàn bộ ODD và khi lane model có lỗi | Test: S1 (a, b, d, e), S6b, S11, S19, F03, F04, F21 | Performance | đề bài |
+| PP-SWR-050 | Lệch ngang của path nên nhỏ, trong toàn bộ ODD và khi lane model có lỗi | Test: S1 (a, b, d, e), S6b, S11, S19, F03, F04, F21, F22, Q4 | Performance | đề bài |
 | PP-SWR-002 | a_y thêm vào lớn nhất khi HWA đưa xe về giữa hoặc dời tâm nên nhỏ | Test: S2, S3 | Performance | nhóm tự thống nhất |
 | PP-SWR-004 | Jerk ngang của path khi HWA đang lái nên nhỏ | Test: S1 | Performance | nhóm tự thống nhất |
 | PP-SWR-008 | Thời gian từ lúc a_y cần lớn nhất < aysmax tới lúc `lateral_limit_reached` tắt nên ngắn | Test: S1 (a, b, d, e) | Performance | nhóm tự thống nhất |
@@ -322,3 +329,6 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.3 | 2026-11-11 | PP-SWR-007 lấy mốc của R79: cờ phải đang bật khi lốp trước bắt đầu đè vạch. Lý do: câu cũ đo bằng chính calibration parameter `T_flag`, tăng `T_flag` là đạt. PP-SWR-008 chuyển thành performance target; thêm target PP-SWR-064 (thời gian báo trước); bỏ `delta_ay`, `T_flag` khỏi mục 7; ghi lại nguồn của PP-SWR-006 và `epsilon_ay` |
 | 1.4 | 2026-11-11 | PP-SWR-051 chỉ áp dụng khi khoảng trống mỗi bên ≥ `free_space_min`. Lý do: ODD cho làn 2,5 m với xe rộng 2,5 m (PP-SWR-062), khi đó không xe nào giữ được DLC ≥ 0; hành vi đúng là báo `lane_too_narrow` (PP-SWR-063) để HWA không khả dụng. Các requirement dựa vào PP-SWR-051 (122, 123, 135 đến 139, 148) kế thừa điều kiện này |
 | 1.5 | 2026-11-11 | PP-SWR-055, 056 viết lại theo khoảng hở tới xe lớn và `gap_truck_min`; thêm định nghĩa Ngang hàng, Khoảng hở tới xe lớn; thêm `gap_truck_min` vào mục 7. Lý do: câu cũ so khoảng hở tới xe lớn với khoảng hở tới biên làn, nên xe lớn ở giữa làn bên thì không dời hoặc dời về phía xe lớn |
+| 1.6 | 2026-11-12 | PP-SWR-032, 041 tách pha LKA và ELK. PP-SWR-036, 037 chọn lại theo 030 khi hủy. PP-SWR-047 phân biệt biên trực tiếp và biên ngoài làn. Mục 4 dùng trị tuyệt đối của a_y thêm vào khi kết thúc. Làm rõ nguồn 080, 083, 088, 114 |
+| 1.7 | 2026-11-12 | Tầm nhìn của lane model: thêm PP-SWR-017 (nhận mọi tầm nhìn), 149 (chịu lỗi tầm nhìn, F22), PP-ASM-020, định nghĩa Tầm nhìn của lane model; PP-SWR-151 giới hạn 126 m; PP-SWR-050, 151 thêm quét Q4. Lý do: planner phải chạy đúng với mọi tầm nhìn, không chỉ 80 m |
+| 1.8 | 2026-11-12 | PP-SWR-042, 149 thêm F22 (f): tầm nhìn tụt lâu, HWA trả lái rồi trở lại |

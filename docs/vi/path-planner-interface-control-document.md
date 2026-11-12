@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.6 |
+| Phiên bản | 1.8 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-12 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -104,12 +104,13 @@ Interface được định nghĩa một lần trong `interfaces/schema/` của m
 - `lines[4]` luôn theo thứ tự L2, L1, R1, R2. L1, R1 là hai biên làn đang chạy; L2, R2 là vạch ngoài của làn trái và làn phải. `road_edges[2]` theo thứ tự trái, phải.
 - Mỗi vạch và mép đường: y(x) = c0 + c1·x + c2·x² + c3·x³, κ ≈ 2·c2, trong đoạn tầm nhìn đã thật sự quan sát.
 - Lane Model báo đúng `status` của từng vạch, không tự dựng vạch làn mình từ vạch làn bên.
+- Tầm nhìn báo riêng cho từng vạch và mép đường, đổi theo từng frame. Planner nhận mọi `view_range_end > view_range_start` và dùng tối đa 126 m; phần xa hơn bỏ qua, không làm input không hợp lệ (PP-SWR-017).
 
 | Trường | Kiểu [đơn vị] | Ý nghĩa |
 |---|---|---|
 | `lines[4].c0` … `c3` | float32 [m], [-], [1/m], [1/m²] | Hệ số đa thức |
 | `lines[4].variance` | float32[4] | Phương sai của c0 … c3 |
-| `lines[4].view_range_start`, `view_range_end` | float32 [m] | Đoạn quan sát được |
+| `lines[4].view_range_start`, `view_range_end` | float32 [m] | Đoạn quan sát được, theo x trong `base_link` |
 | `lines[4].confidence` | float32 [0..1] | Độ tin cậy |
 | `lines[4].type` | uint8 enum { DASHED, SOLID, DOUBLE, UNKNOWN } | Loại vạch sơn |
 | `lines[4].crossable` | bool | Được phép vượt, xét theo phía xe đang ở, kể cả vạch kép đứt-liền |
@@ -189,7 +190,7 @@ Stamp là thời điểm ước lượng.
 | `requests[3].state` | uint8 enum { OFF, UNAVAILABLE, STANDBY, REQUEST, FAULT } | OFF: tài xế tắt. UNAVAILABLE: bật nhưng điều kiện chưa thoả. FAULT: lỗi |
 | `requests[3].side` | uint8 enum { NONE, LEFT, RIGHT } | Phía xe đang trôi. HWA dùng NONE |
 | `requests[3].tlc` | float32 [s] | TLC do khối Chức năng ADAS tính. HWA bỏ qua |
-| `requests[3].elk_reason` | uint8 enum { NONE, SOLID_LINE, ROAD_EDGE, ONCOMING, OVERTAKING } | Chỉ ghi log |
+| `requests[3].elk_reason` | uint8 enum { NONE, SOLID_LINE, ROAD_EDGE, ONCOMING, OVERTAKING } | Với yêu cầu ELK `ROAD_EDGE`, planner chọn `road_edges[]` theo `side` và kiểm PP-SWR-047. Các giá trị còn lại dùng để ghi log |
 | `requests[3].cancel_reason` | uint8 enum { NONE, DRIVER_OVERRIDE, INDICATOR, SPEED, LANE_QUALITY, ESC, FAULT } | Chỉ ghi log |
 | `driver_override` | bool | Tài xế đang ghi đè, chung cho message |
 
@@ -246,9 +247,12 @@ Stamp là thời điểm ước lượng.
 |---|---|---|
 | `path_valid` | bool | Path dùng được. False khi hết `T_coast` hoặc input bắt buộc không hợp lệ (PP-SWR-124, 142 đến 145) |
 | `active_function` | uint8 enum { NONE, HWA, LKA, ELK } | Kết quả arbitration: chức năng đang lái. NONE khi `path_valid = false` |
-| `intervention_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha của lần can thiệp LKA hoặc ELK |
+| `lka_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha LKA. ACTIVE khi LKA đang lái. COMPLETED giữ tới khi LKA rời REQUEST |
+| `elk_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha ELK. ACTIVE khi ELK đang lái. COMPLETED giữ tới khi ELK rời REQUEST |
 | `lateral_limit_reached` | bool | Path đang bị giới hạn vì a_y cần vượt giới hạn của chức năng đang lái (PP-SWR-007, 009; target 008, 064) |
 | `lane_too_narrow` | bool | Khoảng trống mỗi bên nhỏ hơn `free_space_min` (PP-SWR-063) |
+
+Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một PathStatus, pha của chức năng vừa hoàn tất có thể là COMPLETED đồng thời pha của chức năng tiếp quản là ACTIVE.
 
 ### 6.3 LateralLimits {#lateral-limits}
 
@@ -269,3 +273,5 @@ Stamp là thời điểm ước lượng.
 | 1.4 | 2026-11-11 | EgoMotionQuery: `dx`, `dy` là chuyển động thật của `base_link`, kể cả trượt ngang |
 | 1.5 | 2026-11-11 | PathStatus `lateral_limit_reached`: trỏ theo SRS 1.3 |
 | 1.6 | 2026-11-11 | Contract gọi hàm: thêm `pp_version` để định danh bản build |
+| 1.7 | 2026-11-12 | Mục 5.6: `ROAD_EDGE` chọn nguồn biên cho ELK. Mục 6.2: tách pha LKA và ELK trong PathStatus |
+| 1.8 | 2026-11-12 | Mục 5.1: tầm nhìn riêng từng vạch và mép đường; planner nhận mọi tầm nhìn, dùng tối đa 126 m (PP-SWR-017) |

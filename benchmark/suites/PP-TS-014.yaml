@@ -1,0 +1,59 @@
+# Tuning and test runs of PP-TS-014 (research/studies/PP-TS-014-continuity-beyond-view).
+# The last element of a run may set simulator values (camera view range, ACC mode),
+# read by eval.sweep.load_run.
+id: PP-TS-014
+title: Liên tục của path khi phần xa ngoài tầm nhìn
+
+scope:
+  always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F02: []
+  F06: [PP-SWR-125]
+  F22: [PP-SWR-051, PP-SWR-050, PP-SWR-017]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, c, {camera_view_m: 30}]
+    - [S1, c, {camera_view_m: 40}]
+    - [S1, f, {camera_view_m: 30}]
+    - [S1, f, {camera_view_m: 40}]
+    - [S14, a, {camera_view_m: 40, acc: "on"}]
+    - [S1, c, F22, c]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, a, {camera_view_m: 35}]
+    - [S1, c, {camera_view_m: 35}]
+    - [S1, f, {camera_view_m: 35}]
+    - [S1, g, {camera_view_m: 35}]
+    - [S1, a, {camera_view_m: 60}]
+    - [S1, c, {camera_view_m: 60}]
+    - [S1, f, {camera_view_m: 60}]
+    - [S1, g, {camera_view_m: 60}]
+    - [S1, a]
+    - [S1, c]
+    - [S1, f]
+    - [S1, g]
+    - [S1b, d]
+    - [S2, b]
+    - [S14, a, {acc: "on"}]
+    - [S14, a, {acc: "ignore_limits"}]
+    - [S14, e, {acc: "on"}]
+    - [S14, e, {acc: "ignore_limits"}]
+    - [S14, a, {camera_view_m: 126, acc: "on"}]
+    - [S14, e, {camera_view_m: 126, acc: "on"}]
+    - [S14, e, {camera_view_m: 126, acc: "ignore_limits"}]
+    - [S1, c, F02, a]
+    - [S1, c, F02, e]
+    - [S1, c, F06, b]
+    - [S1, c, F06, e]
+    - [S1, c, F22, a]
+    - [S1, c, F22, b]
+    - [S1, c, F22, d]
+    - [S1, c, F22, e]
+    - [S1, c, F22, f]

@@ -13,6 +13,7 @@ structs:
       - {name: header, type: BasicHeader}
       - {name: path_valid, type: bool}
       - {name: active_function, type: ActiveFunction, doc: "NONE when path_valid is false"}
-      - {name: intervention_phase, type: InterventionPhase}
+      - {name: lka_phase, type: InterventionPhase, doc: "LKA intervention phase"}
+      - {name: elk_phase, type: InterventionPhase, doc: "ELK intervention phase"}
       - {name: lateral_limit_reached, type: bool}
       - {name: lane_too_narrow, type: bool}

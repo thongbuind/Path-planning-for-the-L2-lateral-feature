@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenDRIVE>
+  <header revMajor="1" revMinor="8" name="ego lane reference" version="1.0" />
+  <road name="S4be" length="1200" id="1" junction="-1" rule="RHT">
+    <planView>
+      <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="140">
+        <line />
+      </geometry>
+      <geometry s="140.0" x="140.0" y="0.0" hdg="0.0" length="100">
+        <spiral curvStart="0.0" curvEnd="0.002" />
+      </geometry>
+      <geometry s="240.0" x="239.900046285614" y="3.3309531383958815" hdg="0.1" length="960">
+        <arc curvature="0.002" />
+      </geometry>
+    </planView>
+    <lanes>
+      <laneOffset s="0" a="5.25" b="0" c="0" d="0" />
+      <laneSection s="0">
+        <center>
+          <lane id="0" type="none" level="false">
+            <roadMark sOffset="0" type="none" weight="standard" color="white" width="0.15" />
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="broken" weight="standard" color="white" width="0.15" />
+          </lane>
+          <lane id="-2" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="broken" weight="standard" color="white" width="0.15" />
+          </lane>
+          <lane id="-3" type="driving" level="false">
+            <width sOffset="0" a="3.5" b="0" c="0" d="0" />
+            <roadMark sOffset="0" type="solid" weight="standard" color="white" width="0.15" />
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+  </road>
+</OpenDRIVE>

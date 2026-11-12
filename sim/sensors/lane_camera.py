@@ -1,8 +1,8 @@
 """Lane camera and Lane Model (Software Qualification Test Specification 4.5).
 
 Takes the lane geometry within the view range, moves it into base_link at capture
-time and fits a cubic to each line of the three lanes. No fault injection yet
-(section 6), so this is the noise-free baseline; road edges are not reported.
+time and fits a cubic to each visible marking and road edge. Lane faults are applied
+after capture. The ideal ADAS input uses the same geometry with zero reported variance.
 
 Numbers of this model, all on the test side:
 
@@ -10,7 +10,7 @@ Numbers of this model, all on the test side:
 |---|---|
 | 20 Hz | Interface Control Document 5.1 |
 | Latency capture -> send 100 ms | Nominal; worst case 120 ms is PP-ASM-001 |
-| View range 0-80 m | nhóm tự thống nhất, no source yet; to be fixed in the test specification |
+| View range 0-80 m | nhóm tự thống nhất, no source yet (test specification 4.5); start and end set per scenario |
 | Reported sigma c0 0.03 m, c1 0.002 | F01 a (daytime) of the test specification |
 """
 
@@ -31,7 +31,7 @@ from interfaces import (
     RoadEdgeType,
     Side,
 )
-from sim.world.road import Road
+from sim.world.road import Marking, Road, RoadEdgeSpec
 
 PERIOD_US = 50_000
 LATENCY_US = 100_000
@@ -40,10 +40,10 @@ VIEW_END_M = 80.0
 SIGMA_C0_M = 0.03
 SIGMA_C1 = 0.002
 CONFIDENCE = 1.0  # Ideal camera
-# L2, L1, R1, R2 on a three-lane road with the ego lane in the middle.
-LINE_TYPES = (LineType.SOLID, LineType.DASHED, LineType.DASHED, LineType.SOLID)
-
-_LOST_EDGE = RoadEdge(0.0, 0.0, 0.0, 0.0, (0.0,) * 4, 0.0, 0.0, 0.0,
+_ZERO_VARIANCE = (0.0,) * 4
+_LOST_LINE = LaneLine(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
+                      LineType.UNKNOWN, False, LineStatus.LOST, 0.0)
+_LOST_EDGE = RoadEdge(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
                       RoadEdgeType.UNKNOWN, LineStatus.LOST, 0.0)
 
 
@@ -58,33 +58,61 @@ class CameraPose:
 
 
 class LaneCamera:
-    def __init__(self, road: Road, view_end_m: float = VIEW_END_M) -> None:
+    def __init__(self, road: Road, view_end_m: float = VIEW_END_M, *, view_start_m: float = VIEW_START_M,
+                 ideal: bool = False) -> None:
+        if not 0.0 <= view_start_m < view_end_m:
+            raise ValueError("camera view must satisfy 0 <= start < end")
         self.road = road
+        self.view_start_m = view_start_m
         self.view_end_m = view_end_m
+        self.variance = _ZERO_VARIANCE if ideal else (SIGMA_C0_M ** 2, SIGMA_C1 ** 2, 0.0, 0.0)
         self._counter = 0
 
-    def _line(self, offset: float, line_type: LineType, pose: CameraPose) -> LaneLine:
+    def _fit(self, offset: float, pose: CameraPose,
+             view_end: float | None = None) -> tuple[float, float, float, float, float, float] | None:
+        end = self.view_end_m if view_end is None else min(self.view_end_m, view_end)
         xs, ys = self.road.parallel(offset, pose.s_hint - 10.0, pose.s_hint + self.view_end_m + 20.0)
         c, s = cos(pose.yaw), sin(pose.yaw)
         dx, dy = xs - pose.x, ys - pose.y
         bx = c * dx + s * dy
         by = -s * dx + c * dy
-        keep = (bx >= VIEW_START_M) & (bx <= self.view_end_m)
+        keep = (bx >= self.view_start_m) & (bx <= end)
         if np.count_nonzero(keep) < 4:
-            return LaneLine(0.0, 0.0, 0.0, 0.0, (0.0,) * 4, 0.0, 0.0, 0.0,
-                            line_type, line_type == LineType.DASHED, LineStatus.LOST, 0.0)
+            return None
         bx, by = bx[keep], by[keep]
         c3, c2, c1, c0 = np.polyfit(bx, by, 3)
-        variance = (SIGMA_C0_M ** 2, SIGMA_C1 ** 2, 0.0, 0.0)
-        return LaneLine(float(c0), float(c1), float(c2), float(c3), variance,
-                        float(bx.min()), float(bx.max()), CONFIDENCE, line_type,
-                        line_type == LineType.DASHED, LineStatus.MEASURED, 0.0)
+        return float(c0), float(c1), float(c2), float(c3), float(bx.min()), float(bx.max())
 
-    def capture(self, now_us: int, pose: CameraPose) -> LaneModel:
-        lines = tuple(self._line(off, kind, pose)
-                      for off, kind in zip(self.road.line_offsets(), LINE_TYPES))
+    def _line(self, marking: Marking | None, pose: CameraPose, view_end: float | None) -> LaneLine:
+        if marking is None:
+            return _LOST_LINE
+        fit = self._fit(marking.offset_m, pose, view_end)
+        if fit is None:
+            return LaneLine(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
+                            marking.type, marking.crossable, LineStatus.LOST, 0.0)
+        c0, c1, c2, c3, start, end = fit
+        return LaneLine(c0, c1, c2, c3, self.variance, start, end, CONFIDENCE,
+                        marking.type, marking.crossable, LineStatus.MEASURED, 0.0)
+
+    def _edge(self, edge: RoadEdgeSpec | None, pose: CameraPose) -> RoadEdge:
+        if edge is None:
+            return _LOST_EDGE
+        fit = self._fit(edge.offset_m, pose)
+        if fit is None:
+            return _LOST_EDGE
+        c0, c1, c2, c3, start, end = fit
+        return RoadEdge(c0, c1, c2, c3, self.variance, start, end, CONFIDENCE,
+                        edge.type, LineStatus.MEASURED, 0.0)
+
+    def capture(self, now_us: int, pose: CameraPose,
+                view_limits: tuple[float | None, ...] | None = None) -> LaneModel:
+        """view_limits: largest view end per line (L2, L1, R1, R2), from view faults."""
+        limits = view_limits if view_limits is not None else (None,) * len(self.road.layout.markings)
+        lines = tuple(self._line(marking, pose, limit)
+                      for marking, limit in zip(self.road.layout.markings, limits, strict=True))
+        edges = tuple(self._edge(edge, pose) for edge in self.road.layout.edges)
         msg = LaneModel(Header(now_us, self._counter, True, FrameId.BASE_LINK), lines,
-                        (_LOST_EDGE, _LOST_EDGE), self.road.lane_width,
+                        edges, self.road.lane_width,
                         LaneWidthSource.MEASURED, Side.NONE)
         self._counter = (self._counter + 1) % 256
         return msg

@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-ICD` |
-| Version | 1.1 |
+| Version | 1.7 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -80,11 +80,21 @@
 
 **Receiver checks.**
 
-- A message is invalid if the receive timeout has elapsed.
+- The receiver records `rx_us`, the time the middleware delivered the message on the receiving ECU's clock.
+- A message is invalid if the receive timeout has elapsed. Measure the timeout from the latest message's `rx_us`.
 - Age = current time minus `stamp_us`. A message is invalid if it exceeds the maximum age.
 - CAN frames are timestamped on receipt, so check only timeout, counter, and CRC.
 
-The interfaces are defined once in `src/` to generate Python types. The same definitions can generate C structs or `.msg` files.
+**Planner call contract.** The planner is a C11 library (PP-ADR-013). The caller supplies state memory. The planner uses no dynamic allocation, file reads, or system clock reads.
+
+| Function | When | Input | Output |
+|---|---|---|---|
+| `pp_state_size` | Before initialization | — | State memory size in bytes |
+| `pp_init` | Once at startup | State memory, VehicleConfig | Initialization result. The planner does not publish Trajectory if VehicleConfig is invalid or calibration is out of bounds (PP-SWR-146) |
+| `pp_step` | Every 25 ms, at t0 | t0, the latest message and `rx_us` for each input or an indication it has yet to arrive, and the EgoMotionQuery function | Trajectory, PathStatus, LateralLimits, each with a flag indicating whether to publish it |
+| `pp_version` | At any time | — | Build identification string containing the version, source commit, and calibration set ID (R79 Annex 6 3.3.5) |
+
+The source defines the interfaces once in `interfaces/schema/`. These definitions generate C headers for the planner and Python types for the simulator. They can also generate `.msg` files.
 
 ## 5. Input {#icd-input}
 
@@ -166,7 +176,7 @@ The timestamp is the estimation time.
 |---|---|---|
 | `request.t1_us`, `request.t2_us` | uint64 [µs] | Two timestamps within the most recent 0.5 s |
 | `response.valid` | bool | Whether the result is usable (for example, when the wheels slip) |
-| `response.dx`, `dy` | float32 [m] | Motion from t1 to t2, in `base_link` at t1 |
+| `response.dx`, `dy` | float32 [m] | Actual motion of `base_link` from t1 to t2, including lateral slip, expressed in `base_link` at t1 |
 | `response.dyaw` | float32 [rad] | Rotation angle from t1 to t2 |
 
 ### 5.6 FunctionRequests {#function-requests}
@@ -179,7 +189,7 @@ The timestamp is the estimation time.
 | `requests[3].state` | uint8 enum { OFF, UNAVAILABLE, STANDBY, REQUEST, FAULT } | OFF: disabled by the driver. UNAVAILABLE: enabled but conditions are not met. FAULT: a fault is present |
 | `requests[3].side` | uint8 enum { NONE, LEFT, RIGHT } | Side toward which the vehicle is drifting. HWA uses NONE |
 | `requests[3].tlc` | float32 [s] | TLC calculated by the ADAS Functions module. HWA ignores it |
-| `requests[3].elk_reason` | uint8 enum { NONE, SOLID_LINE, ROAD_EDGE, ONCOMING, OVERTAKING } | For logging only |
+| `requests[3].elk_reason` | uint8 enum { NONE, SOLID_LINE, ROAD_EDGE, ONCOMING, OVERTAKING } | For an ELK `ROAD_EDGE` request, the planner selects from `road_edges[]` by `side` and checks PP-SWR-047. Other values are used for logging |
 | `requests[3].cancel_reason` | uint8 enum { NONE, DRIVER_OVERRIDE, INDICATOR, SPEED, LANE_QUALITY, ESC, FAULT } | For logging only |
 | `driver_override` | bool | Driver override in progress, shared by the whole message |
 
@@ -219,9 +229,9 @@ The timestamp is the estimation time.
 |---|---|---|
 | `points[31].time_from_start` | float32 [s] | Relative to `header.stamp_us` |
 | `points[31].pose.x`, `pose.y` | float32 [m] | Position |
-| `points[31].pose.yaw` | float32 [rad] | Heading |
+| `points[31].pose.yaw` | float32 [rad] | Path tangent, the direction of `base_link` motion. In a curve, the body heading differs from the tangent by the rear-axle slip angle |
 | `points[31].longitudinal_velocity_mps` | float32 [m/s] | From LongitudinalPlan; use current speed if missing (PP-SWR-153, 154) |
-| `points[31].lateral_velocity_mps` | float32 [m/s] | Lateral velocity |
+| `points[31].lateral_velocity_mps` | float32 [m/s] | ḋ, the path's lateral velocity relative to the reference line. Body-frame v_y is a separate quantity |
 | `points[31].acceleration_mps2` | float32 [m/s²] | From LongitudinalPlan; 0 if missing |
 | `points[31].heading_rate_rps` | float32 [rad/s] | v·κ |
 | `points[31].curvature` | float32 [1/m] | Curvature |
@@ -236,9 +246,12 @@ The timestamp is the estimation time.
 |---|---|---|
 | `path_valid` | bool | Whether the path is usable. False when `T_coast` expires or a required input is invalid (PP-SWR-124, 142 to 145) |
 | `active_function` | uint8 enum { NONE, HWA, LKA, ELK } | Arbitration result: the function in control. NONE when `path_valid = false` |
-| `intervention_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Phase of the LKA or ELK intervention |
-| `lateral_limit_reached` | bool | The path is being limited because the required a_y exceeds the active function's limit (PP-SWR-007 to 009) |
+| `lka_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | LKA phase. ACTIVE while LKA is in control. Holds COMPLETED until LKA leaves REQUEST |
+| `elk_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | ELK phase. ACTIVE while ELK is in control. Holds COMPLETED until ELK leaves REQUEST |
+| `lateral_limit_reached` | bool | The path is being limited because the required a_y exceeds the active function's limit (PP-SWR-007, 009 and targets 008, 064) |
 | `lane_too_narrow` | bool | Free space on each side is less than `free_space_min` (PP-SWR-063) |
+
+When an intervention is canceled, that function's phase returns to NONE. One PathStatus can report COMPLETED for the function that just finished and ACTIVE for the function that took over.
 
 ### 6.3 LateralLimits {#lateral-limits}
 
@@ -254,3 +267,9 @@ The timestamp is the estimation time.
 |---|---|---|
 | 1.0 | 2026-11-10 | Restructured as the Interface Control Document, baseline BL1. Added the overview table; consolidated FunctionRequests, LongitudinalPlan, PathStatus, and LateralLimits here; added `lane_too_narrow` to PathStatus; made VehicleConfig the sole source of vehicle parameters, with width ≤ 2.5 m including mirrors; removed status labels |
 | 1.1 | 2026-11-10 | Also publish PathStatus to the Lateral Controller so it does not steer when no function is in control |
+| 1.2 | 2026-11-10 | The receiver records `rx_us` and measures timeouts from it. Added the planner call contract (`pp_state_size`, `pp_init`, `pp_step`). Definitions in `interfaces/schema/` generate C headers and Python types |
+| 1.3 | 2026-11-10 | Trajectory `pose.yaw` follows the path tangent. `lateral_velocity_mps` is ḋ relative to the reference line |
+| 1.4 | 2026-11-11 | EgoMotionQuery `dx` and `dy` describe actual `base_link` motion, including lateral slip |
+| 1.5 | 2026-11-11 | Updated the PathStatus `lateral_limit_reached` references for Software Requirements Specification 1.3 |
+| 1.6 | 2026-11-11 | Added `pp_version` to the call contract for build identification |
+| 1.7 | 2026-11-12 | Section 5.6 uses `ROAD_EDGE` to select the ELK boundary source. Section 6.2 separates the LKA and ELK phases in PathStatus |

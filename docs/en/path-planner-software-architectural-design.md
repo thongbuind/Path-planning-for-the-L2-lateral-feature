@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SAD` |
-| Version | 1.1 |
+| Version | 1.6 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-10 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -35,7 +35,7 @@
 | Input check | Check valid flag, counter, CRC, timeout, and age. Treat invalid messages as not received | All inputs | Checked inputs and validity flags |
 | Latency compensation | Transform the lane model from capture time to t0 using ego-motion (PP-ADR-002) | LaneModel, EgoMotionQuery | Lane model at t0 |
 | Reference line | Check boundary consistency, select reliable boundaries, and construct the lane center and boundaries (Section 4) | Lane model at t0, yaw rate, speed, previous path | Reference line and free space on each side |
-| Arbitration | Select the function in control and the intervention phase (Section 5) | FunctionRequests, validity flags | `active_function`, `intervention_phase` |
+| Arbitration | Select the function in control and the intervention phases (Section 5) | FunctionRequests, validity flags | `active_function`, `lka_phase`, `elk_phase` |
 | Path generation | Generate an HWA path (Section 6) or intervention path (Section 7) in Frenet coordinates | Reference line, vehicle state, LongitudinalPlan, ObjectList | Candidate path |
 | Stitching and continuity | Stitch to the previous path and check PP-SWR-100 to 102 (Section 9) | Candidate path, previous path | Stitched path |
 | Feasibility | Check a_y, jerk, steering angle, and steering rate against function limits; clip when exceeded (Section 9) | Stitched path, VehicleConfig | Final path, `lateral_limit_reached` |
@@ -107,14 +107,14 @@ The trade-off is slower response when the lane actually changes. The Software Qu
 
 - Trajectory stitching (PP-ADR-004): the new path starts from the corresponding point on the previous path. If the vehicle deviates from the previous path by more than `stitch_reset`, start from the measured state.
 - When LKA or ELK starts, always use the measured state (PP-SWR-080). If the vehicle has deviated from the previous path beyond the tolerance in PP-SWR-080, do not stitch to the previous path (PP-SWR-031).
-- The measured lateral state (d0, heading error, v_lat) is calculated by a function shared with the ADAS Functions module (PP-ADR-005).
+- The planner calculates the measured lateral state (d0, heading error, v_lat) from its own inputs (PP-ADR-014). The ADAS Functions module uses the same formulas independently.
 
 ## 5. Arbitration {#design-arbitration}
 
 - Each cycle, select the highest-priority function in REQUEST: ELK > LKA > HWA. Treat OFF, UNAVAILABLE, FAULT, and STANDBY as no request (PP-SWR-030).
 - The planner decides when to end the intervention without waiting for the ADAS Functions module (Section 7.1).
-- Remember the function just marked COMPLETED. Accept a new intervention only after its state leaves REQUEST and then returns to it (PP-SWR-034, 041).
-- If FunctionRequests times out, treat all three functions as OFF (PP-SWR-145).
+- Hold COMPLETED separately for LKA and ELK. Each function accepts a new intervention only after its state leaves REQUEST and then returns to it (PP-SWR-034, 041).
+- If FunctionRequests times out, set `active_function = NONE` and `path_valid = false` (PP-SWR-145).
 - When the driver overrides, the ADAS Functions module cancels LKA and ELK and sets `driver_override` in the same message. For solid markings, LKA is requested before ELK, so both functions may be in REQUEST at once.
 
 ### 5.1 Arbitration state {#arbitration-states}
@@ -126,12 +126,12 @@ The state is `active_function`. Each cell gives the next state and planner actio
 | HWA enters REQUEST | → HWA; start the path from the vehicle state and recenter | — | Remain in LKA | Remain in ELK | PP-SWR-030, 052 |
 | HWA leaves REQUEST | — | → NONE; `path_valid` remains true | Remain in LKA; switch to NONE when it ends | Remain in ELK; switch to NONE when it ends | PP-SWR-033, 042 |
 | LKA enters REQUEST | → LKA if v_y is valid and the lane center is not inferred | Same as NONE; stitch the path | — | Remain in ELK | PP-SWR-030, 031, 047, 080, 144 |
-| ELK enters REQUEST | → ELK if v_y is valid and the lane center is not inferred | Same as NONE; stitch the path | Same as NONE; stitch the path | — | PP-SWR-030, 031, 047, 144 |
-| The intervening function leaves REQUEST, including during driver override | — | — | → HWA if HWA is in REQUEST, otherwise NONE; `path_valid` remains true | → LKA if LKA is in REQUEST; → HWA if only HWA is in REQUEST; otherwise NONE | PP-SWR-030, 036, 037 |
-| Termination conditions hold for `T_end_hold` | — | — | COMPLETED, held until LKA leaves REQUEST; → HWA if HWA is in REQUEST, otherwise NONE | COMPLETED; → LKA if LKA is in REQUEST; → HWA if only HWA is in REQUEST; otherwise NONE | PP-SWR-032, 033, 041 |
+| ELK enters REQUEST | → ELK if v_y is valid and a lane boundary meets PP-SWR-047 | Same as NONE, with path stitching | Same as NONE, with path stitching | — | PP-SWR-030, 031, 047, 144 |
+| The intervening function leaves REQUEST, including during driver override | — | — | Select from the current state per 030. If no eligible function remains, go to NONE and keep the path valid | Same as LKA | PP-SWR-030, 036, 037 |
+| Termination conditions hold for `T_end_hold` | — | — | Set `lka_phase = COMPLETED`. Select again per 033 | Set `elk_phase = COMPLETED`. Select again per 033 | PP-SWR-032, 033, 041 |
 | `driver_override` is set | The path follows the vehicle position | Remain in HWA; the path follows the vehicle position | Request cancelled: same as the "leaves REQUEST" row; the path follows the vehicle position | Same as LKA | PP-SWR-036, 037, 039 |
 | `driver_override` is cleared | — | New HWA path from the vehicle position | Cannot occur | Cannot occur | PP-SWR-040 |
-| Lane center can only be inferred from boundaries outside the ego lane | — | Remain in HWA | → HWA if HWA is in REQUEST, otherwise NONE | Same as LKA | PP-SWR-047 |
+| Lane center can only be inferred from boundaries outside the ego lane | — | Remain in HWA | → HWA if HWA is in REQUEST, otherwise NONE | Same as LKA. Road-edge ELK may use a corridor defined by an eligible direct boundary | PP-SWR-047 |
 | VehicleStateEstimate is invalid | Do not start LKA or ELK | Remain in HWA; do not start LKA or ELK | Continue the intervention path until it ends | Same as LKA | PP-SWR-046, 144 |
 | FunctionRequests times out | `path_valid = false` | → NONE; `path_valid = false` | Same as HWA | Same as HWA | PP-SWR-145 |
 | Path is invalid: `T_coast` expires or IMU, speed, steering angle, or ego-motion is faulty | `path_valid = false` | → NONE; `path_valid = false` | Same as HWA | Same as HWA | PP-SWR-043, 124, 142, 143 |
@@ -142,9 +142,9 @@ The state is `active_function`. Each cell gives the next state and planner actio
 | Responsibility | Design | Related items |
 |---|---|---|
 | Track the lane center | Follow the reference line through the three layers in Section 4.1 | PP-SWR-050, 051 |
-| Curve requiring more lateral acceleration than aysmax allows | The path is less curved than the road, with a_y ≥ aysmax − `epsilon_ay`. Set `lateral_limit_reached` using `delta_ay` and `T_flag`; send `v_max` to the longitudinal module to slow down before the curve | PP-SWR-005 to 008, 151 |
+| Curve requiring more lateral acceleration than aysmax allows | The path is less curved than the road, with a_y ≥ aysmax − `epsilon_ay`. Set `lateral_limit_reached` using `delta_ay` and `T_flag`. Send `v_max` to the longitudinal module to slow down before the curve | PP-SWR-005 to 007, 151 and targets 008, 064 |
 | Recenter on activation | A quintic segment of duration `T_recenter`, still in HWA | PP-SWR-052; targets 002, 053 |
-| Offset the center near a large vehicle | Assign objects to lanes using the reference line. Start when TTC until drawing alongside is ≤ `ttc_offset_start`; return `t_offset_hold` after the rear of the large vehicle passes. If ObjectList is lost, return the offset to 0 | PP-SWR-055, 058, 140; target 059 |
+| Offset the center near a large vehicle | Assign objects to lanes using the reference line. Start when TTC until drawing alongside is ≤ `ttc_offset_start`. Return to center `t_offset_hold` after the rear of the large vehicle passes. If ObjectList is lost, return the offset to 0 | PP-SWR-055, 056, 058, 140 and target 059 |
 | Offset magnitude | Formula immediately below (PP-ADR-008) | PP-SWR-051, 055, 056; target 057 |
 | Another vehicle cuts into the lane | This is not ELK. The lateral module offsets the center using the same formula; the longitudinal module selects that vehicle as its target | PP-SWR-055, 056 |
 | Narrow lane | Use the same formula. The offset falls to 0 as free space becomes small; report `lane_too_narrow` when free space is insufficient | PP-SWR-063 |
@@ -152,32 +152,55 @@ The state is `active_function`. Each cell gives the next state and planner actio
 **Center offset for any lane width and vehicle width.**
 
 - Free space on each side when centered: s = (W_lane − W_vehicle) / 2, where W_vehicle is `vehicle_width` from VehicleConfig.
-- Clearance on each side: from the vehicle body to the nearest object on that side (adjacent-lane vehicle, barrier, or road edge). On an unoccupied side, use the reference line's lane boundary rather than the raw road edge so that lane widening does not pull the vehicle toward it.
-- Offset limit: o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)).
-- Offset: o = (right clearance − left clearance) / 2, clamped to [−o_lim, o_lim]. The sign of o always points toward the greater clearance (PP-SWR-056).
+- The clearances g_L and g_R are measured from the centered vehicle's body to the nearest edge of the large vehicle on each side. A side without a large vehicle has no g value. Lane boundaries and road edges do not pull the path toward that side.
+- Clearance shortfall h = max(0, `gap_truck_min` − g).
+- A positive offset o points left.
+
+| Large vehicle position | o |
+|---|---|
+| Right only | + h_R |
+| Left only | − h_L |
+| Both sides, with at least one h > 0 | (g_L − g_R) / 2 |
+| No large vehicle, or sufficient clearance on both sides | 0 |
+
+- Clamp o to [−o_lim, o_lim], where o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)). Each row shifts the path away from the large vehicle with the smallest clearance (PP-SWR-056).
 
 ### 6.1 Interface with the longitudinal module {#acc-stub}
 
 Lateral and longitudinal planning use separate modules that exchange constraints (PP-ADR-001). The Interface Control Document defines the schema; the [Software Qualification Test Specification](report.html?doc=path-planner-software-qualification-test-specification&lang=en#sim-acc) defines the longitudinal stub.
 
 - The planner sends LateralLimits: `v_max` based on the maximum visible curvature and the distance to it, so the longitudinal module can slow the vehicle before a curve.
-- The path uses v(t) and a(t) from the previous cycle's LongitudinalPlan. If missing or timed out, use the current speed held constant and zero acceleration; the path remains valid (PP-SWR-153 to 155).
+- The path uses v(t) and a(t) from the previous cycle's LongitudinalPlan. If it is missing or timed out, hold the current speed constant with acceleration set to 0. The path remains valid (PP-SWR-153 to 155).
+
+### 6.2 Speed strategy in curves {#curve-strategy}
+
+R171 5.3.7.1.1.1 requires speed to be adjusted to curvature. R171 5.3.7.1.3 requires the speed selection strategy to be described. The table gives the behavior of the longitudinal stub (Software Qualification Test Specification 4.7). The real longitudinal module must behave equivalently.
+
+| Phase | Starts when | Speed | Path planner | Longitudinal module | Requirement |
+|---|---|---|---|---|---|
+| Straight or gentle curve | `v_max` ≥ current speed | High | Track the lane center. Publish `v_max` and the distance to the point of maximum curvature each cycle | Follow the set speed or the lead vehicle | PP-SWR-150 to 152 |
+| Curve detected | `v_max` < current speed | Falling | As in the previous phase. Use v(t) from LongitudinalPlan | Decelerate along the speed envelope. Reach the point of maximum curvature at ≤ v_max·√(1 − 0.3 / aysmax) | PP-SWR-151 to 153 |
+| In the curve | Vehicle reaches the section of maximum curvature | Low | Track the lane center with a_y ≤ aysmax and jerk ≤ 5 m/s³ | Keep speed below the envelope | PP-SWR-001, 003 |
+| Limit reached | Required a_y > aysmax due to late detection or insufficient deceleration | Steady | Use less curvature than the road, with a_y ≥ aysmax − `epsilon_ay`. Set `lateral_limit_reached` by the time a front tire touches the marking | Do not accelerate while the flag is set | PP-SWR-005 to 007 |
+| Curve exit | Peak required a_y < aysmax | Rising | Clear `lateral_limit_reached` | Accelerate back to the set speed | Target PP-SWR-008 |
 
 ## 7. LKA and ELK paths {#design-intervention}
 
 | Aspect | LKA | ELK | Related items |
 |---|---|---|---|
 | Starting point | Measured state at activation (Section 4.2) | Same as LKA | PP-SWR-031, 080 |
-| Duration | `T_lka`, selected based on TLC from the ADAS Functions module and a_y limits | `T_elk`, shorter than LKA | Targets 081, 082 |
+| Duration | Start from `T_lka` and select based on TLC and a_y limits | Start from `T_elk` and select based on TLC and a_y limits | Targets 081, 082 |
 | Target | Inside the lane, with DLC on the drift side ≥ `dlc_target_lka` | Inside the lane, without overshooting to the opposite side | PP-SWR-084, 085 |
 | Boundary tightening | None | Tighten the boundary on the hazard side so the wheels do not cross that marking | PP-SWR-086 |
 | Intentional lane change with an overtaking vehicle in the adjacent lane | — | Only if the ADAS Functions module requests it under strict conditions; the path returns the vehicle to its original lane. Do not start if the front tire is already more than 0.3 m beyond the marking | PP-SWR-089 |
 | Maximum duration | 10 s | 10 s | PP-SWR-083 |
 | Limits | a_y ≤ 3.0; added a_y ≤ 1.5 m/s²; jerk ≤ 5 m/s³ | a_y ≤ 4.0; added a_y ≤ 3.0 m/s²; jerk ≤ 10 m/s³ | PP-SWR-110 to 115 |
 
+LKA and ELK use quintic paths in both builds (Software Detailed Design Section 10). `PP_T7` selects T7 for HWA.
+
 ### 7.1 Intervention termination {#design-completion}
 
-- Once the path duration has elapsed, the planner checks the termination conditions (Software Requirements Specification Section 4) and the deviation from the target. If the conditions hold continuously for `T_end_hold`, report COMPLETED (PP-SWR-032, 090).
+- The planner checks the termination conditions in Software Requirements Specification Section 4 each intervention cycle. Once they hold continuously for `T_end_hold`, report COMPLETED for the intervening function (PP-SWR-032, 090).
 - After COMPLETED, transition smoothly to the next function according to arbitration (PP-SWR-033). If no function remains, select NONE; the controller and EPS ramp down torque on their own.
 
 ## 8. Fault handling {#design-faults}
@@ -203,8 +226,20 @@ Lateral and longitudinal planning use separate modules that exchange constraints
 | IMU, speed, steering angle, ego-motion | Latency compensation and path stitching are unavailable; set `path_valid = false` immediately | PP-SWR-142, 143 |
 | VehicleStateEstimate | Do not start a new LKA or ELK intervention; continue one already in progress | PP-SWR-046, 144 |
 | FunctionRequests | Treat all three functions as OFF | PP-SWR-145 |
-| LongitudinalPlan | Hold current speed constant with zero acceleration | PP-SWR-154, 155 |
+| LongitudinalPlan | Hold current speed constant with acceleration set to 0 | PP-SWR-154, 155 |
 | VehicleConfig missing at startup | Do not publish Trajectory | PP-SWR-146 |
+
+### 8.3 Degradation levels {#degradation}
+
+This table summarizes Sections 8.1 and 8.2 by the functionality remaining (R79 Annex 6, 3.4.3, (a) partial operation and (c) removal of the higher-level function). Move down a level only when its condition is met. Return to the preceding level when the condition clears.
+
+| Level | When | System response | Functions remaining | Driver | Requirement |
+|---|---|---|---|---|---|
+| 0 | Both ego-lane markings are reliable and all required inputs are valid | Compute the lane center from both markings | HWA, LKA, ELK | — | — |
+| 1 | One ego-lane marking is lost | Use the remaining marking and the stored lane width | HWA. LKA and ELK on the side with a marking | — | PP-SWR-123 |
+| 2 | Both ego-lane markings are lost, with a reliable adjacent-lane marking or road edge | Infer the lane center from that boundary | HWA | — | PP-SWR-147, 148 |
+| 3 | No reliable lane boundary remains | Follow the previous path for up to `T_coast` | Function in control | — | PP-SWR-124 |
+| 4 | `T_coast` expires, or IMU, speed, steering angle, or ego-motion is invalid | Set `path_valid = false`. The Lateral Controller and EPS ramp torque down to 0 | None | Take over steering | PP-SWR-124, 142, 143 |
 
 ## 9. Limits, continuity, feasibility {#design-limits}
 
@@ -226,7 +261,7 @@ Numbers follow the Edge cases section of the ADAS Function Specification.
 |---|---|---|---|
 | 1a | HWA is active and ELK is requested | HWA → ELK → HWA, stitching at each transition | PP-SWR-030, 031, 033 |
 | 1b | Another vehicle cuts into the lane | Keep the active function and offset the center. The longitudinal module maintains distance | PP-SWR-055, 056 |
-| 2 | HWA enters a curve that requires more lateral acceleration than aysmax allows | Clip the path, set `lateral_limit_reached`, and send `v_max`. Use ELK limits if ELK is requested | PP-SWR-005 to 008, 151 |
+| 2 | HWA enters a curve that requires more lateral acceleration than aysmax allows | Clip the path, set `lateral_limit_reached`, and send `v_max`. Use ELK limits if ELK is requested | PP-SWR-005 to 007, 151 and targets 008, 064 |
 | 3 | Driver overrides HWA | The path follows the vehicle position; plan a new path when the driver releases the override | PP-SWR-039, 040 |
 | 4 | ELK during an intentional lane change | Return to the original lane within ELK limits, only on a request made under strict conditions | PP-SWR-089, 111 |
 | 5 | Request cancelled due to turn indicator | Stop the intervention path and transition according to arbitration | PP-SWR-036, 037 |
@@ -245,18 +280,19 @@ One calibration set for all vehicles. Initial values are starting points. The So
 | Parameter | Unit | Initial value | Sweep range | Limit | Affected items |
 |---|---|---|---|---|---|
 | `conf_ego` | — | 0.6 | 0.4–0.8 | 0–1 | PP-SWR-123, 124 |
+| `conf_edge` | — | 0.7 | 0.5–0.9 | 0–1 | PP-SWR-047 |
 | `conf_inferred` | — | 0.8 | 0.7–0.95 | > `conf_ego` | PP-SWR-047, 147, 148 |
 | `T_coast` | s | 1.0 | 0.5–1.0 | ≤ 1 s | PP-SWR-124 |
 | `free_space_min` | m | 0.1 | 0–0.3 | ≥ 0 | PP-SWR-063 |
-| `delta_ay` | m/s² | 0.2 | 0.1–0.4 | ≥ 0 | PP-SWR-007, 008 |
+| `delta_ay` | m/s² | 0.2 | 0.1–0.4 | ≥ 0 | Targets 008, 064 |
 | `epsilon_ay` | m/s² | 0.2 | 0–0.5 | 0–2.5 | PP-SWR-006 |
-| `T_flag` | s | 0.2 | 0.15–0.5 | > 0 | PP-SWR-007, 008 |
+| `T_flag` | s | 0.2 | 0.15–0.5 | > 0 | Targets 008, 064 |
 | `v_lat_end` | m/s | 0.1 | 0.05–0.2 | ≥ 0 | PP-SWR-032, 090 |
 | `heading_end` | ° | 0.5 | 0.3–1.0 | ≥ 0 | PP-SWR-032, 090 |
 | `ay_add_end` | m/s² | 0.2 | 0.1–0.3 | ≥ 0 | PP-SWR-032, 090 |
 | `T_end_hold` | s | 0.5 | 0.3–1.0 | ≥ 0 | PP-SWR-032, 090 |
-| `T_lka` | s | 3.0 | 2.0–4.0 | Limits in PP-SWR-110, 112, 114 | Targets 081, 087 |
-| `T_elk` | s | 2.0 | 1.0–3.0 | Limits in PP-SWR-111, 113, 115 | Target 082 |
+| `T_lka` | s | 3.0 | 2.0–4.0 | > 0 and ≤ 10 | PP-SWR-083, 110, 112, 114. Targets 081, 087 |
+| `T_elk` | s | 2.0 | 1.0–3.0 | > 0 and ≤ 10 | PP-SWR-083, 111, 113, 115. Target 082 |
 | `dlc_target_lka` | m | 0.5 | 0–0.8 | ≥ 0 (PP-SWR-084) | Targets 081, 087 |
 | `T_recenter` | s | 3.5 | 2.5–5.0 | Limits in PP-SWR-001, 003 | Targets 002, 053 |
 | `ay_add_max_hwa` | m/s² | 0.5 | 0.3–1.0 | ≤ 2.5 (PP-SWR-001) | Targets 002, 053, 059 |
@@ -266,6 +302,7 @@ One calibration set for all vehicles. Initial values are starting points. The So
 | `k_jump` | σ | 3 | 2–5 | ≥ 0 | PP-SWR-121, 122 |
 | `T_confirm` | s | 1.0 | 0.5–2.0 | ≥ 0 | PP-SWR-060, 061 |
 | `offset_max` | m | 0.3 | 0–0.5 | ≥ 0 | PP-SWR-055; target 057 |
+| `gap_truck_min` | m | 1.5 | 1.0–2.0 | > 0 | PP-SWR-055, 056 and target 057 |
 | `dlc_offset_min` | m | 0.3 | 0–0.5 | ≥ 0 (PP-SWR-051) | Target 057 |
 | `ttc_offset_start` | s | 3.0 | 2.0–4.0 | ≥ 0 | PP-SWR-058 |
 | `t_offset_hold` | s | 1.0 | 0–2.0 | ≥ 0 | Target 059 |
@@ -319,3 +356,8 @@ T = 2 s exceeds the 5 m/s³ jerk limit. T = 4 s brings the vehicle closer to the
 | 0.6 | 2026-11-10 | Lane Model publishes three lanes and separate road edges; infer the lane center from adjacent-lane markings and road edges (PP-ADR-011); calculate offset using vehicle width |
 | 1.0 | 2026-11-10 | Restructured as Software Architecture and Design, baseline BL1. Added components, the calibration parameter table, and the offset formula for any lane and vehicle width. Finalized all arbitration state cells; moved schemas to the Interface Control Document and the ACC stub to the Software Qualification Test Specification; consolidated calculations in Appendix A; removed status labels and open items |
 | 1.1 | 2026-11-10 | Cycle sequence row 5: also publish PathStatus to the Lateral Controller, consistent with Interface Control Document 1.1 |
+| 1.2 | 2026-11-10 | Section 4.2 covers independent lateral-state calculation in the planner (PP-ADR-014) |
+| 1.3 | 2026-11-11 | Updated traceability for `lateral_limit_reached`, `delta_ay`, and `T_flag` to match Software Requirements Specification 1.3 |
+| 1.4 | 2026-11-11 | Added Section 6.2 on speed strategy in curves (R171 5.3.7.1.3) and Section 8.3 on degradation levels (R79 Annex 6, 3.4.3), consolidating existing material |
+| 1.5 | 2026-11-11 | Updated the T8 offset to use clearance to the large vehicle and the new `gap_truck_min` parameter (revised PP-ADR-008) |
+| 1.6 | 2026-11-12 | T9 reports separate phases and reselects a function on cancellation. Road-edge ELK uses a direct boundary and `conf_edge`. Completion conditions are checked each cycle |

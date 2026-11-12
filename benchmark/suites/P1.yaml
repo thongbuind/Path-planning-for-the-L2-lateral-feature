@@ -15,7 +15,7 @@ parameters:
   delta_ay: [0.1, 0.2, 0.3, 0.4]
 
 # What each run judges, after the Kiểm chứng column of the Software Requirements
-# Specification (1.3): `always` for every run, then the scenario's list, or the fault's
+# Specification: `always` for every run, then the scenario's list, or the fault's
 # list when a fault is injected. Targets are ranked, requirements pass or fail.
 scope:
   always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
@@ -23,11 +23,18 @@ scope:
   S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
   S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
   S3: [PP-SWR-055, PP-SWR-056, PP-SWR-058, PP-SWR-057, PP-SWR-059]
+  S4: [PP-SWR-032, PP-SWR-080, PP-SWR-081, PP-SWR-083, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-087, PP-SWR-090, PP-SWR-110, PP-SWR-112, PP-SWR-114]
+  S4b: [PP-SWR-083, PP-SWR-085, PP-SWR-110, PP-SWR-112, PP-SWR-114]
+  S5: [PP-SWR-032, PP-SWR-080, PP-SWR-082, PP-SWR-083, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S6: [PP-SWR-080, PP-SWR-082, PP-SWR-083, PP-SWR-085, PP-SWR-086, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S7: [PP-SWR-082, PP-SWR-083, PP-SWR-085, PP-SWR-088, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S8: [PP-SWR-082, PP-SWR-083, PP-SWR-085, PP-SWR-088, PP-SWR-089, PP-SWR-111, PP-SWR-113, PP-SWR-115]
   F01: [PP-SWR-003]                     # PP-SWR-120: jerk limit and 100 to 102
   F02: []                               # PP-SWR-121: 100 to 102
   F03: [PP-SWR-051, PP-SWR-050]         # PP-SWR-122: 051 and 100 to 102; target 050
   F04: [PP-SWR-051, PP-SWR-050]         # PP-SWR-123: 051 and 100 to 102
   F06: [PP-SWR-125]
+  F22: [PP-SWR-051, PP-SWR-050, PP-SWR-017, PP-SWR-042]   # PP-SWR-149: 051 and 100 to 102
 
 tuning:
   seeds: [1, 2]

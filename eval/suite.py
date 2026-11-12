@@ -52,9 +52,10 @@ def execute_case(case, directory, seed):
     anchor = case['anchor'] or 'a'
     spec = ['S1', 'a', family, anchor] if family.startswith('F') else [family, anchor]
     scope = matrix.scope({'scope_from': 'P1', 'extra_scope': {'S14': ['PP-SWR-009', 'PP-SWR-150', 'PP-SWR-051']}}, spec)
+    failed = dict.fromkeys(c.id for c in result.criteria if c.applicable and not c.passed)
     return {'case': case['id'], 'seed': seed,
-            'failed': [c.id for c in result.criteria if c.applicable and not c.passed and c.id in scope],
-            'failed_out_of_scope': [c.id for c in result.criteria if c.applicable and not c.passed and c.id not in scope],
+            'failed': result.case_failures + [key for key in failed if key in scope],
+            'failed_out_of_scope': [key for key in failed if key not in scope],
             'result': result.to_dict()}
 
 

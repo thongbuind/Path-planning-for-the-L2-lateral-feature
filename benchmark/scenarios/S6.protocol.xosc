@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S6 protocol" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S6.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-right-2" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-right-2" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6a.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-right-3" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-right-3" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6a.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-right-4" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-right-4" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6a.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-right-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-right-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6a.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-right-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-right-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6a.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-dashed-right-2" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-dashed-right-2" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.775" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-dashed-right-3" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-dashed-right-3" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.775" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-dashed-right-4" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-dashed-right-4" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.775" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-dashed-right-5" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-dashed-right-5" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.5" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.75" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.775" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="ncap-edge-dashed-right-6" />
+            <ParameterAssignment parameterRef="description" value="Euro NCAP LSS edge-dashed-right-6" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="protocol" value="Euro NCAP LSS" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S6c.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.775" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

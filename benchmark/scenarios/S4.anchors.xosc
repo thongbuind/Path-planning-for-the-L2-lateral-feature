@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S4 anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S4.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Vạch đứt, 72 km/h" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.2" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Vạch liền, 72 km/h" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Vạch đứt, 90 km/h" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Lực gió ngang sang phải" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.0" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="300.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="duration_s" value="20.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Mặt đường nghiêng xuống trái" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.0" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.02" />
+            <ParameterAssignment parameterRef="duration_s" value="20.0" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

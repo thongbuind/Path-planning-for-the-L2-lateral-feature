@@ -64,9 +64,43 @@ def one_at_a_time(suite: dict) -> list[CalSet]:
     return sets
 
 
+# Simulator values a run may set in a mapping at its end (trade studies, PP-TS-014).
+RUN_SIM_KEYS = ("camera_view_m", "camera_view_start_m", "acc")
+
+
+def split_run(run: list) -> tuple[list, dict]:
+    """[scenario, variant(, fault, level)][, {simulator values}] -> (spec, sim)."""
+    spec, sim = list(run), {}
+    if spec and isinstance(spec[-1], dict):
+        sim = dict(spec.pop())
+    unknown = set(sim) - set(RUN_SIM_KEYS)
+    if unknown or len(spec) not in (2, 4):
+        raise ValueError(f"invalid run {run!r}")
+    return spec, sim
+
+
+def load_run(run: list):
+    """Scenario of one suite run, with its fault and simulator values; name shows the values."""
+    from dataclasses import replace
+    from eval import openx
+    spec, sim = split_run(run)
+    scenario = loader.load(spec[0], spec[1])
+    if len(spec) > 2:
+        scenario = loader.with_fault(scenario, spec[2], spec[3])
+    if sim:
+        scenario = replace(scenario, **{k: (v if k == "acc" else float(v)) for k, v in sim.items()},
+                           name=scenario.name + " [" + ", ".join(f"{k}={v}" for k, v in sim.items()) + "]")
+        if not (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
+                and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m
+                and scenario.acc in ("off", "on", "ignore_limits")):
+            raise ValueError(f"invalid simulator values in {run!r}")
+    return scenario
+
+
 def scope_of(suite: dict, run: list) -> set[str]:
     scope = suite["scope"]
-    key = run[2] if len(run) > 2 else run[0]
+    spec, _ = split_run(run)
+    key = spec[2] if len(spec) > 2 else spec[0]
     return set(scope["always"]) | set(scope.get(key, []))
 
 
@@ -103,9 +137,7 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
     part = suite[which]
     runs = []
     for run in part["runs"]:
-        scenario = loader.load(run[0], run[1])
-        if len(run) > 2:
-            scenario = loader.with_fault(scenario, run[2], run[3])
+        scenario = load_run(run)
         scope = scope_of(suite, run)
         for seed in part["seeds"]:
             result = metrics.evaluate(Harness(scenario, SilPlanner, seed).run(), req_cal)

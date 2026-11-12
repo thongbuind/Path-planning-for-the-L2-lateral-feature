@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.5 |
+| Phiên bản | 1.6 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-12 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -35,7 +35,7 @@
 | Input check | Kiểm valid, counter, CRC, timeout, tuổi; message không hợp lệ coi như chưa nhận | Mọi input | Input đã kiểm, cờ hợp lệ |
 | Latency compensation | Dời lane model từ lúc chụp tới t0 bằng ego-motion (PP-ADR-002) | LaneModel, EgoMotionQuery | Lane model tại t0 |
 | Reference line | Kiểm tính nhất quán của biên, chọn biên đủ tin, tạo tâm làn và biên làn (mục 4) | Lane model tại t0, yaw rate, tốc độ, path cũ | Reference line, khoảng trống mỗi bên |
-| Arbitration | Chọn chức năng đang lái và pha can thiệp (mục 5) | FunctionRequests, cờ hợp lệ | `active_function`, `intervention_phase` |
+| Arbitration | Chọn chức năng đang lái và pha can thiệp (mục 5) | FunctionRequests, cờ hợp lệ | `active_function`, `lka_phase`, `elk_phase` |
 | Path generation | Path HWA (mục 6) hoặc path can thiệp (mục 7), trong Frenet | Reference line, trạng thái xe, LongitudinalPlan, ObjectList | Path ứng viên |
 | Stitching và continuity | Nối với path cũ, kiểm PP-SWR-100 đến 102 (mục 9) | Path ứng viên, path cũ | Path đã nối |
 | Feasibility | Kiểm a_y, jerk, góc và tốc độ lái theo giới hạn của chức năng; cắt khi vượt (mục 9) | Path đã nối, VehicleConfig | Path cuối, `lateral_limit_reached` |
@@ -113,8 +113,8 @@ Ba lớp, dùng path của chính planner làm điểm tựa, không lọc lại
 
 - Mỗi chu kỳ chọn chức năng ưu tiên cao nhất đang ở REQUEST: ELK > LKA > HWA. OFF, UNAVAILABLE, FAULT, STANDBY coi như không yêu cầu (PP-SWR-030).
 - Planner tự quyết định lúc kết thúc can thiệp, không chờ khối Chức năng ADAS (mục 7.1).
-- Nhớ chức năng vừa COMPLETED; chỉ nhận lần mới khi state đã rời REQUEST rồi quay lại (PP-SWR-034, 041).
-- FunctionRequests quá timeout: coi cả ba chức năng tắt (PP-SWR-145).
+- Giữ pha COMPLETED riêng cho LKA, ELK. Mỗi chức năng nhận lần mới sau khi state đã rời REQUEST rồi quay lại (PP-SWR-034, 041).
+- FunctionRequests quá timeout: `active_function = NONE`, `path_valid = false` (PP-SWR-145).
 - Khi tài xế ghi đè, khối Chức năng ADAS hủy LKA, ELK và bật `driver_override` trong cùng message. Với vạch liền, LKA được yêu cầu trước ELK, nên hai chức năng có thể cùng ở REQUEST.
 
 ### 5.1 Arbitration state {#arbitration-states}
@@ -126,12 +126,12 @@ Trạng thái là `active_function`. Mỗi ô ghi trạng thái kế tiếp và 
 | HWA vào REQUEST | → HWA; path từ trạng thái xe, đưa về giữa | — | Ở lại LKA | Ở lại ELK | PP-SWR-030, 052 |
 | HWA rời REQUEST | — | → NONE; `path_valid` giữ true | Ở lại LKA; kết thúc thì về NONE | Ở lại ELK; kết thúc thì về NONE | PP-SWR-033, 042 |
 | LKA vào REQUEST | → LKA nếu v_y hợp lệ và tâm làn không phải suy ra | Như NONE; nối path | — | Ở lại ELK | PP-SWR-030, 031, 047, 080, 144 |
-| ELK vào REQUEST | → ELK nếu v_y hợp lệ và tâm làn không phải suy ra | Như NONE; nối path | Như NONE; nối path | — | PP-SWR-030, 031, 047, 144 |
-| Chức năng đang can thiệp rời REQUEST, kể cả khi tài xế ghi đè | — | — | → HWA nếu HWA ở REQUEST, không thì NONE; `path_valid` giữ true | → LKA nếu LKA ở REQUEST; → HWA nếu chỉ HWA ở REQUEST; không thì NONE | PP-SWR-030, 036, 037 |
-| Điều kiện kết thúc giữ đủ `T_end_hold` | — | — | COMPLETED, giữ tới khi LKA rời REQUEST; → HWA nếu HWA ở REQUEST, không thì NONE | COMPLETED; → LKA nếu LKA ở REQUEST; → HWA nếu chỉ HWA ở REQUEST; không thì NONE | PP-SWR-032, 033, 041 |
+| ELK vào REQUEST | → ELK nếu v_y hợp lệ và có biên làn đủ điều kiện theo PP-SWR-047 | Như NONE, nối path | Như NONE, nối path | — | PP-SWR-030, 031, 047, 144 |
+| Chức năng đang can thiệp rời REQUEST, kể cả khi tài xế ghi đè | — | — | Chọn theo 030 từ trạng thái hiện tại. Hết ứng viên thì NONE và giữ path hợp lệ | Như LKA | PP-SWR-030, 036, 037 |
+| Điều kiện kết thúc giữ đủ `T_end_hold` | — | — | `lka_phase = COMPLETED`. Chọn lại theo 033 | `elk_phase = COMPLETED`. Chọn lại theo 033 | PP-SWR-032, 033, 041 |
 | `driver_override` bật | Path bám vị trí xe | Ở lại HWA; path bám vị trí xe | Yêu cầu bị hủy: như dòng "rời REQUEST"; path bám vị trí xe | Như LKA | PP-SWR-036, 037, 039 |
 | `driver_override` tắt | — | Path HWA mới từ vị trí xe | Không xảy ra | Không xảy ra | PP-SWR-040 |
-| Tâm làn chỉ suy được từ biên ngoài làn mình | — | Ở lại HWA | → HWA nếu HWA ở REQUEST, không thì NONE | Như LKA | PP-SWR-047 |
+| Tâm làn chỉ suy được từ biên ngoài làn mình | — | Ở lại HWA | → HWA nếu HWA ở REQUEST, không thì NONE | Như LKA. ELK mép đường được dùng hành lang xác định từ biên trực tiếp đủ điều kiện | PP-SWR-047 |
 | VehicleStateEstimate không hợp lệ | Không bắt đầu LKA, ELK | Ở lại HWA; không bắt đầu LKA, ELK | Tiếp tục path can thiệp tới khi kết thúc | Như LKA | PP-SWR-046, 144 |
 | FunctionRequests quá timeout | `path_valid = false` | → NONE; `path_valid = false` | Như HWA | Như HWA | PP-SWR-145 |
 | Path không hợp lệ: hết `T_coast`; IMU, tốc độ, góc lái hoặc ego-motion lỗi | `path_valid = false` | → NONE; `path_valid = false` | Như HWA | Như HWA | PP-SWR-043, 124, 142, 143 |
@@ -189,16 +189,18 @@ Theo R171 5.3.7.1.1.1 (tốc độ phải chỉnh theo độ cong) và 5.3.7.1.3
 | Việc | LKA | ELK | Liên quan |
 |---|---|---|---|
 | Điểm bắt đầu | Trạng thái đo được lúc kích hoạt (mục 4.2) | Như LKA | PP-SWR-031, 080 |
-| Thời lượng | `T_lka`, chọn theo TLC từ khối Chức năng ADAS và giới hạn a_y | `T_elk`, ngắn hơn LKA | Target 081, 082 |
+| Thời lượng | Khởi đầu `T_lka`, chọn theo TLC và giới hạn a_y | Khởi đầu `T_elk`, chọn theo TLC và giới hạn a_y | Target 081, 082 |
 | Đích | Trong làn, DLC phía đã trôi ≥ `dlc_target_lka` | Trong làn, không vọt sang phía đối diện | PP-SWR-084, 085 |
 | Siết biên | Không | Biên phía nguy hiểm siết lại để bánh xe không qua vạch phía đó | PP-SWR-086 |
 | Tài xế chuyển làn có chủ đích, làn bên có xe đang vượt | — | Chỉ khi khối Chức năng ADAS yêu cầu theo quy tắc chặt; path đưa xe về làn cũ. Lốp trước đã qua vạch quá 0,3 m thì không bắt đầu | PP-SWR-089 |
 | Thời lượng tối đa | 10 s | 10 s | PP-SWR-083 |
 | Giới hạn | a_y ≤ 3,0; a_y thêm vào ≤ 1,5 m/s²; jerk ≤ 5 m/s³ | a_y ≤ 4,0; a_y thêm vào ≤ 3,0 m/s²; jerk ≤ 10 m/s³ | PP-SWR-110 đến 115 |
 
+LKA và ELK dùng quintic trong cả hai bản build (Software Detailed Design mục 10). T7 của HWA được chọn qua `PP_T7`.
+
 ### 7.1 Kết thúc can thiệp {#design-completion}
 
-- Sau khi đi hết thời lượng của path, planner kiểm điều kiện kết thúc (Software Requirements Specification mục 4) và độ lệch tới đích. Giữ liên tục `T_end_hold` thì báo COMPLETED (PP-SWR-032, 090).
+- Planner kiểm điều kiện kết thúc mỗi chu kỳ can thiệp theo Software Requirements Specification mục 4. Giữ liên tục `T_end_hold` thì báo COMPLETED cho chức năng đang can thiệp (PP-SWR-032, 090).
 - Sau COMPLETED, chuyển mượt sang chức năng kế tiếp theo arbitration (PP-SWR-033); không còn chức năng nào thì NONE, controller và EPS tự giảm mô-men.
 
 ## 8. Fault handling {#design-faults}
@@ -278,6 +280,7 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | Tham số | Đơn vị | Khởi đầu | Dải quét | Giới hạn | Ảnh hưởng |
 |---|---|---|---|---|---|
 | `conf_ego` | — | 0,6 | 0,4–0,8 | 0–1 | PP-SWR-123, 124 |
+| `conf_edge` | — | 0,7 | 0,5–0,9 | 0–1 | PP-SWR-047 |
 | `conf_inferred` | — | 0,8 | 0,7–0,95 | > `conf_ego` | PP-SWR-047, 147, 148 |
 | `T_coast` | s | 1,0 | 0,5–1,0 | ≤ 1 s | PP-SWR-124 |
 | `free_space_min` | m | 0,1 | 0–0,3 | ≥ 0 | PP-SWR-063 |
@@ -288,8 +291,8 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `heading_end` | ° | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
 | `ay_add_end` | m/s² | 0,2 | 0,1–0,3 | ≥ 0 | PP-SWR-032, 090 |
 | `T_end_hold` | s | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
-| `T_lka` | s | 3,0 | 2,0–4,0 | Giới hạn của PP-SWR-110, 112, 114 | Target 081, 087 |
-| `T_elk` | s | 2,0 | 1,0–3,0 | Giới hạn của PP-SWR-111, 113, 115 | Target 082 |
+| `T_lka` | s | 3,0 | 2,0–4,0 | > 0 và ≤ 10 | PP-SWR-083, 110, 112, 114. Target 081, 087 |
+| `T_elk` | s | 2,0 | 1,0–3,0 | > 0 và ≤ 10 | PP-SWR-083, 111, 113, 115. Target 082 |
 | `dlc_target_lka` | m | 0,5 | 0–0,8 | ≥ 0 (PP-SWR-084) | Target 081, 087 |
 | `T_recenter` | s | 3,5 | 2,5–5,0 | Giới hạn của PP-SWR-001, 003 | Target 002, 053 |
 | `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,5 (PP-SWR-001) | Target 002, 053, 059 |
@@ -357,3 +360,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.3 | 2026-11-11 | Truy vết của `lateral_limit_reached`, `delta_ay`, `T_flag` theo SRS 1.3 |
 | 1.4 | 2026-11-11 | Thêm mục 6.2 chiến lược tốc độ trong cua (R171 5.3.7.1.3) và mục 8.3 bậc suy giảm (R79 Annex 6, 3.4.3), gom từ các mục đã có |
 | 1.5 | 2026-11-11 | T8: offset theo khoảng hở tới xe lớn và `gap_truck_min` (PP-ADR-008 mới); thêm `gap_truck_min` |
+| 1.6 | 2026-11-12 | T9 tách pha và chọn lại khi hủy. ELK mép đường dùng biên trực tiếp và `conf_edge`. Kiểm điều kiện kết thúc theo chu kỳ |

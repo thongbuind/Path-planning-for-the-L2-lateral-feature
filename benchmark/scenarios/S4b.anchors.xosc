@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S4b anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S4b.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="R 1000 m, trôi ra ngoài" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="R 500 m, trôi ra ngoài" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4bb.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="R 500 m, trôi vào trong" />
+            <ParameterAssignment parameterRef="departure_side" value="left" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4bb.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="R 250 m, trôi ra ngoài" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4bd.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Trôi ra ngoài tại clothoid" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4be.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

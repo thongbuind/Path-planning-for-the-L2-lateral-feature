@@ -36,9 +36,10 @@ UNUSED = Object(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)  # Fills the fixed ar
 
 
 class ObjectSensor:
-    def __init__(self, rng: np.random.Generator, noise_scale: float = 1.0) -> None:
+    def __init__(self, rng: np.random.Generator, noise_scale: float = 1.0, *, ideal: bool = False) -> None:
         self.rng = rng
         self.scale = noise_scale  # rain: 1.5 (section 4.5)
+        self.ideal = ideal  # SQTS 4.1 mode B: retain visibility, omit measurement errors
         self.counter = 0
         self.ghosts: list[tuple[int, float, float, float]] = []  # id, x, y, end time
         self.next_ghost = GHOST_ID_BASE
@@ -52,13 +53,18 @@ class ObjectSensor:
         for v in vehicles:
             dx, dy = v.x - ex, v.y - ey
             x, y = c * dx + s * dy, -s * dx + c * dy
-            draws = rng.standard_normal(6)
-            missed = rng.random() < MISS_RATE
-            if missed or not -RANGE_BEHIND_M <= x <= RANGE_AHEAD_M:
-                continue
-            rng_m = hypot(x, y)
             vx_w, vy_w = v.speed * cos(v.heading), v.speed * sin(v.heading)
             vx, vy = c * vx_w + s * vy_w, -s * vx_w + c * vy_w
+            in_range = -RANGE_BEHIND_M <= x <= RANGE_AHEAD_M
+            if self.ideal:
+                if in_range:
+                    objects.append(Object(v.id, x, y, vx, vy, atan2(vy, vx), v.length, v.width, 1.0))
+                continue
+            draws = rng.standard_normal(6)
+            missed = rng.random() < MISS_RATE
+            if missed or not in_range:
+                continue
+            rng_m = hypot(x, y)
             objects.append(Object(
                 id=v.id,
                 x=x + k * (SIGMA_X_M + SIGMA_X_REL * rng_m) * float(draws[0]),
@@ -70,7 +76,7 @@ class ObjectSensor:
                 width=max(0.5, v.width + k * SIGMA_SIZE_M * float(draws[5])),
                 existence_probability=P_REAL))
         t_s = now_us * 1e-6
-        if rng.random() < GHOST_RATE_PER_S * PERIOD_US * 1e-6:
+        if not self.ideal and rng.random() < GHOST_RATE_PER_S * PERIOD_US * 1e-6:
             self.ghosts.append((self.next_ghost, float(rng.uniform(5.0, 80.0)),
                                 float(rng.uniform(-6.0, 6.0)), t_s + GHOST_LIFE_S))
             self.next_ghost += 1
