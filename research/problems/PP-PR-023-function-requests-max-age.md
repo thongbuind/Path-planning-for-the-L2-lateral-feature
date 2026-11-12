@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đã sửa |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-038, 145; Interface Control Document 4 (tuổi tối đa 45 ms) |
 | Tái hiện | [20261112-1419-matrix-Q3-5e8cabc](../runs/20261112-1419-matrix-Q3-5e8cabc/summary.md), VP-0, seed 1 |
@@ -30,7 +30,11 @@ Cần quyết định:
 | B | Nới tuổi tối đa trong Interface Control Document lên trên 60 ms (cần lý do; giới hạn trên là timeout 75 ms) |
 | C | Bỏ mức 60 ms khỏi Q3 |
 
+Chọn A (2026-11-12): thêm PP-SWR-048 (SRS 1.12). Bên chấm: tiêu chí PP-SWR-048 (sau timeout tính từ FunctionRequests dùng được gần nhất, planner báo NONE và path không hợp lệ); ca có FunctionRequests quá tuổi không còn đòi can thiệp, vì chức năng ADAS không gửi được REQUEST khi planner không có path hợp lệ.
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+| [20261112-1429-matrix-Q3-6b290e9](../runs/20261112-1429-matrix-Q3-6b290e9/summary.md) | PP-SWR-048 đạt ở 60 ms; còn báo thiếu REQUEST ở S4a, S5a (bên chấm chỉ bỏ qua REQUEST quá tuổi) |
+| [20261112-1430-matrix-Q3-f94030c](../runs/20261112-1430-matrix-Q3-f94030c/summary.md) | 0 trượt; PP-SWR-048 đạt ở cả ba ca 60 ms |
