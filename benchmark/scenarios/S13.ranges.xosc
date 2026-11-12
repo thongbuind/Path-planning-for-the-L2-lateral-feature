@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S13" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S13.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="eps_delay_s">
+        <DistributionSet>
+          <Element value="0.075" />
+          <Element value="0.1" />
+          <Element value="0.15" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="departure_side">
+        <DistributionSet>
+          <Element value="left" />
+          <Element value="right" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
