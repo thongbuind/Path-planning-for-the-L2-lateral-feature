@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S16" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S16.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s cách 2 s, LKA" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s cách 2 s, ELK vạch liền" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
