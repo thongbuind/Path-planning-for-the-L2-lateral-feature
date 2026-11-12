@@ -865,8 +865,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
 
-    # PP-SWR-018: observed_horizon_s against the time the path leaves the reported view range.
-    horizon_err = 0.0
+    # PP-SWR-018: observed_horizon_s may not exceed the time the path leaves the reported view
+    # range by more than HORIZON_TOL_S; reporting less is the safe side (SRS 1.10).
+    horizon_err = -np.inf
     for c in cycles:
         if not _valid(c) or c.lane_view is None or c.lane_view_reported is None:
             continue
@@ -880,7 +881,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         else:
             k = out[0]
             expected = t_p[k - 1] + (t_p[k] - t_p[k - 1]) * (x_lim - x_p[k - 1]) / (x_p[k] - x_p[k - 1])
-        horizon_err = max(horizon_err, abs(c.trajectory.observed_horizon_s - expected))
+        horizon_err = max(horizon_err, c.trajectory.observed_horizon_s - expected)
 
     # PP-SWR-051: DLC on the true lane at the front axle while HWA drives, a_y needed <= aysmax
     # and the true free space each side >= free_space_min (SRS 1.4). Below it, PP-SWR-063.
@@ -964,8 +965,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     criteria = [
         Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
-        Criterion("PP-SWR-018", "Sai lệch lớn nhất của observed_horizon_s [s]", horizon_err,
-                  f"<= {HORIZON_TOL_S}", horizon_err <= HORIZON_TOL_S),
+        Criterion("PP-SWR-018", "observed_horizon_s trừ thời điểm ra khỏi tầm nhìn, lớn nhất [s]",
+                  horizon_err, f"<= {HORIZON_TOL_S}", horizon_err <= HORIZON_TOL_S,
+                  applicable=bool(np.isfinite(horizon_err))),
         Criterion("PP-SWR-017", "Tỉ lệ chu kỳ có path hợp lệ khi lane model báo tầm nhìn > 126 m",
                   long_view_valid, "= 1", long_view_valid == 1.0, applicable=bool(long_view)),
         Criterion("PP-SWR-150", "LateralLimits mỗi chu kỳ", float(limits_every_cycle), "= 1",

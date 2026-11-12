@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.19 |
+| Phiên bản | 1.20 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -411,7 +411,7 @@ Một requirement đạt khi đạt ở mọi kịch bản, biến thể, seed v
 | a_y, a_y thêm vào, jerk | Trên Trajectory, theo chức năng đang lái. a_y cần lấy từ độ cong làn thật tại điểm path. Jerk trung bình 0,5 s | Theo PP-SWR-001, 003, 110 đến 115 | PP-SWR-001, 003, 110 đến 115 |
 | Góc bánh, tốc độ vô lăng | Trên path | Theo VehicleConfig của profile | PP-SWR-116, 117 |
 | Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ, ở phần path mới trong tầm nhìn lane model báo, đổi về t0 theo chuyển động thật; không có lane model thì cả path | ≤ 0,05 m; ≤ 0,005 rad; ≤ 0,0003 1/m | PP-SWR-100 đến 102 |
-| Phần quan sát | `observed_horizon_s` so với thời điểm path ra khỏi tầm nhìn lane model báo, mọi chu kỳ có path hợp lệ và có lane model | ≤ 0,1 s | PP-SWR-018 |
+| Phần quan sát | `observed_horizon_s` trừ thời điểm path ra khỏi tầm nhìn lane model báo, lớn nhất trên mọi chu kỳ có path hợp lệ và có lane model | ≤ 0,1 s | PP-SWR-018 |
 | Thời lượng can thiệp | REQUEST tới COMPLETED hoặc hủy | ≤ 10 s | PP-SWR-083 |
 | Điểm đầu path can thiệp | Tại tick bắt đầu, so vị trí và v_lat tại cầu sau với trạng thái thật trong hệ làn | ≤ 0,1 m và ≤ 0,1 m/s | PP-SWR-080 |
 | Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng tại tick đủ `T_end_hold` | PP-SWR-032, 090 |
@@ -613,3 +613,4 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | 1.17 | 2026-11-12 | Mục 4.8: điều kiện tầm nhìn của HWA ở phía simulator. Mục 6: F22 bật điều kiện này, b dùng 30 m, thêm f (HWA trả lái rồi trở lại); Q4 chạy bằng `eval.matrix` |
 | 1.18 | 2026-11-12 | Mục 5.3: bộ chạy theo khía cạnh B0–B8, nhãn độ khó L0–L5 và kết quả mong đợi, chấm hai chiều. Mục 8.4: mức nghiêm trọng, kết luận. Mục 9: tách so sánh kỹ thuật (9.1) và so sánh giữa các planner (9.2). Mục 10: kết luận đầu báo cáo. Mục 11: planner conformance. Mục 12: kiểm bên chấm bằng planner mồi |
 | 1.19 | 2026-11-12 | Mục 8.1: liên tục chỉ chấm trong tầm nhìn lane model báo (SRS 1.9); thêm chỉ số `observed_horizon_s` (PP-SWR-018) |
+| 1.20 | 2026-11-12 | Mục 8.1: chỉ số `observed_horizon_s` một phía, theo SRS 1.10 |
