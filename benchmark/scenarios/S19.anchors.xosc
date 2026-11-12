@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S19" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S19.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="VP-1, làn 2.5 m, R = 500 m, số xe tải ngang hành trình: 0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="VP-5, làn 2.5 m, R = 500 m, số xe tải ngang hành trình: 0" />
+            <ParameterAssignment parameterRef="profile" value="VP-5" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive_limited" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="VP-2, làn 5.5 m, R = 500 m, số xe tải ngang hành trình: 0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="5.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-2" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S19c.xodr" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-5.5" />
+            <ParameterAssignment parameterRef="other_t_m" value="5.5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="VP-4, làn 3 m, R = 500 m, số xe tải ngang hành trình: 1" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3" />
+            <ParameterAssignment parameterRef="profile" value="VP-4" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S19d.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="170" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-2.7" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20" />
+            <ParameterAssignment parameterRef="other_t_m" value="3" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="VP-4, làn 3 m, R = 500 m, số xe tải ngang hành trình: 2" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3" />
+            <ParameterAssignment parameterRef="profile" value="VP-4" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S19d.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="170" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-2.7" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="20" />
+            <ParameterAssignment parameterRef="other_s_m" value="170" />
+            <ParameterAssignment parameterRef="other_t_m" value="3" />
+            <ParameterAssignment parameterRef="other_speed_mps" value="20" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
