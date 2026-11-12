@@ -56,3 +56,18 @@ def test_eps_delay_lag_and_handover():
         delta = eps.step(t, 1e-3)
     assert isclose(eps.angle, 0.0, abs_tol=1e-3)             # back to the driver (0) within 1 s
     assert isclose(delta, eps.angle / cfg.steering_ratio)
+
+
+def test_channel_jitter_is_seeded_bounded_and_in_time_order():
+    import numpy as np
+    from sim.runtime.channel import Channel
+    ch = Channel("x", latency_us=100_000, jitter_us=20_000, rng=np.random.default_rng(1))
+    got = []
+    ch.subscribers.append(lambda m, rx: got.append((m, rx)))
+    for k in range(50):
+        ch.publish(k, k * 50_000)
+    for t in range(0, 3_000_000, 1_000):
+        ch.deliver(t)
+    assert len(got) == 50
+    assert all(80_000 <= rx - m * 50_000 <= 120_000 for m, rx in got)
+    assert [rx for _, rx in got] == sorted(rx for _, rx in got)

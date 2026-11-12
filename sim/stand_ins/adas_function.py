@@ -48,7 +48,7 @@ class AdasCalibration:
     n_confirm: int = 2
     conf_ego: float = 0.6
     conf_edge: float = 0.7
-    view_min: float = 20.0
+    t_view_min: float = 1.0  # [s] observed range / speed (PP-ASM-021)
     exist_min: float = 0.7
     n_track: int = 3
     t_conflict: float = 3.0
@@ -149,7 +149,7 @@ class AdasFunction:
                          stamp: int, now_us: int, frame: EgoMotionResponse, motion: VehicleMotion,
                          ego_motion: EgoMotionQuery) -> tuple[Clearance | None, bool]:
         confidence = self.cal.conf_edge if edge else self.cal.conf_ego
-        if not trusted(boundary, confidence, self.cal.view_min):
+        if not trusted(boundary, confidence, self.cal.t_view_min * motion.speed_mps):
             return None, False
         estimate = clearance(boundary, side, frame, self.vehicle, motion)
         if estimate is None or not any(boundary.variance):
@@ -288,7 +288,7 @@ class AdasFunction:
             return ElkReason.NONE
         line = lane.lines[EGO_LINE_INDEX[side]]
         outer = lane.lines[OUTER_LINE_INDEX[side]]
-        if not trusted(outer, self.cal.conf_ego, self.cal.view_min):
+        if not trusted(outer, self.cal.conf_ego, self.cal.t_view_min * speed):
             outer = None
         width = self._width if self._width is not None else lane.lane_width
         if not _LANE_WIDTH_MIN <= width <= _LANE_WIDTH_MAX and outer is None:
@@ -360,7 +360,7 @@ class AdasFunction:
         if completed_lka != Side.NONE:
             self._confirmations.pop(completed_lka, None)
 
-        alt = bool(edges) or (lane is not None and any(trusted(lane.lines[i], self.cal.conf_ego, self.cal.view_min)
+        alt = bool(edges) or (lane is not None and any(trusted(lane.lines[i], self.cal.conf_ego, self.cal.t_view_min * speed)
                                                      for i in OUTER_LINE_INDEX.values()))
         lka = (_request(RequestState.STANDBY) if completed_lka != Side.NONE else self._keep_request(
             self.lka, now_us, inputs, markings, edges, alt, suspect, deliberate, override))

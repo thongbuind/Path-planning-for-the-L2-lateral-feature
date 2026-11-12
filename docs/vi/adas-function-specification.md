@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.6 |
+| Phiên bản | 1.7 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -96,9 +96,9 @@ Không thoả thì chức năng không được gửi REQUEST. Ngoài dải tố
 |---|---|---|---|---|
 | Cài đặt | Tài xế đã bật, ACC đang bật | Đang bật trong menu | Đang bật | R79 5.6.2.1.2; EU 2021/646 3.2.1 |
 | Tốc độ | 10–130 km/h; dưới 10 km/h thì chờ | Kích hoạt từ 70 km/h, giữ tới dưới 65 km/h, tối đa 130 km/h | Như LKA | EU 2021/646 3.6.1; R79 B1 |
-| Biên làn | Hai vạch; hoặc một vạch cộng bề rộng nhớ được; hoặc tâm làn planner suy ra từ vạch làn bên, mép đường | Vạch phía đang trôi: MEASURED, confidence ≥ `conf_ego`, tầm nhìn ≥ `view_min` | Như LKA. ELK mép đường dùng mép trực tiếp MEASURED, confidence ≥ `conf_edge`, với biên đối diện đủ tin hoặc bề rộng đã nhớ khi mép đã được gắn với làn đang chạy | mentor, PP-SWR-047, PP-TS-007 |
+| Biên làn | Hai vạch; hoặc một vạch cộng bề rộng nhớ được; hoặc tâm làn planner suy ra từ vạch làn bên, mép đường | Vạch phía đang trôi: MEASURED, confidence ≥ `conf_ego`, tầm nhìn / tốc độ ≥ `t_view_min` | Như LKA. ELK mép đường dùng mép trực tiếp MEASURED, confidence ≥ `conf_edge`, với biên đối diện đủ tin hoặc bề rộng đã nhớ khi mép đã được gắn với làn đang chạy | mentor, PP-SWR-047, PP-TS-007 |
 | Biên kém tin | — | UNAVAILABLE | UNAVAILABLE ở phía đó | mentor |
-| Tầm nhìn | Thời gian nhìn trước = điểm cuối tầm nhìn chung của hai biên làn / tốc độ ≥ `t_view_hwa`. Thấp hơn liên tục quá `t_view_hold` thì UNAVAILABLE; ngắn hơn thì HWA vẫn lái | Theo `view_min` ở dòng Biên làn | Như LKA | R171 5.3.7.1.4 (không mất trợ lực lái đột ngột); ngưỡng nhóm tự thống nhất |
+| Tầm nhìn | Thời gian nhìn trước = điểm cuối tầm nhìn chung của hai biên làn / tốc độ ≥ `t_view_hwa`. Thấp hơn liên tục quá `t_view_hold` thì UNAVAILABLE; ngắn hơn thì HWA vẫn lái | Theo `t_view_min` ở dòng Biên làn | Như LKA | R171 5.3.7.1.4 (không mất trợ lực lái đột ngột); ngưỡng nhóm tự thống nhất |
 | Khoảng trống | `lane_too_narrow = false` | — | — | PP-SWR-063 |
 | ESC | ESC can thiệp: HWA tiếp tục | ESC can thiệp hoặc bị tắt: chặn | Như LKA | EU 2021/646 3.2.2, 3.3.2 |
 | Input | LaneModel, IMU, tốc độ, góc lái hợp lệ | Như HWA, cộng VehicleStateEstimate | Như LKA; phần vật thể cần thêm ObjectList | PP-SWR-140 đến 144 |
@@ -247,7 +247,7 @@ Một bộ cho mọi xe. Software Qualification Test Specification quét trong d
 | `n_confirm` | frame | 2 | 1–3 | ≥ 1 |
 | `conf_ego` | — | 0,6 | 0,4–0,8 | 0–1 |
 | `conf_edge` | — | 0,7 | 0,5–0,9 | 0–1 |
-| `view_min` | m | 20 | 15–30 | > 0 |
+| `t_view_min` | s | 1,0 | 0,7–1,5 | ≥ 0,7 (như `t_view_hwa`, PP-ASM-021) |
 | `t_view_hwa` | s | 1,0 | 0,7–1,5 | ≥ 0,7 (thời gian nhìn trước của controller 0,6 s theo PP-ASM-021, cộng một bước Trajectory 0,1 s) |
 | `t_view_hold` | s | 0,5 | 0,2–1,0 | ≥ 0 |
 | `exist_min` | — | 0,7 | 0,5–0,9 | 0–1 |
@@ -308,3 +308,4 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 | 1.4 | 2026-11-12 | Mục 7: điều kiện biên trực tiếp của ELK. Mục 9: rút LKA cùng phía từ ELK ACTIVE. Mục 13: chốt `t_conflict` trước kiểm chứng theo PP-TS-009 |
 | 1.5 | 2026-11-12 | Mục 7: HWA thêm điều kiện tầm nhìn theo thời gian nhìn trước, có thời gian giữ. Mục 13: thêm `t_view_hwa`, `t_view_hold` |
 | 1.6 | 2026-11-12 | Mục 13: `t_view_hwa` ≥ 0,7 s theo PP-ASM-021; dải quét 0,7–1,5 s |
+| 1.7 | 2026-11-12 | Mục 7, 13: `view_min` (20 m) thay bằng `t_view_min` (1,0 s, ≥ 0,7 s) để phần path quan sát đủ cho controller ở mọi tốc độ (PP-ASM-021) |

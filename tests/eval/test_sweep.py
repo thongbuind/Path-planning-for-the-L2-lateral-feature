@@ -70,3 +70,11 @@ def test_suite_run_with_simulator_values():
         for run in suite[part]["runs"]:
             sweep.load_run(run)
             assert sweep.scope_of(suite, run)
+
+
+def test_matrix_block_sim_is_held_for_every_level():
+    from eval import matrix
+    block = {"sim": {"camera_jitter_ms": 20}, "sim_sweep": {"camera_latency_ms": [0, 100, 200]}}
+    assert matrix.sim_settings(block) == [
+        {"camera_jitter_ms": 20.0}, {"camera_jitter_ms": 20.0, "camera_latency_ms": 0.0},
+        {"camera_jitter_ms": 20.0, "camera_latency_ms": 200.0}]

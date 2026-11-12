@@ -32,27 +32,28 @@ INFO = ("vehicle_offset_max_m", "ay_need_at_car_max", "speed_min_mps", "decel_ma
         "jerk_vehicle_r79_max", "ay_vehicle_r79_within_limits")
 
 
-SIM_SWEEP_FIELDS = ("camera_view_m", "camera_view_start_m")
+SIM_SWEEP_FIELDS = sweep.SIM_KEYS
 _DEFAULTS = {f.name: f.default for f in fields(Scenario)}
 
 
 def sim_settings(block: dict) -> list[dict]:
-    """[{}] without a sweep; else the scenario values first, then one change at a time."""
+    """[base] without a sweep; else the base first, then one change at a time on top of it.
+    `sim` of the block sets values held for all its runs (Q1: jitter at every latency)."""
+    base = {k: float(v) for k, v in block.get("sim", {}).items()}
     sweep_spec = block.get("sim_sweep", {})
-    unknown = set(sweep_spec) - set(SIM_SWEEP_FIELDS)
+    unknown = (set(sweep_spec) | set(base)) - set(SIM_SWEEP_FIELDS)
     if unknown:
         raise ValueError(f"cannot sweep {sorted(unknown)}")
-    settings = [{}]
+    settings = [base]
     for name, values in sweep_spec.items():
-        settings += [{name: float(v)} for v in values if float(v) != _DEFAULTS[name]]
+        settings += [{**base, name: float(v)} for v in values
+                     if float(v) != base.get(name, _DEFAULTS[name])]
     return settings
 
 
 def apply_sim(scenario: Scenario, sim: dict) -> Scenario:
     scenario = replace(scenario, **sim)
-    if not (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
-            and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m):
-        raise ValueError("camera view outside 0 <= start < end, 10 <= end <= 126 m")
+    sweep.check_sim(scenario)
     return scenario
 
 

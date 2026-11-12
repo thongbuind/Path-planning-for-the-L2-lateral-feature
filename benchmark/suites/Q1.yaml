@@ -1,0 +1,14 @@
+# Q1 Camera latency sweep (Software Qualification Test Specification 6.1): lane model and
+# ObjectList delay from capture to send, jitter +/- 20 ms at every level. The planner keeps
+# its configuration. Judged with the scope of P1.
+id: Q1
+title: Quét trễ camera
+profiles: [VP-0]
+seeds: [1]
+blocks:
+  - acc: ["off"]
+    runs: [[S1, a], [S1, c], [S1, f], [S2, b]]
+    sim: {camera_jitter_ms: 20}
+    sim_sweep:
+      camera_latency_ms: [0, 50, 100, 150, 200, 300]
+scope_from: P1

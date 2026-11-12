@@ -37,6 +37,11 @@ class Scenario:
     camera_view_start_m: float = 0.0  # [m] in base_link; the hood hides the road closer than this
     # Scripted HWA leaves REQUEST when the preview stays too short (ADAS Function Specification 7; F22)
     hwa_view_gate: bool = False
+    # Delays of Software Qualification Test Specification 6.1 (Q1 to Q3). Defaults: 4.5, PP-ASM-007.
+    camera_latency_ms: float = 100.0  # Lane model and ObjectList, capture to send
+    camera_jitter_ms: float = 0.0  # Uniform +/- on that delay
+    yaw_filter_delay_ms: float = 0.0  # Yaw rate as of this long ago, stamped now (Q2)
+    function_requests_latency_ms: float = 1.0  # FunctionRequests to the planner (Q3)
     traffic: tuple[TrafficSpec, ...] = ()  # Other vehicles (section 4.5, 5)
     notes: dict = field(default_factory=dict)
     road_layout: RoadLayout | None = None
