@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S17" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S17.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="departure_side">
+        <DistributionSet>
+          <Element value="left" />
+          <Element value="right" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="acc">
+        <DistributionSet>
+          <Element value="on" />
+          <Element value="ignore_limits" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
