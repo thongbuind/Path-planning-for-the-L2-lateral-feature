@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.20 |
+| Phiên bản | 1.26 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -369,7 +369,7 @@ Mỗi lỗi bơm ở ba thời điểm: HWA đang chạy ổn định, ngay lúc
 |---|---|---|---|
 | Q1 | Trễ camera (lane model, vật thể) | 0 / 50 / 100 / 150 / 200 / 300 ms, mỗi mức jitter ±20 ms | PP-SWR-012, 013, 131 (300 ms), 133 (200 ms) |
 | Q2 | Trễ yaw rate đã lọc, planner không được báo | 0 / 25 / 50 / 100 ms | PP-SWR-138 (0–50 ms, vòng kín) |
-| Q3 | Trễ FunctionRequests | 20 / 40 / 60 ms | PP-SWR-038 |
+| Q3 | Trễ FunctionRequests | 20 / 40 / 60 ms. 60 ms vượt tuổi tối đa 45 ms của Interface Control Document: planner phải xử lý như chưa nhận message | PP-SWR-038, 048 |
 | Q4 | Tầm nhìn camera | Điểm cuối 10 / 20 / 40 / 80 / 126 m; điểm đầu 0 / 5 / 10 m. Trên S1 (a, c, f) và S14 (a, e). Mức có thời gian nhìn trước dưới `t_view_hwa` vẫn chạy để thấy khả năng của thuật toán. Chạy: `python3 -m eval.matrix Q4` | PP-SWR-017, 050, 151 |
 
 ### 6.2 Ghép lỗi
@@ -614,3 +614,4 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | 1.18 | 2026-11-12 | Mục 5.3: bộ chạy theo khía cạnh B0–B8, nhãn độ khó L0–L5 và kết quả mong đợi, chấm hai chiều. Mục 8.4: mức nghiêm trọng, kết luận. Mục 9: tách so sánh kỹ thuật (9.1) và so sánh giữa các planner (9.2). Mục 10: kết luận đầu báo cáo. Mục 11: planner conformance. Mục 12: kiểm bên chấm bằng planner mồi |
 | 1.19 | 2026-11-12 | Mục 8.1: liên tục chỉ chấm trong tầm nhìn lane model báo (SRS 1.9); thêm chỉ số `observed_horizon_s` (PP-SWR-018) |
 | 1.20 | 2026-11-12 | Mục 8.1: chỉ số `observed_horizon_s` một phía, theo SRS 1.10 |
+| 1.26 | 2026-11-12 | Mục 6.1: Q3 ở 60 ms là ca FunctionRequests quá tuổi (PP-SWR-048, PP-PR-023) |
