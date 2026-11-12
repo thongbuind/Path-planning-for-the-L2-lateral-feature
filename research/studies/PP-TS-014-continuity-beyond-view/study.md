@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Đang chạy |
 | Mở ngày | 2026-11-12 |
 | Khóa ngày | 2026-11-12 |
 | Quyết định ngày | — |
@@ -47,10 +47,34 @@ Mỗi dòng chạy có thể kết thúc bằng một mục giá trị simulator
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
 | — | V0–V3 | 2026-11-12, commit 0606b07, `--record`: chạy hết nhưng không ghi được hồ sơ (ngày `locked` không ghi ra JSON). Không phải lần chạy chính thức; không trích |
+| [20261112-1150-study-PP-TS-014-fe420b5](../../runs/20261112-1150-study-PP-TS-014-fe420b5/summary.md) | V0, V1 × `cont_margin` 0,7 / 0,8 / 0,9 | Chính thức |
 
 ## 5. Kết quả
 
+Lần chạy 20261112-1150-study-PP-TS-014-fe420b5. Trượt đếm theo (ca, requirement).
+
+| Bộ | Bộ chỉnh: trượt | Bộ chỉnh: PP-SWR-050 [m] | Bộ kiểm: trượt | Bộ kiểm: PP-SWR-050 [m] | Bộ kiểm: jerk [m/s³] |
+|---|---|---|---|---|---|
+| V0-m9 | 2 | 2,15 | 21 | 1,36 | 2,60 |
+| V0-m8 | 4 | 2,88 | 18 | 1,88 | 2,60 |
+| V0-m7 | 5 | 4,04 | 14 | 2,72 | 2,59 |
+| V1-m9 | 9 | 0,41 | 34 | 0,40 | 3,71 |
+| V1-m8 | 9 | 0,41 | 34 | 0,40 | 3,80 |
+| V1-m7 | 14 | 2,08 | 31 | 0,40 | 3,89 |
+
+- Chọn mức trên bộ chỉnh: V0-m9, V1-m9 (hoặc m8, ngang nhau).
+- V1 giảm PP-SWR-050 khoảng 3 lần và hết trượt PP-SWR-051 ở S1c, S1f với tầm nhìn 30–40 m. Đổi lại V1 trượt PP-SWR-100 (và 101, 102 ở S14e) ở nhiều ca hơn V0.
+- Hạ `cont_margin` không làm hết trượt PP-SWR-100 của V1.
+- Cả hai cùng trượt S14e (PP-PR-004) và F06 trên S1c (PP-PR-001).
+
+**Vì sao V1 trượt PP-SWR-100.** Tái hiện S1c 30 m, seed 1, thư viện V1-m7 của lần chạy này: 21 trong 873 cặp path vượt 0,05 m, lớn nhất 1,15 m ở 2,9 s lúc 10,558 s. V1 trộn vị trí, hướng và độ cong của từng điểm với λ khác nhau, nên trường độ cong không còn khớp với hình học của path. T10 bước 2 (`pp_feasibility_limit`) cắt độ cong theo jerk, tốc độ quay vô lăng rồi tích phân lại vị trí từ điểm đầu tiên bị cắt, nên phần xa bị đẩy đi. Đây là lỗi của cách cài V1, không phải của ý tưởng λ theo từng điểm.
+
+
 ## 6. Đề xuất
+
+- Chưa chọn được: V0 đạt nhiều requirement hơn nhưng vẫn để xe rời làn khi tầm nhìn ngắn (PP-PR-021); V1 như đã cài có lỗi hình học ở mục 5.
+- Sửa V1 thành V1b: sau khi trộn theo từng điểm, tính lại hướng và độ cong từ vị trí đã trộn, và giới hạn độ đổi của λ giữa hai điểm liền nhau để không sinh thêm jerk. Chạy lại V0-m9 và V1b với cùng bộ chạy, seed, tiêu chí.
+
 
 ## 7. Quyết định
 

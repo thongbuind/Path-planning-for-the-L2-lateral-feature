@@ -1,0 +1,4516 @@
+[
+ {
+  "set": "V0-m7",
+  "values": {
+   "cont_margin": 0.7
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m7/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 5,
+   "failed_ids": [
+    "S1c [camera_view_m=30]:PP-SWR-051",
+    "S1f [camera_view_m=30]:PP-SWR-051",
+    "S1f [camera_view_m=40]:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 4.039488774416054,
+    "PP-SWR-003": 1.0449456021888182
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.0655422439788143,
+     "PP-SWR-003": 0.6037445564288646
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.8519365157321886,
+     "PP-SWR-003": 0.6093009142205119
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.44053515319730857,
+     "PP-SWR-003": 0.7063185330480337
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.44256165947842824,
+     "PP-SWR-003": 0.7067889964673668
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 4.039488774416054,
+     "PP-SWR-003": 0.7912836008472368
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 3.994776379408689,
+     "PP-SWR-003": 0.7927807382657193
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.662955495111877,
+     "PP-SWR-003": 1.0449258843436837
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.635265817302192,
+     "PP-SWR-003": 1.0449456021888182
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8604541653767228
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8657507714815438
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39815593524359505,
+     "PP-SWR-003": 0.7001800986472517
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3985794623644686,
+     "PP-SWR-003": 0.7001178164500743
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0-m7",
+  "values": {
+   "cont_margin": 0.7
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m7/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 14,
+   "failed_ids": [
+    "S14e [acc=ignore_limits]:PP-SWR-051",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06e:PP-SWR-100",
+    "S1f [camera_view_m=35]:PP-SWR-051",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 2.719387200674773,
+    "PP-SWR-003": 2.5903557839211206,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2609999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.8130815141827651
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4180820040440262,
+     "PP-SWR-003": 0.6844727613497525
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.41984165182516686,
+     "PP-SWR-003": 0.6840442074462771
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.717145354043627,
+     "PP-SWR-003": 0.8806352616375079
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.719387200674773,
+     "PP-SWR-003": 0.8794257701083552
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05486285152633849,
+     "PP-SWR-003": 0.5732012505177408
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05501856207852908,
+     "PP-SWR-003": 0.572623685002327
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4412779074422345,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.44224551400635403,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2842776222405864,
+     "PP-SWR-003": 1.8564749916549772
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2924656355029353,
+     "PP-SWR-003": 1.8524365441408008
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3800218447915755,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3803095254308845,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2817339962945915,
+     "PP-SWR-003": 1.5521975001320243
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2855396184783406,
+     "PP-SWR-003": 1.5410677588079125
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.8593071834184229
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.860145955812186
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8732758578844368
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8733413415029645
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.0702013640224388
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.0735569444084545
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.289661300999842
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.3206256811217365
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.3178475485676415
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.2173483165185939
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 2.5903557839211206
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 2.587203207675403
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7006170926615596
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7000852201599628
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7985185948200524
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7975379412528127
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8130815141827651,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8122345651316162,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.7216352397556671,
+     "PP-SWR-003": 0.9727050201036036
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.7249725368501685,
+     "PP-SWR-003": 0.9727916039992124
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3800206538610628,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3803102777529087,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4039317686922847,
+     "PP-SWR-003": 0.6643017695751041
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4052824406336658,
+     "PP-SWR-003": 0.6636098260059953
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3805318471335061,
+     "PP-SWR-003": 0.7076721522025764
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.38102195859766497,
+     "PP-SWR-003": 0.7075995381455868
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37065185264706313,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3712364385685946,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.6299550591526907,
+     "PP-SWR-003": 0.6596135790459812
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.5092059525014664,
+     "PP-SWR-003": 0.6707549619022757
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0-m8",
+  "values": {
+   "cont_margin": 0.8
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m8/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 4,
+   "failed_ids": [
+    "S1f [camera_view_m=30]:PP-SWR-051",
+    "S1f [camera_view_m=40]:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 2.8824612622290235,
+    "PP-SWR-003": 1.0692911018850282
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.38610256504065915,
+     "PP-SWR-003": 0.6581396155524999
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.38923434633960885,
+     "PP-SWR-003": 0.6582103378605098
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4430537277758189,
+     "PP-SWR-003": 0.7059120980557054
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.44501336517468854,
+     "PP-SWR-003": 0.7064141391310841
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.8824612622290235,
+     "PP-SWR-003": 1.0143526742467657
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.849691861990143,
+     "PP-SWR-003": 1.0203151032328606
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.1367221275248007,
+     "PP-SWR-003": 1.0692911018850282
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.1193131968323928,
+     "PP-SWR-003": 1.065937030944042
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8803211676422507
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8812695159576833
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39572367833102623,
+     "PP-SWR-003": 0.7001800986472517
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39603226966846644,
+     "PP-SWR-003": 0.7001178164500743
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0-m8",
+  "values": {
+   "cont_margin": 0.8
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m8/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 18,
+   "failed_ids": [
+    "S14e [acc=ignore_limits]:PP-SWR-051",
+    "S14e [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-100",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06e:PP-SWR-100",
+    "S1f [camera_view_m=35]:PP-SWR-051",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 1.8785725664455641,
+    "PP-SWR-003": 2.5978101155034232,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2609999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.8246856950996174
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4216090083350988,
+     "PP-SWR-003": 0.6858147389721125
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4232782354147643,
+     "PP-SWR-003": 0.6851876969449222
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.8785725664455641,
+     "PP-SWR-003": 0.9321080869995058
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.866447052039265,
+     "PP-SWR-003": 0.9343338024336845
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054833958589219786,
+     "PP-SWR-003": 0.5736570165026933
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05498948179361817,
+     "PP-SWR-003": 0.5734387377742678
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4379728244866975,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4388826670090174,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.42371606914090965,
+     "PP-SWR-003": 1.849972759373486
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.4347490231642337,
+     "PP-SWR-003": 1.8388622265774757
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.378262921843384,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37856213687938134,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.27320093765888165,
+     "PP-SWR-003": 1.5662374789826572
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2794421078175801,
+     "PP-SWR-003": 1.5582199557684362
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.881126761669293
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.8804391836747527
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8736021118238568
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8736527524888515
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.3472520828841072
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 1.2901124420672854
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.5380922638498356
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.5568586468370516
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.2975288516753454
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.2143909221032367
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.5978101155034232
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.593774174247169
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7006045780144632
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7000727055128664
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7974918116815388
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7969068246893585
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8246856950996174,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8238381394159411,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8049273034753619,
+     "PP-SWR-003": 1.0094519529957324
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8093474930014279,
+     "PP-SWR-003": 1.010046835290268
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3782651551892824,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3785613108928879,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4046442544351221,
+     "PP-SWR-003": 0.6647496775258332
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4059362375516515,
+     "PP-SWR-003": 0.6640535139013082
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37884375679797455,
+     "PP-SWR-003": 0.7075400208123028
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37934962105322045,
+     "PP-SWR-003": 0.7074960740283132
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3690372751127426,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.36959899302286775,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.22819535335039443,
+     "PP-SWR-003": 0.7512526644859463
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.19546242483385895,
+     "PP-SWR-003": 0.7620832184329629
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0-m9",
+  "values": {
+   "cont_margin": 0.9
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m9/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 2,
+   "failed_ids": [
+    "S1f [camera_view_m=30]:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 2.1447974974606208,
+    "PP-SWR-003": 1.0534205648582429
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39019524953168233,
+     "PP-SWR-003": 0.6606479291804135
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39310723305779804,
+     "PP-SWR-003": 0.6606314855162054
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4448963550809478,
+     "PP-SWR-003": 0.7058073242660612
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4466863462590742,
+     "PP-SWR-003": 0.7063036900945008
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.1447974974606208,
+     "PP-SWR-003": 0.9971296822186559
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 2.1260054731888474,
+     "PP-SWR-003": 0.9729651719680987
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.8052635416487449,
+     "PP-SWR-003": 1.0534205648582429
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.797103211262599,
+     "PP-SWR-003": 1.023973454721272
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8797623740974814
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8804009121377021
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39390941206062163,
+     "PP-SWR-003": 0.7001800986472517
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39411451613959836,
+     "PP-SWR-003": 0.7001178164500743
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0-m9",
+  "values": {
+   "cont_margin": 0.9
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "single"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V0-m9/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 21,
+   "failed_ids": [
+    "S14e [acc=ignore_limits]:PP-SWR-051",
+    "S14e [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [acc=on]:PP-SWR-100",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-100",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06b:PP-SWR-101",
+    "S1c_F06e:PP-SWR-100",
+    "S1f [camera_view_m=35]:PP-SWR-051",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 1.3623830055583277,
+    "PP-SWR-003": 2.603215659633894,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2809999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.878930206314957
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.42424731897775075,
+     "PP-SWR-003": 0.687363208271563
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.42596241837986976,
+     "PP-SWR-003": 0.6869625940453261
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.3620025971894127,
+     "PP-SWR-003": 1.0163151455344632
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-050": 1.3623830055583277,
+     "PP-SWR-003": 1.0130930604645982
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05481494268402784,
+     "PP-SWR-003": 0.5736318416893482
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.0549701970226761,
+     "PP-SWR-003": 0.5734121077693999
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.43529905382287154,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.43618606561944306,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.43473110857364683,
+     "PP-SWR-003": 1.8518931756261736
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.4428084462119996,
+     "PP-SWR-003": 1.8408200412523001
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37697253603246733,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3773417112063647,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2690249505229107,
+     "PP-SWR-003": 1.5798483946127817
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.27573018791743453,
+     "PP-SWR-003": 1.5661246288800612
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.8800609793979675
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.8798301860224456
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2809999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2809999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8738532778806984
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8739272016100585
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.0762289279337423
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.0682821261405278
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.6724183959762926
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.6387272582810577
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.3404930954486423
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.213892200006964
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.603215659633894
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.599449175826291
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7005923544056714
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7000606274232268
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7965830445755273
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7959923823364079
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8362345312237023,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8353796115527359,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8731649073053025,
+     "PP-SWR-003": 1.0407860099803656
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-125": 0.878930206314957,
+     "PP-SWR-003": 1.041778887156397
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37696904509546114,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37734239306493667,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.40497103205643087,
+     "PP-SWR-003": 0.6647247937507927
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.40620354785066054,
+     "PP-SWR-003": 0.6640289211645722
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3776012137796714,
+     "PP-SWR-003": 0.7073306187521666
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37807870853887454,
+     "PP-SWR-003": 0.7073493907228112
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3678409313824969,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.36834966441432565,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.15696211413725625,
+     "PP-SWR-003": 0.8093014184851199
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.19156653831972745,
+     "PP-SWR-003": 0.8078239625319839
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m7",
+  "values": {
+   "cont_margin": 0.7
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m7/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 14,
+   "failed_ids": [
+    "S1c [camera_view_m=30]:PP-SWR-100",
+    "S1c [camera_view_m=30]:PP-SWR-101",
+    "S1c_F22c:PP-SWR-100",
+    "S1c_F22c:PP-SWR-101",
+    "S1f [camera_view_m=30]:PP-SWR-051",
+    "S1f [camera_view_m=30]:PP-SWR-100",
+    "S1f [camera_view_m=40]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 2.07843514898967,
+    "PP-SWR-003": 2.9698785510845482
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3796975511861337,
+     "PP-SWR-003": 0.7654470391571522
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3812284524244866,
+     "PP-SWR-003": 0.7140214438550174
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4076171767359603,
+     "PP-SWR-003": 0.7053803710732609
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4084975021625116,
+     "PP-SWR-003": 0.7058652408886701
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 2.07843514898967,
+     "PP-SWR-003": 2.960682541015558
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 2.009920360648276,
+     "PP-SWR-003": 2.9698785510845482
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28379576158667635,
+     "PP-SWR-003": 2.9154453659430146
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28831066323797205,
+     "PP-SWR-003": 2.891372569138184
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8788335253484547
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8794736640993506
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3418343974154034,
+     "PP-SWR-003": 1.193791686091572
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3415546676742227,
+     "PP-SWR-003": 1.1845392873510718
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m7",
+  "values": {
+   "cont_margin": 0.7
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m7/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 31,
+   "failed_ids": [
+    "S14a [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-101",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [acc=on]:PP-SWR-100",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-100",
+    "S1bd:PP-SWR-100",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06b:PP-SWR-101",
+    "S1c_F06e:PP-SWR-100",
+    "S1c_F06e:PP-SWR-101",
+    "S1c_F22f:PP-SWR-100",
+    "S1c_F22f:PP-SWR-101",
+    "S1f [camera_view_m=35]:PP-SWR-100",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.40074316006466265,
+    "PP-SWR-003": 3.892133182171951,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2609999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.9463312137245551
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39965623429983177,
+     "PP-SWR-003": 0.6872389349155128
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.40074316006466265,
+     "PP-SWR-003": 0.6869350909255445
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.31437222488874283,
+     "PP-SWR-003": 2.9123376589268446
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.312294104130518,
+     "PP-SWR-003": 2.9033396276645362
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054757663369851474,
+     "PP-SWR-003": 0.5735557351727039
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05491287485608492,
+     "PP-SWR-003": 0.5733310536015779
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3813752981371452,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3821928766368121,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.396744273171108,
+     "PP-SWR-003": 1.9563045862014405
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.39842956278660757,
+     "PP-SWR-003": 2.006572240134119
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3317266404432696,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3319940968567027,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.24943802101891865,
+     "PP-SWR-003": 1.5599787002429366
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2521669135477897,
+     "PP-SWR-003": 1.5543696645181626
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.8791311120148748
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.8789233106654137
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2609999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8755680755712092
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8756766328588128
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.727188365098035
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6409790716848125
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.892133182171951
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.7982795967847154
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.3422282054551515
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.2164950868825246
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6700301767945294
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6805341594675145
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6999302422627807
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6994018622208387
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7906233076937497
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7897292380221188
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8137444959747059,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8128555802513486,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9422909710611177,
+     "PP-SWR-003": 1.1949798499699682
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9463312137245551,
+     "PP-SWR-003": 1.193500793306157
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33172793857919497,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33199535251314294,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.364400008852576,
+     "PP-SWR-003": 0.6693227624054998
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3653127067118741,
+     "PP-SWR-003": 0.6687796849291772
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3326112410010121,
+     "PP-SWR-003": 0.7086807454470545
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33310735308044737,
+     "PP-SWR-003": 0.709502783138305
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.32439747345498765,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3248847454173583,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3320070528954424,
+     "PP-SWR-003": 1.0856993321795017
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3324805801753984,
+     "PP-SWR-003": 1.0624148126225919
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m8",
+  "values": {
+   "cont_margin": 0.8
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m8/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 9,
+   "failed_ids": [
+    "S1c [camera_view_m=30]:PP-SWR-100",
+    "S1c_F22c:PP-SWR-100",
+    "S1c_F22c:PP-SWR-101",
+    "S1f [camera_view_m=30]:PP-SWR-100",
+    "S1f [camera_view_m=40]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.4084975021625116,
+    "PP-SWR-003": 2.8992128500249237
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3796975511861337,
+     "PP-SWR-003": 0.6659785867668688
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3812284524244866,
+     "PP-SWR-003": 0.6665509135928005
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4076171767359603,
+     "PP-SWR-003": 0.7053803710732609
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4084975021625116,
+     "PP-SWR-003": 0.7058652408886701
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.17046673879471158,
+     "PP-SWR-003": 2.8992128500249237
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.17584920418658534,
+     "PP-SWR-003": 2.8959715564269572
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28379576158667635,
+     "PP-SWR-003": 2.7071876684203744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28831066323797205,
+     "PP-SWR-003": 2.724878868320957
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8788335253484547
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8794736640993506
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3418343974154034,
+     "PP-SWR-003": 1.2418263941071928
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3415546676742227,
+     "PP-SWR-003": 1.2327397416811436
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m8",
+  "values": {
+   "cont_margin": 0.8
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m8/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 34,
+   "failed_ids": [
+    "S14a [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-101",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [acc=on]:PP-SWR-100",
+    "S14e [acc=on]:PP-SWR-101",
+    "S14e [acc=on]:PP-SWR-102",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-100",
+    "S1bd:PP-SWR-100",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06b:PP-SWR-101",
+    "S1c_F06e:PP-SWR-100",
+    "S1c_F06e:PP-SWR-101",
+    "S1c_F22f:PP-SWR-100",
+    "S1c_F22f:PP-SWR-101",
+    "S1f [camera_view_m=35]:PP-SWR-100",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.40074316006466265,
+    "PP-SWR-003": 3.799692085140196,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2809999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.9463350045733998
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39965623429983177,
+     "PP-SWR-003": 0.6872389349155128
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.40074316006466265,
+     "PP-SWR-003": 0.6869350909255445
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2344971227469289,
+     "PP-SWR-003": 2.849144657375291
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2447528942478941,
+     "PP-SWR-003": 2.8482405468821526
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054757663369851474,
+     "PP-SWR-003": 0.5735557351727039
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05491287485608492,
+     "PP-SWR-003": 0.5733310536015779
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3813752981371452,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3821928766368121,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.39672610452931545,
+     "PP-SWR-003": 1.8382249982096255
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3984041588648,
+     "PP-SWR-003": 1.829425455071032
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3317266404432696,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3319940968567027,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.24943304878536784,
+     "PP-SWR-003": 1.565109778312035
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2521632508343759,
+     "PP-SWR-003": 1.5687066479586065
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.8791311120148748
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.8789233106654137
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2809999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2809999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8755680755712092
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8756766328588128
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 2.7942981978223416
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101",
+     "PP-SWR-102"
+    ],
+    "values": {
+     "PP-SWR-003": 2.7080326461440016
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.6068597577888664
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.799692085140196
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.3422282054551515
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 1.2164950868825246
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6767567455549526
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6805341594675145
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6999300967436284
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6994012801442295
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7906027894932777
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7897110481280833
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8251922541501198,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8243055201768192,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9422964956054615,
+     "PP-SWR-003": 1.1949798499699682
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9463350045733998,
+     "PP-SWR-003": 1.193500793306157
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33172793857919497,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33199535251314294,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.364400008852576,
+     "PP-SWR-003": 0.6693227624054998
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3653127067118741,
+     "PP-SWR-003": 0.6687796849291772
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3326112410010121,
+     "PP-SWR-003": 0.7086807454470545
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33310735308044737,
+     "PP-SWR-003": 0.709502783138305
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.32439747345498765,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3248847454173583,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3320070528954424,
+     "PP-SWR-003": 1.0590726742520928
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3324805801753984,
+     "PP-SWR-003": 1.0534600005485117
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m9",
+  "values": {
+   "cont_margin": 0.9
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m9/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 9,
+   "failed_ids": [
+    "S1c [camera_view_m=30]:PP-SWR-100",
+    "S1c_F22c:PP-SWR-100",
+    "S1c_F22c:PP-SWR-101",
+    "S1f [camera_view_m=30]:PP-SWR-100",
+    "S1f [camera_view_m=40]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.4084975021625116,
+    "PP-SWR-003": 2.7560029411688447
+   }
+  },
+  "runs": [
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3796975511861337,
+     "PP-SWR-003": 0.6659785867668688
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=30]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3812284524244866,
+     "PP-SWR-003": 0.6665509135928005
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4076171767359603,
+     "PP-SWR-003": 0.7053803710732609
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=40]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.4084975021625116,
+     "PP-SWR-003": 0.7058652408886701
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.17046673879471158,
+     "PP-SWR-003": 2.7560029411688447
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=30]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.17584920418658534,
+     "PP-SWR-003": 2.7408009918872267
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28379576158667635,
+     "PP-SWR-003": 2.5642054970376194
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=40]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.28831066323797205,
+     "PP-SWR-003": 2.564836759120226
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8788335253484547
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=40, acc=on]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8794736640993506
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3418343974154034,
+     "PP-SWR-003": 1.2480730947572738
+    }
+   },
+   {
+    "run": "S1c_F22c",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3415546676742227,
+     "PP-SWR-003": 1.2482330203056335
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1-m9",
+  "values": {
+   "cont_margin": 0.9
+  },
+  "cmake": {
+   "PP_T2_BEYOND": "arc",
+   "PP_T4_BLEND": "per_time"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-014/V1-m9/build/libpp_planner.dylib",
+  "summary": {
+   "failed": 34,
+   "failed_ids": [
+    "S14a [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-100",
+    "S14e [acc=ignore_limits]:PP-SWR-101",
+    "S14e [acc=on]:PP-SWR-051",
+    "S14e [acc=on]:PP-SWR-100",
+    "S14e [acc=on]:PP-SWR-101",
+    "S14e [acc=on]:PP-SWR-102",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-051",
+    "S14e [camera_view_m=126, acc=ignore_limits]:PP-SWR-100",
+    "S14e [camera_view_m=126, acc=on]:PP-SWR-100",
+    "S1bd:PP-SWR-100",
+    "S1c_F06b:PP-SWR-100",
+    "S1c_F06b:PP-SWR-101",
+    "S1c_F06e:PP-SWR-100",
+    "S1c_F06e:PP-SWR-101",
+    "S1c_F22f:PP-SWR-100",
+    "S1f [camera_view_m=35]:PP-SWR-100",
+    "S1f [camera_view_m=60]:PP-SWR-100"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.40074316006466265,
+    "PP-SWR-003": 3.7127579393238137,
+    "PP-SWR-064": 0.9259999999999993,
+    "PP-SWR-053": 3.2809999999999997,
+    "PP-SWR-002": 0.1880781383079011,
+    "PP-SWR-125": 0.9463350045733998
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016378856208903947,
+     "PP-SWR-003": 0.1726355912978761
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016425063291916314,
+     "PP-SWR-003": 0.17254817066714168
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.39965623429983177,
+     "PP-SWR-003": 0.6872389349155128
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.40074316006466265,
+     "PP-SWR-003": 0.6869350909255445
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2344971227469289,
+     "PP-SWR-003": 2.7383730048313737
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=35]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.2447528942478941,
+     "PP-SWR-003": 2.7309144206810743
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054757663369851474,
+     "PP-SWR-003": 0.5735557351727039
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=35]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05491287485608492,
+     "PP-SWR-003": 0.5733310536015779
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016370151423550125,
+     "PP-SWR-003": 0.18203190847998485
+    }
+   },
+   {
+    "run": "S1a [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.016397303116512156,
+     "PP-SWR-003": 0.18202339560957626
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3813752981371452,
+     "PP-SWR-003": 0.7234682561829686
+    }
+   },
+   {
+    "run": "S1c [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3821928766368121,
+     "PP-SWR-003": 0.7234240183606744
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3967078856291412,
+     "PP-SWR-003": 1.838947500800714
+    }
+   },
+   {
+    "run": "S1f [camera_view_m=60]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.39837856337012545,
+     "PP-SWR-003": 1.8313011969439685
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054806109611851735,
+     "PP-SWR-003": 0.6040441803634167
+    }
+   },
+   {
+    "run": "S1g [camera_view_m=60]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.054898121269020314,
+     "PP-SWR-003": 0.6040709558874369
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.01495457746793216,
+     "PP-SWR-003": 0.17902271792991087
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014981127229234004,
+     "PP-SWR-003": 0.17901325918501243
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3317266404432696,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3319940968567027,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2494278026862687,
+     "PP-SWR-003": 1.5827437164261937
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.25215957657995014,
+     "PP-SWR-003": 1.5713866014266387
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04748917610260422,
+     "PP-SWR-003": 0.5867271102033556
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.047664120899767216,
+     "PP-SWR-003": 0.5868345033377409
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9259999999999993,
+     "PP-SWR-003": 0.8791311120148748
+    }
+   },
+   {
+    "run": "S1bd",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-064": 0.9209999999999994,
+     "PP-SWR-003": 0.8789233106654137
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.2809999999999997,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 3.271,
+     "PP-SWR-002": 0.1880781383079011,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8273843326372814
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8267585968664894
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8755680755712092
+    }
+   },
+   {
+    "run": "S14a [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 0.8756766328588128
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 2.834810812121696
+    }
+   },
+   {
+    "run": "S14e [acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101",
+     "PP-SWR-102"
+    ],
+    "values": {
+     "PP-SWR-003": 2.7428142143412493
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.7127579393238137
+    }
+   },
+   {
+    "run": "S14e [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-003": 3.7052755234440458
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5920448600068033
+    }
+   },
+   {
+    "run": "S14a [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.5927206253411177
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.3422282054551515
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=on]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 1.2164950868825246
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6797558449101984
+    }
+   },
+   {
+    "run": "S14e [camera_view_m=126, acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051",
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-003": 2.6805341594675145
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6999302422627807
+    }
+   },
+   {
+    "run": "S1c_F02a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699400989105925
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7905821257736534
+    }
+   },
+   {
+    "run": "S1c_F02e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7896930037532002
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8366329959297031,
+     "PP-SWR-003": 0.7005549559835345
+    }
+   },
+   {
+    "run": "S1c_F06b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.8357486548459193,
+     "PP-SWR-003": 0.7000380719546229
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9422964956054615,
+     "PP-SWR-003": 1.1949798499699682
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100",
+     "PP-SWR-101"
+    ],
+    "values": {
+     "PP-SWR-125": 0.9463350045733998,
+     "PP-SWR-003": 1.193500793306157
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33172793857919497,
+     "PP-SWR-003": 0.7005559746176004
+    }
+   },
+   {
+    "run": "S1c_F22a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33199535251314294,
+     "PP-SWR-003": 0.7000390905886889
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.364400008852576,
+     "PP-SWR-003": 0.6693227624054998
+    }
+   },
+   {
+    "run": "S1c_F22b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3653127067118741,
+     "PP-SWR-003": 0.6687796849291772
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3326112410010121,
+     "PP-SWR-003": 0.7086807454470545
+    }
+   },
+   {
+    "run": "S1c_F22d",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.33310735308044737,
+     "PP-SWR-003": 0.709502783138305
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.32439747345498765,
+     "PP-SWR-003": 0.7052852015476674
+    }
+   },
+   {
+    "run": "S1c_F22e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3248847454173583,
+     "PP-SWR-003": 0.7048700354062021
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3320070528954424,
+     "PP-SWR-003": 1.028237456921488
+    }
+   },
+   {
+    "run": "S1c_F22f",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-100"
+    ],
+    "values": {
+     "PP-SWR-050": 0.3324805801753984,
+     "PP-SWR-003": 1.0154866322409362
+    }
+   }
+  ]
+ }
+]
