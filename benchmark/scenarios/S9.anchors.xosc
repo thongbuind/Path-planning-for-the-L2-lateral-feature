@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S9" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S9.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="LKA đang can thiệp, ELK vạch liền vào REQUEST" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="ELK và HWA cùng REQUEST, ELK COMPLETED rồi trở lại HWA" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:4,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;SOLID_LINE&quot;]],&quot;driver_override&quot;:false}]}" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Ghi đè HWA rồi trả quyền lái" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.4" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="expect_intervention" value="" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0" />
+            <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:1.5,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:true},{&quot;at_s&quot;:3.5,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Bật xi-nhan trái và hủy LKA khi đang REQUEST" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
+            <ParameterAssignment parameterRef="duration_s" value="6" />
+            <ParameterAssignment parameterRef="start_offset_m" value="-0.4" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.02000133357339049" />
+            <ParameterAssignment parameterRef="expect_intervention" value="LKA" />
+            <ParameterAssignment parameterRef="steer_start_s" value="3.5" />
+            <ParameterAssignment parameterRef="indicated" value="true" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0" />
+            <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:2,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false},{&quot;at_s&quot;:2.5,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Tắt HWA giữa cung R = 500 m" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1b.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25" />
+            <ParameterAssignment parameterRef="duration_s" value="12" />
+            <ParameterAssignment parameterRef="start_s_m" value="320" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="expect_intervention" value="" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0" />
+            <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:6,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
