@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8c" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S8c.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="departure_v_lat_mps">
+        <DistributionRange stepWidth="0.3">
+          <Range lowerLimit="1.2" upperLimit="1.5" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="departure_radius_m">
+        <DistributionRange stepWidth="20">
+          <Range lowerLimit="280" upperLimit="320" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
