@@ -9,12 +9,12 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="S1c trong mưa, HWA, R = 250 m" />
-            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+            <ParameterAssignment parameterRef="scenario_id" value="S12" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="b" />
             <ParameterAssignment parameterRef="description" value="S4c trong mưa, LKA, 90 km/h, v_lat 0,6 m/s" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="scenario_id" value="S12" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
             <ParameterAssignment parameterRef="duration_s" value="17.0" />
             <ParameterAssignment parameterRef="start_s_m" value="100.0" />
@@ -29,7 +29,7 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="S7c trong mưa, ELK xe ngược chiều, v_lat 0,6 m/s" />
-            <ParameterAssignment parameterRef="scenario_id" value="S7" />
+            <ParameterAssignment parameterRef="scenario_id" value="S12" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
             <ParameterAssignment parameterRef="speed_mps" value="20.0" />
             <ParameterAssignment parameterRef="duration_s" value="17.0" />
@@ -48,7 +48,7 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="d" />
             <ParameterAssignment parameterRef="description" value="S4b-d trong mưa, LKA ra ngoài cung R = 250 m" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4b" />
+            <ParameterAssignment parameterRef="scenario_id" value="S12" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S4bd.xodr" />
             <ParameterAssignment parameterRef="duration_s" value="17.0" />
             <ParameterAssignment parameterRef="start_s_m" value="100.0" />

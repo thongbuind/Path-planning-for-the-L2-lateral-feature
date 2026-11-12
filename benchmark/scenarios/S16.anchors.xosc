@@ -7,18 +7,52 @@
       <DeterministicMultiParameterDistribution>
         <ValueSetDistribution>
           <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="LKA COMPLETED, REQUEST giữ thêm 1 s" />
+            <ParameterAssignment parameterRef="scenario_id" value="S16" />
+            <ParameterAssignment parameterRef="adas_mode" value="scripted" />
+            <ParameterAssignment parameterRef="scripted_requests" value="true" />
+            <ParameterAssignment parameterRef="request_events" value="[{&quot;at_s&quot;:4.4,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]},{&quot;at_s&quot;:1.0,&quot;trigger&quot;:&quot;lka_completed&quot;,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]}]" />
+            <ParameterAssignment parameterRef="departure_repeats" value="[]" />
+            <ParameterAssignment parameterRef="departure_repeat_trigger" value="" />
+            <ParameterAssignment parameterRef="duration_s" value="14.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Như a, REQUEST rời 0,2 s rồi quay lại" />
+            <ParameterAssignment parameterRef="scenario_id" value="S16" />
+            <ParameterAssignment parameterRef="adas_mode" value="scripted" />
+            <ParameterAssignment parameterRef="scripted_requests" value="true" />
+            <ParameterAssignment parameterRef="request_events" value="[{&quot;at_s&quot;:4.4,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]},{&quot;at_s&quot;:1.0,&quot;trigger&quot;:&quot;lka_completed&quot;,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]},{&quot;at_s&quot;:1.2,&quot;trigger&quot;:&quot;lka_completed&quot;,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]}]" />
+            <ParameterAssignment parameterRef="departure_repeats" value="[]" />
+            <ParameterAssignment parameterRef="departure_repeat_trigger" value="" />
+            <ParameterAssignment parameterRef="duration_s" value="14.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Lần hai bắt đầu 0,2 s sau COMPLETED" />
+            <ParameterAssignment parameterRef="scenario_id" value="S16" />
+            <ParameterAssignment parameterRef="adas_mode" value="scripted" />
+            <ParameterAssignment parameterRef="scripted_requests" value="true" />
+            <ParameterAssignment parameterRef="request_events" value="[{&quot;at_s&quot;:4.4,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]},{&quot;at_s&quot;:0.0,&quot;trigger&quot;:&quot;lka_completed&quot;,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]},{&quot;at_s&quot;:0.2,&quot;trigger&quot;:&quot;lka_completed&quot;,&quot;requests&quot;:[[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]]}]" />
+            <ParameterAssignment parameterRef="departure_repeats" value="[[0,1]]" />
+            <ParameterAssignment parameterRef="departure_repeat_trigger" value="lka_completed" />
+            <ParameterAssignment parameterRef="duration_s" value="20.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
-            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s cách 2 s, LKA" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s, lần sau 2 s sau COMPLETED, LKA" />
+            <ParameterAssignment parameterRef="scenario_id" value="S16" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="d" />
-            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s cách 2 s, ELK vạch liền" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="description" value="Ba lần trôi trái 0,4 m/s, lần sau 2 s sau COMPLETED, ELK vạch liền" />
+            <ParameterAssignment parameterRef="scenario_id" value="S16" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
             <ParameterAssignment parameterRef="lka_enabled" value="false" />
             <ParameterAssignment parameterRef="elk_enabled" value="true" />
             <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="departure_repeat_trigger" value="elk_completed" />
           </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>

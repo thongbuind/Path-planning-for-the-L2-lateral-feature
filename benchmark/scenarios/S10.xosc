@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="Đi gần vạch mà không trôi" revMajor="1" revMinor="3" />
+  <ParameterDeclarations>
+    <ParameterDeclaration name="scenario_id" parameterType="string" value="S10" />
+    <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S4a.xodr" />
+    <ParameterDeclaration name="profile" parameterType="string" value="VP-0" />
+    <ParameterDeclaration name="speed_mps" parameterType="double" value="20.0" />
+    <ParameterDeclaration name="lane_width_m" parameterType="double" value="3.5" />
+    <ParameterDeclaration name="duration_s" parameterType="double" value="15.0" />
+    <ParameterDeclaration name="start_s_m" parameterType="double" value="100.0" />
+    <ParameterDeclaration name="start_offset_m" parameterType="double" value="0.525" />
+    <ParameterDeclaration name="start_heading_rad" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="hwa_request_s" parameterType="string" value="off" />
+    <ParameterDeclaration name="hold_until_hwa" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="acc" parameterType="string" value="off" />
+    <ParameterDeclaration name="curvature_scale" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="direction" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="adas_mode" parameterType="string" value="B" />
+    <ParameterDeclaration name="lka_enabled" parameterType="boolean" value="true" />
+    <ParameterDeclaration name="elk_enabled" parameterType="boolean" value="true" />
+    <ParameterDeclaration name="expect_intervention" parameterType="string" value="none" />
+    <ParameterDeclaration name="protocol" parameterType="string" value="" />
+    <ParameterDeclaration name="departure_side" parameterType="string" value="left" />
+    <ParameterDeclaration name="departure_radius_m" parameterType="double" value="1200.0" />
+    <ParameterDeclaration name="departure_boundary" parameterType="string" value="marking" />
+    <ParameterDeclaration name="departure_target" parameterType="string" value="none" />
+    <ParameterDeclaration name="steer_start_s" parameterType="double" value="2.0" />
+    <ParameterDeclaration name="driver_torque_nm" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="wind_force_n" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="bank_grade" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="indicated" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="passive_hands_on" parameterType="boolean" value="true" />
+    <ParameterDeclaration name="late_request" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="variant" parameterType="string" value="a" />
+    <ParameterDeclaration name="description" parameterType="string" value="Đi gần vạch trái, DLC 0,2 m, v_lat gần 0" />
+    <ParameterDeclaration name="departure_v_lat_mps" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
+    <ParameterDeclaration name="truck_present" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="truck_s_m" parameterType="double" value="104.0" />
+    <ParameterDeclaration name="truck_t_m" parameterType="double" value="-3.5" />
+    <ParameterDeclaration name="truck_speed_mps" parameterType="double" value="20.0" />
+    <ParameterDeclaration name="truck_width_m" parameterType="double" value="2.5" />
+    <ParameterDeclaration name="truck_length_m" parameterType="double" value="12.0" />
+    <ParameterDeclaration name="night" parameterType="boolean" value="false" />
+  </ParameterDeclarations>
+  <CatalogLocations />
+  <RoadNetwork>
+    <LogicFile filepath="$road_file" />
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="Ego">
+      <Vehicle name="Ego" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="1.45" y="0" z="0.75" />
+          <Dimensions width="1.9" length="4.9" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.61" wheelDiameter="0.65" trackWidth="1.6" positionX="2.9" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+        <Properties>
+          <Property name="pp:adapter" value="single-ego-v1" />
+          <Property name="pp:profile" value="$profile" />
+          <Property name="pp:acc" value="$acc" />
+          <Property name="pp:hwa_request_s" value="$hwa_request_s" />
+          <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:adas_mode" value="$adas_mode" />
+          <Property name="pp:lka_enabled" value="$lka_enabled" />
+          <Property name="pp:elk_enabled" value="$elk_enabled" />
+          <Property name="pp:expect_intervention" value="$expect_intervention" />
+          <Property name="pp:protocol" value="$protocol" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
+    <ScenarioObject name="Truck">
+      <Vehicle name="Truck" vehicleCategory="truck">
+        <BoundingBox>
+          <Center x="0" y="0" z="1.75" />
+          <Dimensions width="$truck_width_m" length="$truck_length_m" height="3.5" />
+        </BoundingBox>
+        <Performance maxSpeed="30" maxAcceleration="3" maxDeceleration="8" />
+        <Axles>
+          <FrontAxle maxSteering="0.6" wheelDiameter="1.0" trackWidth="2.0" positionX="5.0" positionZ="0.5" />
+          <RearAxle maxSteering="0" wheelDiameter="1.0" trackWidth="2.0" positionX="0" positionZ="0.5" />
+        </Axles>
+        <Properties>
+          <Property name="pp:present" value="$truck_present" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request}</CustomCommandAction>
+        </UserDefinedAction>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:lane_fault:v1">{"enabled":$night,"kind":"noise","start_s":0.0,"duration_s":-1,"lines":[0,1,2,3],"value":0.0,"sigma_c0":0.075,"sigma_c1":0.005}</CustomCommandAction>
+        </UserDefinedAction>
+        <Private entityRef="Ego">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$start_s_m" t="$start_offset_m">
+                  <Orientation type="relative" h="$start_heading_rad" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="Truck">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$truck_s_m" t="$truck_t_m">
+                  <Orientation type="relative" h="0" p="0" r="0" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$truck_speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="none">
+          <ByValueCondition>
+            <SimulationTimeCondition value="$duration_s" rule="greaterOrEqual" />
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

@@ -9,19 +9,30 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="Bẻ trái 1.2 m/s, không xi-nhan" />
-            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8c" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="b" />
             <ParameterAssignment parameterRef="description" value="Bẻ trái 1.5 m/s, không xi-nhan" />
-            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8c" />
             <ParameterAssignment parameterRef="departure_v_lat_mps" value="1.5" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="Bẻ trái rồi bẻ trả ngay, không xi-nhan" />
-            <ParameterAssignment parameterRef="scenario_id" value="S8" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8c" />
             <ParameterAssignment parameterRef="departure_repeats" value="[[2.9005418766791764,-1]]" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Trôi trái 0,4 m/s, bẻ gấp trái 0,2 s sau khi LKA can thiệp" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.7" />
+            <ParameterAssignment parameterRef="departure_repeats" value="[[0.2,4]]" />
+            <ParameterAssignment parameterRef="departure_repeat_trigger" value="lka_active" />
+            <ParameterAssignment parameterRef="expect_intervention" value="LKA" />
+            <ParameterAssignment parameterRef="duration_s" value="12.0" />
           </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>

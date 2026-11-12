@@ -14,7 +14,7 @@ def configure(
     scenario: Scenario, *, side: str, v_lat_mps: float, radius_m: float, gap_m: float,
     boundary: str, target: str, steer_start_s: float, torque_nm: float, wind_n: float,
     bank_grade: float, indicated: bool, passive_hands_on: bool, late_request: bool,
-    repeats: tuple = (),
+    repeats: tuple = (), repeat_trigger: str | None = None, torque_windows: tuple = (),
 ) -> Scenario:
     """Set the approach arc and synchronize target with the nominal unassisted path."""
     if side not in ("left", "right") or boundary not in ("marking", "edge"):
@@ -47,7 +47,8 @@ def configure(
         indicator=request_side if indicated else Side.NONE,
         indicator_start_s=steer_start_s - 1.0 if indicated else 0.0,
         passive_hands_on=passive_hands_on,
-        repeats=tuple((float(t), int(d)) for t, d in repeats),
+        repeats=tuple((float(t), float(d)) for t, d in repeats), repeat_trigger=repeat_trigger or None,
+        torque_windows=tuple((float(a), float(b)) for a, b in torque_windows),
     )
     if release_s >= scenario.duration_s or any(t + release_s - steer_start_s >= scenario.duration_s
                                                 for t, _ in driver.repeats):

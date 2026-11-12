@@ -19,6 +19,13 @@
     <ParameterDeclaration name="description" parameterType="string" value="như S1b a (90 km/h, R = 200 m)" />
     <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S14a.xodr" />
     <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive_limited" />
+    <ParameterDeclaration name="car_present" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="car_s_m" parameterType="double" value="40.0" />
+    <ParameterDeclaration name="car_t_m" parameterType="double" value="-2.2" />
+    <ParameterDeclaration name="car_speed_mps" parameterType="double" value="22.0" />
+    <ParameterDeclaration name="lp_loss" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="lp_loss_start_s" parameterType="double" value="9.0" />
+    <ParameterDeclaration name="lp_loss_duration_s" parameterType="double" value="2.0" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -46,10 +53,29 @@
         </Properties>
       </Vehicle>
     </ScenarioObject>
+    <ScenarioObject name="Car">
+      <Vehicle name="Car" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="0" y="0" z="0.75" />
+          <Dimensions width="1.9" length="4.8" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="5" maxDeceleration="8" />
+        <Axles>
+          <FrontAxle maxSteering="0.6" wheelDiameter="0.65" trackWidth="1.6" positionX="2.9" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+        <Properties>
+          <Property name="pp:present" value="$car_present" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
   </Entities>
   <Storyboard>
     <Init>
       <Actions>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:channel_fault:v1">{"enabled":$lp_loss,"kind":"stop","channel":"longitudinal_plan","start_s":$lp_loss_start_s,"duration_s":$lp_loss_duration_s}</CustomCommandAction>
+        </UserDefinedAction>
         <Private entityRef="Ego">
           <PrivateAction>
             <TeleportAction>
@@ -66,6 +92,27 @@
                 <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
                 <SpeedActionTarget>
                   <AbsoluteTargetSpeed value="$speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="Car">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$car_s_m" t="$car_t_m">
+                  <Orientation type="relative" h="0" p="0" r="0" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$car_speed_mps" />
                 </SpeedActionTarget>
               </SpeedAction>
             </LongitudinalAction>

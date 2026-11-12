@@ -26,7 +26,7 @@
     <ParameterDeclaration name="departure_boundary" parameterType="string" value="marking" />
     <ParameterDeclaration name="departure_target" parameterType="string" value="none" />
     <ParameterDeclaration name="steer_start_s" parameterType="double" value="2.0" />
-    <ParameterDeclaration name="driver_torque_nm" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="driver_torque_nm" parameterType="double" value="3.5" />
     <ParameterDeclaration name="wind_force_n" parameterType="double" value="0.0" />
     <ParameterDeclaration name="bank_grade" parameterType="double" value="0.0" />
     <ParameterDeclaration name="indicated" parameterType="boolean" value="true" />
@@ -37,9 +37,11 @@
     <ParameterDeclaration name="departure_v_lat_mps" parameterType="double" value="1.1665960366841346" />
     <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.14159603668411835" />
     <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
-    <ParameterDeclaration name="loop" parameterType="string" value="open" />
+    <ParameterDeclaration name="loop" parameterType="string" value="closed" />
     <ParameterDeclaration name="departure_repeats" parameterType="string" value="[[5,-1]]" />
+    <ParameterDeclaration name="departure_torque_windows" parameterType="string" value="[[2,6]]" />
     <ParameterDeclaration name="request_events" parameterType="string" value="{&quot;events&quot;:[{&quot;at_s&quot;:2,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:true},{&quot;at_s&quot;:6,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
+    <ParameterDeclaration name="late_flag" parameterType="boolean" value="false" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -78,10 +80,13 @@
     <Init>
       <Actions>
         <UserDefinedAction>
-          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats}</CustomCommandAction>
+          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats,"torque_windows":$departure_torque_windows}</CustomCommandAction>
         </UserDefinedAction>
         <UserDefinedAction>
           <CustomCommandAction type="pp:requests:v1">$request_events</CustomCommandAction>
+        </UserDefinedAction>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:lane_fault:v1">{"enabled":$late_flag,"kind":"lane_change_late","start_s":0.0,"duration_s":-1,"lines":[0,1,2,3],"value":0.0,"sigma_c0":0.0,"sigma_c1":0.0}</CustomCommandAction>
         </UserDefinedAction>
         <Private entityRef="Ego">
           <PrivateAction>

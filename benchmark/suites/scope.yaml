@@ -8,3 +8,6 @@ extra_scope:
   S14: [PP-SWR-009, PP-SWR-150, PP-SWR-051]
 # Scenarios generated with both ACC modes, reading and ignoring LateralLimits (5, S14).
 acc_both_modes: [S14]
+# Scenarios whose variants fix the vehicle profile (S19: lane width with a given vehicle
+# width, 5); every other scenario runs on the profiles of the suite.
+own_profile: [S19]

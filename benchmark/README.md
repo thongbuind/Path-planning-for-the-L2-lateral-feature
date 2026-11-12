@@ -46,9 +46,9 @@ Thay `smoke` bằng `regression` hoặc `full` để sinh hai bộ còn lại. `
 
 | Bộ | Cách chọn | Profile | Seed | Lượt chạy hiện tại |
 |---|---|---|---|---|
-| Smoke | Mọi neo đã hỗ trợ, S8 late, F04 trên ca LKA và ELK, G01 | VP-0 | 1 | 131 (0,75 giờ mô phỏng) |
-| Regression | Neo, biên, lưới chuẩn | VP-0…VP-5 | 1, 2 | 6.192 (38,02 giờ mô phỏng) |
-| Full | Neo, biên, pairwise, Latin hypercube, lưới chuẩn | VP-0…VP-5 | 1. Riêng F01: 1…10 | 9.138 (61,02 giờ mô phỏng) |
+| Smoke | Mọi neo đã hỗ trợ trừ S19, S8 late, F04 trên ca LKA và ELK, G01 | VP-0 | 1 | 195 (1,07 giờ mô phỏng) |
+| Regression | Neo, biên, lưới chuẩn | VP-0…VP-5 | 1, 2 | 7.382 (44,14 giờ mô phỏng) |
+| Full | Neo, biên, pairwise, Latin hypercube, lưới chuẩn | VP-0…VP-5 | 1. Riêng F01: 1…10 | 13.010 (83,04 giờ mô phỏng) |
 
 Ca lỗi chạy trên hai đường chủ S1a (cua nhẹ) và S1c (cua chạm aysmax), như M1; lỗi của `event_faults` chạy thêm trên S4a, S5a lúc pha ACTIVE và 0,2 s sau. Mã ca lỗi ghi đường chủ, ví dụ `F06-e-S1c-VP-0-<hash>`.
 
@@ -96,6 +96,10 @@ Adapter hỗ trợ một ego trên đường phẳng từ một đến ba làn c
 | `CustomCommandAction type="pp:traffic_speed:v1"` | `entity`, `profile` [[t_s, v_mps], ...]: tốc độ xe khác tuyến tính từng đoạn, bắt đầu ở t = 0 bằng tốc độ ban đầu (S11) |
 | `CustomCommandAction type="pp:traffic_lateral:v1"` | `entity`, `start_s`, `duration_s`, `target_offset_m`: xe khác đổi làn hoặc cắt vào (S3b, S8b, S11 d) |
 | `CustomCommandAction type="pp:requests:v1"` | `events`: [{`at_s`, `requests` [[state, side, elk_reason] × HWA, LKA, ELK], `driver_override`}]; chuỗi FunctionRequests định sẵn ở chế độ `scripted` (S9, S16) |
+| `"enabled"` trong JSON của mọi lệnh; `pp:present` của xe khác | Bật, tắt lệnh hoặc xe theo biến thể; xe khác chỉ nhận thuộc tính `pp:present` |
+| `pp:expect_intervention` `none` | Khối ADAS không được gửi REQUEST; có REQUEST thì ca không chấm planner (lỗi phía test) |
+| `pp:departure:v1` `repeat_trigger`, `torque_windows` | Lần đánh lái lặp theo pha của planner; khoảng tài xế giữ mô-men (≥ 3,0 Nm thì EPS theo tài xế) |
+| `pp:requests:v1` event có `trigger` | `at_s` tính từ lần đầu một pha của planner |
 | `pp:departure:v1` `repeats` | [[t_start_s, 1 hoặc −1], ...]: tài xế trôi lại, cùng chiều hoặc ngược chiều (S16, S8c) |
 | `pp:can_bus`, `pp:realism`, `pp:loop` | Tín hiệu khung gầm qua CAN ảo theo DBC (F15–F18 trên khung CAN); lô độ thực tế danh định (CAN, đồng hồ ECU, nhiễu tốc độ, góc lái, v_y; mặc định tắt); `open` là vòng hở |
 | `lane_width_m`, `curvature_scale`, `direction` | Bộ sinh dựng lại `.xodr` với số cụ thể; OpenDRIVE không chứa biểu thức `$parameter` |

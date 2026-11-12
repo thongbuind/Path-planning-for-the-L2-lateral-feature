@@ -25,6 +25,8 @@ python3 -m eval.check_case F05 --host S4 a --at lka_active+0.2 --run
 
 `check_case` kiểm XSD, nạp từng biến thể, nhãn L0–L5 và kết quả mong đợi, truy vết trong Software Requirements Specification. `--run` chạy một lần mỗi biến thể, seed 1. Ca trượt vì planner là kết quả, không phải lỗi của ca. Ca trượt vì `check_case` báo vấn đề thì sửa ca.
 
+`scenario_id` của mọi biến thể phải là mã của file (`check_case` kiểm). Không đặt mã của kịch bản mẫu.
+
 5. Báo lại trong báo cáo cuối: file đã tạo, kết quả `check_case`, các dòng cần thêm ở file dùng chung (bảng dưới). Không tự sửa file dùng chung.
 
 ## Phân chia file
@@ -54,6 +56,13 @@ python3 -m eval.check_case F05 --host S4 a --at lka_active+0.2 --run
 | Tài xế trôi nhiều lần, bẻ rồi trả | `pp:departure:v1` thêm `"repeats": [[t_start, 1 hoặc -1], ...]` | S16, S8c |
 | Xe đổi làn | Camera tự đánh chỉ số lại vạch và bật `lane_change` khi trục sau qua nửa làn; evaluator chấm theo làn mới. Lỗi `lane_change_late` cho cờ trễ một frame | S17, S8b |
 | Chuỗi FunctionRequests định sẵn | `CustomCommandAction type="pp:requests:v1"`: `{"events": [{"at_s": 3.0, "requests": [["REQUEST", "NONE", "NONE"], ["REQUEST", "LEFT", "NONE"], ["OFF", "NONE", "NONE"]], "driver_override": false}]}`; thứ tự HWA, LKA, ELK; tên enum theo Interface Control Document 5.6; chỉ ở chế độ scripted | S9, S16 |
+| FunctionRequests theo pha của planner | Thêm `"trigger": "lka_completed"` (hoặc `*_active`, `*_completed`) vào một event của `pp:requests:v1`; `at_s` tính từ lần đầu pha đó xuất hiện | S16 a, b, e |
+| Đánh lái lặp theo pha | `pp:departure:v1` thêm `"repeat_trigger": "lka_completed"`: lần lặp thứ k bắt đầu sau lần thứ k của pha; hệ số trong `repeats` nhân cả độ cong và mô-men | S16 c, d, S8c d |
+| Tài xế giữ mô-men ghi đè | `pp:departure:v1` thêm `"torque_windows": [[t0, t1], ...]`; ≥ 3,0 Nm (`torque_override`) thì EPS theo tài xế | S17, S9 c |
+| Bật, tắt theo biến thể | Lệnh: `"enabled": $tham_số` trong JSON. Xe khác: `<Property name="pp:present" value="$tham_số" />` trong Vehicle | S10, S14 b–d, S17 e |
+| Ca khối ADAS không được can thiệp | `pp:expect_intervention` = `none`; REQUEST nào cũng làm ca không chấm planner | S8b a–c, S8c a–c, S10 |
+| Profile cố định theo biến thể | Thêm mã vào `own_profile` của `suites/scope.yaml` (người tích hợp) | S19 |
+| Bề rộng làn đổi dọc đường, tách nhánh, thêm làn | Đa thức `width` của lane trong OpenDRIVE (xem S6b) | S6b |
 | Rào chắn, mép đường, nhiều làn | OpenDRIVE `objects`, `lanes` (xem S6 d) | S6, S15 |
 | Xe khác đổi làn, cắt vào | `CustomCommandAction type="pp:traffic_lateral:v1"`: `{"entity": "Car1", "start_s": 4.0, "duration_s": 3.0, "target_offset_m": 0.0}` | S3b, S8b, S11 d |
 
@@ -61,5 +70,4 @@ Chưa có:
 
 | Thiếu | Ảnh hưởng |
 |---|---|
-| Bề rộng làn đổi dọc đường, tách nhánh, thêm làn | S6b |
 | Mô hình độ cao mặt đường | S1b d chỉ mô phỏng tầm nhìn (đã ghi trong mục 5) |

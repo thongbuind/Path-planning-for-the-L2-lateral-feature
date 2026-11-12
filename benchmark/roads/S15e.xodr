@@ -12,23 +12,23 @@
       <laneSection s="0">
         <center>
           <lane id="0" type="none" level="false">
-            <roadMark sOffset="0" type="none" weight="standard" color="white" width="0.15" />
+            <roadMark sOffset="0" type="solid" weight="standard" color="white" width="0.15" />
           </lane>
         </center>
         <right>
           <lane id="-1" type="driving" level="false">
             <width sOffset="0" a="3.5" b="0" c="0" d="0" />
-            <roadMark sOffset="0" type="none" weight="standard" color="white" width="0.15" />
+            <roadMark sOffset="0" type="solid" weight="standard" color="white" width="0.15" />
           </lane>
         </right>
       </laneSection>
     </lanes>
     <objects>
-      <object id="1" s="0" t="1.85" zOffset="0" type="barrier" orientation="none" dynamic="no">
-        <repeat s="0" length="1500.0" distance="0" tStart="1.85" tEnd="1.85" widthStart="0.2" widthEnd="0.2" heightStart="0.8" heightEnd="0.8" zOffsetStart="0" zOffsetEnd="0" />
+      <object id="1" s="0" t="2.35" zOffset="0" type="barrier" orientation="none" dynamic="no">
+        <repeat s="0" length="1500.0" distance="0" tStart="2.35" tEnd="2.35" widthStart="0.2" widthEnd="0.2" heightStart="0.8" heightEnd="0.8" zOffsetStart="0" zOffsetEnd="0" />
       </object>
-      <object id="2" s="0" t="-1.85" zOffset="0" type="barrier" orientation="none" dynamic="no">
-        <repeat s="0" length="1500.0" distance="0" tStart="-1.85" tEnd="-1.85" widthStart="0.2" widthEnd="0.2" heightStart="0.8" heightEnd="0.8" zOffsetStart="0" zOffsetEnd="0" />
+      <object id="2" s="0" t="-2.35" zOffset="0" type="barrier" orientation="none" dynamic="no">
+        <repeat s="0" length="1500.0" distance="0" tStart="-2.35" tEnd="-2.35" widthStart="0.2" widthEnd="0.2" heightStart="0.8" heightEnd="0.8" zOffsetStart="0" zOffsetEnd="0" />
       </object>
     </objects>
   </road>
