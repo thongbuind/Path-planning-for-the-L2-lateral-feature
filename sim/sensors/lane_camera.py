@@ -37,7 +37,7 @@ from interfaces import (
     RoadEdgeType,
     Side,
 )
-from sim.world.road import Marking, Road, RoadEdgeSpec
+from sim.world.road import Marking, Road, RoadEdgeSpec, lane_boundaries
 
 PERIOD_US = 50_000
 LATENCY_US = 100_000
@@ -99,8 +99,11 @@ class LaneCamera:
 
     def _fit(self, offset: float, pose: CameraPose,
              view_end: float | None = None) -> tuple[float, float, float, float, float, float] | None:
-        end = self.view_end_m if view_end is None else min(self.view_end_m, view_end)
         xs, ys = self.road.parallel(offset, pose.s_hint - 10.0, pose.s_hint + self.view_end_m + 20.0)
+        return self._fit_points(xs, ys, pose, view_end)
+
+    def _fit_points(self, xs, ys, pose: CameraPose, view_end: float | None):
+        end = self.view_end_m if view_end is None else min(self.view_end_m, view_end)
         c, s = cos(pose.yaw), sin(pose.yaw)
         dx, dy = xs - pose.x, ys - pose.y
         bx = c * dx + s * dy
@@ -115,7 +118,9 @@ class LaneCamera:
     def _line(self, marking: Marking | None, pose: CameraPose, view_end: float | None) -> LaneLine:
         if marking is None:
             return _LOST_LINE
-        fit = self._fit(marking.offset_m, pose, view_end)
+        return self._line_from_fit(marking, self._fit(marking.offset_m, pose, view_end))
+
+    def _line_from_fit(self, marking, fit) -> LaneLine:
         if fit is None:
             return LaneLine(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
                             marking.type, marking.crossable, LineStatus.LOST, 0.0)
@@ -133,16 +138,45 @@ class LaneCamera:
         return RoadEdge(c0, c1, c2, c3, self.variance, start, end, CONFIDENCE,
                         edge.type, LineStatus.MEASURED, 0.0)
 
+    def _variable_lines(self, pose: CameraPose, limits):
+        geometry = self.road.layout.geometry
+        assert geometry is not None
+        projection = self.road.project(pose.x, pose.y, pose.s_hint)
+        s = projection.s
+        new = geometry.lane_index(s, projection.d, self.lane_index)
+        change = Side.NONE
+        if new != self.lane_index:
+            change = Side.LEFT if new > self.lane_index else Side.RIGHT
+            self.lane_index = new
+        right, left = lane_boundaries(geometry.id_at_index(new))
+        low, high = geometry.bounds(s, new)
+        lines = []
+        for boundary, side, view_end in zip((left + 1, left, right, right - 1),
+                                             (1, 1, -1, -1), limits, strict=True):
+            paint = geometry.paint_ahead(boundary, s)
+            if paint is None:
+                lines.append(_LOST_LINE)
+                continue
+            xs, ys = self.road.marking_parallel(boundary, side, pose.s_hint - 10.0,
+                                                pose.s_hint + self.view_end_m + 20.0)
+            fit = self._fit_points(xs, ys, pose, view_end)
+            lines.append(self._line_from_fit(paint.marking(0.0, side), fit))
+        return tuple(lines), high - low, change
+
     def capture(self, now_us: int, pose: CameraPose,
                 view_limits: tuple[float | None, ...] | None = None) -> LaneModel:
         """view_limits: largest view end per line (L2, L1, R1, R2), from view faults."""
         limits = view_limits if view_limits is not None else (None,) * len(self.road.layout.markings)
-        change = self._lane_change(pose)
-        lines = tuple(self._line(marking, pose, limit)
-                      for marking, limit in zip(self._markings(), limits, strict=True))
+        if self.road.layout.geometry is None:
+            change = self._lane_change(pose)
+            lines = tuple(self._line(marking, pose, limit)
+                          for marking, limit in zip(self._markings(), limits, strict=True))
+            width = self.road.lane_width
+        else:
+            lines, width, change = self._variable_lines(pose, limits)
         edges = tuple(self._edge(edge, pose) for edge in self.road.layout.edges)
         msg = LaneModel(Header(now_us, self._counter, True, FrameId.BASE_LINK), lines,
-                        edges, self.road.lane_width,
+                        edges, width,
                         LaneWidthSource.MEASURED, change)
         self._counter = (self._counter + 1) % 256
         return msg
