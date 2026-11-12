@@ -26,6 +26,7 @@ from sim.world.traffic import Traffic
 
 AYSMAX = 2.5  # [m/s^2] PP-SWR-001
 HORIZON_TOL_S = 0.1  # [s] PP-SWR-018, one Trajectory step
+_PLANNER_CYCLE_US = 25_000  # 40 Hz, tolerance of PP-SWR-145 (one cycle)
 LONG_VIEW_M = 126.0  # Largest view range the planner uses (Interface Control Document 5.1)
 JERK_MAX_HWA = 5.0  # [m/s^3] PP-SWR-003
 JERK_WINDOW_S = 0.5  # Software Requirements Specification 4, "Jerk ngang của path"
@@ -390,6 +391,38 @@ def _phase(cycle: PlannerCycle, function: ActiveFunction) -> InterventionPhase:
     return status.lka_phase if function == ActiveFunction.LKA else status.elk_phase
 
 
+def _stale_requests(cycles, function) -> bool:
+    """A REQUEST of the function reached the planner, but only older than the ICD max age."""
+    for c in cycles:
+        rx = c.function_requests
+        if (rx is not None and rx.message.header.valid
+                and c.t0_us - rx.message.header.stamp_us > FUNCTION_REQUESTS_MAX_AGE_US
+                and rx.message.requests[int(function) - 1].state == RequestState.REQUEST):
+            return True
+    return False
+
+
+def _requests_timeout_share(cycles) -> tuple[float, bool]:
+    """PP-SWR-048 with 145: share of cycles past the timeout since the last usable
+    FunctionRequests (one cycle of margin) where the planner reports NONE without a path."""
+    last = None
+    checked = ok = 0
+    for c in cycles:
+        rx = c.function_requests
+        if (rx is not None and rx.message.header.valid
+                and 0 <= c.t0_us - rx.rx_us <= FUNCTION_REQUESTS_TIMEOUT_US
+                and -FUTURE_STAMP_TOLERANCE_US <= c.t0_us - rx.message.header.stamp_us
+                <= FUNCTION_REQUESTS_MAX_AGE_US):
+            last = rx.rx_us if last is None else max(last, rx.rx_us)
+        if last is None:
+            last = c.t0_us                          # as the planner, from its first cycle
+        if c.t0_us - last > FUNCTION_REQUESTS_TIMEOUT_US + _PLANNER_CYCLE_US:
+            checked += 1
+            s = c.path_status
+            ok += s is not None and s.active_function == ActiveFunction.NONE and not s.path_valid
+    return (ok / checked if checked else 1.0), checked > 0
+
+
 def _request_windows(cycles, function):
     """Contiguous usable REQUEST inputs and the time the first frame was received."""
     windows = []
@@ -596,7 +629,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         desired = log.scenario.notes.get("departure_side")
         expected_requests = [r for r in requests[function]
                              if desired is None or r.message.side.name.lower() == desired]
-        if not expected_requests:
+        if not expected_requests and not _stale_requests(cycles, function):  # stale: PP-SWR-048
             side = "" if desired is None else f" (phía {'trái' if desired == 'left' else 'phải'})"
             issues.append(f"{expected}: thiếu REQUEST đến planner{side}")
         elif (any(not any(e.request is r and e.function == function for e in episodes)
@@ -958,6 +991,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     compute_ms = np.array([c.compute_ns for c in cycles]) * 1e-6
     hwa_requested = [c for c in cycles if hwa_request_s is not None and c.t0_us >= hwa_request_s * 1e6]
     any_hwa = bool(np.any(hwa))
+    timeout_share, timeout_judged = _requests_timeout_share(cycles)
     # PP-SWR-017: a lane model with a view range beyond what the planner uses stays valid input.
     long_view = [c for c in cycles if c.lane_view_reported is not None and c.lane_view_reported > LONG_VIEW_M]
     long_view_valid = (sum(c.path_status is not None and c.path_status.path_valid for c in long_view) / len(long_view)
@@ -965,6 +999,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     criteria = [
         Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
+        Criterion("PP-SWR-048", "Tỉ lệ chu kỳ quá timeout từ FunctionRequests dùng được gần nhất có NONE và path không hợp lệ",
+                  timeout_share, "= 1", timeout_share == 1.0, applicable=timeout_judged),
         Criterion("PP-SWR-018", "observed_horizon_s trừ thời điểm ra khỏi tầm nhìn, lớn nhất [s]",
                   float(horizon_err), f"<= {HORIZON_TOL_S}", bool(horizon_err <= HORIZON_TOL_S),
                   applicable=bool(np.isfinite(horizon_err))),

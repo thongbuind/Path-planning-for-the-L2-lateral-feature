@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.11 |
+| Phiên bản | 1.12 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -172,6 +172,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-045 | Sau khi input hồi phục, planner chỉ được bắt đầu can thiệp LKA hoặc ELK khi state của chức năng đó rời REQUEST rồi quay lại | Test: F12 (Lane Model, hồi phục) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-046 | Nếu VehicleStateEstimate không hợp lệ trong lúc LKA hoặc ELK đang can thiệp, thì planner phải tiếp tục path can thiệp đó tới khi kết thúc | Test: F12 (v_y, trong S5) | Safety, SG-03 | nhóm tự thống nhất |
 | PP-SWR-047 | Trong khi tâm làn chỉ suy được từ biên ngoài làn đang chạy, planner không được chọn LKA hoặc ELK. Ngoại lệ cho ELK mép đường khi biên nguy hiểm của làn đang chạy là mép MEASURED với confidence ≥ `conf_edge` và có biên đối diện đủ tin hoặc bề rộng làn đã nhớ | Test: F21 | Safety, SG-01 | mentor, nhóm làm rõ phạm vi ELK mép đường theo PP-TS-007 |
+| PP-SWR-048 | Nếu FunctionRequests có tuổi (t0 trừ `header.stamp_us`) vượt 45 ms, thì planner phải xử lý như chưa nhận được message đó, kể cả cho thời gian timeout của PP-SWR-145 | Test: Q3 | Safety | Interface Control Document 4 (tuổi tối đa 45 ms) |
 
 ### 8.3 HWA: giới hạn a_y {#req-hwa-lateral-limit}
 
@@ -337,3 +338,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.9 | 2026-11-12 | PP-SWR-100 đến 102 chỉ xét phần path trong tầm nhìn lane model báo (định nghĩa Hai path liên tiếp); thêm PP-SWR-018 (`observed_horizon_s`), PP-ASM-021. Lý do: phần ngoài tầm nhìn là ngoại suy, giữ nó liên tục làm path không theo được làn khi tầm nhìn ngắn (PP-PR-021, PP-TS-014). Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, Software Qualification Test Specification 8.1 |
 | 1.10 | 2026-11-12 | PP-SWR-018 chỉ chặn phía trên. Lý do: khi bám reference line cũ (c0 jump, F02) planner báo phần quan sát ngắn hơn tầm nhìn lane model báo; báo ngắn là phía an toàn và bên chấm không biết lúc nào planner bám reference line cũ. Đổi sau lần chạy 20261112-1240-matrix-M1-1bfd184 |
 | 1.11 | 2026-11-12 | PP-ASM-021 ghi kiểu controller và thời gian nhìn trước tối đa 0,6 s, để kiểm được các ngưỡng tầm nhìn của khối Chức năng ADAS |
+| 1.12 | 2026-11-12 | Thêm PP-SWR-048: FunctionRequests quá tuổi 45 ms xử lý như chưa nhận. Lý do: Q3 ở 60 ms vượt tuổi tối đa của Interface Control Document mà SRS chưa nói planner phải làm gì (PP-PR-023) |
