@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.10 |
+| Phiên bản | 1.11 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -117,7 +117,7 @@ Mỗi dòng ghi requirement nào dựa vào nó và cách kiểm lại khi có x
 | PP-ASM-017 | Lateral Controller bù phần trễ sau planner, bằng cách đọc điểm path theo `header.stamp_us` và `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Thống nhất với đội Lateral Controller | nhóm tự thống nhất |
 | PP-ASM-018 | ASIL của các safety requirement lấy theo kết quả confirmation review của phòng an toàn trên HARA | Mọi requirement loại Safety | Kết quả review của phòng an toàn | nhóm tự thống nhất |
 | PP-ASM-019 | Nền tảng đích (ECU, hệ điều hành, middleware, coding standard) chưa biết; planner chỉ cần trình biên dịch C11 (PP-ADR-013) | Mọi requirement, qua cách triển khai | Hỏi mentor nền tảng đích và coding standard | nhóm tự thống nhất |
-| PP-ASM-021 | Lateral Controller không dựa vào phần path sau `observed_horizon_s` để tính lệnh lái, hoặc chịu được bước nhảy ở phần đó | PP-SWR-018, 100, 101, 102 | Thống nhất với đội Lateral Controller | nhóm tự thống nhất |
+| PP-ASM-021 | Lateral Controller kiểu pure pursuit, nhìn trước tối đa 0,6 s, và không dùng phần path sau `observed_horizon_s` để tính lệnh lái | PP-SWR-018, 100, 101, 102 | Thống nhất với đội Lateral Controller; controller kiểu MPC dùng cả path thì giả định này không đúng | nhóm tự thống nhất, theo Autoware pure pursuit (khoảng nhìn trước tối đa 15 m, khoảng 0,6 s ở 90 km/h) |
 | PP-ASM-020 | Tầm nhìn của lane model thay đổi theo từng vạch và từng frame; điểm đầu, điểm cuối thật chưa biết. Benchmark dùng 0–80 m danh định, quét điểm cuối 10–126 m | PP-SWR-017, 149, 151 | Đọc phân bố `line start distance`, `line end distance` trong log xe thật | nhóm tự thống nhất |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
@@ -336,3 +336,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.8 | 2026-11-12 | PP-SWR-042, 149 thêm F22 (f): tầm nhìn tụt lâu, HWA trả lái rồi trở lại |
 | 1.9 | 2026-11-12 | PP-SWR-100 đến 102 chỉ xét phần path trong tầm nhìn lane model báo (định nghĩa Hai path liên tiếp); thêm PP-SWR-018 (`observed_horizon_s`), PP-ASM-021. Lý do: phần ngoài tầm nhìn là ngoại suy, giữ nó liên tục làm path không theo được làn khi tầm nhìn ngắn (PP-PR-021, PP-TS-014). Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, Software Qualification Test Specification 8.1 |
 | 1.10 | 2026-11-12 | PP-SWR-018 chỉ chặn phía trên. Lý do: khi bám reference line cũ (c0 jump, F02) planner báo phần quan sát ngắn hơn tầm nhìn lane model báo; báo ngắn là phía an toàn và bên chấm không biết lúc nào planner bám reference line cũ. Đổi sau lần chạy 20261112-1240-matrix-M1-1bfd184 |
+| 1.11 | 2026-11-12 | PP-ASM-021 ghi kiểu controller và thời gian nhìn trước tối đa 0,6 s, để kiểm được các ngưỡng tầm nhìn của khối Chức năng ADAS |

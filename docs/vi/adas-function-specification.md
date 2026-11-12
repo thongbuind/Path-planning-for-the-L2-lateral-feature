@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.5 |
+| Phiên bản | 1.6 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -248,7 +248,7 @@ Một bộ cho mọi xe. Software Qualification Test Specification quét trong d
 | `conf_ego` | — | 0,6 | 0,4–0,8 | 0–1 |
 | `conf_edge` | — | 0,7 | 0,5–0,9 | 0–1 |
 | `view_min` | m | 20 | 15–30 | > 0 |
-| `t_view_hwa` | s | 1,0 | 0,5–1,5 | > 0 |
+| `t_view_hwa` | s | 1,0 | 0,7–1,5 | ≥ 0,7 (thời gian nhìn trước của controller 0,6 s theo PP-ASM-021, cộng một bước Trajectory 0,1 s) |
 | `t_view_hold` | s | 0,5 | 0,2–1,0 | ≥ 0 |
 | `exist_min` | — | 0,7 | 0,5–0,9 | 0–1 |
 | `n_track` | frame | 3 | 2–5 | ≥ 1 |
@@ -307,3 +307,4 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 | 1.3 | 2026-11-11 | Mục 9: xử lý COMPLETED theo chức năng, rút LKA REQUEST cùng phía khi ELK hoàn tất |
 | 1.4 | 2026-11-12 | Mục 7: điều kiện biên trực tiếp của ELK. Mục 9: rút LKA cùng phía từ ELK ACTIVE. Mục 13: chốt `t_conflict` trước kiểm chứng theo PP-TS-009 |
 | 1.5 | 2026-11-12 | Mục 7: HWA thêm điều kiện tầm nhìn theo thời gian nhìn trước, có thời gian giữ. Mục 13: thêm `t_view_hwa`, `t_view_hold` |
+| 1.6 | 2026-11-12 | Mục 13: `t_view_hwa` ≥ 0,7 s theo PP-ASM-021; dải quét 0,7–1,5 s |
