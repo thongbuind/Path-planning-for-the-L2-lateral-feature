@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S6b" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S6b.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="speed_mps">
+        <DistributionRange stepWidth="5">
+          <Range lowerLimit="20" upperLimit="30" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

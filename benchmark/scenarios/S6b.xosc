@@ -1,0 +1,125 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="Làn dừng khẩn cấp bên phải mở rộng 1,5 m trong 100 m" revMajor="1" revMinor="3" />
+  <ParameterDeclarations>
+    <ParameterDeclaration name="lane_width_m" parameterType="double" value="3.5" />
+    <ParameterDeclaration name="profile" parameterType="string" value="VP-0" />
+    <ParameterDeclaration name="speed_mps" parameterType="double" value="25" />
+    <ParameterDeclaration name="hwa_request_s" parameterType="string" value="1.0" />
+    <ParameterDeclaration name="hold_until_hwa" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="start_s_m" parameterType="double" value="100" />
+    <ParameterDeclaration name="start_offset_m" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="start_heading_rad" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="duration_s" parameterType="double" value="17" />
+    <ParameterDeclaration name="acc" parameterType="string" value="on" />
+    <ParameterDeclaration name="curvature_scale" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="direction" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="scenario_id" parameterType="string" value="S6b" />
+    <ParameterDeclaration name="variant" parameterType="string" value="a" />
+    <ParameterDeclaration name="description" parameterType="string" value="Làn dừng khẩn cấp bên phải mở rộng 1,5 m trong 100 m" />
+    <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S6ba.xodr" />
+    <ParameterDeclaration name="truck_s_m" parameterType="double" value="1100" />
+    <ParameterDeclaration name="truck_t_m" parameterType="double" value="0" />
+    <ParameterDeclaration name="truck_speed_mps" parameterType="double" value="0" />
+    <ParameterDeclaration name="truck_length_m" parameterType="double" value="12" />
+    <ParameterDeclaration name="truck_width_m" parameterType="double" value="2.5" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
+  </ParameterDeclarations>
+  <CatalogLocations />
+  <RoadNetwork>
+    <LogicFile filepath="$road_file" />
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="Ego">
+      <Vehicle name="Ego" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="1.45" y="0" z="0.75" />
+          <Dimensions width="1.9" length="4.9" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.61" wheelDiameter="0.65" trackWidth="1.6" positionX="2.9" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+        <Properties>
+          <Property name="pp:adapter" value="single-ego-v1" />
+          <Property name="pp:profile" value="$profile" />
+          <Property name="pp:acc" value="$acc" />
+          <Property name="pp:hwa_request_s" value="$hwa_request_s" />
+          <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
+    <ScenarioObject name="Truck">
+      <Vehicle name="Truck" vehicleCategory="truck">
+        <BoundingBox>
+          <Center x="0" y="0" z="1.75" />
+          <Dimensions width="$truck_width_m" length="$truck_length_m" height="3.5" />
+        </BoundingBox>
+        <Performance maxSpeed="30" maxAcceleration="3" maxDeceleration="8" />
+        <Axles>
+          <FrontAxle maxSteering="0.6" wheelDiameter="1.0" trackWidth="2.0" positionX="5.0" positionZ="0.5" />
+          <RearAxle maxSteering="0" wheelDiameter="1.0" trackWidth="2.0" positionX="0" positionZ="0.5" />
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <Private entityRef="Ego">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$start_s_m" t="$start_offset_m">
+                  <Orientation type="relative" h="$start_heading_rad" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="Truck">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$truck_s_m" t="$truck_t_m">
+                  <Orientation type="relative" h="0" p="0" r="0" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$truck_speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="none">
+          <ByValueCondition>
+            <SimulationTimeCondition value="$duration_s" rule="greaterOrEqual" />
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>
