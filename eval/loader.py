@@ -44,7 +44,7 @@ def fault_commands(fault_id: str, level: str, directory: Path = FAULT_DIR) -> li
     root = _fault_root(fault_id, level, directory)
     commands = root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction')
     # No command: a condition that always holds, set by properties (F13 camera rate, F18 CAN).
-    return [openx.fault_of_command(c) for c in commands]
+    return [openx.fault_of_command(c) for c in commands if openx.enabled(c)]
 
 
 def with_fault(scenario: Scenario, fault_id: str, level: str, trigger: str | None = None,

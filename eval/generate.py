@@ -18,7 +18,9 @@ from eval import labels, openx, provenance
 BENCHMARK = openx.ROOT / 'benchmark'
 # Road and run of a fault's host anchor replace those of the fault file (lane faults are
 # injected on several host roads, Software Qualification Test Specification 6.2).
-ACC_BOTH = set(yaml.safe_load((BENCHMARK / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))['acc_both_modes'])
+_SCOPE = yaml.safe_load((BENCHMARK / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))
+ACC_BOTH = set(_SCOPE['acc_both_modes'])
+OWN_PROFILE = set(_SCOPE.get('own_profile', []))
 HOST_KEYS = ('road_file', 'duration_s', 'speed_mps', 'lane_width_m', 'start_s_m', 'hwa_request_s')
 
 
@@ -166,7 +168,8 @@ def plan(name):
             for method, params, host in selections:
                 # Both sides of the longitudinal constraint exchange (benchmark/suites/scope.yaml).
                 acc_modes = ('on', 'ignore_limits') if sid in ACC_BOTH else (params['acc'],)
-                for profile, acc in product(suite['profiles'], acc_modes):
+                profiles = [params['profile']] if sid in OWN_PROFILE else suite['profiles']
+                for profile, acc in product(profiles, acc_modes):
                     concrete_params = {**params, 'profile': profile, 'acc': acc}
                     # IDs for anchors retain a,b,...; samples use a content hash in filenames.
                     key = _identity(concrete_params)

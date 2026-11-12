@@ -19,7 +19,7 @@
     <ParameterDeclaration name="adas_mode" parameterType="string" value="B" />
     <ParameterDeclaration name="lka_enabled" parameterType="boolean" value="true" />
     <ParameterDeclaration name="elk_enabled" parameterType="boolean" value="true" />
-    <ParameterDeclaration name="expect_intervention" parameterType="string" value="" />
+    <ParameterDeclaration name="expect_intervention" parameterType="string" value="none" />
     <ParameterDeclaration name="protocol" parameterType="string" value="" />
     <ParameterDeclaration name="departure_side" parameterType="string" value="left" />
     <ParameterDeclaration name="departure_radius_m" parameterType="double" value="300" />
@@ -44,6 +44,7 @@
     <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.35" />
     <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
     <ParameterDeclaration name="departure_repeats" parameterType="string" value="[]" />
+    <ParameterDeclaration name="departure_repeat_trigger" parameterType="string" value="" />
     <ParameterDeclaration name="obstacle_s_m" parameterType="double" value="195" />
     <ParameterDeclaration name="obstacle_t_m" parameterType="double" value="-1" />
     <ParameterDeclaration name="obstacle_speed_mps" parameterType="double" value="0" />
@@ -113,7 +114,7 @@
     <Init>
       <Actions>
         <UserDefinedAction>
-          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats}</CustomCommandAction>
+          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats,"repeat_trigger":"$departure_repeat_trigger"}</CustomCommandAction>
         </UserDefinedAction>
         <Private entityRef="Ego">
           <PrivateAction>

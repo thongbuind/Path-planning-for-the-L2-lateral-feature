@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.28 |
+| Phiên bản | 1.29 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -149,7 +149,7 @@ Công cụ vòng kín, cố định cho mọi phiên bản planner.
 | Sai số hướng | e_ψ so `pose.yaw` của path với hướng chuyển động của xe tại `base_link`: hướng thân cộng atan(v_y / v), vì `pose.yaw` là hướng tiếp tuyến (Interface Control Document 6.1) |
 | Hệ số thiếu lái K | Lấy từ mô hình xe của simulator (mục 4.4), không qua VehicleConfig |
 | Path không hợp lệ hoặc quá 75 ms | Giữ lệnh cuối và báo ngừng điều khiển; EPS trả quyền lái trong 1 s |
-| EPS | Bám góc vô lăng yêu cầu: trễ thuần theo `actuator_delay`, khâu bậc một τ = 0,1 s, giới hạn tốc độ và góc theo VehicleConfig; không điều khiển thì chuyển dần trong 1 s sang góc của tài xế giả. Lúc bắt đầu, tài xế giả đang giữ góc lái, không có chuyển giao |
+| EPS | Bám góc vô lăng yêu cầu: trễ thuần theo `actuator_delay`, khâu bậc một τ = 0,1 s, giới hạn tốc độ và góc theo VehicleConfig; không điều khiển thì chuyển dần trong 1 s sang góc của tài xế giả. Lúc bắt đầu, tài xế giả đang giữ góc lái, không có chuyển giao. Mô-men tài xế ≥ `torque_override` (3,0 Nm, ADAS Function Specification 12) thì vô lăng theo tài xế; trễ EPS thật đặt theo ca được (S13) |
 
 EPS giả lập nhận góc để đơn giản; EPS trên xe L2 thật thường nhận mô-men. Giá trị là điển hình, không phải số đo của một EPS cụ thể.
 
@@ -195,6 +195,9 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | v_lat ở neo bổ sung | S4b(b–e) dùng 0,3 m/s như S4b(a). S5(e), S6(c, d), S7(d, e) dùng 0,4 m/s | nhóm tự thống nhất trong dải Euro NCAP LSS 7.2.4–7.2.5 |
 | Chiều dài và thời gian ca | Bắt đầu ở s = 100 m trên đường dài 1.200 m. Các neo tạo trôi bằng cung chạy 17 s, riêng S8 late chạy 10 s | nhóm tự thống nhất |
 | Trôi lặp S4(d, e) | Lực ngang tiếp tục sau COMPLETED. Can thiệp mới hợp lệ khi thỏa điều kiện tái kích hoạt. Chấm từng lần can thiệp | ADAS Function Specification mục 9, PP-SWR-035 |
+| Trôi lặp và đánh lái theo sự kiện | Lần đánh lái sau bắt đầu sau lần thứ k của một pha ở output (S16: 2 s sau COMPLETED; S8c(d): 0,2 s sau ACTIVE, gấp 4 lần cung đầu). FunctionRequests định sẵn cũng đặt được theo pha (S16 a, b, e) | nhóm tự thống nhất |
+| Tài xế ghi đè, đổi làn | Giữ mô-men 3,5 Nm suốt lúc đổi làn (S17), trên `torque_override`. Camera đánh chỉ số lại vạch theo làn mới | nhóm tự thống nhất |
+| Ca không được can thiệp | S8b(a–c), S8c(a–c), S10: khối Chức năng ADAS không được gửi REQUEST. Có REQUEST thì ca không chấm planner và báo lỗi ở phía test; số lần REQUEST ở chế độ A và B ghi trong kết quả | ADAS Function Specification mục 6, 8; mục 6.3 |
 
 ## 5. Test cases {#benchmark-scenarios}
 
@@ -227,8 +230,8 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | S12 | Trời mưa | μ = 0,5, nhiễu camera ban đêm, nhiễu perception × 1,5. a) S1c; b) S4c; c) S7c; d) S4b-d | PP-SWR-001 (a) |
 | S13 | EPS chậm | S4c và S5c với trễ EPS a) 75 ms; b) 100 ms; c) 150 ms | PP-SWR-091 (a, b, vòng kín) |
 | S14 | Ngang và dọc trao đổi ràng buộc | Chạy hai lần: ACC đọc và bỏ qua LateralLimits. a) S1b-a; b) xe khác lấn 0,5 m; c) cả hai; d) mất LongitudinalPlan giữa cua; e) cua chữ S của S1f ở 130 km/h (khúc R = 374 m cần 3,5 m/s²) | PP-SWR-009, 150, 151, 152, 153, 154 (d), 155 (d) |
-| S15 | Dời tâm khi hai bên có vật | a) xe tải hai bên; b) xe tải và rào chắn; c) xe tải và xe con; d) xe tải hai bên, làn 3,0 m; e) rào chắn hai bên | PP-SWR-056, 057 |
-| S16 | Can thiệp lặp | a) LKA COMPLETED, REQUEST giữ thêm 1 s; b) như a, REQUEST rời 0,2 s rồi quay lại; c) trôi ba lần, 0,4 m/s, cách 2 s; d) như c, ELK vạch liền; e) lần hai bắt đầu 0,2 s sau COMPLETED | PP-SWR-034 (a, b), 035 (c, d, e), 041 (a, b) |
+| S15 | Dời tâm khi hai bên có vật | a) xe tải hai bên; b) xe tải và rào chắn; c) xe tải và xe con; d) xe tải hai bên, làn 3,0 m; e) rào chắn hai bên. Vạch liền ở biên làn, rào cách vạch 0,5 m (nhóm tự thống nhất) | PP-SWR-056, 057 |
+| S16 | Can thiệp lặp | a) LKA COMPLETED, REQUEST giữ thêm 1 s; b) như a, REQUEST rời 0,2 s rồi quay lại; c) trôi ba lần, 0,4 m/s, lần sau 2 s sau COMPLETED; d) như c, ELK vạch liền; e) lần hai bắt đầu 0,2 s sau COMPLETED | PP-SWR-034 (a, b), 035 (c, d, e), 041 (a, b) |
 | S17 | Tài xế chuyển làn khi HWA bật | Lane model đổi làn khi xe qua vạch. a) đường thẳng 90 km/h, 4 s; b) 2,5 s; c) cua R = 500 m; d) hai lần liên tiếp; e) cờ chuyển làn trễ một frame | PP-SWR-039, 040, 061 |
 | S19 | Bề rộng làn và bề rộng xe | HWA, 90 km/h, đường thẳng rồi cua R = 500 m. a) làn 2,5 m, VP-1; b) làn 2,5 m, VP-5; c) làn 5,5 m, VP-2; d) làn 3,0 m, VP-4, xe tải 2,5 m ở làn bên chậm hơn 5 m/s; e) như d, xe tải hai bên | PP-SWR-050, 062, 063 (b) |
 
@@ -308,7 +311,7 @@ Mỗi bộ cụ thể mang hai nhãn: độ khó và kết quả mong đợi. B�
 | L1 | Ít nhất một tham số ở biên dải của ODD hoặc của chức năng: bề rộng làn, tốc độ, bề rộng xe, thời gian nhìn trước | S19 (a) |
 | L2 | Trong ODD nhưng cần vượt giới hạn quyền lái của chức năng | S1b, S14 |
 | L3 | Một lỗi ở mục 6 | F01 đến F22, Q1 đến Q4 |
-| L4 | Ghép lỗi theo mục 6.2 | Ca đêm mưa |
+| L4 | Ghép lỗi theo mục 6.2 | G01 (đêm mưa) |
 | L5 | Ngoài ODD hoặc ngoài dải hoạt động của chức năng | Q4 ở mức thời gian nhìn trước dưới `t_view_hwa` |
 
 **Kết quả mong đợi.** Ghi trong kịch bản bằng mã ở cột 2.
@@ -443,6 +446,17 @@ Một requirement đạt khi đạt ở mọi kịch bản, biến thể, seed v
 | Dời tâm khi có xe lớn | Trung bình lệch của path so với tâm làn thật trên đoạn 0–1 s, dương là ra xa xe lớn có khoảng hở nhỏ nhất. Chấm ở chu kỳ HWA lái, xe lớn ngang hàng với khoảng hở < `gap_truck_min`: 055 khi làn bên kia không có xe lớn ngang hàng, nhỏ nhất; 058 ở chu kỳ đầu tiên xe lớn tới ngang hàng, nhỏ nhất; 056 lớn nhất của phần lệch về phía xe lớn. Thân xe theo chiều dọc: cầu sau − 1 m tới cầu trước + 1 m | 055, 058: > 0; 056: ≤ 0 | PP-SWR-055, 056, 058 |
 
 SIL xấp xỉ mép ngoài lốp trước bằng nửa `vehicle_width` ở cầu trước. Bề rộng kể cả gương làm DLC và DTLE bi quan khoảng 0,1–0,15 m. Khi phân tích ca S6 trượt trong khoảng này, kiểm lại xấp xỉ hình học. Ngưỡng chấm giữ theo requirement.
+
+Cách chấm bổ sung:
+
+- PP-SWR-051 không chấm trong lúc `driver_override` (tài xế lái, HWA không lái).
+- PP-SWR-039, 040: `pose.y` của điểm 0 trên Trajectory, vì `base_link` là vị trí xe tại t0.
+- PP-SWR-153: v, a của mỗi điểm nằm giữa giá trị LongitudinalPlan cùng chỉ số và giá trị dời theo tuổi của message (Interface Control Document 5.7 chỉ cho cùng lưới). PP-SWR-154: v không đổi, lệch tốc độ thật ≤ 0,2 m/s (nhóm tự thống nhất), a = 0.
+- PP-SWR-034, 041: sau COMPLETED khi state vẫn ở REQUEST. PP-SWR-036, 037, 042: 0,5 s sau chu kỳ miễn của PP-SWR-038 khi chức năng rời REQUEST.
+- PP-SWR-057 gồm khoảng cách tới rào chắn và hộ lan trong lúc HWA lái.
+- PP-SWR-061: các cặp path dùng frame trong 1 s sau khi lane model sang làn mới.
+- PP-SWR-091: ca có trễ EPS thật lớn hơn VehicleConfig, tới 100 ms.
+- PP-SWR-062: ở ca biên ODD (nhãn L1), mọi requirement khác của lần chạy.
 
 Ca được định trước cần can thiệp phải có REQUEST đến planner và path can thiệp của chức năng tương ứng. Thiếu một trong hai thì ca trượt và báo rõ bước thiếu.
 
@@ -657,3 +671,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.26 | 2026-11-12 | Mục 6.1: Q3 ở 60 ms là ca FunctionRequests quá tuổi (PP-SWR-048, PP-PR-023) |
 | 1.27 | 2026-11-12 | Mục 8.2: cách tính PP-SWR-013 từ kết quả Q1 |
 | 1.28 | 2026-11-12 | Mục 4.1: môi trường của ca; 4.5: lane model khi xe sang làn; 4.7: cách đo khoảng cách bám xe; 5.3: đếm lỗi theo định nghĩa; 6: ba thời điểm bơm lỗi theo pha của planner; 6.2: ca ghép G01; 9.1: bảng từ `eval.techniques`; 12: PM-00 lái LKA, ELK, thêm PM-10, mỗi planner mồi hai ca |
+| 1.29 | 2026-11-12 | Mục 4.6: EPS theo tài xế khi ghi đè, trễ EPS theo ca; 4.8: đánh lái và FunctionRequests theo pha, đổi làn, ca không được can thiệp; 5: S15 rào cách vạch 0,5 m, S16 lần trôi sau tính từ COMPLETED; 5.3: ví dụ L4 là G01; 8.1: cách chấm 034 đến 042, 051 khi ghi đè, 057, 061, 062, 091, 153, 154 |

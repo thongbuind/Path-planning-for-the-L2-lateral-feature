@@ -55,6 +55,8 @@ from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, 
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
 from interfaces.inputs.object_list import OBJECT_LIST_MAX_AGE_US, OBJECT_LIST_TIMEOUT_US
 from interfaces.inputs.vehicle_state import VEHICLE_STATE_MAX_AGE_US, VEHICLE_STATE_TIMEOUT_US
+from interfaces.inputs.longitudinal_plan import (LONGITUDINAL_PLAN_MAX_AGE_US, LONGITUDINAL_PLAN_TIMEOUT_US,
+                                                 LongitudinalPlan)
 import numpy as np
 
 from sim.can.frames import CanReceiver, CanSender
@@ -118,6 +120,7 @@ class PlannerCycle:
     # (status, confidence) of lines L2, L1, R1, R2 and the left and right road edges given to the
     # planner, for "biên làn đủ tin" (Software Requirements Specification 4); None: no lane model
     lane_boundaries: tuple[tuple[LineStatus, float], ...] | None = None
+    longitudinal_plan: Received[LongitudinalPlan] | None = None  # As the planner got it (PP-SWR-153, 154)
 
 
 FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132: a stamp up to 10 ms ahead stays usable
@@ -147,6 +150,8 @@ def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
                                 VEHICLE_STATE_MAX_AGE_US) is not None,
         "function_requests": _fresh(inputs.function_requests, now, FUNCTION_REQUESTS_TIMEOUT_US,
                                     FUNCTION_REQUESTS_MAX_AGE_US) is not None,
+        "longitudinal_plan": _fresh(inputs.longitudinal_plan, now, LONGITUDINAL_PLAN_TIMEOUT_US,
+                                    LONGITUDINAL_PLAN_MAX_AGE_US) is not None,
     }
 
 
@@ -194,6 +199,8 @@ class RunLog:
     # Lane of base_link as the camera indexes it, at each change: (capture stamp, lanes to the
     # left of the reference lane). Ground truth for lane-change cases (S17).
     lane_index_changes: list[tuple[int, int]] = field(default_factory=list)
+    # Every occurrence of the planner-output events of sim.faults.trigger: event -> t0 [us]
+    events: dict[str, list[int]] = field(default_factory=dict)
 
 
 def _ego_view_end(lane: LaneModel) -> float | None:
@@ -348,6 +355,14 @@ class Harness:
         # Faults that wait for an event of the planner output: inactive until it happens.
         self._pending: list[tuple[object, int, object]] = []
         self._fault_events: dict[str, int | None] = {}
+        self._events = fault_trigger.EventCounter()
+        # Driver repeats that wait for an event (S16): inactive until the k-th occurrence.
+        self._driver_spec = scenario.driver
+        self._driver_waiting: list[tuple[float, float]] = []
+        if scenario.driver is not None and scenario.driver.repeat_trigger is not None:
+            self._driver_waiting = list(scenario.driver.repeats)
+            self._driver_spec = replace(scenario.driver, repeats=tuple(
+                (fault_trigger.NEVER_S, k) for _, k in scenario.driver.repeats))
         for owner in (self.lane_faults, self.sensor_errors, self.ego_faults, *self._injectors.values()):
             owner.faults = list(owner.faults)
             for i, fault in enumerate(owner.faults):
@@ -436,9 +451,10 @@ class Harness:
             self._hold_s += self.scenario.speed_mps * dt
             self._place_held()
         if self.scenario.driver is not None:
-            angle, force, self._driver = self.scenario.driver.command(
+            angle, force, self._driver = self._driver_spec.command(
                 now_us, self.profile, self.vehicle_config.steering_ratio, self.vehicle.v_x, self._road_curvature)
             self.eps.driver_angle = angle
+            self.eps.driver_torque = self._driver.torque_nm
             self.vehicle.external_force_y = force
         delta = self.eps.step(now_us, dt)
         if not self._holding:
@@ -673,8 +689,12 @@ class Harness:
             ch["path_status"].publish(out.path_status, now_us)
         if out.lateral_limits is not None:
             ch["lateral_limits"].publish(out.lateral_limits, now_us)
-        if self._pending and out.path_status is not None:
-            self._start_triggered(out.path_status, now_us)
+        if out.path_status is not None:
+            for event in self._events.update(out.path_status, now_us):
+                self.function_requests.on_event(event, now_us)
+                self._driver_event(event, now_us)
+            if self._pending:
+                self._start_triggered(out.path_status, now_us)
         lane = inputs.lane_model
         lane_view = None
         reported = None
@@ -695,9 +715,20 @@ class Harness:
                                                                *inputs.lane_model.message.road_edges)))
         self.log.cycles.append(PlannerCycle(now_us, out.trajectory, out.path_status,
                                             out.lateral_limits, compute_ns, lane_view, inputs.function_requests,
-                                            reported, usable, t0_local, times, boundaries))
+                                            reported, usable, t0_local, times, boundaries,
+                                            inputs.longitudinal_plan))
         if self.scenario.loop == "open":
             self._open_loop_path(now_us)
+
+    def _driver_event(self, event: str, now_us: int) -> None:
+        spec = self._driver_spec
+        if spec is None or spec.repeat_trigger != event or not self._driver_waiting:
+            return
+        k = len(spec.repeats) - len(self._driver_waiting)
+        offset, scale = self._driver_waiting.pop(0)
+        repeats = list(spec.repeats)
+        repeats[k] = (now_us * 1e-6 + offset, scale)
+        self._driver_spec = replace(spec, repeats=tuple(repeats))
 
     def _start_triggered(self, status: PathStatus, now_us: int) -> None:
         for event, seen in self._fault_events.items():
@@ -734,6 +765,7 @@ class Harness:
             self.log.fault_hits.append(injector.fault_hits()[position[fault.channel]])
             position[fault.channel] += 1
         self.log.fault_events = dict(self._fault_events)
+        self.log.events = {e: list(t) for e, t in self._events.times.items() if t}
         if self._fault_events:
             # Faults as injected: a triggered fault carries its real start (NEVER_S if not injected).
             channel = list(self.scenario.channel_faults)

@@ -11,6 +11,9 @@ from interfaces import VehicleConfig
 from sim.messages import SteeringRequest
 
 TAU_S = 0.1  # 4.6
+# Driver torque at which the steering follows the driver: torque_override of the ADAS Function
+# Specification, 12 (3.0 Nm, within the Euro NCAP 3.5 Nm limit).
+OVERRIDE_TORQUE_NM = 3.0
 HANDOVER_S = 1.0  # 4.6
 
 
@@ -28,6 +31,7 @@ class Eps:
         self.angle = 0.0  # [rad] steering wheel angle
         self.rate = 0.0  # [rad/s]
         self.driver_angle = 0.0  # [rad] the fake driver's steering wheel angle
+        self.driver_torque = 0.0  # [Nm] the fake driver's torque; at override level the driver steers
 
     def hold_driver_angle(self, angle: float) -> None:
         """Start with the fake driver steering `angle`, no handover pending."""
@@ -51,7 +55,11 @@ class Eps:
                 self._last_active_angle = self.angle
             self._command = cmd
 
-        if self.controlling:
+        if self.controlling and abs(self.driver_torque) >= OVERRIDE_TORQUE_NM:
+            # The driver overrides (ADAS Function Specification 8, R79 5.1.6): the steering
+            # follows the driver while the torque lasts; the command takes over again after.
+            target = self.driver_angle
+        elif self.controlling:
             target = self._command.steering_wheel_angle_rad
         elif self._inactive_since_us is not None:
             h = min(1.0, (now_us - self._inactive_since_us) / (HANDOVER_S * 1e6))

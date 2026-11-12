@@ -9,12 +9,13 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="Đổi làn trái, HWA giữ REQUEST, 4 s" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="scenario_id" value="S17" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="departure_torque_windows" value="[[2,4.5]]" />
             <ParameterAssignment parameterRef="description" value="Đổi làn trái, HWA giữ REQUEST, 2.5 s" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="scenario_id" value="S17" />
             <ParameterAssignment parameterRef="departure_radius_m" value="209.10114654920002" />
             <ParameterAssignment parameterRef="departure_v_lat_mps" value="1.8663770212431006" />
             <ParameterAssignment parameterRef="departure_gap_m" value="0.1414856382769374" />
@@ -24,15 +25,22 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="Đổi làn trái, HWA giữ REQUEST, 4 s, R = 500 m" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="scenario_id" value="S17" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S4bb.xodr" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="departure_torque_windows" value="[[2,6],[8,12]]" />
             <ParameterAssignment parameterRef="description" value="Hai lần đổi làn ngược hướng, HWA giữ REQUEST" />
-            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="scenario_id" value="S17" />
             <ParameterAssignment parameterRef="departure_repeats" value="[[5,-1],[8,-1],[11,1]]" />
             <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:2,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:true},{&quot;at_s&quot;:6,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false},{&quot;at_s&quot;:8,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:true},{&quot;at_s&quot;:12,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Như a, cờ chuyển làn trễ một frame" />
+            <ParameterAssignment parameterRef="scenario_id" value="S17" />
+            <ParameterAssignment parameterRef="late_flag" value="true" />
           </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>

@@ -8,7 +8,7 @@
 Checks, in order (benchmark/AUTHORING.md):
   1  files: <id>.xosc, <id>.anchors.xosc, <id>.ranges.xosc pass the ASAM XSD; roads they use exist
   2  every anchor loads into the simulator subset (eval.openx) and is concrete in an ODD
-  3  every anchor has an expected outcome (5.3) and a difficulty label
+  3  every anchor has an expected outcome (5.3), a difficulty label and scenario_id = the code
   4  traceability: the code is named in the Kiểm chứng column of the Software Requirements
      Specification, or exempt in Software Qualification Test Specification 6.3
   5  with --run: one closed-loop run per anchor, seed 1, with the delivered planner; prints the
@@ -78,6 +78,8 @@ def check_anchors(code: str, host, trigger, offset, problems: list[str]) -> list
         except Exception as exc:
             problems.append(f"{code} {variant} không nạp được: {exc}")
             continue
+        if not code.startswith("F") and not scenario.name.startswith(code):
+            problems.append(f"{name}: scenario_id là {scenario.name[:-len(variant)] or '—'}, phải là {code}")
         case_labels = labels.of(scenario)
         if not case_labels["expected"]:
             problems.append(f"{name}: thiếu pp:expected_outcome (mục 5.3)")

@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S10 anchors" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S10.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Đi gần vạch trái, DLC 0,2 m, v_lat gần 0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Đi gần vạch trái, DLC 0,4 m" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.325" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Cắt cua R = 500 m về phía trong, DLC 0,2 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4bb.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Đi lệch trái khi có xe tải ở làn phải, DLC 0,2 m" />
+            <ParameterAssignment parameterRef="truck_present" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Như a, ban đêm (nhiễu camera F01 c), chế độ A" />
+            <ParameterAssignment parameterRef="night" value="true" />
+            <ParameterAssignment parameterRef="adas_mode" value="A" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

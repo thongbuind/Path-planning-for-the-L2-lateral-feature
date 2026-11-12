@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="Ba lần trôi trái 0,4 m/s cách 2 s, LKA" revMajor="1" revMinor="3" />
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="Ba lần trôi trái 0,4 m/s, lần sau 2 s sau COMPLETED, LKA" revMajor="1" revMinor="3" />
   <ParameterDeclarations>
     <ParameterDeclaration name="scenario_id" parameterType="string" value="S16" />
     <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S4a.xodr" />
     <ParameterDeclaration name="profile" parameterType="string" value="VP-0" />
     <ParameterDeclaration name="speed_mps" parameterType="double" value="20.0" />
     <ParameterDeclaration name="lane_width_m" parameterType="double" value="3.5" />
-    <ParameterDeclaration name="duration_s" parameterType="double" value="17.0" />
+    <ParameterDeclaration name="duration_s" parameterType="double" value="26.0" />
     <ParameterDeclaration name="start_s_m" parameterType="double" value="100.0" />
     <ParameterDeclaration name="start_offset_m" parameterType="double" value="0.0" />
     <ParameterDeclaration name="start_heading_rad" parameterType="double" value="0.0" />
@@ -21,7 +21,7 @@
     <ParameterDeclaration name="elk_enabled" parameterType="boolean" value="false" />
     <ParameterDeclaration name="expect_intervention" parameterType="string" value="LKA" />
     <ParameterDeclaration name="protocol" parameterType="string" value="" />
-    <ParameterDeclaration name="departure_side" parameterType="string" value="right" />
+    <ParameterDeclaration name="departure_side" parameterType="string" value="left" />
     <ParameterDeclaration name="departure_radius_m" parameterType="double" value="1200.0" />
     <ParameterDeclaration name="departure_boundary" parameterType="string" value="marking" />
     <ParameterDeclaration name="departure_target" parameterType="string" value="none" />
@@ -33,11 +33,14 @@
     <ParameterDeclaration name="passive_hands_on" parameterType="boolean" value="true" />
     <ParameterDeclaration name="late_request" parameterType="boolean" value="false" />
     <ParameterDeclaration name="variant" parameterType="string" value="c" />
-    <ParameterDeclaration name="description" parameterType="string" value="Ba lần trôi trái 0,4 m/s cách 2 s, LKA" />
+    <ParameterDeclaration name="description" parameterType="string" value="Ba lần trôi trái 0,4 m/s, lần sau 2 s sau COMPLETED, LKA" />
     <ParameterDeclaration name="departure_v_lat_mps" parameterType="double" value="0.4" />
     <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.8" />
     <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
-    <ParameterDeclaration name="departure_repeats" parameterType="string" value="[[4,1],[6,1]]" />
+    <ParameterDeclaration name="departure_repeats" parameterType="string" value="[[2,1],[2,1]]" />
+    <ParameterDeclaration name="departure_repeat_trigger" parameterType="string" value="lka_completed" />
+    <ParameterDeclaration name="scripted_requests" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="request_events" parameterType="string" value="[]" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -75,7 +78,10 @@
     <Init>
       <Actions>
         <UserDefinedAction>
-          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats}</CustomCommandAction>
+          <CustomCommandAction type="pp:departure:v1">{"side":"$departure_side","v_lat_mps":$departure_v_lat_mps,"radius_m":$departure_radius_m,"gap_m":$departure_gap_m,"boundary":"$departure_boundary","target":"$departure_target","steer_start_s":$steer_start_s,"torque_nm":$driver_torque_nm,"wind_n":$wind_force_n,"bank_grade":$bank_grade,"indicated":$indicated,"passive_hands_on":$passive_hands_on,"late_request":$late_request,"repeats":$departure_repeats,"repeat_trigger":"$departure_repeat_trigger"}</CustomCommandAction>
+        </UserDefinedAction>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:requests:v1">{"enabled":$scripted_requests,"events":$request_events}</CustomCommandAction>
         </UserDefinedAction>
         <Private entityRef="Ego">
           <PrivateAction>

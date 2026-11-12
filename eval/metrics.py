@@ -18,7 +18,8 @@ import numpy as np
 from eval.calibration import requirement_parameters
 from interfaces import (
     FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US, PLANNER_PERIOD_US,
-    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, LineStatus, RequestState, Side,
+    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, LineStatus, RequestState,
+    RoadEdgeType, Side,
 )
 from sim.harness import PlannerCycle, RunLog
 from sim.stand_ins.eps import HANDOVER_S
@@ -48,6 +49,8 @@ ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
 MAX_INTERVENTION_S = 10.0  # PP-SWR-083
 MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
 EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
+EPS_DELAY_MAX_S = 0.1  # PP-SWR-091
+BARRIER_TYPES = (RoadEdgeType.BARRIER, RoadEdgeType.GUARDRAIL)  # PP-SWR-057: physical objects
 OTHER_CAR_GAP_MIN_M = 0.3  # PP-SWR-088
 LATE_ELK_DLC_M = -0.3  # PP-SWR-089
 FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132
@@ -271,6 +274,28 @@ class _BigVehicles:
     away_058: float | None = None  # Offset away when an approaching big vehicle becomes abreast
     clearance_057: float = np.inf  # Smallest true clearance from the car body while abreast
     return_059: float | None = None  # From the end of abreast to the car within 0.1 m of centre
+
+
+def _barrier_clearance(log: RunLog, cycles, truth: _Truth) -> float | None:
+    """PP-SWR-057 for physical barriers (barrier, guardrail) of the road layout: smallest true
+    lateral distance from the car body (rear and front axle offsets, half width) to a barrier,
+    over the cycles HWA drives. None without a barrier."""
+    road = log.road
+    sides = [side for i, side in ((0, Side.LEFT), (1, Side.RIGHT))
+             if road.layout.edges[i] is not None and road.layout.edges[i].type in BARRIER_TYPES]
+    if not sides:
+        return None
+    best, s_hint = np.inf, None
+    for c in cycles:
+        if not _hwa(c):
+            continue
+        for pose in (truth.rear_at(c.t0_us), truth.front_at(c.t0_us)):
+            p = road.project(pose[0], pose[1], s_hint)
+            s_hint = p.s
+            for side in sides:
+                sign = 1 if side == Side.LEFT else -1
+                best = min(best, sign * (_boundary_offset(road, side, p.s, edge=True) - p.d) - log.vehicle_width / 2)
+    return float(best) if np.isfinite(best) else None
 
 
 def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> _BigVehicles | None:
@@ -968,9 +993,236 @@ def _check_late_elk(truth, windows):
     return late_dlcs, accepted
 
 
+PLAN_STEP_S = 0.1  # LongitudinalPlan grid (Interface Control Document 5.7)
+FLOAT32_TOL = 1e-3  # [m/s], [m/s^2] float32 transport of the interface
+CURRENT_SPEED_TOL_MPS = 0.2  # PP-SWR-154: "tốc độ hiện tại" against the true speed (nhóm tự thống nhất)
+
+
+SWITCH_WINDOW_S = 0.5  # judged after a request change, after the one exempt cycle of PP-SWR-038
+OVERRIDE_START_M = 0.05  # PP-SWR-039, 040
+HWA_LOW_SPEED_MPS = 60 / 3.6  # PP-SWR-054
+LANE_CHANGE_WINDOW_S = 1.0  # PP-SWR-061: cycles using a frame up to 1 s after the lane model re-indexed
+
+
+def _state(c, function):
+    """RequestState of a function in the usable FunctionRequests of the cycle, else None."""
+    if not (c.inputs_ok or {}).get("function_requests") or c.function_requests is None:
+        return None
+    return c.function_requests.message.requests[int(function) - 1].state
+
+
+def _inputs_ok(c, cal) -> bool:
+    return all((c.inputs_ok or {}).get(k, True) for k in INPUTS_FOR_PATH) and lane_usable(c, cal)
+
+
+def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criterion]:
+    """Arbitration and driver override on the outputs (PP-SWR-034, 036, 037, 039 to 042, 054, 061).
+
+    - 034, 041: after COMPLETED while the state stays REQUEST, the phase stays COMPLETED (041)
+      and no new intervention starts (034) until the state leaves REQUEST.
+    - 036, 037: when an intervening LKA or ELK leaves REQUEST, from the cycle after the exempt one
+      (038) and for SWITCH_WINDOW_S, the function driving is HWA if HWA is in REQUEST, else NONE
+      (036); with none left, path_valid stays true (037) while the needed inputs are usable.
+    - 042: when HWA leaves REQUEST with no function in REQUEST, NONE with path_valid true.
+    - 039: while driver_override, point 0 of a valid path within 0.05 m of the car (base_link y).
+      040: at the first cycle with driver_override false after true, HWA in REQUEST, the same.
+    - 054: HWA in REQUEST and the true speed 0 to 60 km/h: a valid HWA path.
+    - 061: continuity of PP-SWR-100 to 102 on cycles using a frame up to 1 s after a lane change."""
+    truth = _Truth(log)
+    t = np.asarray(log.t_us)
+    window_us = round(SWITCH_WINDOW_S * 1e6)
+    bad = {k: 0 for k in ("034", "036", "037", "041", "042", "054")}
+    seen = {k: 0 for k in bad}
+    starts_039, starts_040 = [], []
+    # 034, 041
+    for f in INTERVENTION_FUNCTIONS:
+        hold = False
+        for c in cycles:
+            state = _state(c, f)
+            if state != RequestState.REQUEST:
+                hold = False
+                continue
+            phase = _phase(c, f)
+            if hold:
+                seen["034"] += 1
+                seen["041"] += 1
+                bad["034"] += phase == InterventionPhase.ACTIVE
+                bad["041"] += phase != InterventionPhase.COMPLETED
+            elif phase == InterventionPhase.COMPLETED:
+                hold = True
+    # 036, 037, 042: windows after a withdrawal
+    windows = []  # (start_us, end_us, kind)
+    for prev, c in zip(cycles, cycles[1:]):
+        for f in INTERVENTION_FUNCTIONS:
+            if (_phase(prev, f) == InterventionPhase.ACTIVE and _state(prev, f) == RequestState.REQUEST
+                    and _state(c, f) not in (None, RequestState.REQUEST)):
+                windows.append((c.t0_us, "036"))
+        if _state(prev, ActiveFunction.HWA) == RequestState.REQUEST and \
+                _state(c, ActiveFunction.HWA) not in (None, RequestState.REQUEST):
+            windows.append((c.t0_us, "042"))
+    for start_us, kind in windows:
+        judged = [c for c in cycles if start_us + PLANNER_PERIOD_US < c.t0_us <= start_us + PLANNER_PERIOD_US + window_us]
+        for c in judged:
+            if not _inputs_ok(c, cal):
+                continue
+            states = {f: _state(c, f) for f in FUNCTION_PRIORITY}
+            if any(v is None for v in states.values()):
+                continue
+            requested = [f for f in FUNCTION_PRIORITY if states[f] == RequestState.REQUEST]
+            actual = c.path_status.active_function if _valid(c) else ActiveFunction.NONE
+            if kind == "036":
+                expected = ActiveFunction.HWA if ActiveFunction.HWA in requested else ActiveFunction.NONE
+                # Starting another requested intervention is a new choice (PP-SWR-030), not a fault.
+                if actual in INTERVENTION_FUNCTIONS and actual in requested and actual != expected:
+                    continue
+                seen["036"] += 1
+                bad["036"] += actual != expected
+                if not requested:
+                    seen["037"] += 1
+                    bad["037"] += not (c.path_status is not None and c.path_status.path_valid
+                                       and c.path_status.active_function == ActiveFunction.NONE)
+            elif not requested:
+                seen["042"] += 1
+                bad["042"] += not (c.path_status is not None and c.path_status.path_valid
+                                   and c.path_status.active_function == ActiveFunction.NONE)
+    # 039, 040
+    was_override = False
+    for c in cycles:
+        usable = (c.inputs_ok or {}).get("function_requests") and c.function_requests is not None
+        override = bool(usable and c.function_requests.message.driver_override)
+        if _valid(c) and c.trajectory is not None:
+            y0 = abs(c.trajectory.points[0].pose.y)
+            if override:
+                starts_039.append(y0)
+            elif was_override and _hwa(c):
+                starts_040.append(y0)
+        if usable:
+            was_override = override
+    # 054
+    for c in cycles:
+        if _state(c, ActiveFunction.HWA) != RequestState.REQUEST or not _inputs_ok(c, cal):
+            continue
+        speed = log.speed[int(np.clip(np.searchsorted(t, c.t0_us), 0, len(t) - 1))]
+        if 0.0 <= speed <= HWA_LOW_SPEED_MPS:
+            seen["054"] += 1
+            bad["054"] += not _hwa(c)
+    # 061
+    lane_changes = [stamp for stamp, _ in getattr(log, "lane_index_changes", [])]
+    cont = [0.0, 0.0, 0.0]
+    n_061 = 0
+    for prev, c in zip(cycles, cycles[1:]):
+        if not (_valid(prev) and _valid(c)) or c.path_status.active_function != prev.path_status.active_function:
+            continue
+        stamp = c.lane_view[0] if c.lane_view is not None else None
+        if stamp is None or not any(ch <= stamp <= ch + LANE_CHANGE_WINDOW_S * 1e6 for ch in lane_changes):
+            continue
+        n_061 += 1
+        cont = [max(a, b) for a, b in zip(cont, _continuity(prev, c, truth))]
+
+    def count(rid, metric):
+        return Criterion(f"PP-SWR-{rid}", metric, float(bad[rid]), "= 0", bad[rid] == 0, applicable=seen[rid] > 0)
+    return [
+        count("034", "Chu kỳ bắt đầu lại can thiệp khi chức năng vừa COMPLETED vẫn giữ REQUEST"),
+        count("041", "Chu kỳ rời pha COMPLETED khi state vẫn ở REQUEST"),
+        count("036", "Chu kỳ sai chức năng sau khi chức năng đang can thiệp rời REQUEST"),
+        count("037", "Chu kỳ không có NONE với path hợp lệ sau khi chức năng can thiệp rời REQUEST"),
+        count("042", "Chu kỳ không có NONE với path hợp lệ sau khi HWA rời REQUEST"),
+        count("054", "Chu kỳ không có path HWA hợp lệ khi HWA ở REQUEST và tốc độ 0–60 km/h"),
+        Criterion("PP-SWR-039", "Lệch ngang điểm đầu path so với xe khi driver_override [m]",
+                  float(max(starts_039, default=float("nan"))), f"<= {OVERRIDE_START_M}",
+                  max(starts_039, default=0.0) <= OVERRIDE_START_M, applicable=bool(starts_039)),
+        Criterion("PP-SWR-040", "Lệch ngang điểm đầu path HWA khi hết driver_override [m]",
+                  float(max(starts_040, default=float("nan"))), f"<= {OVERRIDE_START_M}",
+                  max(starts_040, default=0.0) <= OVERRIDE_START_M, applicable=bool(starts_040)),
+        Criterion("PP-SWR-061", "Lệch ngang giữa hai path liên tiếp khi lane model sang làn mới [m]", cont[0],
+                  f"<= {CONTINUITY_LATERAL_M}", cont[0] <= CONTINUITY_LATERAL_M, applicable=n_061 > 0),
+        Criterion("PP-SWR-061", "Lệch hướng giữa hai path liên tiếp khi lane model sang làn mới [rad]", cont[1],
+                  f"<= {CONTINUITY_HEADING_RAD}", cont[1] <= CONTINUITY_HEADING_RAD, applicable=n_061 > 0),
+        Criterion("PP-SWR-061", "Lệch độ cong giữa hai path liên tiếp khi lane model sang làn mới [1/m]", cont[2],
+                  f"<= {CONTINUITY_CURVATURE}", cont[2] <= CONTINUITY_CURVATURE, applicable=n_061 > 0),
+    ]
+
+
+def longitudinal_criteria(log: RunLog, cycles) -> list[Criterion]:
+    """PP-SWR-153 to 155 on the Trajectory and the LongitudinalPlan the planner received.
+
+    153: with a usable plan, every point's v and a lies between the plan value at the same
+    index and the value moved by the age of the plan (Interface Control Document 5.7 gives the
+    same grid, not the alignment). 154: with the plan lost or past its timeout, v is constant
+    and equal to the current speed, a is 0. 155: a valid path stays valid when the plan is lost."""
+    follow_bad = follow_n = lost_bad = lost_n = drop_bad = drop_n = 0
+    t = np.asarray(log.t_us)
+    prev_valid = False
+    for c in cycles:
+        ok = (c.inputs_ok or {}).get("longitudinal_plan")
+        valid = _valid(c)
+        if ok is None:
+            continue
+        if not ok:
+            if prev_valid:
+                drop_n += 1
+                drop_bad += not valid
+        if valid:
+            v = np.array([p.longitudinal_velocity_mps for p in c.trajectory.points])
+            a = np.array([p.acceleration_mps2 for p in c.trajectory.points])
+            if ok and c.longitudinal_plan is not None:
+                plan = c.longitudinal_plan.message
+                grid = np.arange(len(plan.points)) * PLAN_STEP_S
+                pv = np.array([p.v for p in plan.points])
+                pa = np.array([p.a for p in plan.points])
+                age = max(0.0, (c.t0_local_us if c.t0_local_us is not None else c.t0_us) - plan.header.stamp_us) * 1e-6
+                tq = np.array([p.time_from_start for p in c.trajectory.points])
+                inside = True
+                for values, ref in ((v, pv), (a, pa)):
+                    same, moved = np.interp(tq, grid, ref), np.interp(tq + age, grid, ref)
+                    lo, hi = np.minimum(same, moved) - FLOAT32_TOL, np.maximum(same, moved) + FLOAT32_TOL
+                    inside &= bool(np.all((values >= lo) & (values <= hi)))
+                follow_n += 1
+                follow_bad += not inside
+            elif not ok:
+                speed = log.speed[int(np.clip(np.searchsorted(t, c.t0_us), 0, len(t) - 1))]
+                lost_n += 1
+                lost_bad += not (np.ptp(v) <= FLOAT32_TOL and abs(v[0] - speed) <= CURRENT_SPEED_TOL_MPS
+                                 and np.all(np.abs(a) <= FLOAT32_TOL))
+        prev_valid = valid
+    return [
+        Criterion("PP-SWR-153", "Chu kỳ có v, a của Trajectory không theo LongitudinalPlan", follow_bad, "= 0",
+                  follow_bad == 0, applicable=follow_n > 0),
+        Criterion("PP-SWR-154", "Chu kỳ mất LongitudinalPlan mà v không giữ tốc độ hiện tại hoặc a khác 0",
+                  lost_bad, "= 0", lost_bad == 0, applicable=lost_n > 0),
+        Criterion("PP-SWR-155", "Chu kỳ mất LongitudinalPlan làm path hợp lệ thành không hợp lệ", drop_bad, "= 0",
+                  drop_bad == 0, applicable=drop_n > 0),
+    ]
+
+
+def adas_requests(log: RunLog) -> dict | None:
+    """REQUEST episodes of LKA and ELK sent by the ADAS function stand-in, mode A (measured
+    inputs) and mode B (ideal inputs), whichever mode drives the planner. Test side: S10 and
+    the cases where the ADAS function must not intervene (Software Qualification Test
+    Specification 6.3, expect_intervention none). None without the stand-in."""
+    if not log.adas:
+        return None
+    out = {}
+    for mode, attr in (("A", "measured_requests"), ("B", "ideal_requests")):
+        count, held = 0, False
+        for sample in log.adas:
+            now = any(r.state == RequestState.REQUEST for r in getattr(sample, attr).requests[1:])
+            count += now and not held
+            held = now
+        out[mode] = count
+    return out
+
+
 def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_times):
     log, cycles = truth.log, truth.log.cycles
     expected = log.scenario.notes.get("expect_intervention")
+    if expected == "none":
+        # The ADAS function must not request here (ADAS Function Specification 6, 8): a request
+        # is a test-side fault, the planner is not judged on its consequence.
+        if any(requests.values()):
+            add_issue(result, ISSUE_NOT_JUDGED,
+                      "Khối Chức năng ADAS chạy thử gửi REQUEST trong ca không được can thiệp")
+        return
     if not (expected or episodes or any(requests.values())):
         return
     def issue(kind, text, requirement=None):
@@ -1074,9 +1326,11 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
     lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
     lower("PP-SWR-086", "DTLE vạch nhỏ nhất [m]", dtle_mark, MARK_DTLE_MIN_M)
     lower("PP-SWR-086", "DTLE mép đường nhỏ nhất [m]", dtle_edge, EDGE_DTLE_MIN_M)
-    if abs(log.actuator_delay_s - 0.1) <= 1e-7:
-        lower("PP-SWR-091", "DTLE vạch với trễ EPS 100 ms [m]", dtle_mark, MARK_DTLE_MIN_M)
-        lower("PP-SWR-091", "DTLE mép với trễ EPS 100 ms [m]", dtle_edge, EDGE_DTLE_MIN_M)
+    # PP-SWR-091: the real EPS of the case is slower than the VehicleConfig value, up to 100 ms (S13).
+    eps_delay = getattr(log.scenario, "eps_delay_s", None)
+    if eps_delay is not None and log.actuator_delay_s + 1e-9 < eps_delay <= EPS_DELAY_MAX_S + 1e-9:
+        lower("PP-SWR-091", "DTLE vạch khi EPS chậm tới 100 ms [m]", dtle_mark, MARK_DTLE_MIN_M)
+        lower("PP-SWR-091", "DTLE mép khi EPS chậm tới 100 ms [m]", dtle_edge, EDGE_DTLE_MIN_M)
     upper("PP-SWR-089", "Số ELK REQUEST muộn đã khởi động", [accepted] if late_dlcs else [], 0)
     gap, no_impact = _target_geometry(truth, episodes)
     lower("PP-SWR-088", "Khoảng cách ngang nhỏ nhất tới xe mục tiêu [m]",
@@ -1099,6 +1353,16 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                 active[e.start:e.stop] = True
         active_paths = [p for p, use in zip(paths, active) if use]
         ay_limit, added_limit, jerk_limit = INTERVENTION_LIMITS[function]
+        later = [e for e in episodes if e.function == function][1:]
+        if later:  # PP-SWR-035: every new intervention, the limits of the first
+            worst = 0
+            for e in later:
+                ps = [p for p in paths[e.start:e.stop] if p is not None]
+                worst += any(float(np.max(np.abs(p.ay))) > ay_limit
+                             or float(np.max(np.abs(p.ay - p.ay_need))) > added_limit
+                             or _jerk_max(p.ay) > jerk_limit for p in ps)
+            result.criteria.append(Criterion("PP-SWR-035", f"Lần {function.name} sau lần đầu vượt giới hạn 110 đến 115",
+                                             float(worst), "= 0", worst == 0))
         upper("PP-SWR-110" if lka else "PP-SWR-111", f"a_y lớn nhất của path {function.name} [m/s²]",
               [float(np.max(np.abs(p.ay))) for p in active_paths], ay_limit)
         upper("PP-SWR-112" if lka else "PP-SWR-113", f"a_y thêm vào của path {function.name} [m/s²]",
@@ -1385,7 +1649,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     # and the true free space each side >= free_space_min (SRS 1.4). Below it, PP-SWR-063.
     free_space = (log.road.lane_width - log.vehicle_width) / 2.0
     lane_wide_enough = free_space >= cal["free_space_min"]
-    judged_051 = hwa & (need_max <= AYSMAX) & (lane_wide_enough or geometry is not None)
+    # The driver steers while overriding (driver_override in FunctionRequests, ADAS Function
+    # Specification 8): HWA is not driving then, so PP-SWR-051 is not judged (S9 c, S17).
+    overriding = np.array([c.function_requests is not None and bool(c.function_requests.message.driver_override)
+                           for c in cycles], dtype=bool)
+    judged_051 = hwa & ~overriding & (need_max <= AYSMAX) & (lane_wide_enough or geometry is not None)
     if geometry is None:
         narrow_flags = [bool(c.path_status.lane_too_narrow) for c in cycles if _valid(c)]
         judge_narrow = not lane_wide_enough
@@ -1560,6 +1828,10 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     if big is not None and np.isfinite(big.clearance_057):
         targets.append(Target("PP-SWR-057", "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng",
                               big.clearance_057, "m"))
+    barrier = _barrier_clearance(log, cycles, truth)
+    if barrier is not None:
+        targets.append(Target("PP-SWR-057", "Khoảng cách ngang nhỏ nhất từ thân xe tới rào chắn khi HWA lái",
+                              barrier, "m"))
     if big is not None and big.return_059 is not None:
         targets.append(Target("PP-SWR-059", "Thời gian từ lúc hết ngang hàng tới lúc lệch ≤ 0,1 m",
                               big.return_059, "s"))
@@ -1598,6 +1870,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     criteria.extend(fault_reaction_criteria(cycles, cal.get("T_coast", 1.0), cal))
     result = Result(log.scenario.name, log.seed, criteria, targets, info)
     result.info["compute_hist"] = compute_hist
+    result.criteria.extend(longitudinal_criteria(log, cycles))
+    result.criteria.extend(switch_criteria(log, cycles, cal))
+    adas = adas_requests(log)
+    if adas is not None:
+        result.info["adas_requests"] = adas
     fault = execution_fault(cycles)
     if fault is not None:
         add_issue(result, ISSUE_EXECUTION, f"Lỗi thực thi: {fault[1]} không hữu hạn tại t = {fault[0]:.3f} s",
@@ -1610,6 +1887,12 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         missing = sorted(k for k, v in events.items() if v is None)
         if missing:
             result.info["faults_not_injected"] = missing
+    # PP-SWR-062: at an end of the ODD (label L1), every requirement of the run holds.
+    from eval import labels
+    if labels.difficulty(log.scenario) == "L1":
+        failed = [c.id for c in result.criteria if c.applicable and not c.passed] + list(result.case_failures)
+        result.criteria.append(Criterion("PP-SWR-062", "Requirement trượt ở biên ODD", float(len(failed)), "= 0",
+                                         not failed))
     if getattr(log.scenario, "loop", "closed") == "open":
         for c in result.criteria:
             if c.id in VEHICLE_CRITERIA:

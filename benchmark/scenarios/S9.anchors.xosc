@@ -9,18 +9,18 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="LKA đang can thiệp, ELK vạch liền vào REQUEST" />
-            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="scenario_id" value="S9" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="b" />
             <ParameterAssignment parameterRef="description" value="ELK và HWA cùng REQUEST, ELK COMPLETED rồi trở lại HWA" />
-            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="scenario_id" value="S9" />
             <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:4,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;SOLID_LINE&quot;]],&quot;driver_override&quot;:false}]}" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="Ghi đè HWA rồi trả quyền lái" />
-            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="scenario_id" value="S9" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S3a.xodr" />
             <ParameterAssignment parameterRef="speed_mps" value="25" />
             <ParameterAssignment parameterRef="start_offset_m" value="0.4" />
@@ -33,7 +33,7 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="d" />
             <ParameterAssignment parameterRef="description" value="Bật xi-nhan trái và hủy LKA khi đang REQUEST" />
-            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="scenario_id" value="S9" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
             <ParameterAssignment parameterRef="duration_s" value="6" />
             <ParameterAssignment parameterRef="start_offset_m" value="-0.4" />
@@ -47,7 +47,7 @@
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="e" />
             <ParameterAssignment parameterRef="description" value="Tắt HWA giữa cung R = 500 m" />
-            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="scenario_id" value="S9" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S1b.xodr" />
             <ParameterAssignment parameterRef="speed_mps" value="25" />
             <ParameterAssignment parameterRef="duration_s" value="12" />

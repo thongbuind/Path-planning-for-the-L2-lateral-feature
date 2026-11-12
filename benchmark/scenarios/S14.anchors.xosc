@@ -42,6 +42,23 @@
             <ParameterAssignment parameterRef="description" value="S1f at 130 km/h; R171 S-bend" />
             <ParameterAssignment parameterRef="road_file" value="../roads/S14e.xodr" />
           </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Xe con làn phải lấn 0,5 m, đường thẳng" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
+            <ParameterAssignment parameterRef="car_present" value="true" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Như a (R = 200 m) và xe con làn phải lấn 0,5 m" />
+            <ParameterAssignment parameterRef="car_present" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Như a, mất LongitudinalPlan 2 s khi vào cung" />
+            <ParameterAssignment parameterRef="lp_loss" value="true" />
+          </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>
     </Deterministic>

@@ -41,8 +41,8 @@ class _LkaAfterHalfSecond:
 
 
 def _scenario(**kw):
-    return Scenario("framework fixture", (Segment("straight", 400),), 3.5, 20.0, duration_s=1.5,
-                    hwa_request_s=None, **kw)
+    kw.setdefault("duration_s", 1.5)
+    return Scenario("framework fixture", (Segment("straight", 400),), 3.5, 20.0, hwa_request_s=None, **kw)
 
 
 def test_triggered_fault_starts_after_the_event_and_is_logged():
@@ -142,3 +142,60 @@ def test_scripted_requests_and_traffic_lateral_from_asam_commands():
     assert events[0].at_us == 2_000_000 and events[0].requests[1].side == Side.RIGHT and events[0].driver_override
     with pytest.raises(ValueError):
         request_events({"events": [{"at_s": 1.0, "requests": []}]})
+
+
+def test_event_counter_counts_each_start_of_a_phase():
+    from sim.faults.trigger import EventCounter
+    counter = EventCounter()
+
+    def status(lka):
+        return PathStatus(BasicHeader(0, 0, True), True, ActiveFunction.LKA, lka, InterventionPhase.NONE, False, False)
+    seq = [InterventionPhase.ACTIVE, InterventionPhase.ACTIVE, InterventionPhase.COMPLETED,
+           InterventionPhase.NONE, InterventionPhase.ACTIVE, InterventionPhase.COMPLETED]
+    for t, phase in enumerate(seq):
+        counter.update(status(phase), t)
+    assert counter.times["lka_active"] == [0, 4] and counter.times["lka_completed"] == [2, 5]
+    assert counter.times["elk_active"] == []
+
+
+class _LkaCycles:
+    """LKA ACTIVE 0.5-1.0 s, COMPLETED 1.0-1.2 s, again ACTIVE 2.0-2.5 s, COMPLETED 2.5-2.7 s."""
+    init_result = InitResult.OK
+
+    def __init__(self, _config):
+        self.counter = 0
+
+    def step(self, inputs, _ego_motion):
+        t = inputs.t0_us * 1e-6
+        phase = InterventionPhase.NONE
+        for a, b in ((0.5, 1.0), (2.0, 2.5)):
+            if a <= t < b:
+                phase = InterventionPhase.ACTIVE
+            elif b <= t < b + 0.2:
+                phase = InterventionPhase.COMPLETED
+        status = PathStatus(BasicHeader(inputs.t0_us, self.counter % 256, True), True,
+                            ActiveFunction.LKA if phase else ActiveFunction.NONE, phase,
+                            InterventionPhase.NONE, False, False)
+        self.counter += 1
+        return PlannerOutputs(path_status=status)
+
+
+def test_driver_repeats_and_scripted_requests_wait_for_their_event():
+    from interfaces import CancelReason, ElkReason, FunctionRequest, RequestState
+    from sim.stand_ins.scripted import RequestEvent
+    inf = float("inf")
+    off = FunctionRequest(RequestState.OFF, Side.NONE, inf, ElkReason.NONE, CancelReason.NONE)
+    lka = FunctionRequest(RequestState.REQUEST, Side.LEFT, inf, ElkReason.NONE, CancelReason.NONE)
+    driver = DriverSpec(steer_start_s=0.1, steer_release_s=0.2, drift_curvature=1e-3,
+                        repeats=((0.1, 1.0), (0.1, -2.0)), repeat_trigger="lka_completed")
+    events = (RequestEvent(0, (off, lka, off)), RequestEvent(300_000, (off, off, off), trigger="lka_completed"))
+    harness = Harness(_scenario(duration_s=3.0, driver=driver, request_events=events), _LkaCycles, seed=1)
+    log = harness.run()
+    done = log.events["lka_completed"]
+    assert [r for r in harness._driver_spec.repeats] == [
+        pytest.approx((done[0] * 1e-6 + 0.1, 1.0)), pytest.approx((done[1] * 1e-6 + 0.1, -2.0))]
+    assert len(done) == 2 and abs(done[0] - 1_000_000) <= 25_000
+    lka_state = [(c.t0_us, c.function_requests.message.requests[1].state) for c in log.cycles
+                 if c.function_requests is not None]
+    assert any(s == RequestState.REQUEST for t, s in lka_state if t < done[0])
+    assert all(s == RequestState.OFF for t, s in lka_state if t > done[0] + 400_000)

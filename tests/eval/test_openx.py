@@ -180,8 +180,11 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
         assert profiles == ({'VP-0'} if name == 'smoke' else {f'VP-{i}' for i in range(6)})
         for c in p['cases']:
             seeds = {r['seed'] for r in p['runs'] if r['case'] == c['id']}
-            noisy = c['family'] == 'F01' or any(f['source'].endswith('F01.xosc')
+            own = c['parameters']  # a scenario may hold its own camera noise (S10 e, S12)
+            noisy = (c['family'] == 'F01' or any(f['source'].endswith('F01.xosc')
                                                  for f in c.get('inject', {}).get('faults', []))
+                     or (own.get('fault_kind') == 'noise'
+                         and (own.get('fault_sigma_c0', 0) > 0 or own.get('fault_sigma_c1', 0) > 0)))
             expected = {1} if name == 'smoke' else {1, 2} if name == 'regression' else set(range(1, 11)) if noisy else {1}
             assert seeds == expected
         for folder in ('scenarios', 'faults'):

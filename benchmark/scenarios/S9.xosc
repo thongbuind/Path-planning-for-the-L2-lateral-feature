@@ -21,7 +21,7 @@
     <ParameterDeclaration name="elk_enabled" parameterType="boolean" value="false" />
     <ParameterDeclaration name="expect_intervention" parameterType="string" value="ELK" />
     <ParameterDeclaration name="protocol" parameterType="string" value="" />
-    <ParameterDeclaration name="departure_side" parameterType="string" value="right" />
+    <ParameterDeclaration name="departure_side" parameterType="string" value="left" />
     <ParameterDeclaration name="departure_radius_m" parameterType="double" value="1200.0" />
     <ParameterDeclaration name="departure_boundary" parameterType="string" value="marking" />
     <ParameterDeclaration name="departure_target" parameterType="string" value="none" />

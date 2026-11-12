@@ -27,10 +27,11 @@ END = 575_000  # first settled tick is 75 ms, then T_end_hold = 0.5 s
 
 def _log(expect="LKA", *, requested=LKA, active=LKA, end_us=END, completes=True,
          curvature=0.0, offset=lambda _t: 0.0, reason=ElkReason.NONE, traffic=(),
-         mode="B", actuator_delay_s=0.05, duration_us=2_000_000):
+         mode="B", actuator_delay_s=0.05, duration_us=2_000_000, eps_delay_s=None):
     segments = (Segment("straight", 300),)
     scenario = Scenario("synthetic", segments, 3.5, 20.0, hwa_request_s=None,
-                        adas_mode=mode, notes={"expect_intervention": expect}, traffic=traffic)
+                        adas_mode=mode, notes={"expect_intervention": expect}, traffic=traffic,
+                        eps_delay_s=eps_delay_s)
     log = RunLog(scenario, 1, Road(list(segments), 3.5), 1.9, 2.9, .61, 6.0, 15.0, 0,
                  actuator_delay_s=actuator_delay_s)
     for t in range(0, duration_us + 1, 1_000):
@@ -144,8 +145,9 @@ def test_continuity_exemption_applies_only_at_the_initial_tick():
 
 
 def test_road_edge_dtle_and_100ms_actuator_delay():
+    # PP-SWR-091: the real EPS (100 ms) is slower than VehicleConfig (50 ms).
     result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.ROAD_EDGE,
-                           offset=lambda t: .92 if t == BEGIN + 1_000 else 0.0, actuator_delay_s=.1))
+                           offset=lambda t: .92 if t == BEGIN + 1_000 else 0.0, eps_delay_s=.1))
     assert _criteria(result, 86)[0].value == pytest.approx(-.12)
     assert not _criteria(result, 86)[0].passed
     assert not _criteria(result, 91)[0].passed
@@ -180,3 +182,9 @@ def test_mode_a_does_not_grade_planner():
     result = evaluate(_log(active=NONE, mode="A"))
     assert result.passed is None
     assert not result.criteria and not result.case_failures
+
+
+@pytest.mark.parametrize("eps, judged", [(None, False), (0.05, False), (0.075, True), (0.1, True), (0.15, False)])
+def test_091_is_judged_when_the_real_eps_is_slower_up_to_100ms(eps, judged):
+    result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.ROAD_EDGE, eps_delay_s=eps))
+    assert bool(_criteria(result, 91)) == judged

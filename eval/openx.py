@@ -485,12 +485,12 @@ def request_events(spec):
     from sim.stand_ins.scripted import RequestEvent
     events = []
     for event in spec.get('events', []):
-        if set(event) - {'at_s', 'requests', 'driver_override'} or len(event['requests']) != 3:
+        if set(event) - {'at_s', 'requests', 'driver_override', 'trigger'} or len(event['requests']) != 3:
             raise ValueError('a request event needs at_s and three requests')
         requests = tuple(FunctionRequest(RequestState[state], Side[side], math.inf, ElkReason[reason],
                                          CancelReason.NONE) for state, side, reason in event['requests'])
         events.append(RequestEvent(round(number(event['at_s']) * 1e6), requests,
-                                   bool(event.get('driver_override', False))))
+                                   bool(event.get('driver_override', False)), event.get('trigger')))
     return tuple(events)
 
 
@@ -498,6 +498,19 @@ def request_events(spec):
 # property pp:<field> -> Scenario field. Within eval.sweep.check_sim.
 SIM_PROPERTIES_FIELDS = ('road_mu', 'eps_delay_s', 'perception_noise_scale', 'camera_latency_ms')
 SIM_PROPERTIES = tuple('pp:' + f for f in SIM_PROPERTIES_FIELDS)
+
+
+def enabled(command) -> bool:
+    """Whether a custom command applies to this concrete case: JSON key "enabled" (a boolean,
+    usually a parameter, so one anchor can switch a command off). The key is removed."""
+    spec = json.loads(command.text or '{}')
+    if 'enabled' not in spec:
+        return True
+    flag = spec.pop('enabled')
+    if type(flag) is not bool:
+        raise ValueError('"enabled" must be true or false')
+    command.text = json.dumps(spec, ensure_ascii=False, separators=(',', ':'))
+    return flag
 
 
 def fault_of_command(command):
@@ -612,8 +625,11 @@ def load_scenario(path, overrides=None):
     for i, obj in enumerate(objects[1:], start=1):
         pos, spd = initial(obj.get('name'))
         dims = obj.find('./Vehicle/BoundingBox/Dimensions')
-        if obj.find('./Vehicle/Properties') is not None or dims is None:
-            raise ValueError('traffic vehicles need a bounding box and no simulator properties')
+        given = {p.get('name'): p.get('value') for p in obj.findall('./Vehicle/Properties/Property')}
+        if dims is None or set(given) - {'pp:present'} or given.get('pp:present', 'true') not in ('true', 'false'):
+            raise ValueError('traffic vehicles need a bounding box; their only simulator property is pp:present')
+        if given.get('pp:present') == 'false':  # this anchor runs without the vehicle
+            continue
         heading = pos.find('Orientation')
         travel_direction = 1
         if heading is not None:
@@ -642,8 +658,15 @@ def load_scenario(path, overrides=None):
         raise ValueError('positive curvature_scale and direction +/-1 required')
     segments = tuple(Segment(s.kind, s.length, s.curvature_end * scale * direction) for s in segments)
     faults, departure_specs, extra_faults, request_specs = [], [], {}, []
-    names = [o.get('name') for o in objects[1:]]
+    all_names = [o.get('name') for o in objects[1:]]
+    names = [all_names[sp.id - 1] for sp in traffic]  # vehicles present in this case
     for command in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
+        if not enabled(command):
+            continue
+        if command.get('type') in ('pp:traffic_speed:v1', 'pp:traffic_lateral:v1'):
+            entity = json.loads(command.text or '{}').get('entity')
+            if entity in all_names and entity not in names:
+                continue  # its vehicle is absent in this case
         if command.get('type') == 'pp:departure:v1':
             departure_specs.append(json.loads(command.text or '{}'))
         elif command.get('type') == 'pp:traffic_speed:v1':
@@ -681,7 +704,7 @@ def load_scenario(path, overrides=None):
     hwa = properties['pp:hwa_request_s']
     expect = properties.get('pp:expect_intervention', '')
     protocol = properties.get('pp:protocol', '')
-    if expect not in ('', 'LKA', 'ELK', 'late ELK') or protocol not in ('', 'Euro NCAP LSS', 'EU 2021/646'):
+    if expect not in ('', 'LKA', 'ELK', 'late ELK', 'none') or protocol not in ('', 'Euro NCAP LSS', 'EU 2021/646'):
         raise ValueError('unknown intervention expectation or protocol')
     outcome = properties.get('pp:expected_outcome', '')
     if outcome not in ('', 'drive', 'drive_limited', 'refuse'):
@@ -806,8 +829,8 @@ def concrete(path, destination, overrides=None):
                      for p in root.findall('./Storyboard/Init/Actions/Private')}
         positions['Ego'].set('t', text(scenario.start_offset_m))
         names = [e.attrib['name'] for e in root.findall('./Entities/ScenarioObject')[1:]]
-        for name, obj in zip(names, scenario.traffic, strict=True):
-            position = positions[name]
+        for obj in scenario.traffic:
+            position = positions[names[obj.id - 1]]
             position.set('s', text(obj.s0))
             position.set('t', text(obj.d))
     vehicle = root.find('./Entities/ScenarioObject/Vehicle')
@@ -850,6 +873,8 @@ def inject(destination, faults, trigger=None, offset_s=0.0, sim=None):
     for path, params, name in faults:
         froot, _ = resolve(parse(path), params)
         for command in froot.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
+            if not enabled(command):
+                continue
             spec = json.loads(command.text or '{}')
             if trigger is not None and command.get('type') != 'pp:clock_fault:v1':
                 spec['trigger'], spec['start_s'] = trigger, offset_s
