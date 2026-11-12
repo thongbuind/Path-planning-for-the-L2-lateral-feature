@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.9 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -146,7 +146,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-011 | Trajectory phải theo định dạng ở Interface Control Document: 31 điểm, bước 0,1 s, phủ 0–3 s, frame_id = base_link | Inspection | Interface | nhóm tự thống nhất (Autoware Trajectory) |
 | PP-SWR-012 | `header.stamp_us` của Trajectory phải là thời điểm mà path mô tả, đã bù trễ của lane model | Inspection; Test: Q1 | Interface | nhóm tự thống nhất |
 | PP-SWR-014 | `header.counter` phải tăng 1 sau mỗi message, quay vòng 0–255 | Inspection; Test: mọi kịch bản | Interface | nhóm tự thống nhất |
-| PP-SWR-018 | `Trajectory.observed_horizon_s` phải bằng thời điểm trên path mà path ra khỏi tầm nhìn lane model báo cho frame planner dùng ở chu kỳ đó, sai lệch ≤ 0,1 s | Test: mọi kịch bản | Interface | nhóm tự thống nhất |
+| PP-SWR-018 | `Trajectory.observed_horizon_s` không được lớn hơn thời điểm trên path mà path ra khỏi tầm nhìn lane model báo cho frame planner dùng ở chu kỳ đó quá 0,1 s | Test: mọi kịch bản | Interface | nhóm tự thống nhất |
 | PP-SWR-017 | Planner phải nhận lane model với mọi `view_range_end > view_range_start` của từng vạch và mép đường. Phần tầm nhìn vượt 126 m không được làm input bị coi là không hợp lệ | Test: F22 (e), Q4 | Interface | nhóm tự thống nhất |
 | PP-SWR-015 | Planner phải ghi thời gian tính của từng chu kỳ | Inspection | Interface | nhóm tự thống nhất |
 
@@ -335,3 +335,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.7 | 2026-11-12 | Tầm nhìn của lane model: thêm PP-SWR-017 (nhận mọi tầm nhìn), 149 (chịu lỗi tầm nhìn, F22), PP-ASM-020, định nghĩa Tầm nhìn của lane model; PP-SWR-151 giới hạn 126 m; PP-SWR-050, 151 thêm quét Q4. Lý do: planner phải chạy đúng với mọi tầm nhìn, không chỉ 80 m |
 | 1.8 | 2026-11-12 | PP-SWR-042, 149 thêm F22 (f): tầm nhìn tụt lâu, HWA trả lái rồi trở lại |
 | 1.9 | 2026-11-12 | PP-SWR-100 đến 102 chỉ xét phần path trong tầm nhìn lane model báo (định nghĩa Hai path liên tiếp); thêm PP-SWR-018 (`observed_horizon_s`), PP-ASM-021. Lý do: phần ngoài tầm nhìn là ngoại suy, giữ nó liên tục làm path không theo được làn khi tầm nhìn ngắn (PP-PR-021, PP-TS-014). Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, Software Qualification Test Specification 8.1 |
+| 1.10 | 2026-11-12 | PP-SWR-018 chỉ chặn phía trên. Lý do: khi bám reference line cũ (c0 jump, F02) planner báo phần quan sát ngắn hơn tầm nhìn lane model báo; báo ngắn là phía an toàn và bên chấm không biết lúc nào planner bám reference line cũ. Đổi sau lần chạy 20261112-1240-matrix-M1-1bfd184 |
