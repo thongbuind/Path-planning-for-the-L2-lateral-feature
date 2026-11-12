@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S13" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S13.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="S4c, trễ EPS 75 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a-elk" />
+            <ParameterAssignment parameterRef="description" value="S5c, trễ EPS 75 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="S4c, trễ EPS 100 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="eps_delay_s" value="0.1" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b-elk" />
+            <ParameterAssignment parameterRef="description" value="S5c, trễ EPS 100 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="eps_delay_s" value="0.1" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="S4c, trễ EPS 150 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="eps_delay_s" value="0.15" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c-elk" />
+            <ParameterAssignment parameterRef="description" value="S5c, trễ EPS 150 ms" />
+            <ParameterAssignment parameterRef="scenario_id" value="S5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S5a.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="eps_delay_s" value="0.15" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

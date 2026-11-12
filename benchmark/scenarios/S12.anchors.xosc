@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S12" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S12.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="S1c trong mưa, HWA, R = 250 m" />
+            <ParameterAssignment parameterRef="scenario_id" value="S1" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="S4c trong mưa, LKA, 90 km/h, v_lat 0,6 m/s" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="LKA" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+            <ParameterAssignment parameterRef="target_s_m" value="1000" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="S7c trong mưa, ELK xe ngược chiều, v_lat 0,6 m/s" />
+            <ParameterAssignment parameterRef="scenario_id" value="S7" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4a.xodr" />
+            <ParameterAssignment parameterRef="speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="departure_target" value="oncoming" />
+            <ParameterAssignment parameterRef="target_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="20.0" />
+            <ParameterAssignment parameterRef="target_heading_rad" value="3.141592653589793" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.6" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.6" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="S4b-d trong mưa, LKA ra ngoài cung R = 250 m" />
+            <ParameterAssignment parameterRef="scenario_id" value="S4b" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S4bd.xodr" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="LKA" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.3" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.9" />
+            <ParameterAssignment parameterRef="target_s_m" value="0" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

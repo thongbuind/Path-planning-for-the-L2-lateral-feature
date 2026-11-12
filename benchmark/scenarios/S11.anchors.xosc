@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S11" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S11.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="FOLLOW, xe trước 0–30 km/h" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="FOLLOW, xe trước 0–60 km/h" />
+            <ParameterAssignment parameterRef="speed_mps" value="16.666666666666668" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="16.666666666666668" />
+            <ParameterAssignment parameterRef="target_s_m" value="140" />
+            <ParameterAssignment parameterRef="duration_s" value="44" />
+            <ParameterAssignment parameterRef="traffic_speed_profile" value="[[0,16.666666666666668],[4,16.666666666666668],[16,0],[24,0],[40,16.666666666666668]]" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="FOLLOW, xe trước dừng 10 s rồi chạy" />
+            <ParameterAssignment parameterRef="duration_s" value="36" />
+            <ParameterAssignment parameterRef="traffic_speed_profile" value="[[0,8.333333333333334],[4,8.333333333333334],[10,0],[20,0],[32,8.333333333333334]]" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Xe trước cắt vào ở 20 km/h" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="5.555555555555555" />
+            <ParameterAssignment parameterRef="target_s_m" value="125" />
+            <ParameterAssignment parameterRef="target_t_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17" />
+            <ParameterAssignment parameterRef="traffic_speed_profile" value="[[0,5.555555555555555]]" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
