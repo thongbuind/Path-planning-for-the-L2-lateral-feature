@@ -30,6 +30,8 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
+from sim.faults import trigger
+
 KINDS = ("drop", "burst", "jitter", "late", "stop", "future_stamp", "counter_repeat",
          "counter_jump", "counter_stuck", "invalid", "crc", "drop_listed")
 CHANNELS = ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
@@ -50,8 +52,10 @@ class ChannelFault:
     every: int = 1
     count: int = 1
     indices: tuple[int, ...] = ()
+    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
 
     def __post_init__(self) -> None:
+        trigger.check(self.trigger)
         if self.kind not in KINDS or self.channel not in CHANNELS:
             raise ValueError(f"unknown channel fault {self.kind!r} on {self.channel!r}")
         if self.every < 1 or self.count < 0 or self.start_s < 0 or (self.duration_s is not None and self.duration_s <= 0):

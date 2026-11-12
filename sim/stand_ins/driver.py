@@ -27,8 +27,16 @@ class DriverSpec:
     indicator_start_s: float = 0.0
     indicator_end_s: float | None = None
     passive_hands_on: bool = False
+    # More steering intervals of the same length (S16 repeated drift, S8c steer and return):
+    # (start_s, direction) with direction +1 the same drift as the first, -1 the opposite.
+    repeats: tuple[tuple[float, int], ...] = ()
 
     def __post_init__(self) -> None:
+        length = self.steer_release_s - self.steer_start_s
+        starts = [self.steer_start_s] + [t for t, _ in self.repeats]
+        if self.repeats and (any(d not in (-1, 1) or not isfinite(t) for t, d in self.repeats)
+                             or any(b < a + length for a, b in zip(starts, starts[1:]))):
+            raise ValueError("driver repeats need direction +/-1 and must start after the previous one ends")
         times = (self.steer_start_s, self.steer_release_s, self.disturbance_start_s, self.indicator_start_s)
         levels = (self.drift_curvature, self.torque_nm, self.wind_force_n, self.bank_angle_rad)
         if not all(map(isfinite, (*times, *levels))) or min(times) < 0:
@@ -44,9 +52,14 @@ class DriverSpec:
                 speed_mps: float, curvature: float) -> tuple[float, float, DriverSignals]:
         """Wheel angle [rad], external lateral force [N], and signals at this instant."""
         t_s = now_us * 1e-6
-        steering = self.steer_start_s <= t_s < self.steer_release_s
+        length = self.steer_release_s - self.steer_start_s
+        direction = 0
+        for start, sign in ((self.steer_start_s, 1), *self.repeats):
+            if start <= t_s < start + length:
+                direction = sign
+        steering = direction != 0
         if steering:
-            curvature += self.drift_curvature
+            curvature += direction * self.drift_curvature
         _, _, wheel_angle = steady_cornering(vehicle, speed_mps, curvature)
         force = 0.0
         if t_s >= self.disturbance_start_s:
@@ -54,6 +67,6 @@ class DriverSpec:
         indicator = Side.NONE
         if t_s >= self.indicator_start_s and (self.indicator_end_s is None or t_s < self.indicator_end_s):
             indicator = self.indicator
-        signals = DriverSignals(torque_nm=self.torque_nm if steering else 0.0,
+        signals = DriverSignals(torque_nm=direction * self.torque_nm,
                                 indicator=indicator, hands_on=steering or self.passive_hands_on)
         return wheel_angle * steering_ratio, force, signals

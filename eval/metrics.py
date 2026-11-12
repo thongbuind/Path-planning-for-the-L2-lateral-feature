@@ -18,7 +18,7 @@ import numpy as np
 from eval.calibration import requirement_parameters
 from interfaces import (
     FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US, PLANNER_PERIOD_US,
-    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, RequestState, Side,
+    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, LineStatus, RequestState, Side,
 )
 from sim.harness import PlannerCycle, RunLog
 from sim.stand_ins.eps import HANDOVER_S
@@ -112,6 +112,9 @@ class Result:
                 "targets": [asdict(t) for t in self.targets], "info": self.info,
                 "case_failures": self.case_failures, "scored": self.scored, "issues": self.issues}
 
+
+# Bins of the compute-time histogram [ms], log spaced 1 us to 1 s (10 per decade).
+COMPUTE_BINS_MS = np.logspace(-3, 3, 61)
 
 ISSUE_REQUIREMENT = "requirement"  # the planner failed the requirement named
 ISSUE_NOT_JUDGED = "not_judged"  # precondition of the case not met on the test side: case not judged
@@ -1102,9 +1105,51 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                                           "within_0_05_mps": abs(measured - desired) <= 0.05}
 
 
+class _LaneRelativeRoad:
+    """The road seen from the lane the car is in (S17 lane change): d and pose_at count from
+    the centre of that lane. The lane changes at the arc length where the camera re-indexed
+    the lines (RunLog.lane_index_changes), so the truth follows the lane change the driver
+    made, as the lane model does."""
+
+    def __init__(self, road, breaks: list[tuple[float, int]]) -> None:
+        self._road = road
+        self._s = [s for s, _ in breaks]
+        self._k = [k for _, k in breaks]
+
+    def __getattr__(self, name):
+        return getattr(self._road, name)
+
+    def _offset(self, s: float) -> float:
+        i = int(np.searchsorted(self._s, s, side="right")) - 1
+        return (self._k[i] if i >= 0 else 0) * self._road.lane_width
+
+    def project(self, x, y, s_hint=None, window_m=20.0):
+        from sim.world.road import LaneProjection
+        p = self._road.project(x, y, s_hint, window_m)
+        return LaneProjection(p.s, p.d - self._offset(p.s), p.heading, p.curvature)
+
+    def pose_at(self, s, d=0.0):
+        return self._road.pose_at(s, d + self._offset(s))
+
+
+def lane_relative(log: RunLog) -> RunLog:
+    """The log with its road seen from the car's lane when the car changed lanes."""
+    changes = getattr(log, "lane_index_changes", None)
+    if not changes:
+        return log
+    from dataclasses import replace
+    t = np.asarray(log.t_us)
+    breaks = []
+    for stamp, k in changes:
+        x, y, _ = log.rear[int(np.clip(np.searchsorted(t, stamp), 0, len(t) - 1))]
+        breaks.append((log.road.project(x, y).s, k))
+    return replace(log, road=_LaneRelativeRoad(log.road, sorted(breaks)))
+
+
 def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result:
     """`calibration`: values of the build under test that requirements point to; by
     default read from the delivered calibration data set."""
+    log = lane_relative(log)
     road, truth = log.road, _Truth(log)
     cal = calibration if calibration is not None else requirement_parameters()
     cycles = log.cycles
@@ -1342,6 +1387,10 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     big = _big_vehicles(log, cycles, paths, truth, cal["gap_truck_min"])
 
     compute_ms = np.array([c.compute_ns for c in cycles]) * 1e-6
+    # Histogram for the suite report (Software Qualification Test Specification 10): counts per
+    # bin of COMPUTE_BINS_MS, so a suite can pool every cycle of every run.
+    compute_hist = np.histogram(np.clip(compute_ms, COMPUTE_BINS_MS[0], COMPUTE_BINS_MS[-1]),
+                                               COMPUTE_BINS_MS)[0].tolist() if len(compute_ms) else []
     hwa_requested = [c for c in cycles if hwa_request_s is not None and c.t0_us >= hwa_request_s * 1e6]
     any_hwa = bool(np.any(hwa))
     timeout_share, timeout_judged = _requests_timeout_share(cycles)
@@ -1457,11 +1506,19 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                                  log.init_result == 0, cal))
     criteria.extend(fault_reaction_criteria(cycles, cal.get("T_coast", 1.0), cal))
     result = Result(log.scenario.name, log.seed, criteria, targets, info)
+    result.info["compute_hist"] = compute_hist
     fault = execution_fault(cycles)
     if fault is not None:
         add_issue(result, ISSUE_EXECUTION, f"Lỗi thực thi: {fault[1]} không hữu hạn tại t = {fault[0]:.3f} s",
                   first_fail_s=fault[0])
     _score_interventions(result, truth, paths, episodes, requests, cal, t_s)
+    # Faults started by a planner-output event (Software Qualification Test Specification 6).
+    events = getattr(log, "fault_events", None) or {}
+    if events:
+        result.info["fault_events_s"] = {k: None if v is None else v * 1e-6 for k, v in events.items()}
+        missing = sorted(k for k, v in events.items() if v is None)
+        if missing:
+            result.info["faults_not_injected"] = missing
     if getattr(log.scenario, "loop", "closed") == "open":
         for c in result.criteria:
             if c.id in VEHICLE_CRITERIA:

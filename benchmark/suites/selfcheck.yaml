@@ -7,12 +7,13 @@ id: selfcheck
 control: PM-00
 seeds: [1]
 baits:
-  PM-01: {define: PM_01, fault: "Bước nhảy ngang 0,1 m mỗi 40 chu kỳ", expect: [PP-SWR-100], level: BLOCKER, runs: [[S1, a]]}
-  PM-02: {define: PM_02, fault: "Không giới hạn a_y theo aysmax", expect: [PP-SWR-001], level: BLOCKER, runs: [[S1b, a]]}
-  PM-03: {define: PM_03, fault: "Giữ path_valid = true khi ego-motion không hợp lệ", expect: [PP-SWR-143], level: BLOCKER, runs: [[S1, a, F20, b]]}
-  PM-04: {define: PM_04, fault: "Luôn path_valid = false khi HWA ở REQUEST", expect: [PP-SWR-030], level: BLOCKER, runs: [[S1, a]]}
+  PM-01: {define: PM_01, fault: "Bước nhảy ngang 0,1 m mỗi 40 chu kỳ", expect: [PP-SWR-100], level: BLOCKER, runs: [[S1, a], [S1, c]]}
+  PM-02: {define: PM_02, fault: "Không giới hạn a_y theo aysmax", expect: [PP-SWR-001], level: BLOCKER, runs: [[S1b, a], [S1b, c]]}
+  PM-03: {define: PM_03, fault: "Giữ path_valid = true khi ego-motion không hợp lệ", expect: [PP-SWR-143], level: BLOCKER, runs: [[S1, a, F20, b], [S1, c, F20, c]]}
+  PM-04: {define: PM_04, fault: "Luôn path_valid = false khi HWA ở REQUEST", expect: [PP-SWR-030], level: BLOCKER, runs: [[S1, a], [S2, a]]}
   PM-05: {define: PM_05, fault: "Counter của PathStatus không tăng", expect: [C2.counter], level: BLOCKER}
   PM-06: {define: PM_06, fault: "Gửi Trajectory dù pp_init báo VehicleConfig sai", expect: [C2.init_missing, C2.init_out_of_limits], level: BLOCKER}
   PM-07: {define: PM_07, fault: "Giữ trạng thái trong biến toàn cục", expect: [C3.interleaved, C3.deterministic], level: null}
   PM-08: {define: PM_08, fault: "Ghi quá cuối vùng nhớ trạng thái", expect: [C3.memory], level: null}
   PM-09: {define: PM_09, fault: "Đọc đồng hồ hệ thống", expect: [C3.symbols], level: null}
+  PM-10: {define: PM_10, fault: "Path LKA, ELK lệch 1,5 m về phía vạch đang trôi tới", expect: [PP-SWR-086], level: BLOCKER, runs: [[S4, a], [S5, a]]}

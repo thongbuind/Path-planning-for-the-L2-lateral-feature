@@ -11,12 +11,14 @@ import json
 from pathlib import Path
 
 import numpy as np
+import yaml
 
 from eval import labels, openx, provenance
 
 BENCHMARK = openx.ROOT / 'benchmark'
 # Road and run of a fault's host anchor replace those of the fault file (lane faults are
 # injected on several host roads, Software Qualification Test Specification 6.2).
+ACC_BOTH = set(yaml.safe_load((BENCHMARK / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))['acc_both_modes'])
 HOST_KEYS = ('road_file', 'duration_s', 'speed_mps', 'lane_width_m', 'start_s_m', 'hwa_request_s')
 
 
@@ -162,8 +164,8 @@ def plan(name):
                 selections = [(method, params, None) for method, params in selections]
             seen = {}
             for method, params, host in selections:
-                # S14 always tests both sides of the longitudinal constraint exchange.
-                acc_modes = ('on', 'ignore_limits') if sid == 'S14' else (params['acc'],)
+                # Both sides of the longitudinal constraint exchange (benchmark/suites/scope.yaml).
+                acc_modes = ('on', 'ignore_limits') if sid in ACC_BOTH else (params['acc'],)
                 for profile, acc in product(suite['profiles'], acc_modes):
                     concrete_params = {**params, 'profile': profile, 'acc': acc}
                     # IDs for anchors retain a,b,...; samples use a content hash in filenames.
@@ -186,8 +188,64 @@ def plan(name):
                     seeds = suite['noise_seeds'] if noisy else suite['seeds']
                     for seed in seeds:
                         runs.append({'case': case_id, 'seed': seed})
+    _injected_cases(suite, cases, runs)
     return {'format': 1, 'suite': name, 'definition': suite, 'inputs': provenance.input_files(),
             'cases': cases, 'runs': runs}
+
+
+def anchor_params(folder, sid, variant):
+    path = BENCHMARK / folder / f'{sid}.xosc'
+    return path, openx.resolve(openx.parse(path), openx.anchors(path)[variant])[1]
+
+
+def load_combination(cid):
+    """Combined-fault case of Software Qualification Test Specification 6.2."""
+    data = yaml.safe_load((BENCHMARK / 'combinations' / f'{cid}.yaml').read_text(encoding='utf-8'))
+    if data.get('id') != cid or set(data) - {'id', 'title', 'hosts', 'faults', 'sim'}:
+        raise ValueError(f'{cid}: invalid combination definition')
+    if len(data['faults']) < 2:
+        raise ValueError(f'{cid}: a combination needs at least two faults (6.2)')
+    return data
+
+
+def _injected_cases(suite, cases, runs):
+    """Fault definitions added to whole host scenarios: at a planner-output event of LKA or ELK
+    hosts (`event_hosts`, `event_faults`, `event_offsets_s`; section 6), and the combined faults
+    of 6.2 (`combinations`). Anchors only; profiles and seeds as the rest of the suite."""
+    jobs = []
+    for host_sid, host_variant, event in suite.get('event_hosts', []):
+        for fsid in suite.get('event_faults', []):
+            for fvariant in openx.anchors(BENCHMARK / 'faults' / f'{fsid}.xosc'):
+                for offset in suite.get('event_offsets_s', [0.0]):
+                    jobs.append((fsid, fvariant, (host_sid, host_variant), [(fsid, fvariant)],
+                                 event, float(offset), {}, f'{host_sid}{host_variant}@{event}+{float(offset):g}'))
+    for cid in suite.get('combinations', []):
+        combo = load_combination(cid)
+        for host_sid, host_variant in combo['hosts']:
+            jobs.append((cid, None, (host_sid, host_variant), [tuple(f) for f in combo['faults']],
+                         None, 0.0, combo.get('sim', {}), f'{host_sid}{host_variant}'))
+    for family, anchor, (host_sid, host_variant), faults, event, offset, sim, host in jobs:
+        host_path, host_params = anchor_params('scenarios', host_sid, host_variant)
+        inject = {'faults': [{'source': str((BENCHMARK / 'faults' / f'{f}.xosc').relative_to(openx.ROOT)),
+                              'level': v, 'name': f'{f}{v}' + (f'@{event}+{offset:g}' if event else '')}
+                             for f, v in faults],
+                  'trigger': event, 'offset_s': offset, 'sim': sim}
+        noisy = False
+        for f, v in faults:
+            fparams = anchor_params('faults', f, v)[1]
+            noisy |= fparams.get('fault_kind') == 'noise'
+        for profile in suite['profiles']:
+            params = {**host_params, 'profile': profile}
+            key = _identity({'host': params, 'inject': inject})
+            digest = hashlib.sha256(key.encode()).hexdigest()[:12]
+            label = f'{anchor}-{host}' if anchor else host
+            case_id = f'{family}-{label}-{profile}-{digest}'.replace('@', '_at_').replace('+', 'p')
+            scope_keys = [[host_sid, host_variant]] + [[host_sid, host_variant, f, v] for f, v in faults]
+            cases.append({'id': case_id, 'family': family, 'host': host, 'anchor': anchor, 'methods': ['anchor'],
+                          'source': str(host_path.relative_to(openx.ROOT)), 'parameters': params,
+                          'inject': inject, 'scope_keys': scope_keys, 'file': f'cases/{case_id}.xosc'})
+            for seed in suite['noise_seeds'] if noisy else suite['seeds']:
+                runs.append({'case': case_id, 'seed': seed})
 
 
 def materialize(manifest, out):
@@ -197,6 +255,11 @@ def materialize(manifest, out):
     for case in manifest['cases']:
         destination = out / case['file']
         openx.concrete(openx.ROOT / case['source'], destination, case['parameters'])
+        if 'inject' in case:
+            inject = case['inject']
+            faults = [(openx.ROOT / f['source'], openx.anchors(openx.ROOT / f['source'])[f['level']], f['name'])
+                      for f in inject['faults']]
+            openx.inject(destination, faults, inject['trigger'], inject['offset_s'], inject['sim'])
         openx.validate(destination)
         openx.validate(destination.with_suffix('.xodr'))
         # A fresh load catches unresolved references and checks the simulator subset.

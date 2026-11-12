@@ -191,7 +191,10 @@ def main() -> None:
     from eval.suite import aspect_table
     head = conclusion.markdown(c, f"{lib['pp_version']} ({lib['sha256'][:12]})") + aspect_table(results, b0) + [
         "", f"## Matrix {args.suite}", "", f"{len(results)} runs; {len(failed)} with an in-scope failure.", ""]
-    (out / "summary.md").write_text("\n".join(head + summary(results)) + "\n", encoding="utf-8")
+    from eval import presentation
+    extra = (presentation.sweep(results, out / "figures") + presentation.flexibility(results, {})
+             + presentation.compute(results, out / "figures"))
+    (out / "summary.md").write_text("\n".join(head + summary(results) + extra) + "\n", encoding="utf-8")
     provenance.write(manifest, out)
     print(f"{len(failed)} runs with in-scope failures; summary: {out / 'summary.md'}", flush=True)
     if args.record:

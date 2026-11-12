@@ -15,6 +15,7 @@ model sends no flag for any of them (PP-ASM-009).
 | view_extend | view_range_end reported as `value` m with the same polynomial, so the far part is extrapolated |
 | lose_all | every line and road edge PREDICTED (predicted_duration counting) for `value` s, then LOST (F05) |
 | confidence | confidence set to `value` on the chosen lines and edges (F21 e) |
+| lane_change_late | the lane_change flag comes one frame after the re-indexed lines (S17 e) |
 
 `edges` (0 left, 1 right) adds road edges to lose_line, fade_line and confidence.
 
@@ -26,9 +27,10 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from interfaces import LaneModel, LineStatus
+from sim.faults import trigger
 
 KINDS = ("noise", "c0_jump", "lose_line", "fade_line", "c2_error", "c3_error",
-         "view_short", "view_flicker", "view_extend", "lose_all", "confidence")
+         "view_short", "view_flicker", "view_extend", "lose_all", "confidence", "lane_change_late")
 VIEW_LIMIT_KINDS = ("view_short", "view_flicker")
 _CAMERA_PERIOD_US = 50_000
 ALL_LINES = (0, 1, 2, 3)  # L2, L1, R1, R2
@@ -45,10 +47,12 @@ class LaneFault:
     sigma_c0: float = 0.0
     sigma_c1: float = 0.0
     edges: tuple[int, ...] = ()
+    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
 
     def __post_init__(self) -> None:
         if self.kind not in KINDS:
             raise ValueError(f"unknown lane fault {self.kind!r}")
+        trigger.check(self.trigger)
 
     def active(self, t_s: float) -> bool:
         return t_s >= self.start_s and (self.duration_s is None or t_s < self.start_s + self.duration_s)
@@ -58,6 +62,7 @@ class LaneFaultInjector:
     def __init__(self, faults: tuple[LaneFault, ...], rng: np.random.Generator) -> None:
         self.faults = faults
         self.rng = rng
+        self._late_flag = None  # lane_change held back by lane_change_late
 
     def view_limits(self, stamp_us: int) -> tuple[float | None, ...]:
         """Largest view range end of each line at this capture, None when not limited."""
@@ -143,4 +148,10 @@ class LaneFaultInjector:
                 for i in fault.lines:
                     if lines[i].status != LineStatus.LOST:
                         lines[i] = replace(lines[i], confidence=fault.value)
-        return replace(message, lines=tuple(lines), road_edges=tuple(edges))
+        flag = message.lane_change
+        if any(f.kind == "lane_change_late" and f.active(t_s) for f in self.faults):
+            flag, self._late_flag = (self._late_flag if self._late_flag is not None else type(flag).NONE,
+                                     flag if flag != type(flag).NONE else None)
+        elif self._late_flag is not None:
+            flag, self._late_flag = self._late_flag, None
+        return replace(message, lines=tuple(lines), road_edges=tuple(edges), lane_change=flag)

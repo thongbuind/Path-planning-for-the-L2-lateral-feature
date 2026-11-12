@@ -19,7 +19,7 @@
     "F03",
     "F04",
     "F06",
-  "F22"
+    "F22"
   ],
   "methods": [
     "anchor"
@@ -44,5 +44,27 @@
       "S1",
       "c"
     ]
+  ],
+  "event_hosts": [
+    [
+      "S4",
+      "a",
+      "lka_active"
+    ],
+    [
+      "S5",
+      "a",
+      "elk_active"
+    ]
+  ],
+  "event_faults": [
+    "F04"
+  ],
+  "event_offsets_s": [
+    0.0,
+    0.2
+  ],
+  "combinations": [
+    "G01"
   ]
 }

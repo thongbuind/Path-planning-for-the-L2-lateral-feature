@@ -4,6 +4,7 @@ OpenSCENARIO 1.3.1; OpenDRIVE 1.8.1. This is deliberately not a general
 OpenSCENARIO interpreter. Simulator-specific behavior uses pp:* extensions.
 """
 from copy import deepcopy
+from dataclasses import replace
 from functools import lru_cache
 import json
 import math
@@ -23,7 +24,7 @@ from sim.runtime.clock import ClockFault
 from sim.scenario import Scenario
 from sim.vehicle.profiles import PROFILES
 from sim.world.road import Marking, RoadEdgeSpec, RoadLayout, Segment
-from sim.world.traffic import TrafficSpec
+from sim.world.traffic import LateralMotion, TrafficSpec
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / 'benchmark' / 'schema'
@@ -351,6 +352,28 @@ FAULT_COMMANDS = {
 }
 
 
+def request_events(spec):
+    """{"events": [{"at_s": t, "requests": [[state, side, elk_reason], x3], "driver_override": bool}]}
+    -> RequestEvent tuple; names of the Interface Control Document 5.6 enums, tlc infinite."""
+    from interfaces import CancelReason, ElkReason, FunctionRequest, RequestState, Side
+    from sim.stand_ins.scripted import RequestEvent
+    events = []
+    for event in spec.get('events', []):
+        if set(event) - {'at_s', 'requests', 'driver_override'} or len(event['requests']) != 3:
+            raise ValueError('a request event needs at_s and three requests')
+        requests = tuple(FunctionRequest(RequestState[state], Side[side], math.inf, ElkReason[reason],
+                                         CancelReason.NONE) for state, side, reason in event['requests'])
+        events.append(RequestEvent(round(number(event['at_s']) * 1e6), requests,
+                                   bool(event.get('driver_override', False))))
+    return tuple(events)
+
+
+# Simulator values a scenario may set (Software Qualification Test Specification 4.4 to 4.6, 6.2):
+# property pp:<field> -> Scenario field. Within eval.sweep.check_sim.
+SIM_PROPERTIES_FIELDS = ('road_mu', 'eps_delay_s', 'perception_noise_scale', 'camera_latency_ms')
+SIM_PROPERTIES = tuple('pp:' + f for f in SIM_PROPERTIES_FIELDS)
+
+
 def fault_of_command(command):
     """(Scenario field, fault) of one fault command of any type."""
     kind = command.get('type')
@@ -360,6 +383,8 @@ def fault_of_command(command):
         raise ValueError(f'unsupported custom command {kind}')
     field_name, cls = FAULT_COMMANDS[kind]
     spec = json.loads(command.text or '{}')
+    if 'trigger' in spec and cls is ClockFault:
+        raise ValueError('clock faults hold for the whole run; they take no trigger')
     if spec.get('duration_s') == -1:
         spec['duration_s'] = None
     if 'indices' in spec:
@@ -434,7 +459,7 @@ def load_scenario(path, overrides=None):
     required = {'pp:adapter', 'pp:profile', 'pp:acc', 'pp:hwa_request_s', 'pp:hold_until_hwa'}
     optional = {'pp:camera_view_m', 'pp:camera_view_start_m', 'pp:adas_mode', 'pp:lka_enabled', 'pp:elk_enabled',
                 'pp:expect_intervention', 'pp:protocol', 'pp:hwa_view_gate', 'pp:expected_outcome',
-                'pp:can_bus', 'pp:realism', 'pp:loop'}
+                'pp:can_bus', 'pp:realism', 'pp:loop', 'pp:faults'} | set(SIM_PROPERTIES)
     if not required <= set(properties) <= required | optional:
         raise ValueError('unsupported or missing simulator properties')
     if properties.get('pp:adapter') != 'single-ego-v1':
@@ -490,10 +515,29 @@ def load_scenario(path, overrides=None):
     if scale <= 0 or direction not in (-1, 1):
         raise ValueError('positive curvature_scale and direction +/-1 required')
     segments = tuple(Segment(s.kind, s.length, s.curvature_end * scale * direction) for s in segments)
-    faults, departure_specs, extra_faults = [], [], {}
+    faults, departure_specs, extra_faults, request_specs = [], [], {}, []
+    names = [o.get('name') for o in objects[1:]]
     for command in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
         if command.get('type') == 'pp:departure:v1':
             departure_specs.append(json.loads(command.text or '{}'))
+        elif command.get('type') == 'pp:traffic_speed:v1':
+            # Speed of another vehicle over time (S11), as an ASAM story would set it.
+            spec = json.loads(command.text or '{}')
+            if set(spec) != {'entity', 'profile'} or spec['entity'] not in names:
+                raise ValueError('pp:traffic_speed:v1 needs a known entity and a profile')
+            i = names.index(spec['entity'])
+            profile = tuple((number(t), number(v)) for t, v in spec['profile'])
+            traffic[i] = replace(traffic[i], speed_profile=profile)
+        elif command.get('type') == 'pp:traffic_lateral:v1':
+            # Lane change or cut-in of another vehicle (S3b, S11 d): sim.world.traffic.LateralMotion.
+            spec = json.loads(command.text or '{}')
+            if set(spec) != {'entity', 'start_s', 'duration_s', 'target_offset_m'} or spec['entity'] not in names:
+                raise ValueError('pp:traffic_lateral:v1 needs entity, start_s, duration_s, target_offset_m')
+            i = names.index(spec.pop('entity'))
+            traffic[i] = replace(traffic[i], lateral_motion=LateralMotion(**{k: number(v) for k, v in spec.items()}))
+        elif command.get('type') == 'pp:requests:v1':
+            # Scripted FunctionRequests (S9, S16): frames HWA, LKA, ELK from each time on.
+            request_specs.append(json.loads(command.text or '{}'))
         else:
             field_name, fault = fault_of_command(command)
             extra_faults.setdefault(field_name, []).append(fault)
@@ -519,6 +563,8 @@ def load_scenario(path, overrides=None):
     notes = {'description': params.get('description', '')}
     if outcome:
         notes['expected_outcome'] = outcome
+    if properties.get('pp:faults'):
+        notes['faults'] = properties['pp:faults'].split(',')
     if expect:
         notes['expect_intervention'] = expect
     if protocol:
@@ -537,9 +583,16 @@ def load_scenario(path, overrides=None):
         traffic=tuple(traffic),
         notes=notes, road_layout=layout, adas_mode=properties.get('pp:adas_mode', 'scripted'),
         lka_enabled=flag('lka_enabled'), elk_enabled=flag('elk_enabled'),
-        hwa_view_gate=flag('hwa_view_gate'))
+        hwa_view_gate=flag('hwa_view_gate'),
+        **{field: number(properties['pp:' + field]) for field in SIM_PROPERTIES_FIELDS if 'pp:' + field in properties})
+    if request_specs:
+        if len(request_specs) > 1 or scenario.adas_mode != 'scripted':
+            raise ValueError('one pp:requests:v1, in scripted ADAS mode')
+        scenario = replace(scenario, request_events=request_events(request_specs[0]))
     if departure_specs:
         scenario = departure.configure(scenario, **departure_specs[0])
+    from eval.sweep import check_sim
+    check_sim(scenario)
     if not 2.5 <= width <= 5.5 or not 0 <= scenario.speed_mps <= 130 / 3.6 + 1e-10:
         raise ValueError('lane width or speed outside benchmark ODD')
     if not (10.0 <= scenario.camera_view_m <= CAMERA_VIEW_MAX_M
@@ -575,7 +628,7 @@ def scenario_xml(params, fault=False):
     node(properties, 'Property', name='pp:adapter', value='single-ego-v1')
     for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa', 'camera_view_m', 'camera_view_start_m',
                 'adas_mode', 'lka_enabled', 'elk_enabled', 'expect_intervention', 'protocol', 'hwa_view_gate',
-                'expected_outcome', 'can_bus', 'realism', 'loop'):
+                'expected_outcome', 'can_bus', 'realism', 'loop', *SIM_PROPERTIES_FIELDS):
         if key in params:
             node(properties, 'Property', name='pp:' + key, value='$' + key)
     story = node(root, 'Storyboard')
@@ -637,6 +690,64 @@ def concrete(path, destination, overrides=None):
     vehicle.find('./BoundingBox/Center').set('x', text(profile.wheelbase / 2))
     vehicle.find('./Axles/FrontAxle').set('positionX', text(profile.wheelbase))
     vehicle.find('./Axles/FrontAxle').set('maxSteering', text(profile.max_wheel_angle))
+    write(root, destination)
+    return destination
+
+
+# Properties a fault definition may switch on in its host (as loader.with_fault).
+FAULT_FLAGS = ('pp:hwa_view_gate', 'pp:can_bus', 'pp:realism')
+
+
+def inject(destination, faults, trigger=None, offset_s=0.0, sim=None):
+    """Add fault definitions to a concrete host case in place (Software Qualification Test
+    Specification 6: moments of injection, 6.2 combined faults).
+
+    `faults`: [(fault file, its parameter values, name)]. Every command is copied as resolved;
+    with `trigger` each timed command starts `offset_s` after that planner-output event
+    (sim.faults.trigger), clock faults keep their time. Flags of the definition are switched on
+    in the host, the expected outcome is the stricter of both (5.3), `sim` sets simulator
+    properties (SIM_PROPERTIES_FIELDS), and pp:faults names the definitions (labels L3, L4)."""
+    from eval import labels
+    destination = Path(destination)
+    root = parse(destination)
+    actions = root.find('./Storyboard/Init/Actions')
+    at = list(actions).index(actions.find('Private'))
+    properties = root.find('./Entities/ScenarioObject/Vehicle/Properties')
+
+    def prop(name):
+        return next((p for p in properties.findall('Property') if p.get('name') == name), None)
+
+    def set_prop(name, value):
+        (prop(name) if prop(name) is not None else node(properties, 'Property', name=name)).set('value', text(value))
+
+    names = [n for n in (prop('pp:faults').get('value').split(',') if prop('pp:faults') is not None else []) if n]
+    for path, params, name in faults:
+        froot, _ = resolve(parse(path), params)
+        for command in froot.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
+            spec = json.loads(command.text or '{}')
+            if trigger is not None and command.get('type') != 'pp:clock_fault:v1':
+                spec['trigger'], spec['start_s'] = trigger, offset_s
+            action = ET.Element('UserDefinedAction')
+            ET.SubElement(action, 'CustomCommandAction', type=command.get('type')).text = json.dumps(
+                spec, ensure_ascii=False, separators=(',', ':'))
+            actions.insert(at, action)
+            at += 1
+        given = {p.get('name'): p.get('value') for p in froot.findall('./Entities/ScenarioObject/Vehicle/Properties/Property')}
+        for flag in FAULT_FLAGS:
+            if given.get(flag) == 'true':
+                set_prop(flag, 'true')
+        if given.get('pp:loop') == 'open':
+            set_prop('pp:loop', 'open')
+        if given.get('pp:expected_outcome'):
+            host = prop('pp:expected_outcome')
+            set_prop('pp:expected_outcome', labels.stricter(host.get('value') if host is not None else None,
+                                                            given['pp:expected_outcome']))
+        names.append(name)
+    for field, value in (sim or {}).items():
+        if field not in SIM_PROPERTIES_FIELDS:
+            raise ValueError(f'unknown simulator property {field}')
+        set_prop('pp:' + field, float(value))
+    set_prop('pp:faults', ','.join(names))
     write(root, destination)
     return destination
 

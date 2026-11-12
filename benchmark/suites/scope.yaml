@@ -1,0 +1,10 @@
+# Scope of a run (Software Qualification Test Specification 8.1): the scope of the P1 sweep
+# (eval.sweep) for its scenario or fault, plus every requirement whose Kiểm chứng column in
+# the Software Requirements Specification names the code (eval.severity.srs_scope), plus
+# extra_scope below. Edited by the integrator only (benchmark/AUTHORING.md).
+scope_from: P1
+extra_scope:
+  # S14 judges both sides of the longitudinal exchange (5, S14).
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-051]
+# Scenarios generated with both ACC modes, reading and ignoring LateralLimits (5, S14).
+acc_both_modes: [S14]

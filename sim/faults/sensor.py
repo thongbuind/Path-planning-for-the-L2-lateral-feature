@@ -20,6 +20,8 @@ from math import pi
 
 import numpy as np
 
+from sim.faults import trigger
+
 SIGNALS = ("yaw_rate", "accel_x", "accel_y", "speed", "steering_angle", "lateral_velocity")
 KINDS = ("noise", "bias", "scale")
 DEG = pi / 180.0
@@ -39,8 +41,10 @@ class SensorFault:
     value: float = 0.0
     start_s: float = 0.0
     duration_s: float | None = None
+    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
 
     def __post_init__(self) -> None:
+        trigger.check(self.trigger)
         if self.kind not in KINDS or self.signal not in SIGNALS:
             raise ValueError(f"unknown sensor fault {self.kind!r} on {self.signal!r}")
         if self.start_s < 0 or (self.duration_s is not None and self.duration_s <= 0) or (

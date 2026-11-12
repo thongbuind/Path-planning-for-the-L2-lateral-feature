@@ -47,7 +47,10 @@ def verify_manifest(path):
     return manifest, cases
 
 
-SCOPE = {'scope_from': 'P1', 'extra_scope': {'S14': ['PP-SWR-009', 'PP-SWR-150', 'PP-SWR-051']}}
+import yaml  # noqa: E402
+
+# Scope rule of every run: benchmark/suites/scope.yaml (Software Qualification Test Specification 8.1).
+SCOPE = yaml.safe_load((openx.ROOT / 'benchmark' / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))
 
 
 def rerun_command(path, seed, planner) -> str:
@@ -66,8 +69,12 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
     result.criteria.extend(differential.criteria(scenario, log, planner, seed))
     family = case['family']
     anchor = case['anchor'] or 'a'
-    spec = ['S1', 'a', family, anchor] if family.startswith('F') else [family, anchor]
-    scope = matrix.scope(SCOPE, spec) | labels.scope_extra(labels.of(scenario))
+    if 'scope_keys' in case:  # host scenario plus injected faults: union of their scopes
+        scope = set().union(*(matrix.scope(SCOPE, k) for k in case['scope_keys']))
+    else:
+        spec = ['S1', 'a', family, anchor] if family.startswith('F') else [family, anchor]
+        scope = matrix.scope(SCOPE, spec)
+    scope |= labels.scope_extra(labels.of(scenario))
     failed = dict.fromkeys(c.id for c in result.criteria if c.applicable and not c.passed)
     case_labels = labels.of(scenario)
     record = {'case': case['id'], 'seed': seed, 'profile': scenario.profile, 'labels': case_labels,
@@ -79,6 +86,9 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
     if mcap_dir is not None and (mcap == 'all' or record['failed']):
         record['mcap'] = str(run_log.write(log, Path(mcap_dir) / f"{case['id']}_seed{seed}.mcap",
                                            {'rerun': record['rerun']}))
+        from eval import presentation
+        record['figure'] = str(presentation.run_figure(
+            log, result, Path(mcap_dir).parent / 'figures' / 'runs' / f"{case['id']}_seed{seed}.png"))
     return record
 
 
@@ -215,8 +225,10 @@ def main():
     counts['partial'] = counts['executed'] != counts['planned']
     if args.aspect:
         counts['aspects'] = args.aspect
+    from eval import presentation
     c = write_report(out, records, b0, planner_text,
-                     ['', '## Số lần chạy', '', '```json', json.dumps(counts, indent=1), '```'])
+                     ['', '## Số lần chạy', '', '```json', json.dumps(counts, indent=1), '```']
+                     + presentation.suite_sections(records, cases, out))
     counts['verdict'] = c['verdict']
     summary = out / 'summary.json'
     summary.write_text(json.dumps(counts, indent=2, ensure_ascii=False) + '\n')

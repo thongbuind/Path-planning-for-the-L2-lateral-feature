@@ -47,9 +47,14 @@ def fault_commands(fault_id: str, level: str, directory: Path = FAULT_DIR) -> li
     return [openx.fault_of_command(c) for c in commands]
 
 
-def with_fault(scenario: Scenario, fault_id: str, level: str) -> Scenario:
+def with_fault(scenario: Scenario, fault_id: str, level: str, trigger: str | None = None,
+               offset_s: float = 0.0) -> Scenario:
     """Host scenario plus the faults of a definition; it may also turn on the HWA view gate
-    (F22), the virtual CAN (F15 to F17 on chassis signals) or the open loop."""
+    (F22), the virtual CAN (F15 to F17 on chassis signals) or the open loop.
+
+    `trigger` (sim.faults.trigger): every timed fault of the definition starts `offset_s`
+    after that event of the planner output instead of at its own start_s (Software
+    Qualification Test Specification 6, moments of injection). Clock faults keep their time."""
     root = _fault_root(fault_id, level, FAULT_DIR)
     properties = {p.get('name'): p.get('value') for p in
                   root.findall('./Entities/ScenarioObject/Vehicle/Properties/Property')}
@@ -61,7 +66,11 @@ def with_fault(scenario: Scenario, fault_id: str, level: str) -> Scenario:
         notes['expected_outcome'] = outcome
     added: dict[str, tuple] = {}
     for field_name, fault in fault_commands(fault_id, level):
+        if trigger is not None and field_name != 'clock_faults':
+            fault = replace(fault, trigger=trigger, start_s=offset_s)
         added[field_name] = added.get(field_name, getattr(scenario, field_name)) + (fault,)
-    return replace(scenario, name=f'{scenario.name}_{fault_id}{level}', hwa_view_gate=gate, notes=notes,
+    moment = '' if trigger is None else f'@{trigger}+{offset_s:g}'
+    notes['faults'] = [*scenario.notes.get('faults', []), f'{fault_id}{level}{moment}']
+    return replace(scenario, name=f'{scenario.name}_{fault_id}{level}{moment}', hwa_view_gate=gate, notes=notes,
                    can_bus=scenario.can_bus or properties.get('pp:can_bus') == 'true',
                    loop='open' if properties.get('pp:loop') == 'open' else scenario.loop, **added)

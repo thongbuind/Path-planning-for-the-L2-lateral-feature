@@ -12,6 +12,12 @@ Numbers of this model, all on the test side:
 | Latency capture -> send 100 ms | Nominal; worst case 120 ms is PP-ASM-001 |
 | View range 0-80 m | nhóm tự thống nhất, no source yet (test specification 4.5); start and end set per scenario |
 | Reported sigma c0 0.03 m, c1 0.002 | F01 a (daytime) of the test specification |
+
+Lane change (S17): the lines are indexed around the lane base_link is in. When base_link
+passes more than half a lane width from the centre of the current lane, the camera re-indexes
+L2, L1, R1, R2 to the new lane and sets `lane_change` to that side in that frame only
+(Interface Control Document 5.1). A line beyond the road layout is LOST. On the lane of the
+road's reference line the layout is used as it is.
 """
 
 from dataclasses import dataclass
@@ -67,6 +73,29 @@ class LaneCamera:
         self.view_end_m = view_end_m
         self.variance = _ZERO_VARIANCE if ideal else (SIGMA_C0_M ** 2, SIGMA_C1 ** 2, 0.0, 0.0)
         self._counter = 0
+        self.lane_index = 0  # lanes to the left of the reference lane (negative: right)
+
+    def _markings(self) -> tuple[Marking | None, ...]:
+        """L2, L1, R1, R2 around the current lane."""
+        layout = self.road.layout.markings
+        if self.lane_index == 0:
+            return layout
+        centre = self.lane_index * self.road.lane_width
+        known = sorted((m for m in layout if m is not None), key=lambda m: m.offset_m)
+        left = [m for m in known if m.offset_m > centre]
+        right = [m for m in reversed(known) if m.offset_m < centre]
+        pick = lambda side, i: side[i] if len(side) > i else None
+        return (pick(left, 1), pick(left, 0), pick(right, 0), pick(right, 1))
+
+    def _lane_change(self, pose: CameraPose) -> Side:
+        d = self.road.project(pose.x, pose.y, pose.s_hint).d
+        w = self.road.lane_width
+        if abs(d - self.lane_index * w) <= 0.5 * w:
+            return Side.NONE
+        new = round(d / w)
+        side = Side.LEFT if new > self.lane_index else Side.RIGHT
+        self.lane_index = new
+        return side
 
     def _fit(self, offset: float, pose: CameraPose,
              view_end: float | None = None) -> tuple[float, float, float, float, float, float] | None:
@@ -108,11 +137,12 @@ class LaneCamera:
                 view_limits: tuple[float | None, ...] | None = None) -> LaneModel:
         """view_limits: largest view end per line (L2, L1, R1, R2), from view faults."""
         limits = view_limits if view_limits is not None else (None,) * len(self.road.layout.markings)
+        change = self._lane_change(pose)
         lines = tuple(self._line(marking, pose, limit)
-                      for marking, limit in zip(self.road.layout.markings, limits, strict=True))
+                      for marking, limit in zip(self._markings(), limits, strict=True))
         edges = tuple(self._edge(edge, pose) for edge in self.road.layout.edges)
         msg = LaneModel(Header(now_us, self._counter, True, FrameId.BASE_LINK), lines,
                         edges, self.road.lane_width,
-                        LaneWidthSource.MEASURED, Side.NONE)
+                        LaneWidthSource.MEASURED, change)
         self._counter = (self._counter + 1) % 256
         return msg
