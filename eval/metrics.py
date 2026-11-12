@@ -11,7 +11,7 @@ not applicable. Information only: a_y and jerk on the vehicle as R79 Annex 8, 2.
 """
 
 from dataclasses import asdict, dataclass, field
-from math import cos, hypot, sin
+from math import cos, hypot, isfinite, sin
 
 import numpy as np
 
@@ -22,6 +22,7 @@ from interfaces import (
 )
 from sim.harness import PlannerCycle, RunLog
 from sim.stand_ins.eps import HANDOVER_S
+from sim.world.road import lane_boundaries
 from sim.world.traffic import Traffic
 
 AYSMAX = 2.5  # [m/s^2] PP-SWR-001
@@ -274,11 +275,12 @@ class _BigVehicles:
 
 def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> _BigVehicles | None:
     road, w = log.road, log.road.lane_width
-    specs = [sp for sp in log.scenario.traffic
-             if sp.width >= BIG_VEHICLE_WIDTH_M and w / 2 < abs(sp.d) < 1.5 * w]
+    geometry = road.layout.geometry
+    specs = [sp for sp in log.scenario.traffic if sp.width >= BIG_VEHICLE_WIDTH_M
+             and (geometry is not None or w / 2 < abs(sp.d) < 1.5 * w)]
     if not specs:
         return None
-    traffic = Traffic(road, tuple(specs))
+    traffic = Traffic(road._road if geometry is not None else road, tuple(specs))
     half_car = 0.5 * log.vehicle_width
     n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
     out = _BigVehicles()
@@ -294,9 +296,19 @@ def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> 
         gaps = {1: np.inf, -1: np.inf}
         for v in traffic.at(c.t0_us * 1e-6):
             if v.s + 0.5 * v.length >= body[0] and v.s - 0.5 * v.length <= body[1]:
-                side = 1 if v.d > 0 else -1
-                gaps[side] = min(gaps[side], abs(v.d) - 0.5 * v.width - half_car)
-                for d_car in (pr.d, pf.d):
+                if geometry is None:
+                    side = 1 if v.d > 0 else -1
+                    d_truck = v.d
+                    car_offsets = (pr.d, pf.d)
+                else:
+                    index = road._index(v.s)
+                    side = geometry.lane_index(v.s, v.d, index) - index
+                    if abs(side) != 1:
+                        continue
+                    d_truck = v.d - road._offset(v.s)
+                    car_offsets = (pr.d + road._offset(pr.s), pf.d + road._offset(pf.s))
+                gaps[side] = min(gaps[side], abs(d_truck) - 0.5 * v.width - half_car)
+                for d_car in car_offsets:
                     out.clearance_057 = min(out.clearance_057,
                                             abs(v.d - d_car) - 0.5 * v.width - half_car)
         abreast = bool(np.isfinite(gaps[1]) or np.isfinite(gaps[-1]))
@@ -808,7 +820,22 @@ def _entry_errors(cycle, t_us, truth):
     return abs(d - actual.d), abs(v_lat - truth.lateral_velocity(i, actual.heading))
 
 
-def _boundary_offset(road, side, *, edge=False):
+def _variable_boundary(geometry, s, lane_id, side, *, edge=False):
+    right, left = lane_boundaries(lane_id)
+    boundary = left if side == Side.LEFT else right
+    section = geometry.section_at(s)
+    offset = section.boundary_at(boundary, s)
+    paint = section.paint(boundary)
+    if paint is not None and not edge:
+        offset = paint.marking(offset, 1 if side == Side.LEFT else -1).offset_m
+    return offset
+
+
+def _boundary_offset(road, side, s, *, edge=False):
+    geometry = road.layout.geometry
+    if geometry is not None:
+        lane_id = geometry.lane_id(geometry.section_at(s), road._index(s))
+        return _variable_boundary(geometry, s, lane_id, side, edge=edge) - road._offset(s)
     index = 0 if side == Side.LEFT else 1
     boundary = road.layout.markings[index + 1]
     if edge or boundary is None:
@@ -820,7 +847,7 @@ def _boundary_offset(road, side, *, edge=False):
 
 def _dlc(log, projection, side, *, edge=False):
     sign = 1 if side == Side.LEFT else -1
-    return sign * (_boundary_offset(log.road, side, edge=edge) - projection.d) - log.vehicle_width / 2
+    return sign * (_boundary_offset(log.road, side, projection.s, edge=edge) - projection.d) - log.vehicle_width / 2
 
 
 def _opposite(side):
@@ -1119,9 +1146,17 @@ class _LaneRelativeRoad:
     def __getattr__(self, name):
         return getattr(self._road, name)
 
-    def _offset(self, s: float) -> float:
+    def _index(self, s: float) -> int:
         i = int(np.searchsorted(self._s, s, side="right")) - 1
-        return (self._k[i] if i >= 0 else 0) * self._road.lane_width
+        return self._k[i] if i >= 0 else 0
+
+    def _offset(self, s: float) -> float:
+        index = self._index(s)
+        geometry = self._road.layout.geometry
+        if geometry is None:
+            return index * self._road.lane_width
+        low, high = geometry.bounds(s, index)
+        return (low + high) / 2
 
     def project(self, x, y, s_hint=None, window_m=20.0):
         from sim.world.road import LaneProjection
@@ -1135,15 +1170,43 @@ class _LaneRelativeRoad:
 def lane_relative(log: RunLog) -> RunLog:
     """The log with its road seen from the car's lane when the car changed lanes."""
     changes = getattr(log, "lane_index_changes", None)
-    if not changes:
+    if not changes and log.road.layout.geometry is None:
         return log
     from dataclasses import replace
     t = np.asarray(log.t_us)
     breaks = []
-    for stamp, k in changes:
+    for stamp, k in changes or ():
         x, y, _ = log.rear[int(np.clip(np.searchsorted(t, stamp), 0, len(t) - 1))]
         breaks.append((log.road.project(x, y).s, k))
     return replace(log, road=_LaneRelativeRoad(log.road, sorted(breaks)))
+
+
+def _widening_dlc(log, road):
+    """PP-SWR-060 follows the original lane through the widened cross section."""
+    geometry = road.layout.geometry
+    request_s = log.scenario.hwa_request_s
+    if geometry is None or request_s is None:
+        return None
+    reference = road._road
+    minimum = float("inf")
+    first_fail_s = None
+    hint = None
+    for stamp, (x, y, _) in zip(log.t_us, log.front):
+        time_s = stamp * 1e-6
+        if time_s < request_s:
+            continue
+        p = reference.project(x, y, hint)
+        hint = p.s
+        for side, sign, wide in zip((Side.LEFT, Side.RIGHT), (1, -1), geometry.widening_sides(p.s)):
+            if not wide:
+                continue
+            boundary = _variable_boundary(geometry, p.s, geometry.ego_id, side)
+            dlc = sign * (boundary - p.d) - log.vehicle_width / 2
+            minimum = min(minimum, dlc)
+            if dlc < 0 and first_fail_s is None:
+                first_fail_s = time_s
+    return Criterion("PP-SWR-060", "DLC nhỏ nhất phía mở rộng của làn thật [m]", minimum, ">= 0",
+                     minimum >= 0, applicable=isfinite(minimum), first_fail_s=first_fail_s)
 
 
 def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result:
@@ -1151,6 +1214,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     default read from the delivered calibration data set."""
     log = lane_relative(log)
     road, truth = log.road, _Truth(log)
+    geometry = road.layout.geometry
     cal = calibration if calibration is not None else requirement_parameters()
     cycles = log.cycles
     t_s = np.array([c.t0_us * 1e-6 for c in cycles])
@@ -1257,7 +1321,10 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         i = int(np.searchsorted(t0s, t_us, side="right")) - 1
         pf = road.project(truth.front[k][0], truth.front[k][1], s_hint)
         s_hint = pf.s
-        dlc = min(half_lane - pf.d, half_lane + pf.d) - half_car
+        if geometry is None:
+            dlc = min(half_lane - pf.d, half_lane + pf.d) - half_car
+        else:
+            dlc = min(_dlc(log, pf, Side.LEFT), _dlc(log, pf, Side.RIGHT))
         driving = i >= 0 and hwa[i]
         if dlc < 0.0 and inside and driving and need_max[i] > AYSMAX:
             crossings += 1
@@ -1318,8 +1385,20 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     # and the true free space each side >= free_space_min (SRS 1.4). Below it, PP-SWR-063.
     free_space = (log.road.lane_width - log.vehicle_width) / 2.0
     lane_wide_enough = free_space >= cal["free_space_min"]
-    judged_051 = hwa & (need_max <= AYSMAX) & lane_wide_enough
-    narrow_flags = [bool(c.path_status.lane_too_narrow) for c in cycles if _valid(c)]
+    judged_051 = hwa & (need_max <= AYSMAX) & (lane_wide_enough or geometry is not None)
+    if geometry is None:
+        narrow_flags = [bool(c.path_status.lane_too_narrow) for c in cycles if _valid(c)]
+        judge_narrow = not lane_wide_enough
+    else:
+        narrow_flags = []
+        for c in cycles:
+            if _valid(c):
+                x, y, _ = truth.rear_at(c.t0_us)
+                station = road.project(x, y).s
+                low, high = geometry.bounds(station, road._index(station))
+                if (high - low - log.vehicle_width) / 2 < cal["free_space_min"]:
+                    narrow_flags.append(bool(c.path_status.lane_too_narrow))
+        judge_narrow = True
     narrow_share = float(np.mean(narrow_flags)) if narrow_flags else float("nan")
     dlc_left = dlc_right = np.inf
     offset_max = 0.0
@@ -1330,8 +1409,15 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             continue
         pf = road.project(front[0], front[1], s_hint)
         s_hint = pf.s
-        dlc_left = min(dlc_left, half_lane - pf.d - half_car)
-        dlc_right = min(dlc_right, half_lane + pf.d - half_car)
+        if geometry is None:
+            dlc_left = min(dlc_left, half_lane - pf.d - half_car)
+            dlc_right = min(dlc_right, half_lane + pf.d - half_car)
+        else:
+            low, high = geometry.bounds(pf.s, road._index(pf.s))
+            if (high - low - log.vehicle_width) / 2 < cal["free_space_min"]:
+                continue
+            dlc_left = min(dlc_left, _dlc(log, pf, Side.LEFT))
+            dlc_right = min(dlc_right, _dlc(log, pf, Side.RIGHT))
         offset_max = max(offset_max, abs(road.project(rear[0], rear[1], s_hint).d))
     dlc_min = float(min(dlc_left, dlc_right))
 
@@ -1413,10 +1499,10 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Criterion("PP-SWR-009", "Cờ giới hạn giống nhau ở PathStatus và LateralLimits",
                   float(flag_same), "= 1", flag_same),
         Criterion("PP-SWR-051", "DLC nhỏ nhất so với làn thật [m]", dlc_min, ">= 0",
-                  dlc_min >= 0.0, applicable=bool(np.any(judged_051))),
+                  dlc_min >= 0.0, applicable=bool(np.any(judged_051) if geometry is None else np.isfinite(dlc_min))),
         Criterion("PP-SWR-063", "Tỉ lệ chu kỳ có path hợp lệ báo lane_too_narrow khi khoảng trống thật < free_space_min",
                   narrow_share, "= 1", narrow_share == 1.0,
-                  applicable=bool(not lane_wide_enough and narrow_flags)),
+                  applicable=bool(judge_narrow and narrow_flags)),
         Criterion("PP-SWR-001", "a_y lớn nhất của path, HWA [m/s²]", ay_max, f"<= {AYSMAX}",
                   ay_max <= AYSMAX, applicable=any_hwa),
         Criterion("PP-SWR-003", "Jerk ngang lớn nhất của path, HWA [m/s³]", jerk_max,
@@ -1453,6 +1539,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   wheel_rate_max, f"<= {log.max_steering_wheel_rate}",
                   wheel_rate_max <= log.max_steering_wheel_rate),
     ]
+    widening = _widening_dlc(log, road)
+    if widening is not None:
+        criteria.append(widening)
+        if widening.first_fail_s is not None:
+            mark(widening.id, widening.first_fail_s)
     criteria += _input_age_criteria(cycles, hwa_request_s) + _request_change_criteria(cycles)
     criteria += _yaw_delay_criterion(log.scenario, criteria)
     targets = [
