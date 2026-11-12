@@ -13,3 +13,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261112-1418-matrix-Q1-5e8cabc | matrix | Q1 | 5e8cabc | calibration 1b9b7d6367e8 | 24 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
 | 20261112-1418-matrix-Q2-5e8cabc | matrix | Q2 | 5e8cabc | calibration 1b9b7d6367e8 | 12 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
 | 20261112-1419-matrix-Q3-5e8cabc | matrix | Q3 | 5e8cabc | calibration 1b9b7d6367e8 | 12 lần chạy; 2 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1421-suite-smoke-0d4f9f2 | suite | smoke | 0d4f9f2 | calibration 1b9b7d6367e8 | {"planned": 113, "executed": 113, "failed": 9, "failed_out_of_scope": 15, "errors": 0, "partial": false} | |
