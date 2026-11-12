@@ -391,13 +391,14 @@ def _phase(cycle: PlannerCycle, function: ActiveFunction) -> InterventionPhase:
     return status.lka_phase if function == ActiveFunction.LKA else status.elk_phase
 
 
-def _stale_requests(cycles, function) -> bool:
-    """A REQUEST of the function reached the planner, but only older than the ICD max age."""
+def _stale_requests(cycles) -> bool:
+    """FunctionRequests reached the planner older than the ICD max age (outside the contract).
+    The planner then has no usable request (PP-SWR-048) and no valid path (PP-SWR-145), so
+    the ADAS function cannot send REQUEST; the expected intervention does not apply."""
     for c in cycles:
         rx = c.function_requests
         if (rx is not None and rx.message.header.valid
-                and c.t0_us - rx.message.header.stamp_us > FUNCTION_REQUESTS_MAX_AGE_US
-                and rx.message.requests[int(function) - 1].state == RequestState.REQUEST):
+                and c.t0_us - rx.message.header.stamp_us > FUNCTION_REQUESTS_MAX_AGE_US):
             return True
     return False
 
@@ -629,7 +630,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         desired = log.scenario.notes.get("departure_side")
         expected_requests = [r for r in requests[function]
                              if desired is None or r.message.side.name.lower() == desired]
-        if not expected_requests and not _stale_requests(cycles, function):  # stale: PP-SWR-048
+        if not expected_requests and not _stale_requests(cycles):  # stale: PP-SWR-048
             side = "" if desired is None else f" (phía {'trái' if desired == 'left' else 'phải'})"
             issues.append(f"{expected}: thiếu REQUEST đến planner{side}")
         elif (any(not any(e.request is r and e.function == function for e in episodes)
