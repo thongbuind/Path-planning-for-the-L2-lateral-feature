@@ -1,5 +1,6 @@
 /* Unit tests of T4 Stitching and continuity (planner/src/stitching.c). */
 
+#include <math.h>
 #include <string.h>
 
 #include "pp_path.h"
@@ -99,7 +100,7 @@ static void test_old_path_not_usable(void)
     prev.valid = false;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(!old.valid);
-    PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, prev.points), 1.0, 0.0);
+    PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, prev.points), 1.0, 0.0);
 }
 
 static void test_start_from_old_path_or_reset(void)
@@ -144,39 +145,30 @@ static void test_blend_limits_the_jump(void)
     /* Candidate 0.5 m left of the old path. */
     pp_previous_path_t cand = straight_path(0.5, 0.0);
     const double margin = (double)pp_calibration.cont_margin;
-    const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, cand.points);
+    const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
     PP_CHECK_NEAR(lambda, margin * PP_CONT_LATERAL_M / 0.5, 1e-6);
     PP_CHECK_NEAR(cand.points[10].pose.y, margin * PP_CONT_LATERAL_M, 1e-6);
     PP_CHECK(cand.points[30].pose.y <= PP_CONT_LATERAL_M);
 
     /* Candidate equal to the old path: unchanged. */
     pp_previous_path_t same = straight_path(0.0, 0.0);
-    PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, same.points), 1.0, 1e-9);
+    PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, same.points), 1.0, 1e-9);
 }
 
-/* PP-TS-014: candidate equal to the old path near the car, 0.5 m away from 2 s on. */
-static void test_blend_far_change(void)
+/* PP-SWR-100 within the view range: a change beyond x_limit does not hold the path back. */
+static void test_blend_ignores_change_beyond_view(void)
 {
     pp_previous_path_t prev = straight_path(0.0, 0.0);
     pp_old_path_t old;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
-    pp_previous_path_t cand = straight_path(0.0, 0.0);
-    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
-        cand.points[k].pose.y = (float)(0.01 * (double)k);          /* near: 0.01 m per point */
-    }
+    pp_previous_path_t cand = straight_path(0.02, 0.0);           /* near: within the limit */
     for (unsigned k = 20U; k < PP_TRAJECTORY_POINTS; k++) {
-        cand.points[k].pose.y = 0.5F;
+        cand.points[k].pose.y = 0.5F;                             /* x >= 50 m */
     }
-    const double limit = (double)pp_calibration.cont_margin * PP_CONT_LATERAL_M;
-    (void)pp_stitch_blend(&old, &pp_calibration, 2.9, cand.points);
-    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
-        PP_CHECK((double)cand.points[k].pose.y <= limit + 1e-6);    /* each point within the limit */
-    }
-#ifdef PP_T4_PER_TIME
-    PP_CHECK_NEAR(cand.points[3].pose.y, 0.03, 1e-6);              /* near part kept (V1) */
-#else
-    PP_CHECK(cand.points[3].pose.y < 0.004F);                       /* scaled with the far change */
-#endif
+    pp_previous_path_t whole = cand;
+    PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, 40.0, cand.points), 1.0, 0.0);
+    PP_CHECK_NEAR(cand.points[25].pose.y, 0.5, 1e-6);
+    PP_CHECK(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, whole.points) < 1.0);
 }
 
 int main(void)
@@ -187,6 +179,6 @@ int main(void)
     test_start_from_old_path_or_reset();
     test_start_curvature_gives_lateral_acceleration();
     test_blend_limits_the_jump();
-    test_blend_far_change();
+    test_blend_ignores_change_beyond_view();
     return PP_TEST_RESULT();
 }

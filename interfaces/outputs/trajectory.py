@@ -34,6 +34,7 @@ class TrajectoryPoint:
 class Trajectory:
     header: Header  # stamp_us = t0, frame BASE_LINK
     points: tuple[TrajectoryPoint, ...]
+    observed_horizon_s: float  # [s]; Time on the path up to which it lies within the lane model view range; later points are extrapolated (PP-SWR-018)
 
     def __post_init__(self) -> None:
         check_array(self, "points", TRAJECTORY_POINTS)

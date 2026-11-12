@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.17 |
+| Phiên bản | 1.19 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -11,7 +11,8 @@
 
 ## 1. Purpose and scope {#test-scope}
 
-- **Mục đích.** Quy định cách kiểm chứng path planner: môi trường giả lập, test case, fault injection, tiêu chí đạt, chỉ số, cách chọn calibration và so sánh kỹ thuật.
+- **Mục đích.** Quy định cách kiểm chứng path planner: môi trường giả lập, test case, fault injection, tiêu chí đạt, mức nghiêm trọng, chỉ số, cách chọn calibration, so sánh kỹ thuật và so sánh giữa các planner.
+- **Nội dung thêm.** Conformance của planner với contract gọi hàm; kiểm chính bên chấm bằng planner mồi.
 - **Phạm vi.** Kiểm thử hộp đen dựa trên Software Requirements Specification: requirement chấm đạt hoặc trượt; performance target đo và xếp hạng; flexibility trên nhiều xe.
 - **Ngoài phạm vi.** Unit test của planner; kiểm thử trên xe thật. Không có log xe thật: mọi test chạy trên simulator.
 
@@ -27,6 +28,9 @@
 | Bosch SMI230 (bản giới thiệu sản phẩm 2018) | Mức nhiễu và bias IMU |
 | ISO 15622:2018 | ACC chạy thử |
 | UN R79 Annex 8; UN R171 Annex 4; EU 2021/646 Annex I Part 2; Euro NCAP Assessment Protocol SA v10.4.1 | Bài thử của văn bản (mục 5.1). Bản đã tải: `docs/reference/standards/` |
+| Euro NCAP Assessment Protocol SA v10.4.1, mục 4.3.2, 4.3.3.6 | Điểm LSS (mục 9.2) |
+| ISO 21448:2022 | Giới hạn của kết luận: còn tình huống nguy hiểm chưa biết (mục 3, 8.4) |
+| ISO 26262-8:2018, mục 11 | Độ tin cậy của công cụ phần mềm: kiểm bên chấm (mục 12) |
 | Menzel, Bagschik, Maurer, Scenarios for Development, Test and Validation of Automated Vehicles, IEEE IV 2018 (PEGASUS) | Ba tầng kịch bản: chức năng, logic, cụ thể (mục 5.2) |
 | ASAM OpenSCENARIO XML 1.x, ASAM OpenDRIVE 1.x | Định dạng kịch bản logic và đường (mục 5.2) |
 | Thông số công bố của VinFast VF 3, VF 6, VF 8, VF 9 | Vehicle profiles (mục 4.4) |
@@ -39,6 +43,8 @@
 - **Không đối phó bài thi.** Ca mới chỉ thêm ở phía test. Ca trượt thì sửa cơ chế chung của planner rồi chạy lại cả bộ.
 - **Báo cáo đủ và tái lập được.** Báo cáo mọi kịch bản và seed, kể cả ca xấu nhất; mỗi kết quả kèm phiên bản code, file kịch bản, seed.
 - **Ưu tiên.** An toàn, rồi quy định, rồi cảm nhận người lái, sau cùng là thời gian tính. Đo trên chuyển động thật của xe so với làn thật.
+- **Giới hạn của kết luận.** Benchmark chứng minh được planner bị chặn. Không thấy lỗi chặn chỉ có nghĩa trong phạm vi đã thử, không phải bằng chứng an toàn (ISO 21448).
+- **Học qua kết quả.** Planner và bên test học từ nhau qua kết quả, problem report, log và requirement. Không qua phần bên trong của phía kia.
 
 ## 4. Test environment {#simulation-design}
 
@@ -282,6 +288,50 @@ Tham số riêng (bán kính, v_lat, xe khác…) và dải của chúng khai tr
 | Hồi quy | Neo và biên; mọi profile; hai seed | Mỗi thay đổi lớn của planner, trước khi chốt một trade study |
 | Đầy đủ | Bốn cách chọn; mọi profile; mười seed cho ô có nhiễu (mục 4.1) | Trước mỗi baseline |
 
+Ba bộ chạy này là độ sâu. Mục 5.3 là khía cạnh. Mỗi khía cạnh chạy được ở cả ba độ sâu.
+
+### 5.3 Bộ chạy theo khía cạnh {#benchmark-aspects}
+
+Mỗi bộ cụ thể mang hai nhãn: độ khó và kết quả mong đợi. Bên test gán nhãn, suy từ Software Requirements Specification và ADAS Function Specification. Bộ theo khía cạnh lọc theo nhãn, không theo danh sách viết tay.
+
+**Độ khó.** Ca thuộc nhiều mức thì lấy mức cao nhất.
+
+| Mức | Điều kiện của ca | Ví dụ |
+|---|---|---|
+| L0 | Trong ODD, xa biên của dải; không lỗi; a_y cần không vượt aysmax | S1 (a), S4 (a) |
+| L1 | Ít nhất một tham số ở biên dải của ODD hoặc của chức năng: bề rộng làn, tốc độ, bề rộng xe, thời gian nhìn trước | S19 (a) |
+| L2 | Trong ODD nhưng cần vượt giới hạn quyền lái của chức năng | S1b, S14 |
+| L3 | Một lỗi ở mục 6 | F01 đến F22, Q1 đến Q4 |
+| L4 | Ghép lỗi theo mục 6.2 | Ca đêm mưa |
+| L5 | Ngoài ODD hoặc ngoài dải hoạt động của chức năng | Q4 ở mức thời gian nhìn trước dưới `t_view_hwa` |
+
+**Kết quả mong đợi.** Ghi trong kịch bản bằng mã ở cột 2.
+
+| Kết quả | Mã | Quan sát được ở output |
+|---|---|---|
+| Lái | `drive` | Path hợp lệ của chức năng được chọn theo PP-SWR-030 ở mọi chu kỳ, trừ khoảng mà requirement cho phép khác |
+| Lái có giới hạn | `drive_limited` | Như Lái; thêm cờ theo requirement: `lateral_limit_reached` (PP-SWR-007), `lane_too_narrow` (PP-SWR-063) |
+| Từ chối | `refuse` | Không bắt đầu chức năng (PP-SWR-047, 089, 146), hoặc `path_valid = false` và `active_function = NONE` trong thời hạn của requirement (PP-SWR-124, 142 đến 145) |
+
+Chấm cả hai chiều:
+
+- **Từ chối thiếu.** Ca Từ chối mà planner vẫn lái: trượt requirement của ca.
+- **Từ chối thừa.** Ca Lái hoặc Lái có giới hạn mà `active_function` khác chức năng được chọn theo PP-SWR-030, trong khi không có điều kiện nào của PP-SWR-124, 142 đến 145: trượt PP-SWR-030.
+
+**Khía cạnh.**
+
+| Bộ | Câu hỏi | Gồm |
+|---|---|---|
+| B0 Conformance | Planner có đúng contract gọi hàm không | Mục 11; không dùng kịch bản. Chạy trước mọi bộ khác |
+| B1 Nominal | Lái đúng trong điều kiện bình thường không | L0 |
+| B2 Regulatory | Có qua bài thử của văn bản không | Lưới chuẩn ở mục 5.1 |
+| B3 Performance limit | Ở biên ODD và khi vượt giới hạn quyền lái có làm đúng không | L1, L2 |
+| B4 Robustness | Khi có lỗi cảm biến, thời gian, toàn vẹn có làm đúng không | L3, L4 |
+| B5 Degradation and refusal | Có từ chối, suy giảm đúng lúc, và không từ chối thừa không | Ca Lái có giới hạn, ca Từ chối, L5; S10 |
+| B6 Comfort | Path có êm không | Performance target về cảm nhận người lái (mục 8.2) trên ca của B1 |
+| B7 Flexibility | Cùng bản build và calibration có chạy được trên mọi xe không | Mục 8.3 |
+| B8 Compute | Thời gian tính | PP-SWR-016 trên mọi ca |
+
 ## 6. Fault injection {#benchmark-faults}
 
 Mỗi lỗi bơm ở ba thời điểm: HWA đang chạy ổn định, ngay lúc LKA hoặc ELK kích hoạt, giữa lúc can thiệp. Lỗi theo thời điểm chụp của frame; lane model không gửi cờ (PP-ASM-009). Cột Yêu cầu sinh tự động như ở mục 5.
@@ -360,7 +410,8 @@ Một requirement đạt khi đạt ở mọi kịch bản, biến thể, seed v
 | `lane_too_narrow` khi làn hẹp | Khoảng trống thật mỗi bên < `free_space_min`: tỉ lệ chu kỳ có path hợp lệ báo `lane_too_narrow` | = 1 | PP-SWR-063 |
 | a_y, a_y thêm vào, jerk | Trên Trajectory, theo chức năng đang lái. a_y cần lấy từ độ cong làn thật tại điểm path. Jerk trung bình 0,5 s | Theo PP-SWR-001, 003, 110 đến 115 | PP-SWR-001, 003, 110 đến 115 |
 | Góc bánh, tốc độ vô lăng | Trên path | Theo VehicleConfig của profile | PP-SWR-116, 117 |
-| Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ | ≤ 0,05 m; ≤ 0,005 rad; ≤ 0,0003 1/m | PP-SWR-100 đến 102 |
+| Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ, ở phần path mới trong tầm nhìn lane model báo, đổi về t0 theo chuyển động thật; không có lane model thì cả path | ≤ 0,05 m; ≤ 0,005 rad; ≤ 0,0003 1/m | PP-SWR-100 đến 102 |
+| Phần quan sát | `observed_horizon_s` so với thời điểm path ra khỏi tầm nhìn lane model báo, mọi chu kỳ có path hợp lệ và có lane model | ≤ 0,1 s | PP-SWR-018 |
 | Thời lượng can thiệp | REQUEST tới COMPLETED hoặc hủy | ≤ 10 s | PP-SWR-083 |
 | Điểm đầu path can thiệp | Tại tick bắt đầu, so vị trí và v_lat tại cầu sau với trạng thái thật trong hệ làn | ≤ 0,1 m và ≤ 0,1 m/s | PP-SWR-080 |
 | Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng tại tick đủ `T_end_hold` | PP-SWR-032, 090 |
@@ -411,7 +462,32 @@ Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi HWA đang lái: 
 - **Điểm.** (1) Tỉ lệ requirement đạt trên từng profile; phải là 100 % trên mọi profile. (2) Độ chênh của mỗi performance target giữa các profile: giá trị lớn nhất, nhỏ nhất, và profile tệ nhất.
 - **Trình bày.** Bảng profile × chỉ số, đánh dấu profile tệ nhất của mỗi chỉ số.
 
-## 9. Xếp hạng và so sánh kỹ thuật {#test-ranking}
+### 8.4 Mức nghiêm trọng và kết luận {#benchmark-severity}
+
+Mức của một lần trượt suy từ cột Type của Software Requirements Specification, không gán tay theo ca.
+
+| Mức | Gồm | Lý do |
+|---|---|---|
+| BLOCKER | Requirement có Type Safety, hoặc có safety goal; requirement Type Interface; trượt C1 hoặc C2 (mục 11); lỗi thực thi của planner | Vi phạm safety goal; output không dùng được ở bên nhận |
+| MAJOR | Requirement Type Regulatory không có safety goal | Không qua phê duyệt kiểu loại |
+| MINOR | Requirement Type Functional không có safety goal | Sai chức năng, không vi phạm safety goal |
+| — | Performance target | Chỉ đo và xếp hạng (mục 8.2) |
+
+- Một lần trượt ở bất kỳ ca, profile, seed nào là đủ, như mục 8.1.
+- Lỗi thực thi của planner: tiến trình dừng trong lúc gọi `pp_init` hoặc `pp_step`; lời gọi không trả về; output có NaN hoặc vô cực. Lỗi ở simulator hoặc bên chấm báo riêng, ca đó không được chấm.
+
+| Kết luận | Khi |
+|---|---|
+| Bị chặn | Có ít nhất một trượt BLOCKER |
+| Không qua phê duyệt | Không có BLOCKER; có trượt MAJOR |
+| Không thấy lỗi chặn trong phạm vi đã thử | Không có BLOCKER và MAJOR |
+
+- Cờ riêng: Tích hợp được khi đạt C3 (mục 11).
+- Báo cáo không ghi planner là an toàn (mục 3).
+
+## 9. Xếp hạng và so sánh {#test-ranking}
+
+### 9.1 So sánh kỹ thuật trong một planner {#technique-comparison}
 
 | Bước | Tiêu chí |
 |---|---|
@@ -425,10 +501,49 @@ Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi HWA đang lái: 
 - Kết quả cho báo cáo: một bảng so sánh, và ít nhất một kỹ thuật bị loại kèm lý do bằng số liệu (đề bài).
 - Thời gian tính trên Python chỉ dùng để so sánh các kỹ thuật, không khẳng định chạy được trên ECU.
 
+### 9.2 So sánh giữa các planner {#planner-comparison}
+
+- Đối tượng: mọi planner nộp dưới dạng thư viện C và đạt C1, C2 (mục 11).
+- Không planner nào làm mốc; chỉ so các planner với nhau.
+- Mọi planner chạy cùng bản benchmark, cùng ca cụ thể, profile và seed.
+
+| Tầng | Chấm | Cách xếp |
+|---|---|---|
+| 1 | Kết luận ở mục 8.4 | Không thấy lỗi chặn, rồi Không qua phê duyệt, rồi Bị chặn. Trong cùng kết luận Bị chặn, ít requirement BLOCKER trượt hơn thì xếp trên |
+| 2 | Điểm Euro NCAP LSS; tỉ lệ đạt của requirement MAJOR, MINOR | Điểm Euro NCAP cao hơn; bằng nhau thì tỉ lệ đạt trung bình cao hơn |
+| 3 | Performance target theo bốn nhóm của mục 9.1, bước 2 đến 5 | Điểm thắng cặp từng nhóm; nhóm sau chỉ xét khi nhóm trước bằng điểm |
+
+**Điểm Euro NCAP LSS** (Euro NCAP SA v10.4.1, mục 4.3.2, 4.3.3.6).
+
+| Bài thử | Kịch bản | Điểm |
+|---|---|---|
+| LKA, vạch đứt | S4 | 0,25 |
+| LKA, vạch liền | S4 | 0,25 |
+| ELK, chỉ mép đường | S6 | 0,25 |
+| ELK, vạch giữa đứt và không có vạch sát mép đường | S6 | 0,25 |
+| ELK, vạch liền | S5 | 0,50 |
+| ELK, xe ngược chiều | S7 | 0,50 |
+| ELK, xe đang vượt | S8 | 0,50 |
+
+- Một dòng được điểm khi mọi hàng của lưới chuẩn (mục 5.1) thuộc dòng đó đạt tiêu chí của văn bản, như Euro NCAP chấm theo tổ hợp.
+- Tính riêng cho từng profile. Điểm của planner là điểm thấp nhất qua các profile (một bộ calibration cho mọi xe).
+- Điều kiện được tính điểm (ESC, ELK mặc định bật) và điểm HMI thuộc khối khác, không chấm.
+
+**Tỉ lệ đạt.** Với mỗi requirement: số lần chạy đạt chia số lần chạy có chấm requirement đó. Trung bình qua các requirement, không trọng số.
+
+**Điểm thắng cặp.**
+
+- Đơn vị ghép cặp: một lần chạy (ca cụ thể, profile, seed). Riêng flexibility: một ca cụ thể và seed, giá trị là độ chênh giữa các profile.
+- Với mỗi performance target và mỗi cặp planner: lấy hiệu trên từng đơn vị, theo hướng "Tốt hơn khi" ở mục 8.2.
+- Planner A thắng B khi khoảng tin cậy 95 % của trung bình hiệu nằm hẳn về phía A tốt hơn. Khoảng tin cậy tính bằng bootstrap theo đơn vị, 10 000 lần lấy mẫu lại, seed cố định (nhóm tự thống nhất). Không thì hòa.
+- Điểm của một planner trong một nhóm: số lần thắng trừ số lần thua, qua mọi chỉ số của nhóm và mọi planner khác (phương pháp Copeland). Không dùng trọng số giữa các chỉ số.
+
 ## 10. Trình bày kết quả {#test-reporting}
 
 | Loại | Nội dung |
 |---|---|
+| Kết luận | Đầu báo cáo: kết luận ở mục 8.4 và cờ Tích hợp được. Bị chặn thì liệt kê mọi trượt BLOCKER: ID requirement, safety goal, mã ca, profile, seed, thời điểm trượt đầu tiên, file MCAP |
+| So sánh planner | Mục 9.2: kết luận, điểm Euro NCAP, tỉ lệ đạt, điểm thắng cặp từng nhóm; kèm giá trị tuyệt đối của mọi chỉ số |
 | Bảng tổng | Mỗi kỹ thuật một hàng: requirement đạt hay trượt, giá trị xấu nhất của mỗi performance target qua mọi seed |
 | Theo thời gian | d(t) của path và xe cùng hai biên làn; a_y; jerk; chức năng đang lái; thời điểm đổi chức năng và bơm lỗi |
 | Liên tục | Lệch giữa hai path liên tiếp theo chu kỳ, kèm đường ngưỡng |
@@ -436,6 +551,36 @@ Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi HWA đang lái: 
 | Quét trễ | Chỉ số theo mức trễ, mỗi kỹ thuật một đường |
 | Flexibility | Bảng profile × chỉ số |
 | Thời gian tính | Histogram kèm p95, p99 |
+
+## 11. Planner conformance {#planner-conformance}
+
+- Planner được chấm là thư viện C11 theo `interfaces/c/pp_planner.h` (Interface Control Document mục 4; PP-ADR-013). Bên test nhận file thư viện đã build và chuỗi `pp_version`.
+- Bộ B0 chỉ kiểm điều quan sát được qua contract gọi hàm. Không kiểm thuật toán, trạng thái bên trong, cấu trúc code hay MISRA.
+
+| Mức | Kiểm | Nguồn | Trượt thì |
+|---|---|---|---|
+| C1 API | Có đủ `pp_state_size`, `pp_init`, `pp_step`, `pp_version`. Build từ `pp_types.h` của cùng phiên bản schema; kích thước và layout struct khớp header sinh ra. Chạy được với vùng nhớ trạng thái căn theo `PP_STATE_ALIGNMENT` | Interface Control Document mục 4 | Bị chặn; không chạy bộ khác |
+| C2 Contract | `pp_init` không trả OK khi VehicleConfig thiếu hoặc ngoài giới hạn; khi đó không chu kỳ nào gửi Trajectory. Mỗi chu kỳ `pp_step` điền mọi output. Counter, stamp, enum, kích thước mảng, 31 điểm trên 0–3 s đúng Interface Control Document. Không có NaN hoặc vô cực. Input chưa nhận, `valid = false` hoặc giá trị ở hai đầu dải không làm planner dừng. `pp_version` trả cùng một chuỗi, có phiên bản, commit và mã bộ calibration | Interface Control Document mục 4, 6; PP-SWR-010, 011, 014, 146 | Bị chặn; không chạy bộ khác |
+| C3 Integration | Cùng chuỗi input cho cùng output từng bit. Hai instance chạy xen kẽ cho cùng output như khi chạy riêng. Không ghi ra ngoài vùng nhớ trạng thái (kiểm bằng byte canh ở hai đầu). Bảng symbol không có cấp phát động, đọc file, đọc đồng hồ hệ thống | Interface Control Document mục 4; PP-ADR-013 | Vẫn chạy bộ khác; không có cờ Tích hợp được |
+
+## 12. Kiểm bên chấm {#evaluator-check}
+
+- Benchmark là công cụ kiểm chứng, nên phải chứng minh được nó phát hiện lỗi (ISO 26262-8:2018, mục 11).
+- Bên test giữ một bộ planner mồi. Mỗi planner mồi là thư viện C theo `pp_planner.h`, viết riêng ở phía test, cố ý sai một điểm.
+- Benchmark chỉ được dùng khi mọi planner mồi bị báo đúng requirement và đúng mức ở bảng dưới. Trượt thêm ở chỗ khác không ảnh hưởng.
+- Chạy lại bộ planner mồi mỗi khi sửa `sim/`, `eval/` hoặc `benchmark/`.
+
+| Mã | Lỗi cố ý | Phải được báo |
+|---|---|---|
+| PM-01 | Cộng bước nhảy ngang 0,1 m vào path mỗi 40 chu kỳ | PP-SWR-100; BLOCKER |
+| PM-02 | Không giới hạn a_y theo aysmax | PP-SWR-001; BLOCKER |
+| PM-03 | Giữ `path_valid = true` khi ego-motion không hợp lệ | PP-SWR-143; BLOCKER |
+| PM-04 | Luôn `path_valid = false` khi HWA ở REQUEST | PP-SWR-030 (từ chối thừa); BLOCKER |
+| PM-05 | Counter của PathStatus không tăng | C2 (PP-SWR-014); BLOCKER |
+| PM-06 | Gửi Trajectory dù `pp_init` báo VehicleConfig sai | C2 (PP-SWR-146); BLOCKER |
+| PM-07 | Giữ trạng thái trong biến toàn cục | C3 |
+| PM-08 | Ghi quá cuối vùng nhớ trạng thái | C3 |
+| PM-09 | Đọc đồng hồ hệ thống | C3 |
 
 ## Appendix A. Nguồn số liệu {#test-appendix}
 
@@ -466,3 +611,5 @@ Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi HWA đang lái: 
 | 1.15 | 2026-11-12 | Cụ thể hóa input tài xế, xe mục tiêu, neo S4–S8 và lưới chuẩn. Bổ sung cửa sổ đo, điều kiện hoàn tất và ca ELK REQUEST muộn |
 | 1.16 | 2026-11-12 | Mục 4.5: tầm nhìn riêng từng vạch, điểm đầu và điểm cuối theo kịch bản. Mục 6: thêm F22 (lỗi tầm nhìn), Q4 (quét tầm nhìn) |
 | 1.17 | 2026-11-12 | Mục 4.8: điều kiện tầm nhìn của HWA ở phía simulator. Mục 6: F22 bật điều kiện này, b dùng 30 m, thêm f (HWA trả lái rồi trở lại); Q4 chạy bằng `eval.matrix` |
+| 1.18 | 2026-11-12 | Mục 5.3: bộ chạy theo khía cạnh B0–B8, nhãn độ khó L0–L5 và kết quả mong đợi, chấm hai chiều. Mục 8.4: mức nghiêm trọng, kết luận. Mục 9: tách so sánh kỹ thuật (9.1) và so sánh giữa các planner (9.2). Mục 10: kết luận đầu báo cáo. Mục 11: planner conformance. Mục 12: kiểm bên chấm bằng planner mồi |
+| 1.19 | 2026-11-12 | Mục 8.1: liên tục chỉ chấm trong tầm nhìn lane model báo (SRS 1.9); thêm chỉ số `observed_horizon_s` (PP-SWR-018) |

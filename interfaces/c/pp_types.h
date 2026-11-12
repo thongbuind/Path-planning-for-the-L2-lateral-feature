@@ -390,6 +390,7 @@ typedef struct {
 typedef struct {
     pp_header_t header; /* stamp_us = t0, frame BASE_LINK */
     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
+    float observed_horizon_s; /* [s]; Time on the path up to which it lies within the lane model view range; later points are extrapolated (PP-SWR-018) */
 } pp_trajectory_t;
 
 /* planner_io (Interface Control Document 4): Newest message of each input with its receive time (rx_us), or not received yet */

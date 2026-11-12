@@ -349,15 +349,31 @@ A requirement passes when it passes in every scenario, variant, seed, and profil
 
 | Metric | Measurement | Threshold | Requirement |
 |---|---|---|---|
-| Minimum DTLE | Outer tire edge to inner marking edge, minimum over the intervention | ≥ −0.3 m (LKA, solid-marking ELK); ≥ −0.1 m (road-edge ELK) | PP-SWR-086, 091 |
-| Clearance to adjacent-lane vehicle | Minimum lateral distance between the two vehicles | ≥ 0.3 m | PP-SWR-088 |
-| DLC relative to actual lane | Minimum on each side | ≥ 0 | PP-SWR-051, 060, 084, 085, 122, 123, 148 |
-| a_y, added a_y, jerk | On the path, according to the function in control; 0.5 s average jerk | Per PP-SWR-001, 003, 110 to 115 | PP-SWR-001, 003, 110 to 115 |
+| Minimum DTLE | Minimum over the intervention from the outer edge of the front tire to the inner edge of the marking or to the road edge | ≥ −0.3 m (LKA and solid-marking ELK), ≥ −0.1 m (road-edge ELK) | PP-SWR-086, 091 |
+| Clearance to adjacent-lane vehicle | Minimum lateral distance between the vehicles during ELK triggered by the adjacent-lane vehicle | ≥ 0.3 m | PP-SWR-088 |
+| DLC relative to actual lane | Minimum on each side. For PP-SWR-051, measure only when actual free space on each side is ≥ `free_space_min` | ≥ 0 | PP-SWR-051, 060, 122, 123, 148 |
+| Drift-side DLC at LKA completion | Actual DLC on the requested side when LKA reports COMPLETED | ≥ 0 | PP-SWR-084 |
+| Opposite-side DLC | Minimum DLC on the opposite side from intervention onset through the 1 s EPS handover after COMPLETED or cancellation. End the window at the next independent intervention | ≥ 0 | PP-SWR-085 |
+| `lane_too_narrow` in a narrow lane | When actual free space on each side is < `free_space_min`, measure the fraction of valid-path cycles reporting `lane_too_narrow` | = 1 | PP-SWR-063 |
+| a_y, added a_y, jerk | Measure on Trajectory for the function in control. Compute required a_y from actual lane curvature at the path point. Average jerk over 0.5 s | Per PP-SWR-001, 003, 110 to 115 | PP-SWR-001, 003, 110 to 115 |
 | Wheel angle and steering wheel rate | On the path | Per the profile's VehicleConfig | PP-SWR-116, 117 |
 | Continuity | Differences in lateral position, heading, and curvature between consecutive paths, every cycle | ≤ 0.05 m; ≤ 0.005 rad; ≤ 0.0003 1/m | PP-SWR-100 to 102 |
 | Intervention duration | From REQUEST to COMPLETED or cancellation | ≤ 10 s | PP-SWR-083 |
+| Start of the intervention path | At the start tick, compare rear-axle position and v_lat with ground truth in the lane frame | ≤ 0.1 m and ≤ 0.1 m/s | PP-SWR-080 |
+| Completion | At each tick, track DLC, front-axle v_lat, body heading relative to the lane, and added a_y of the path in use | Report COMPLETED for the correct function on the tick when `T_end_hold` is met | PP-SWR-032, 090 |
+| Late ELK REQUEST | Measure front-tire DLC at the requested-side marking when the planner receives REQUEST. S8 late injects the request based on the nominal trajectory and verifies the condition using vehicle ground truth in SIL | Do not start ELK if DLC < −0.3 m | PP-SWR-089 |
 | Fault response | Time when `path_valid` or `active_function` changes | Per requirement, timing error ≤ one cycle | PP-SWR-124, 142 to 145, 147 |
-| Output and arbitration | PathStatus values for each event | Per requirement | PP-SWR-010 to 015, 030 to 047, 063 |
+| Output and arbitration | PathStatus values for each event | Per requirement | PP-SWR-010 to 015, 030 to 047 |
+| Limit flag at marking contact | `lateral_limit_reached` when the front tire first touches the marking while HWA is in control and maximum required a_y > aysmax | true | PP-SWR-007 |
+| Center offset near a large vehicle | Mean path offset from the actual lane center over 0–1 s, positive away from the large vehicle with the least clearance. Score when HWA is in control and a large vehicle is alongside with clearance < `gap_truck_min`. For 055, take the minimum when no large vehicle is alongside on the opposite side. For 058, take the minimum on the first alongside cycle. For 056, take the greatest offset toward the large vehicle. The body extends from rear axle − 1 m to front axle + 1 m | 055 and 058 > 0. 056 ≤ 0 | PP-SWR-055, 056, 058 |
+
+SIL approximates the outer edge of the front tire using half of `vehicle_width` at the front axle. Including the mirrors in the width makes DLC and DTLE conservative by about 0.1–0.15 m. When investigating an S6 failure within this band, check the geometric approximation. Apply the thresholds specified in the requirements.
+
+A case expected to intervene must deliver REQUEST to the planner and produce a path for the corresponding function. If either is missing, fail the case and report the missing step.
+
+For PP-SWR-083, score each intervention whose end is observed or that has reached the 10 s limit. If the log ends while the intervention is still ACTIVE before the limit, report the observed duration. A case that requires intervention must have at least one intervention with a sufficient scoring window.
+
+When LKA or ELK starts and the actual state deviates from the previous path by more than 0.1 m or 0.1 m/s, apply PP-SWR-080 on that tick per PP-SWR-031. Continue scoring continuity for subsequent path pairs.
 
 ### 8.2 Performance targets: measurement and ranking {#benchmark-metrics}
 
@@ -368,17 +384,23 @@ No pass thresholds. Report the worst value across all seeds and the degradation 
 | Lateral deviation | Path relative to actual lane center, over 0–1 s | Smaller | PP-SWR-050 |
 | HWA added a_y | Maximum during recentering or center offset | Smaller | PP-SWR-002 |
 | HWA lateral jerk | Peak and RMS | Smaller | PP-SWR-004 |
-| Added lateral deviation due to latency | Q1 relative to zero latency | Smaller | PP-SWR-013 |
+| Added lateral deviation due to latency | Q1 relative to latency 0 | Smaller | PP-SWR-013 |
 | Computation time | Host wall clock: mean, p95, p99, maximum | Smaller | PP-SWR-016 |
+| Warning lead time | Minimum time from the limit flag being set until required a_y at the vehicle position exceeds aysmax | Longer | PP-SWR-064 |
+| Time to clear the flag | Maximum time from maximum required a_y dropping below aysmax until the flag clears | Shorter | PP-SWR-008 |
 | Recentering time | From HWA start until lateral deviation ≤ 0.1 m | Shorter | PP-SWR-053 |
-| Clearance during center offset | Minimum lateral distance to objects on each side | Larger | PP-SWR-057 |
-| Return time after a large vehicle passes | From when the rear of the large vehicle passes until lateral deviation ≤ 0.1 m | Shorter | PP-SWR-059 |
+| Clearance during center offset | Minimum lateral distance from the actual vehicle body at the rear and front axles to the edge of the large vehicle while alongside | Larger | PP-SWR-057 |
+| Return time after a large vehicle passes | From the end of the alongside interval until the actual vehicle's lateral deviation is ≤ 0.1 m | Shorter | PP-SWR-059 |
 | LKA and ELK duration | From intervention path start to COMPLETED | Shorter | PP-SWR-081, 082 |
 | LKA DTLE | As in Section 8.1 | Larger | PP-SWR-087 |
 | Incorrect curvature | Lateral deviation over 2–3 s divided by the deviation of a path following the erroneous lane model exactly | Smaller | PP-SWR-125 |
 | RMS steering wheel rate | Closed loop | Smaller | Secondary metric for PP-SWR-004 |
 
 ADAS Functions module metrics (calibration selection in P2 and P3): number of unintended activations in S10; difference in activation timing between modes A and B.
+
+For S7 and S8, report whether the test vehicle collided with the target per Euro NCAP SA 4.3.3.4. For LKA and ELK, report a_y and jerk from vehicle ground truth using R79 Annex 8, 2.4. Both results are informational.
+
+Also report measurements during HWA control per R79 Annex 8, 2.4. Measure a_y at the center of gravity from ground truth at 1 kHz, using a causal fourth-order Butterworth filter with a 0.5 Hz cutoff initialized at steady state. Jerk is a 0.5 s moving average of the derivative. Report the longest interval with a_y > aysmax + 0.3 m/s² and whether the R79 5.6.2.1.1 limits are met (above aysmax + 0.3 for at most 2 s, with a_y ≤ min(1.4·aysmax, 3.3) m/s²). These values are informational pending a corresponding requirement.
 
 ### 8.3 Flexibility {#benchmark-flexibility}
 
@@ -425,3 +447,17 @@ ADAS Functions module metrics (calibration selection in P2 and P3): number of un
 | 0.5 | 2026-11-10 | Added S19 and F21; F05 is loss of all boundaries; moved the ACC stub from the Software Architectural Design |
 | 1.0 | 2026-11-10 | Restructured as the Software Qualification Test Specification, baseline BL1. Added vehicle profiles VP-0 through VP-5 with sources and scored flexibility; separated pass criteria (requirements) from ranking metrics (performance targets); added calibration sweeps P1 through P3; removed real-log replay (no logs), status labels, and open items |
 | 1.1 | 2026-11-10 | Lateral Controller stub: separated sampling times for κ and errors, recorded the source of K, and specified that the controller signals that control has stopped while EPS hands steering back |
+| 1.2 | 2026-11-10 | Section 4.2 runs the planner in the simulator through the SIL adapter (PP-ADR-013) |
+| 1.3 | 2026-11-10 | Section 4.6 measures e_ψ for the Lateral Controller stub against the direction of vehicle motion, per the meaning of `pose.yaw` in Interface Control Document 6.1 |
+| 1.4 | 2026-11-11 | Section 4.5 includes v_y from VehicleStateEstimate in ego-motion per Interface Control Document 5.5 |
+| 1.5 | 2026-11-11 | Specified initial state in curves, EPS at startup, camera range and delay, and the 100 m clothoid. Added S1b e (60 m clothoid). Specified S2 measurement at HWA takeover, speed, and variant b heading direction. Specified F02, F04, and F06 fault shapes |
+| 1.6 | 2026-11-11 | Section 8 scores PP-SWR-007 at tire contact with the marking. Added warning lead time (PP-SWR-064) and flag clear time (PP-SWR-008) per Software Requirements Specification 1.3 |
+| 1.7 | 2026-11-11 | Section 4.7 specifies the set-speed and curve-envelope tracking laws and the LateralLimits timeout |
+| 1.8 | 2026-11-11 | Section 5.1 maps R79 Annex 8, R171 Annex 4, EU 2021/646, and Euro NCAP tests to scenarios. Added anchors S1 f and g, S1b f, S5 f, and S14 e. Section 5.2 specifies the three scenario levels, ASAM OpenSCENARIO and OpenDRIVE formats, concrete case selection, and smoke, regression, and full suites |
+| 1.9 | 2026-11-11 | Section 8.2 reports vehicle a_y and jerk per R79 Annex 8, 2.4 for information |
+| 1.10 | 2026-11-11 | Section 8.1 scores PP-SWR-051 only with sufficient actual free space and adds a row for PP-SWR-063, per Software Requirements Specification 1.4 |
+| 1.11 | 2026-11-11 | S1b d uses a 40 m visible range throughout the run on a flat road |
+| 1.12 | 2026-11-11 | Section 4.5 specifies ObjectList detection ranges and `existence_probability`. Section 8.1 scores PP-SWR-055, 056, and 058 per Software Requirements Specification 1.5. Section 8.2 specifies metrics for targets 057 and 059 |
+| 1.13 | 2026-11-11 | Section 4 adds driver, traffic, road boundaries, and a two-mode LKA and ELK stub. Section 8 adds the DLC window, DTLE geometry, missing-intervention cases, and closed-loop LKA and ELK metrics |
+| 1.14 | 2026-11-12 | F21(c) uses a road edge outside the ego-lane corridor per PP-SWR-047 and PP-TS-007 |
+| 1.15 | 2026-11-12 | Specified driver input, target vehicles, S4–S8 anchors, and the protocol grids. Added measurement windows, completion conditions, and the late ELK REQUEST case |

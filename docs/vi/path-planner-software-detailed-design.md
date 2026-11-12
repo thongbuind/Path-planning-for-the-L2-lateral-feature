@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.7 |
+| Phiên bản | 1.8 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -104,7 +104,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | 1 | Đưa path chu kỳ trước về `base_link` tại t0 bằng ego-motion. Path cũ hơn timeout của Trajectory (75 ms) coi như không hợp lệ |
 | 2 | Trạng thái đầu (d, ḋ, d̈) = trạng thái của path cũ tại t0, tính theo reference line mới. Nếu trạng thái đo (T6) lệch quá `stitch_reset` thì dùng trạng thái đo. Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080) |
 | 3 | T7 sinh path ứng viên từ trạng thái đầu |
-| 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
+| 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
 | 5 | Bỏ bước 4 khi PP-SWR-031 cho phép (LKA, ELK bắt đầu lúc xe đã lệch) và khi path cũ không hợp lệ |
 
 - Bước 2 lấy điểm của path cũ tại t0 bằng nội suy Hermite theo hướng tiếp tuyến. Nội suy dây cung lệch vào trong cua κ·L²·f(1−f)/2 và kéo điểm đầu vào trong mỗi chu kỳ.
@@ -202,6 +202,7 @@ Kết quả khớp bảng arbitration state ở Software Architectural Design m�
 - Lấy mẫu t_k = 0,1·k, k = 0…30; s(t) tích phân v(t).
 - Đổi (s, d) sang (x, y, yaw, κ) trong `base_link` theo công thức Frenet sang Cartesian của Werling (2010).
 - `heading_rate` = v·κ; `lateral_velocity` = ḋ; `front_wheel_angle` theo T10; `rear_wheel_angle` = 0.
+- `observed_horizon_s`: thời điểm path có x vượt `view_end` của reference line, nội suy tuyến tính giữa hai điểm; cả path nằm trong thì 3 s (PP-SWR-018).
 - `header.stamp_us` = t0; `counter` tăng 1.
 - Gửi Trajectory, PathStatus, LateralLimits; ghi thời gian tính và log overrun nếu quá `t_budget`.
 
@@ -250,3 +251,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.5 | 2026-11-11 | T7 C viết lại thành QP hợp nhất dạng nén, giải bằng ADMM (PP-TS-003); calibration của T7 C; kỹ thuật chọn lúc build |
 | 1.6 | 2026-11-11 | T7 C: liên tục với path cũ thành chi phí `qp_w_cont`, T4 vẫn trộn; a_y theo công thức của T11; dải a_y của PP-SWR-006; ràng buộc jerk; ρ theo khối hàng; `qp_ay_margin` 1,0. T8: offset theo khoảng hở tới xe lớn và `gap_truck_min`; T7 C dời path cũ theo phần offset vừa đổi |
 | 1.7 | 2026-11-12 | T7 quintic cho LKA, ELK trong cả hai bản build. T9 giữ pha riêng, áp PP-SWR-145 tại output và chọn lại trong cùng chu kỳ khi hoàn tất hoặc hủy |
+| 1.8 | 2026-11-12 | T4 bước 4 chỉ xét phần path trong tầm nhìn (SRS 1.9, PP-TS-014). T11 thêm `observed_horizon_s` |

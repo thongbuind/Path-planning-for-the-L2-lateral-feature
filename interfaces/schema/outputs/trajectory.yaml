@@ -21,3 +21,4 @@ structs:
     fields:
       - {name: header, type: Header, doc: "stamp_us = t0, frame BASE_LINK"}
       - {name: points, type: TrajectoryPoint, count: TRAJECTORY_POINTS}
+      - {name: observed_horizon_s, type: float32, unit: s, doc: "Time on the path up to which it lies within the lane model view range; later points are extrapolated (PP-SWR-018)"}

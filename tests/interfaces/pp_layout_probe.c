@@ -315,6 +315,8 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_trajectory_t, header);
     } else if ((strcmp(type_name, "Trajectory") == 0) && (strcmp(field_name, "points") == 0)) {
         result = offsetof(pp_trajectory_t, points);
+    } else if ((strcmp(type_name, "Trajectory") == 0) && (strcmp(field_name, "observed_horizon_s") == 0)) {
+        result = offsetof(pp_trajectory_t, observed_horizon_s);
     } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "t0_us") == 0)) {
         result = offsetof(pp_planner_inputs_t, t0_us);
     } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "lane_model") == 0)) {

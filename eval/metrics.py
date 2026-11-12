@@ -25,6 +25,7 @@ from sim.stand_ins.eps import HANDOVER_S
 from sim.world.traffic import Traffic
 
 AYSMAX = 2.5  # [m/s^2] PP-SWR-001
+HORIZON_TOL_S = 0.1  # [s] PP-SWR-018, one Trajectory step
 LONG_VIEW_M = 126.0  # Largest view range the planner uses (Interface Control Document 5.1)
 JERK_MAX_HWA = 5.0  # [m/s^3] PP-SWR-003
 JERK_WINDOW_S = 0.5  # Software Requirements Specification 4, "Jerk ngang của path"
@@ -169,14 +170,29 @@ def _jerk_max(a_y: np.ndarray) -> float:
     return float(np.max(np.abs(np.convolve(jerk, np.ones(n) / n, mode="valid"))))
 
 
+def _view_limit(cur: PlannerCycle, truth: _Truth) -> float:
+    """x at t0 in base_link of the end of the view range the lane model reported for the frame
+    the planner used (SRS 4, Hai path liên tiếp); inf without a lane model (coasting)."""
+    if cur.lane_view is None or cur.lane_view_reported is None:
+        return np.inf
+    stamp_us = cur.lane_view[0]
+    xc, yc, yawc = truth.rear_at(stamp_us)
+    x0, y0, _ = truth.rear_at(cur.t0_us)
+    travelled = (x0 - xc) * np.cos(yawc) + (y0 - yc) * np.sin(yawc)
+    return cur.lane_view_reported - travelled
+
+
 def _continuity(prev: PlannerCycle, cur: PlannerCycle, truth: _Truth) -> tuple[float, float, float]:
     """Largest lateral, heading and curvature difference between two consecutive paths
-    on their common time span, the old path moved by the true motion of the car."""
+    on their common time span within the reported view range of the new cycle, the old
+    path moved by the true motion of the car."""
     t_o, x_o, y_o, yaw_o, k_o, _, _ = _points(prev.trajectory)
     t_n, x_n, y_n, yaw_n, k_n, _, _ = _points(cur.trajectory)
     shift = (cur.t0_us - prev.t0_us) * 1e-6
     pose_o, pose_n = truth.rear_at(prev.t0_us), truth.rear_at(cur.t0_us)
-    keep = t_n + shift <= t_o[-1] + 1e-9
+    keep = (t_n + shift <= t_o[-1] + 1e-9) & (x_n <= _view_limit(cur, truth))
+    if not np.any(keep):
+        return 0.0, 0.0, 0.0
     tq = t_n[keep] + shift
     xo, yo = np.interp(tq, t_o, x_o), np.interp(tq, t_o, y_o)
     yo_yaw = np.interp(tq, t_o, np.unwrap(yaw_o))
@@ -849,6 +865,23 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
 
+    # PP-SWR-018: observed_horizon_s against the time the path leaves the reported view range.
+    horizon_err = 0.0
+    for c in cycles:
+        if not _valid(c) or c.lane_view is None or c.lane_view_reported is None:
+            continue
+        t_p, x_p = _points(c.trajectory)[0], _points(c.trajectory)[1]
+        x_lim = _view_limit(c, truth)
+        out = np.nonzero(x_p > x_lim)[0]
+        if len(out) == 0:
+            expected = t_p[-1]
+        elif out[0] == 0:
+            expected = 0.0
+        else:
+            k = out[0]
+            expected = t_p[k - 1] + (t_p[k] - t_p[k - 1]) * (x_lim - x_p[k - 1]) / (x_p[k] - x_p[k - 1])
+        horizon_err = max(horizon_err, abs(c.trajectory.observed_horizon_s - expected))
+
     # PP-SWR-051: DLC on the true lane at the front axle while HWA drives, a_y needed <= aysmax
     # and the true free space each side >= free_space_min (SRS 1.4). Below it, PP-SWR-063.
     free_space = (log.road.lane_width - log.vehicle_width) / 2.0
@@ -931,6 +964,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     criteria = [
         Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
+        Criterion("PP-SWR-018", "Sai lệch lớn nhất của observed_horizon_s [s]", horizon_err,
+                  f"<= {HORIZON_TOL_S}", horizon_err <= HORIZON_TOL_S),
         Criterion("PP-SWR-017", "Tỉ lệ chu kỳ có path hợp lệ khi lane model báo tầm nhìn > 126 m",
                   long_view_valid, "= 1", long_view_valid == 1.0, applicable=bool(long_view)),
         Criterion("PP-SWR-150", "LateralLimits mỗi chu kỳ", float(limits_every_cycle), "= 1",

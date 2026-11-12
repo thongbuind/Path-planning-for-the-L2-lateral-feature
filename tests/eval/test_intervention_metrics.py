@@ -61,7 +61,7 @@ def _log(expect="LKA", *, requested=LKA, active=LKA, end_us=END, completes=True,
         points = tuple(TrajectoryPoint(i / 10, Pose2D(2.0 * i, 0.0, 0.0), 20.0, 0.0, 0.0,
                                        20.0 * curvature, curvature, 0.0, 0.0)
                        for i in range(31))
-        trajectory = Trajectory(Header(t, counter, True, FrameId.BASE_LINK), points)
+        trajectory = Trajectory(Header(t, counter, True, FrameId.BASE_LINK), points, 3.0)
         limits = LateralLimits(hdr, 20.0, 0.0, False)
         log.cycles.append(PlannerCycle(t, trajectory, status, limits, 0, function_requests=message))
     return log

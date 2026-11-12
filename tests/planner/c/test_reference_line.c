@@ -145,26 +145,6 @@ static void test_walk_curve(void)
     PP_CHECK_NEAR(p.dkappa, 0.0, 1e-12);
 }
 
-/* PP-TS-014 V2: the arc beyond view_end uses far_kappa when it is set. */
-static void test_walk_far_kappa(void)
-{
-    pp_reference_line_t ref;
-    pp_ref_walker_t w;
-    pp_ref_point_t p;
-    (void)memset(&ref, 0, sizeof(ref));
-    ref.valid = true;
-    ref.centre.c[2] = 0.001;                              /* kappa 0.002 */
-    ref.view_end = 20.0;
-    PP_CHECK_NEAR(pp_ref_end_kappa(&ref), 0.002, 1e-4);
-    ref.far_kappa_set = true;
-    ref.far_kappa = 0.0005;
-    pp_ref_walk_begin(&w, &ref, &p);
-    pp_ref_walk_to(&w, 10.0, &p);
-    PP_CHECK_NEAR(p.kappa, 0.002, 1e-4);                  /* within the view: the cubic */
-    pp_ref_walk_to(&w, 60.0, &p);
-    PP_CHECK_NEAR(p.kappa, 0.0005, 1e-12);                /* beyond: far_kappa */
-}
-
 static const pp_motion_t STILL = {0.0, 0.0, 0.0};
 
 static void test_jump_of_one_line_is_rejected(void)
@@ -269,6 +249,5 @@ int main(void)
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();
     test_walk_curve();
-    test_walk_far_kappa();
     return PP_TEST_RESULT();
 }

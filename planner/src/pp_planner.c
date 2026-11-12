@@ -354,28 +354,6 @@ static bool generate_hwa_qp(pp_state_t *s, const pp_reference_line_t *ref,
 }
 #endif
 
-#ifdef PP_T2_BEYOND_RATE
-/* PP-TS-014 V2: the arc beyond view_end follows the curvature at view_end at most
- * kappa_far_rate per second, so the extrapolated part of the path changes slowly. */
-static void limit_far_kappa(pp_state_t *s, double dt, pp_reference_line_t *ref)
-{
-    if (!ref->valid) {
-        s->far_kappa_valid = false;
-        return;
-    }
-    const double target = pp_ref_end_kappa(ref);
-    if (!s->far_kappa_valid) {
-        s->far_kappa = target;
-        s->far_kappa_valid = true;
-    } else {
-        const double step = (double)s->cal->kappa_far_rate * dt;
-        s->far_kappa += pp_clamp(target - s->far_kappa, -step, step);
-    }
-    ref->far_kappa = s->far_kappa;
-    ref->far_kappa_set = true;
-}
-#endif
-
 /* Ego-motion since the previous cycle, for the T2 memory and the T5 prior. */
 static bool cycle_motion(pp_state_t *s, uint64_t t0_us, pp_ego_motion_fn ego_motion,
                          void *context, pp_motion_t *motion)
@@ -427,6 +405,34 @@ static pp_lateral_state_t measure_lateral(const pp_reference_line_t *ref, double
     return state;
 }
 
+/* x up to which T4 keeps the path continuous: the observed range, or all of it while coasting. */
+static double continuity_limit(const pp_reference_line_t *ref)
+{
+    return (ref->valid && !ref->coasting) ? ref->view_end : INFINITY;
+}
+
+/* PP-SWR-018: time on the path where it leaves the view range of its reference line. */
+static float observed_horizon(const pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
+                              const pp_reference_line_t *ref)
+{
+    double horizon = 0.0;
+    if (ref->valid) {
+        horizon = (double)points[PP_TRAJECTORY_POINTS - 1U].time_from_start;
+        for (uint32_t k = 1U; k < PP_TRAJECTORY_POINTS; k++) {
+            const double x0 = (double)points[k - 1U].pose.x;
+            const double x1 = (double)points[k].pose.x;
+            if (x1 > ref->view_end) {
+                const double f = (x1 > x0) ? pp_clamp((ref->view_end - x0) / (x1 - x0), 0.0, 1.0) : 0.0;
+                const double t0 = (double)points[k - 1U].time_from_start;
+                horizon = (x0 > ref->view_end) ? t0
+                          : t0 + (f * ((double)points[k].time_from_start - t0));
+                break;
+            }
+        }
+    }
+    return (float)horizon;
+}
+
 static bool outside_boundary(const pp_lane_at_t0_t *lane, double confidence)
 {
     static const uint32_t indices[] = {PP_LINE_L2, PP_LINE_R2, PP_EDGE_LEFT, PP_EDGE_RIGHT};
@@ -445,7 +451,7 @@ static void finish_intervention_path(pp_state_t *s, const pp_speed_profile_t *sp
 {
     const double wheelbase = (double)s->vehicle.wheelbase;
     if (blend) {
-        (void)pp_stitch_blend(old, s->cal, wheelbase, out->points);
+        (void)pp_stitch_blend(old, s->cal, wheelbase, continuity_limit(&out->ref), out->points);
     }
     out->intervention_limited = pp_feasibility_limit(out->points, &out->samples, limits, &s->vehicle);
     pp_path_check_t check;
@@ -500,7 +506,6 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
     if (!forward) {
         pp_reference_memory_reset(&s->ref_mem);
         pp_curvature_reset(&s->curv);
-        s->far_kappa_valid = false;
         pp_qp_reset(&s->qp);
         pp_offset_reset(&s->offset);
         (void)memset(&s->edge_mem, 0, sizeof(s->edge_mem));
@@ -532,9 +537,6 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
         } else {
             pp_curvature_predict(&s->curv, moved ? since_last.dx : (v * dt), s->cal);
         }
-#ifdef PP_T2_BEYOND_RATE
-        limit_far_kappa(s, dt, &out->ref);                                  /* PP-TS-014 V2 */
-#endif
         pp_reference_line_t edges[PP_ROAD_EDGES] = {0};
         const pp_intervention_request_t *last_elk = &s->arbitration.intervention[PP_FUNCTION_ELK - 1U];
         const bool edge_handover = (last_elk->phase == PP_INTERVENTION_PHASE_ACTIVE)
@@ -644,7 +646,8 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
 #endif
             if (out->path_valid) {
                 const double wheelbase = (double)s->vehicle.wheelbase;
-                (void)pp_stitch_blend(&old, s->cal, wheelbase, out->points);  /* T4 steps 4, 5 */
+                (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
+                                      out->points);                                /* T4 steps 4, 5 */
                 (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
                                            &s->vehicle);                           /* T10 step 2 */
                 /* T10 steps 3, 4 on the larger of camera and fused curvature (safe side). */
@@ -710,8 +713,10 @@ void pp_step(void *state,
                 if (cycle.path_valid) {
                     (void)memcpy(outputs->trajectory.points, cycle.points,
                                  sizeof(outputs->trajectory.points));
+                    outputs->trajectory.observed_horizon_s = observed_horizon(cycle.points, &cycle.ref);
                 } else {
                     pp_output_empty_points(outputs->trajectory.points);
+                    outputs->trajectory.observed_horizon_s = 0.0F;
                 }
                 pp_stitch_remember(&s->prev_path, t0, cycle.path_valid,
                                    outputs->trajectory.points);                    /* for T4 */

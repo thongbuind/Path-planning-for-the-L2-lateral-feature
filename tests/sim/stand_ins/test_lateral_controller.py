@@ -52,7 +52,7 @@ def make_trajectory(pose_at, curvature_at=lambda t: 0.0, valid=True, stamp_us=ST
             front_wheel_angle_rad=0.0,
             rear_wheel_angle_rad=0.0,
         ))
-    return Trajectory(Header(stamp_us, 0, valid, FrameId.BASE_LINK), tuple(points))
+    return Trajectory(Header(stamp_us, 0, valid, FrameId.BASE_LINK), tuple(points), 3.0)
 
 
 def straight(offset_y=0.0):

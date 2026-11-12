@@ -322,6 +322,7 @@ class TrajectoryC(ctypes.Structure):
     _fields_ = [
         ("header", HeaderC),
         ("points", TrajectoryPointC * 31),
+        ("observed_horizon_s", ctypes.c_float),
     ]
 
 
@@ -374,7 +375,7 @@ FIELD_SPECS = {
     "LateralLimits": [("header", "struct", 'BasicHeader'), ("v_max", "scalar", None), ("distance", "scalar", None), ("lateral_limit_reached", "scalar", None)],
     "PathStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("active_function", "enum", 'ActiveFunction'), ("lka_phase", "enum", 'InterventionPhase'), ("elk_phase", "enum", 'InterventionPhase'), ("lateral_limit_reached", "scalar", None), ("lane_too_narrow", "scalar", None)],
     "TrajectoryPoint": [("time_from_start", "scalar", None), ("pose", "struct", 'Pose2D'), ("longitudinal_velocity_mps", "scalar", None), ("lateral_velocity_mps", "scalar", None), ("acceleration_mps2", "scalar", None), ("heading_rate_rps", "scalar", None), ("curvature", "scalar", None), ("front_wheel_angle_rad", "scalar", None), ("rear_wheel_angle_rad", "scalar", None)],
-    "Trajectory": [("header", "struct", 'Header'), ("points", "array_struct", 'TrajectoryPoint')],
+    "Trajectory": [("header", "struct", 'Header'), ("points", "array_struct", 'TrajectoryPoint'), ("observed_horizon_s", "scalar", None)],
     "PlannerInputs": [("t0_us", "scalar", None), ("lane_model", "received", "LaneModel"), ("object_list", "received", "ObjectList"), ("imu", "received", "ImuSignals"), ("steering", "received", "SteeringSignals"), ("speed", "received", "SpeedSignals"), ("vehicle_state", "received", "VehicleStateEstimate"), ("function_requests", "received", "FunctionRequests"), ("longitudinal_plan", "received", "LongitudinalPlan")],
     "PlannerOutputs": [("trajectory", "sent", 'Trajectory'), ("path_status", "sent", 'PathStatus'), ("lateral_limits", "sent", 'LateralLimits')],
 }

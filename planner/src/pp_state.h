@@ -42,8 +42,6 @@ typedef struct {
     bool has_prev_t0;               /* t0 of the previous cycle, for ego-motion between cycles */
     uint64_t prev_t0_us;
     pp_curvature_t curv;            /* T5 estimate */
-    bool far_kappa_valid;           /* PP-TS-014 V2: rate-limited curvature beyond the view */
-    double far_kappa;               /* [1/m] */
     bool t5_has_stamp;              /* Capture stamp of the last frame T5 used */
     uint64_t t5_stamp_us;
     pp_qp_ws_t qp;                  /* T7 technique C: warm start between cycles */

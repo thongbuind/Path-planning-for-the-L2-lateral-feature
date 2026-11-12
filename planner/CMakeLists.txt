@@ -32,29 +32,12 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
-# PP-TS-014: T4 blend with one lambda for the whole path (single) or one per point (per_time);
-# reference line beyond the view range on the last curvature (arc) or on a rate-limited one.
-set(PP_T4_BLEND "single" CACHE STRING "T4 blend: single or per_time")
-set_property(CACHE PP_T4_BLEND PROPERTY STRINGS single per_time)
-if(PP_T4_BLEND STREQUAL "per_time")
-    list(APPEND PP_T7_DEFINES PP_T4_PER_TIME)
-elseif(NOT PP_T4_BLEND STREQUAL "single")
-    message(FATAL_ERROR "PP_T4_BLEND must be single or per_time, got ${PP_T4_BLEND}")
-endif()
-set(PP_T2_BEYOND "arc" CACHE STRING "Reference line beyond the view range: arc or rate_limited")
-set_property(CACHE PP_T2_BEYOND PROPERTY STRINGS arc rate_limited)
-if(PP_T2_BEYOND STREQUAL "rate_limited")
-    list(APPEND PP_T7_DEFINES PP_T2_BEYOND_RATE)
-elseif(NOT PP_T2_BEYOND STREQUAL "arc")
-    message(FATAL_ERROR "PP_T2_BEYOND must be arc or rate_limited, got ${PP_T2_BEYOND}")
-endif()
-
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -DT4=${PP_T4_BLEND} -DT2=${PP_T2_BEYOND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()")
 

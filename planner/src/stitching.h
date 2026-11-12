@@ -78,10 +78,12 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
 
 /*
  * Step 4: sent path = old + lambda (candidate - old), lambda from the largest lateral,
- * heading and curvature difference on the common time span. Changes `points` in place
+ * heading and curvature difference on the common time span, at the points with x <= x_limit
+ * (end of the lane model view range; INFINITY while coasting). Changes `points` in place
  * and returns lambda; 1 when the old path is not valid (step 5).
  */
 double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
+                       double x_limit,
                        pp_trajectory_point_t points[PP_TRAJECTORY_POINTS]);
 
 #endif /* PP_STITCHING_H */

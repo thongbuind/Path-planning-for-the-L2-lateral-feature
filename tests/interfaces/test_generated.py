@@ -33,14 +33,14 @@ def _point():
 
 def test_array_length_is_checked():
     header = I.Header(0, 0, True, I.FrameId.BASE_LINK)
-    I.Trajectory(header, [_point()] * 31)
+    I.Trajectory(header, [_point()] * 31, 3.0)
     with pytest.raises(ValueError):
-        I.Trajectory(header, [_point()] * 30)
+        I.Trajectory(header, [_point()] * 30, 3.0)
 
 
 def test_list_is_stored_as_tuple():
     header = I.Header(0, 0, True, I.FrameId.BASE_LINK)
-    assert isinstance(I.Trajectory(header, [_point()] * 31).points, tuple)
+    assert isinstance(I.Trajectory(header, [_point()] * 31, 3.0).points, tuple)
 
 
 @pytest.mark.parametrize("counter", [-1, 256, True, 1.0])
