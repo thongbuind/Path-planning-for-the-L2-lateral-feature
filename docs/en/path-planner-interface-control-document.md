@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-ICD` |
-| Version | 1.7 |
+| Version | 1.9 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
@@ -103,13 +103,14 @@ The source defines the interfaces once in `interfaces/schema/`. These definition
 - Markings for three lanes (ego, left, and right) and road edges on both sides, in `base_link` at camera capture time.
 - `lines[4]` is always ordered L2, L1, R1, R2. L1 and R1 bound the ego lane; L2 and R2 are the outer markings of the left and right lanes. `road_edges[2]` is ordered left, right.
 - For each marking and road edge: y(x) = c0 + c1·x + c2·x² + c3·x³, κ ≈ 2·c2, within the range actually observed.
-- Lane Model reports the actual `status` of each marking and does not reconstruct ego-lane markings from adjacent-lane markings.
+- Lane Model reports the actual `status` of each marking and does not synthesize ego-lane markings from adjacent-lane markings.
+- Each marking and road edge reports its own view range, which can change with each frame. The planner accepts any `view_range_end > view_range_start` and uses at most 126 m. It ignores the portion beyond 126 m and still treats the input as valid (PP-SWR-017).
 
 | Field | Type [unit] | Meaning |
 |---|---|---|
 | `lines[4].c0` … `c3` | float32 [m], [-], [1/m], [1/m²] | Polynomial coefficients |
 | `lines[4].variance` | float32[4] | Variances of c0 … c3 |
-| `lines[4].view_range_start`, `view_range_end` | float32 [m] | Observed range |
+| `lines[4].view_range_start`, `view_range_end` | float32 [m] | Observed range along x in `base_link` |
 | `lines[4].confidence` | float32 [0..1] | Confidence |
 | `lines[4].type` | uint8 enum { DASHED, SOLID, DOUBLE, UNKNOWN } | Type of painted marking |
 | `lines[4].crossable` | bool | Whether crossing is permitted from the vehicle's side, including combined dashed and solid double markings |
@@ -237,6 +238,7 @@ The timestamp is the estimation time.
 | `points[31].curvature` | float32 [1/m] | Curvature |
 | `points[31].front_wheel_angle_rad` | float32 [rad] | Suggested front wheel angle for feedforward |
 | `points[31].rear_wheel_angle_rad` | float32 [rad] | Always 0 |
+| `observed_horizon_s` | float32 [s] | Time along the path when it leaves the view range reported by the lane model. Beyond this time the path is extrapolated and can be discontinuous between cycles (PP-SWR-018, PP-ASM-021) |
 
 ### 6.2 PathStatus {#path-status}
 
@@ -273,3 +275,5 @@ When an intervention is canceled, that function's phase returns to NONE. One Pat
 | 1.5 | 2026-11-11 | Updated the PathStatus `lateral_limit_reached` references for Software Requirements Specification 1.3 |
 | 1.6 | 2026-11-11 | Added `pp_version` to the call contract for build identification |
 | 1.7 | 2026-11-12 | Section 5.6 uses `ROAD_EDGE` to select the ELK boundary source. Section 6.2 separates the LKA and ELK phases in PathStatus |
+| 1.8 | 2026-11-12 | Section 5.1 specifies the view range for each marking and road edge. The planner accepts all valid view ranges and uses at most 126 m (PP-SWR-017) |
+| 1.9 | 2026-11-12 | Section 6.1 adds `observed_horizon_s` to Trajectory |

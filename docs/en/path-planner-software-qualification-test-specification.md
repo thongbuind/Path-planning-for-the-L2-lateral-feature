@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SQTS` |
-| Version | 1.15 |
+| Version | 1.19 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
@@ -11,7 +11,8 @@
 
 ## 1. Purpose and scope {#test-scope}
 
-- **Purpose.** Specify how to verify the path planner: simulation environment, test cases, fault injection, pass criteria, metrics, calibration selection, and technique comparison.
+- **Purpose.** Specify how to verify the path planner, covering the simulation environment, test cases, fault injection, pass criteria, severity, metrics, calibration selection, and comparisons of techniques and planners.
+- **Additional checks.** Check planner conformance to the call contract and verify the evaluator with deliberately faulty planner stubs.
 - **Scope.** Black-box testing against the Software Requirements Specification: pass or fail for requirements, measurement and ranking for performance targets, and flexibility across vehicles.
 - **Out of scope.** Planner unit tests and real-vehicle testing. There are no logs from real vehicles; all tests run in the simulator.
 
@@ -26,10 +27,13 @@
 | Euro NCAP LSS Test Protocol v4.3 | Test speed of 72 km/h, drift along an arc of R = 1200 m, v_lat of 0.2–0.6 m/s |
 | Bosch SMI230 (2018 product brief) | IMU noise and bias levels |
 | ISO 15622:2018 | ACC stub |
-| Published specifications for VinFast VF 3, VF 6, VF 8, VF 9 | Vehicle profiles (Section 4.4) |
 | UN R79 Annex 8, UN R171 Annex 4, EU 2021/646 Annex I Part 2, Euro NCAP Assessment Protocol SA v10.4.1 | Tests specified in these documents (Section 5.1). Local copies are in `docs/reference/standards/` |
+| Euro NCAP Assessment Protocol SA v10.4.1, Sections 4.3.2 and 4.3.3.6 | LSS score (Section 9.2) |
+| ISO 21448:2022 | Limits of the conclusion given unknown hazardous situations (Sections 3, 8.4) |
+| ISO 26262-8:2018, Section 11 | Confidence in software tools, applied to evaluator checks (Section 12) |
 | Menzel, Bagschik, Maurer, Scenarios for Development, Test and Validation of Automated Vehicles, IEEE IV 2018 (PEGASUS) | Three scenario levels: functional, logical, and concrete (Section 5.2) |
 | ASAM OpenSCENARIO XML 1.x, ASAM OpenDRIVE 1.x | Logical scenario and road formats (Section 5.2) |
+| Published specifications for VinFast VF 3, VF 6, VF 8, VF 9 | Vehicle profiles (Section 4.4) |
 
 ## 3. Test principles {#test-principles}
 
@@ -39,6 +43,8 @@
 - **No test-specific behavior.** Add new cases only on the test side. If a case fails, fix the planner's general mechanism and rerun the entire suite.
 - **Complete, reproducible reporting.** Report all scenarios and seeds, including the worst case. Include the code version, scenario file, and seed with each result.
 - **Priorities.** Safety first, then regulatory compliance, driver experience, and computation time. Measure actual vehicle motion relative to the actual lane.
+- **Limits of the conclusion.** The benchmark can show that a planner is blocked. A finding of no blocking failures applies only within the scope tested. Demonstrating safety requires evidence beyond this scope (ISO 21448).
+- **Learning from results.** The planner and test teams learn from each other through results, problem reports, logs, and requirements while keeping each side's implementation independent.
 
 ## 4. Test environment {#simulation-design}
 
@@ -116,7 +122,7 @@ The test system sets fault levels using datasheets or other documentation, indep
 
 | Channel | Generation | Level |
 |---|---|---|
-| Lane model | Transform visible lane geometry into `base_link` and fit a degree-3 polynomial to each marking across the three lanes and to each road edge. Inject faults per Section 6. Visible range is 0–80 m and capture-to-publish latency is 100 ms | With no fault, report σ_c0 = 0.03 m and σ_c1 = 0.002 (level F01 a). See Section 6 for fault levels |
+| Lane model | Transform visible lane geometry into `base_link` and fit a degree-3 polynomial to each marking across the three lanes and to each road edge. Inject faults per Section 6. Nominal view range is 0–80 m per marking. Fit each marking only over its observed segment. The scenario sets the start and end points, with Q4 sweeping end points from 10 to 126 m and F22 injecting view-range faults. Capture-to-publish latency is 100 ms | With no fault, report σ_c0 = 0.03 m and σ_c1 = 0.002 (level F01 a). See Section 6 for fault levels |
 | ObjectList | Transform scenario objects into `base_link` at the same period and latency as the lane model. Detection range is 150 m ahead and 80 m behind. `existence_probability` is 0.95 for real objects and 0.6 for ghost objects (team agreement) | σ_x = 0.2 m + 1% of distance, σ_y = 0.1 m + 0.5%, σ_vx = 0.3 m/s, σ_vy = 0.2 m/s, and size σ = 0.1 m. Miss detections in 2% of frames. Generate ghost objects at 0.05 per second for 0.2 s each. In rain, multiply σ by 1.5 |
 | Yaw rate | Clean in the main scenarios | Fault injection: σ = 0.07 or 0.14 °/s (0.02 °/s/√Hz × √12 or √50 Hz); bias 0.1 / 0.3 / 1 °/s |
 | a_x, a_y | Clean in the main scenarios; on a cross slope, still includes g·sin(slope angle) | Fault injection: σ = 0.004 or 0.008 m/s²; bias up to 0.2 m/s² |
@@ -129,7 +135,7 @@ Traffic travels in the direction of increasing or decreasing `s`. An oncoming ve
 
 Roads have dashed, solid, and double markings and fixed edges. LaneModel represents the edge of the marking or face of the barrier nearest the vehicle. For double markings, `crossable` follows the line nearest the vehicle. Absent boundaries are reported as LOST.
 
-IMU noise and bias follow the Bosch SMI230. These raw sensor values bound the filtered signals from above. The team set the noise levels for speed, steering angle, perception, and v_y. Nominal camera latency is 100 ms, below the 120 ms worst case of PP-ASM-001. Q1 sweeps other latencies. The team set the 80 m visible range.
+IMU noise and bias follow the Bosch SMI230. These raw sensor values bound the filtered signals from above. The team set the noise levels for speed, steering angle, perception, and v_y. Nominal camera latency is 100 ms, below the 120 ms worst case of PP-ASM-001. Q1 sweeps other latencies. The team set the 0–80 m view range pending measurements from the real camera (PP-ASM-020). A start point of 0 m is optimistic because the hood obscures the road close to the vehicle.
 
 ### 4.6 Lateral Controller and EPS stubs {#sim-controller}
 
@@ -169,6 +175,7 @@ The simulator's longitudinal module belongs to the test system and is fixed acro
 
 | Part | Specification | Source |
 |---|---|---|
+| HWA view-range condition | When enabled by the scenario (F22), scripted HWA leaves REQUEST for UNAVAILABLE if lookahead time for L1 and R1 stays below `t_view_hwa` for more than `t_view_hold`. It resumes automatically once the range is sufficient. Read speed from the speed signal | ADAS Function Specification Sections 7 and 13 (initial values) |
 | LKA and ELK stub | Compute DLC, TLC, intent, and hazards from the supplied signals. Publish FunctionRequests at 40 Hz. Read intervention results from PathStatus | ADAS Function Specification Sections 5–9 and 12, PP-ADR-014, PP-TS-008 |
 | Mode A | Read sensor messages after delay and fault injection. Compensate for motion since measurement with EgoMotionQuery. Use this mode to compare activation timing | Sections 4.1, 4.5 |
 | Mode B | Use the same 20 Hz lane and object sampling cadence. Take geometry and kinematics from the simulator without injecting errors into the stub's signals. Compensate for motion using the actual pose. Score the planner from the FunctionRequests it receives, ICD outputs, and ground truth | Sections 4.1, 4.5 |
@@ -281,6 +288,50 @@ Scenario-specific parameters (radius, v_lat, other vehicles, and so on) and thei
 | Regression | Anchors and boundaries, all profiles, two seeds | For each major planner change and before closing a trade study |
 | Full | All four selection methods, all profiles, ten seeds per cell with noise (Section 4.1) | Before each baseline |
 
+These suites define test depth. Section 5.3 defines the aspects tested. Each aspect can run at any of the three depths.
+
+### 5.3 Test suites by aspect {#benchmark-aspects}
+
+Each concrete case has two labels, difficulty and expected outcome. The test team assigns them using the Software Requirements Specification and the ADAS Function Specification. The aspect suites select cases by these labels.
+
+**Difficulty.** If a case fits several levels, use the highest.
+
+| Level | Case conditions | Examples |
+|---|---|---|
+| L0 | Inside the ODD, away from its limits, with no faults and required a_y ≤ aysmax | S1 (a), S4 (a) |
+| L1 | At least one parameter is at the limit of the ODD or function range, such as lane width, speed, vehicle width, or lookahead time | S19 (a) |
+| L2 | Inside the ODD, with required steering authority above the function's limit | S1b, S14 |
+| L3 | One fault from Section 6 | F01 to F22, Q1 to Q4 |
+| L4 | Fault combination from Section 6.2 | Night and rain case |
+| L5 | Outside the ODD or the function's operating range | Q4 with lookahead below `t_view_hwa` |
+
+**Expected outcome.** Record the code from the second column in the scenario.
+
+| Outcome | Code | Observable output |
+|---|---|---|
+| Drive | `drive` | Valid path for the function selected under PP-SWR-030 on every cycle, except where a requirement allows otherwise |
+| Drive with limits | `drive_limited` | Same as Drive, with flags set as required, including `lateral_limit_reached` (PP-SWR-007) and `lane_too_narrow` (PP-SWR-063) |
+| Refuse | `refuse` | Do not start the function (PP-SWR-047, 089, 146), or report `path_valid = false` and `active_function = NONE` within the required time (PP-SWR-124, 142 to 145) |
+
+Score both directions.
+
+- **Missed refusal.** If the planner keeps driving in a Refuse case, fail the case's requirement.
+- **Unnecessary refusal.** In a Drive or Drive with limits case, fail PP-SWR-030 if `active_function` differs from the function selected under PP-SWR-030 and none of the conditions in PP-SWR-124, 142 to 145 applies.
+
+**Aspects**
+
+| Suite | Question | Coverage |
+|---|---|---|
+| B0 Conformance | Does the planner satisfy the call contract? | Section 11. Run before any other suite. Uses no scenarios |
+| B1 Nominal | Does it drive correctly under nominal conditions? | L0 |
+| B2 Regulatory | Does it pass the protocol tests? | Protocol grid in Section 5.1 |
+| B3 Performance limit | Does it behave correctly at the ODD boundary and beyond steering authority limits? | L1, L2 |
+| B4 Robustness | Does it behave correctly under sensor, timing, and integrity faults? | L3, L4 |
+| B5 Degradation and refusal | Does it degrade and refuse at the right times while avoiding unnecessary refusals? | Drive with limits and Refuse cases, L5, and S10 |
+| B6 Comfort | Is the path smooth? | Driver experience performance targets (Section 8.2) on B1 cases |
+| B7 Flexibility | Does the same build and calibration work on all vehicles? | Section 8.3 |
+| B8 Compute | How long does the planner take to compute? | PP-SWR-016 on every case |
+
 ## 6. Fault injection {#benchmark-faults}
 
 Inject each fault at three times: during steady HWA operation, at LKA or ELK activation, and during an intervention. Fault timing follows frame capture time. The lane model sends no flag (PP-ASM-009). The Requirement column is generated as in Section 5.
@@ -308,16 +359,18 @@ Inject each fault at three times: during steady HWA operation, at LKA or ELK act
 | F19 | Timing | Future timestamp | a) lane model +5 ms; b) +15 ms; c) +50 ms; d) one frame at +50 ms; e) ObjectList +15 ms | PP-SWR-132 |
 | F20 | Ego-motion | Invalid result | a) once; b) continuously; c) every other cycle; d) as b, during LKA | PP-SWR-043, 143 |
 | F21 | Lane model | Both ego-lane markings lost, other boundaries remain | a) L2 and R2 remain, confidence ≥ `conf_inferred`. b) Only L2 remains. c) Only the right road edge outside the ego-lane corridor remains, for 5 s. d) As a, on a curve with R = 500 m. e) As a, with confidence between `conf_ego` and `conf_inferred` | PP-SWR-047, 050, 124 (e), 147 (a–d), 148 (a–d, closed loop) |
+| F22 | Lane model | Short or changing view range without a flag | Enable the HWA view-range condition (Section 4.8). Ego vehicle travels at 25 m/s. a) All markings shortened to 30 m for 0.5 s, below `t_view_hold`, so HWA remains in control. b) Only R1 shortened to 30 m until the run ends. c) All markings shortened to 30 m for 2 s on curve entry. d) Alternate 30 m and nominal range each frame for 2 s. e) Report 150 m using the same polynomial for 1 s on curve entry, extrapolating beyond the observed segment. f) All markings shortened to 15 m for 3 s (0.6 s lookahead). HWA leaves REQUEST after `t_view_hold` and then returns | PP-SWR-017 (e), 042 (f), 050, 149 (a, b, c, d, e, f, closed loop) |
 
-### 6.1 Latency sweeps
+### 6.1 Latency and view-range sweeps
 
-Actual latency is unknown (mentor), so sweep multiple levels. Change latency only in the simulator; keep the planner configuration fixed.
+Actual latency (mentor) and view range (PP-ASM-020) are unknown, so sweep multiple levels. Vary only simulator settings and keep the planner configuration fixed.
 
 | ID | Sweep | Levels | Requirement |
 |---|---|---|---|
 | Q1 | Camera latency (lane model, objects) | 0 / 50 / 100 / 150 / 200 / 300 ms, each with ±20 ms jitter | PP-SWR-012, 013, 131 (300 ms), 133 (200 ms) |
 | Q2 | Filtered yaw-rate latency not reported to the planner | 0 / 25 / 50 / 100 ms | PP-SWR-138 (0–50 ms, closed loop) |
 | Q3 | FunctionRequests latency | 20 / 40 / 60 ms | PP-SWR-038 |
+| Q4 | Camera view range | End points 10 / 20 / 40 / 80 / 126 m and start points 0 / 5 / 10 m. Run on S1 (a, c, f) and S14 (a, e). Include lookahead times below `t_view_hwa` to evaluate the algorithm's capability. Run `python3 -m eval.matrix Q4` | PP-SWR-017, 050, 151 |
 
 ### 6.2 Fault combinations
 
@@ -357,7 +410,8 @@ A requirement passes when it passes in every scenario, variant, seed, and profil
 | `lane_too_narrow` in a narrow lane | When actual free space on each side is < `free_space_min`, measure the fraction of valid-path cycles reporting `lane_too_narrow` | = 1 | PP-SWR-063 |
 | a_y, added a_y, jerk | Measure on Trajectory for the function in control. Compute required a_y from actual lane curvature at the path point. Average jerk over 0.5 s | Per PP-SWR-001, 003, 110 to 115 | PP-SWR-001, 003, 110 to 115 |
 | Wheel angle and steering wheel rate | On the path | Per the profile's VehicleConfig | PP-SWR-116, 117 |
-| Continuity | Differences in lateral position, heading, and curvature between consecutive paths, every cycle | ≤ 0.05 m; ≤ 0.005 rad; ≤ 0.0003 1/m | PP-SWR-100 to 102 |
+| Continuity | Differences in lateral position, heading, and curvature between consecutive paths every cycle. Evaluate the new path within the reported lane model view range, transforming to t0 using actual vehicle motion. If no lane model is available, use the entire path | ≤ 0.05 m, ≤ 0.005 rad, ≤ 0.0003 1/m | PP-SWR-100 to 102 |
+| Observed horizon | Compare `observed_horizon_s` with the time when the path leaves the reported lane model view range, on every cycle with a valid path and a lane model | ≤ 0.1 s | PP-SWR-018 |
 | Intervention duration | From REQUEST to COMPLETED or cancellation | ≤ 10 s | PP-SWR-083 |
 | Start of the intervention path | At the start tick, compare rear-axle position and v_lat with ground truth in the lane frame | ≤ 0.1 m and ≤ 0.1 m/s | PP-SWR-080 |
 | Completion | At each tick, track DLC, front-axle v_lat, body heading relative to the lane, and added a_y of the path in use | Report COMPLETED for the correct function on the tick when `T_end_hold` is met | PP-SWR-032, 090 |
@@ -408,7 +462,32 @@ Also report measurements during HWA control per R79 Annex 8, 2.4. Measure a_y at
 - **Score.** (1) Requirement pass rate per profile, which must be 100 % on all profiles. (2) Variation of each performance target across profiles: maximum, minimum, and worst profile.
 - **Presentation.** Profile × metric table, marking the worst profile for each metric.
 
-## 9. Ranking and technique comparison {#test-ranking}
+### 8.4 Severity and verdict {#benchmark-severity}
+
+Derive the severity of each failure from the Software Requirements Specification Type column.
+
+| Severity | Applies to | Rationale |
+|---|---|---|
+| BLOCKER | Requirements of type Safety or with a safety goal, requirements of type Interface, failures of C1 or C2 (Section 11), and planner execution failures | A safety goal is violated or the receiver cannot use the output |
+| MAJOR | Requirements of type Regulatory without a safety goal | Fails type approval |
+| MINOR | Requirements of type Functional without a safety goal | Incorrect function behavior without a safety goal violation |
+| — | Performance targets | Measure and rank only (Section 8.2) |
+
+- One failure on any case, profile, or seed suffices, as in Section 8.1.
+- Planner execution failures include a process stopping during `pp_init` or `pp_step`, a call failing to return, and NaN or infinity in the output. Report simulator and evaluator errors separately and leave the affected case unscored.
+
+| Verdict | When |
+|---|---|
+| Blocked | At least one BLOCKER failure |
+| Fails approval | No BLOCKER failures and at least one MAJOR failure |
+| No blocking failures found within the tested scope | No BLOCKER or MAJOR failures |
+
+- Set the Integration-ready flag if C3 passes (Section 11).
+- Limit the report's verdict to the tested scope (Section 3).
+
+## 9. Ranking and comparison {#test-ranking}
+
+### 9.1 Comparing techniques within one planner {#technique-comparison}
 
 | Step | Criterion |
 |---|---|
@@ -422,10 +501,49 @@ Also report measurements during HWA control per R79 Annex 8, 2.4. Measure a_y at
 - Report results in a comparison table and reject at least one technique with a quantitative rationale (assignment).
 - Python computation time is for comparing techniques only and does not establish that a technique can run on an ECU.
 
+### 9.2 Comparing planners {#planner-comparison}
+
+- Include every planner submitted as a C library that passes C1 and C2 (Section 11).
+- Compare the planners directly against each other.
+- Run every planner with the same benchmark version, concrete cases, profiles, and seeds.
+
+| Tier | Measure | Ranking |
+|---|---|---|
+| 1 | Verdict from Section 8.4 | Rank no blocking failures found first, followed by Fails approval and Blocked. Among blocked planners, fewer failed BLOCKER requirements ranks higher |
+| 2 | Euro NCAP LSS score and pass rates for MAJOR and MINOR requirements | Higher Euro NCAP score first. Break ties with the higher mean pass rate |
+| 3 | Performance targets in the four groups from Section 9.1, steps 2 to 5 | Pairwise win score within each group. Proceed to the next group only on a tie |
+
+**Euro NCAP LSS score** (Euro NCAP SA v10.4.1, Sections 4.3.2, 4.3.3.6).
+
+| Test | Scenario | Points |
+|---|---|---|
+| LKA with a dashed marking | S4 | 0.25 |
+| LKA with a solid marking | S4 | 0.25 |
+| ELK with only a road edge | S6 | 0.25 |
+| ELK with a dashed center marking and no marking at the road edge | S6 | 0.25 |
+| ELK with a solid marking | S5 | 0.50 |
+| ELK with an oncoming vehicle | S7 | 0.50 |
+| ELK with an overtaking vehicle | S8 | 0.50 |
+
+- Award the points for a row when every corresponding case in the protocol grid (Section 5.1) meets the protocol criteria, as in Euro NCAP's scoring by combination.
+- Score each profile separately. Use the lowest profile score as the planner score, with one calibration set across vehicles.
+- Scoring eligibility conditions (ESC and default ELK enablement) and HMI points are the responsibility of other modules and are outside this scoring scope.
+
+**Pass rate.** For each requirement, divide passing runs by runs that score the requirement. Average across requirements with equal weights.
+
+**Pairwise win score**
+
+- Pair runs by concrete case, profile, and seed. For flexibility, pair by concrete case and seed and use the variation across profiles.
+- For each performance target and pair of planners, compute the difference for each matched unit in the preferred direction specified in Section 8.2.
+- Planner A beats B when the 95% confidence interval for the mean difference lies entirely in the direction favoring A. Bootstrap the paired units with 10 000 resamples and a fixed seed (team agreement). Otherwise record a tie.
+- A planner's score in a group is wins minus losses across all metrics in that group and all other planners (Copeland's method). Metrics have equal weight.
+
 ## 10. Results presentation {#test-reporting}
 
 | Type | Contents |
 |---|---|
+| Verdict | At the start of the report, give the verdict from Section 8.4 and the Integration-ready flag. For Blocked, list every BLOCKER failure with its requirement ID, safety goal, case ID, profile, seed, first failure time, and MCAP file |
+| Planner comparison | Report the verdict, Euro NCAP score, pass rate, pairwise win score per group, and absolute values for all metrics (Section 9.2) |
 | Summary table | One row per technique: requirement pass or fail and worst value of each performance target across all seeds |
 | Time series | d(t) of the path and vehicle with both lane boundaries; a_y; jerk; function in control; timing of function transitions and fault injection |
 | Continuity | Differences between consecutive paths by cycle, with threshold lines |
@@ -433,6 +551,36 @@ Also report measurements during HWA control per R79 Annex 8, 2.4. Measure a_y at
 | Latency sweep | Metric by latency level, one curve per technique |
 | Flexibility | Profile × metric table |
 | Computation time | Histogram with p95 and p99 |
+
+## 11. Planner conformance {#planner-conformance}
+
+- A planner under test is a C11 library conforming to `interfaces/c/pp_planner.h` (Interface Control Document Section 4, PP-ADR-013). The test team receives the built library and its `pp_version` string.
+- Suite B0 checks what can be observed through the call contract. Algorithms, internal state, code structure, and MISRA compliance are outside its scope.
+
+| Level | Check | Source | On failure |
+|---|---|---|---|
+| C1 API | Export `pp_state_size`, `pp_init`, `pp_step`, and `pp_version`. Build with `pp_types.h` from the same schema version. Struct sizes and layouts match the generated header. The planner runs with state memory aligned to `PP_STATE_ALIGNMENT` | Interface Control Document Section 4 | Blocked. Skip other suites |
+| C2 Contract | `pp_init` does not return OK when VehicleConfig is missing or out of range. In that case no cycle publishes Trajectory. Each `pp_step` fills every output. Counters, timestamps, enum values, array sizes, and the 31 points over 0–3 s follow the Interface Control Document. Outputs contain no NaN or infinity. Missing inputs, `valid = false`, or values at the ends of a range do not stop the planner. `pp_version` returns a stable string with the version, commit, and calibration set ID | Interface Control Document Sections 4, 6. PP-SWR-010, 011, 014, 146 | Blocked. Skip other suites |
+| C3 Integration | The same input sequence produces bitwise identical output. Two interleaved instances give the same output as separate runs. The planner stays within its state memory, checked with guard bytes at each end. The symbol table contains no dynamic allocation, file reads, or system clock reads | Interface Control Document Section 4, PP-ADR-013 | Run other suites and leave the Integration-ready flag unset |
+
+## 12. Evaluator checks {#evaluator-check}
+
+- The benchmark is a verification tool, so it must demonstrate that it detects faults (ISO 26262-8:2018, Section 11).
+- The test team maintains a set of deliberately faulty planner stubs. Each is a C library implementing `pp_planner.h` with one deliberate defect.
+- Use the benchmark only when it reports the expected requirement and severity for every stub below. Additional failures do not affect this check.
+- Rerun the faulty planner stubs after any change to `sim/`, `eval/`, or `benchmark/`.
+
+| ID | Deliberate defect | Expected finding |
+|---|---|---|
+| PM-01 | Add a 0.1 m lateral jump to the path every 40 cycles | PP-SWR-100, BLOCKER |
+| PM-02 | Leave a_y unconstrained by aysmax | PP-SWR-001, BLOCKER |
+| PM-03 | Keep `path_valid = true` when ego-motion is invalid | PP-SWR-143, BLOCKER |
+| PM-04 | Always set `path_valid = false` when HWA is in REQUEST | PP-SWR-030 (unnecessary refusal), BLOCKER |
+| PM-05 | Leave the PathStatus counter unchanged | C2 (PP-SWR-014), BLOCKER |
+| PM-06 | Publish Trajectory even when `pp_init` reports invalid VehicleConfig | C2 (PP-SWR-146), BLOCKER |
+| PM-07 | Store state in a global variable | C3 |
+| PM-08 | Write beyond the end of state memory | C3 |
+| PM-09 | Read the system clock | C3 |
 
 ## Appendix A. Data sources {#test-appendix}
 
@@ -461,3 +609,7 @@ Also report measurements during HWA control per R79 Annex 8, 2.4. Measure a_y at
 | 1.13 | 2026-11-11 | Section 4 adds driver, traffic, road boundaries, and a two-mode LKA and ELK stub. Section 8 adds the DLC window, DTLE geometry, missing-intervention cases, and closed-loop LKA and ELK metrics |
 | 1.14 | 2026-11-12 | F21(c) uses a road edge outside the ego-lane corridor per PP-SWR-047 and PP-TS-007 |
 | 1.15 | 2026-11-12 | Specified driver input, target vehicles, S4–S8 anchors, and the protocol grids. Added measurement windows, completion conditions, and the late ELK REQUEST case |
+| 1.16 | 2026-11-12 | Section 4.5 specifies separate view ranges and scenario-controlled start and end points for each marking. Section 6 adds F22 (view-range fault) and Q4 (view-range sweep) |
+| 1.17 | 2026-11-12 | Section 4.8 adds the HWA view-range condition to the simulator. Section 6 enables it for F22, sets 30 m for variant b, adds variant f (HWA hands back control and then resumes), and runs Q4 through `eval.matrix` |
+| 1.18 | 2026-11-12 | Section 5.3 adds aspect suites B0–B8, difficulty labels L0–L5, expected outcomes, and scoring in both directions. Section 8.4 adds severity and verdicts. Section 9 separates technique comparison (9.1) from planner comparison (9.2). Section 10 puts the verdict at the start of the report. Section 11 adds planner conformance. Section 12 checks the evaluator with faulty planner stubs |
+| 1.19 | 2026-11-12 | Section 8.1 scores continuity within the reported lane model view range (Software Requirements Specification 1.9) and adds the `observed_horizon_s` metric (PP-SWR-018) |
