@@ -25,6 +25,15 @@ from dataclasses import dataclass, field, replace
 from math import atan2, cos, sin, tan
 
 from interfaces import (
+    TRAJECTORY_POINTS,
+    BasicHeader,
+    FrameId,
+    Header,
+    InterventionPhase,
+    Pose2D,
+    TrajectoryPoint,
+    FUNCTION_REQUESTS_MAX_AGE_US,
+    FUNCTION_REQUESTS_TIMEOUT_US,
     PLANNER_PERIOD_US,
     PATH_STATUS_TIMEOUT_US,
     ActiveFunction,
@@ -46,7 +55,14 @@ from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, 
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
 from interfaces.inputs.object_list import OBJECT_LIST_MAX_AGE_US, OBJECT_LIST_TIMEOUT_US
 from interfaces.inputs.vehicle_state import VEHICLE_STATE_MAX_AGE_US, VEHICLE_STATE_TIMEOUT_US
+import numpy as np
+
+from sim.can.frames import CanReceiver, CanSender
+from sim.faults.channel import ChannelFaultInjector
+from sim.faults.ego_motion import EgoMotionFaults
 from sim.faults.lane import LaneFaultInjector
+from sim.faults import sensor as sensor_faults
+from sim.runtime.clock import clocks
 from sim.messages import DriverSignals, SteeringRequest
 from sim.runtime.channel import Channel
 from sim.runtime.scheduler import STEP_US, Scheduler
@@ -91,6 +107,46 @@ class PlannerCycle:
     lane_view: tuple[int, float] | None = None
     function_requests: Received[FunctionRequests] | None = None
     lane_view_reported: float | None = None  # Range end of L1, R1 as the lane model sent it [m]
+    # Whether each input given to the planner was usable at t0 by the receiving checks of the
+    # Interface Control Document 4 (received, valid, within timeout and maximum age); the lane
+    # model also needs one line or road edge not LOST. For the scoring of PP-SWR-030.
+    inputs_ok: dict[str, bool] | None = None
+    t0_local_us: int | None = None  # t0 on the ADAS ECU clock, as the planner got it
+    # (stamp_us, rx_us, valid) of each input as the planner got it, ADAS ECU clock
+    input_times: dict[str, tuple[int, int, bool]] | None = None
+    # (status, confidence) of lines L2, L1, R1, R2 and the left and right road edges given to the
+    # planner, for "biên làn đủ tin" (Software Requirements Specification 4); None: no lane model
+    lane_boundaries: tuple[tuple[LineStatus, float], ...] | None = None
+
+
+FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132: a stamp up to 10 ms ahead stays usable
+
+
+def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int | None = None):
+    """As _fresh, but a stamp up to FUTURE_STAMP_TOLERANCE_US in the future is accepted."""
+    if rx is None or not 0 <= now_us - rx.rx_us <= timeout_us or not rx.message.header.valid:
+        return None
+    age = now_us - rx.message.header.stamp_us
+    if age < -FUTURE_STAMP_TOLERANCE_US or max_age_us is not None and age > max_age_us:
+        return None
+    return rx.message
+
+
+def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
+    now = inputs.t0_us
+    _fresh = _usable
+    lane = _fresh(inputs.lane_model, now, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
+    return {
+        "lane_model": lane is not None,  # received, valid, in time; boundaries judged by eval
+        "object_list": _fresh(inputs.object_list, now, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US) is not None,
+        "imu": _fresh(inputs.imu, now, IMU_TIMEOUT_US) is not None,
+        "steering": _fresh(inputs.steering, now, STEERING_TIMEOUT_US) is not None,
+        "speed": _fresh(inputs.speed, now, SPEED_TIMEOUT_US) is not None,
+        "vehicle_state": _fresh(inputs.vehicle_state, now, VEHICLE_STATE_TIMEOUT_US,
+                                VEHICLE_STATE_MAX_AGE_US) is not None,
+        "function_requests": _fresh(inputs.function_requests, now, FUNCTION_REQUESTS_TIMEOUT_US,
+                                    FUNCTION_REQUESTS_MAX_AGE_US) is not None,
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -128,6 +184,9 @@ class RunLog:
     yaw_rate: list[float] = field(default_factory=list)
     adas: list[AdasComparison] = field(default_factory=list)
     actuator_delay_s: float = 0.0
+    # Per channel fault of the scenario, in its order: indices of the messages it made unusable
+    fault_hits: list[list[int]] = field(default_factory=list)
+    can_stats: dict | None = None  # frames dropped and lost per frame ID, CAN receive layer
 
 
 def _ego_view_end(lane: LaneModel) -> float | None:
@@ -187,6 +246,24 @@ class Harness:
         self.chassis = ChassisSensors()
         self.estimator = StateEstimator()
         self.ego_motion = EgoMotion()
+        # Faults beyond the lane model (Software Qualification Test Specification 6). Every
+        # stream is drawn in a fixed order whatever the faults, so adding one changes no other draw.
+        base = self.rngs["faults"]
+        self._channel_rng = np.random.default_rng(int(base.integers(0, 2**63)))
+        nominal_rng = np.random.default_rng(int(base.integers(0, 2**63)))
+        chassis_rng = self.rngs["chassis"]
+        signal_rngs = {sig: np.random.default_rng(int(chassis_rng.integers(0, 2**63)))
+                       for sig in ("yaw_rate", "accel_x", "accel_y", "speed", "steering_angle")}
+        signal_rngs["lateral_velocity"] = self.rngs["state_estimator"]
+        nominal = sensor_faults.nominal(nominal_rng)
+        self.sensor_errors = sensor_faults.SensorErrors(
+            scenario.sensor_faults + (nominal if scenario.realism else ()), signal_rngs)
+        self.clocks = clocks(seed, scenario.realism, scenario.clock_faults)
+        self._ideal_clocks = all(c.ideal for c in self.clocks.values())
+        self.ego_faults = EgoMotionFaults(scenario.ego_motion_faults)
+        self.can = scenario.can_bus or scenario.realism
+        self._can_tx, self._can_rx = CanSender(), CanReceiver()
+        self._open_counter = 0
         hwa_request_us = None if scenario.hwa_request_s is None else round(scenario.hwa_request_s * 1e6)
         self.function_requests = ScriptedFunctionRequests(hwa_request_us, scenario.request_events)
         # ADAS Function Specification 7: HWA leaves REQUEST when the preview stays too short.
@@ -214,29 +291,48 @@ class Harness:
 
         camera_us = round(scenario.camera_latency_ms * 1000)  # Software Qualification Test Specification 4.5, Q1
         jitter_us = round(scenario.camera_jitter_ms * 1000)
+        receive = self._can_rx.decode if self.can else restamp
+        self._injectors: dict[str, ChannelFaultInjector] = {}
+
+        def faults(name: str):
+            mine = tuple(f for f in scenario.channel_faults if f.channel == name)
+            if not mine:
+                return None
+            self._injectors[name] = ChannelFaultInjector(mine, self._channel_rng)
+            return self._injectors[name]
+
         self.ch = {
             "lane_model": Channel("lane_model", latency_us=camera_us, jitter_us=jitter_us,
-                                  rng=self.rngs["latency"]),
+                                  rng=self.rngs["latency"], faults=faults("lane_model")),
             "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
-                                   rng=self.rngs["latency"]),
-            "imu": Channel("imu", on_deliver=restamp),
-            "steering": Channel("steering", on_deliver=restamp),
-            "speed": Channel("speed", on_deliver=restamp),
-            "vehicle_state": Channel("vehicle_state"),
+                                   rng=self.rngs["latency"], faults=faults("object_list")),
+            "imu": Channel("imu", on_deliver=receive, faults=faults("imu")),
+            "steering": Channel("steering", on_deliver=receive, faults=faults("steering")),
+            "speed": Channel("speed", on_deliver=receive, faults=faults("speed")),
+            "vehicle_state": Channel("vehicle_state", faults=faults("vehicle_state")),
             "function_requests": Channel("function_requests",
-                                         latency_us=round(scenario.function_requests_latency_ms * 1000)),
-            "longitudinal_plan": Channel("longitudinal_plan"),
+                                         latency_us=round(scenario.function_requests_latency_ms * 1000),
+                                         faults=faults("function_requests")),
+            "longitudinal_plan": Channel("longitudinal_plan", faults=faults("longitudinal_plan")),
+            "open_trajectory": Channel("open_trajectory"),
+            "open_status": Channel("open_status"),
             "trajectory": Channel("trajectory"),
             "lateral_limits": Channel("lateral_limits"),
             "path_status": Channel("path_status"),
             "steering_request": Channel("steering_request"),
         }
-        self.ch["imu"].subscribers.append(lambda m, rx: self.ego_motion.on_yaw_rate(m.yaw_rate_rps, rx))
-        self.ch["speed"].subscribers.append(lambda m, rx: self.ego_motion.on_speed(m.speed_mps, rx))
+        # Ego-motion integrates the valid chassis signals and v_y as received (4.5).
+        self.ch["imu"].subscribers.append(
+            lambda m, rx: m.header.valid and self.ego_motion.on_yaw_rate(m.yaw_rate_rps, rx))
+        self.ch["speed"].subscribers.append(
+            lambda m, rx: m.header.valid and self.ego_motion.on_speed(m.speed_mps, rx))
         self.ch["vehicle_state"].subscribers.append(
-            lambda m, rx: self.ego_motion.on_lateral_velocity(m.lateral_velocity, rx))
-        self.ch["trajectory"].subscribers.append(self.controller.on_trajectory)
-        self.ch["path_status"].subscribers.append(self.controller.on_path_status)
+            lambda m, rx: m.header.valid and self.ego_motion.on_lateral_velocity(m.lateral_velocity, rx))
+        # Open loop (4.1): the controller follows a predefined path, not the planner's.
+        path_ch, status_ch = ("open_trajectory", "open_status") if scenario.loop == "open" else (
+            "trajectory", "path_status")
+        self.ch[path_ch].subscribers.append(self.controller.on_trajectory)
+        self.ch[status_ch].subscribers.append(self.controller.on_path_status)
         self.ch["steering_request"].subscribers.append(self.eps.on_request)
         if self.acc is not None:
             self.ch["lateral_limits"].subscribers.append(self.acc.on_lateral_limits)
@@ -349,10 +445,11 @@ class Harness:
         x, y, yaw = self.vehicle.rear_axle()
         pose = CameraPose(x, y, yaw, self._s_hint)
         msg = self.camera.capture(now_us, pose, self.lane_faults.view_limits(now_us))
-        self._observed_view[now_us] = _ego_view_end(msg)
-        for stamp in [t for t in self._observed_view if t < now_us - 1_000_000]:
+        sent = self._camera_stamp(self.lane_faults.apply(msg))
+        self._observed_view[sent.header.stamp_us] = _ego_view_end(msg)
+        for stamp in [t for t in self._observed_view if t < sent.header.stamp_us - 1_000_000]:
             del self._observed_view[stamp]
-        self.ch["lane_model"].publish(self.lane_faults.apply(msg), now_us)
+        self.ch["lane_model"].publish(sent, now_us)
         if self._adas_modes is not None:
             self._ideal_lane = self._ideal_camera.capture(now_us, pose)
 
@@ -360,7 +457,7 @@ class Harness:
         pose, speed = self.vehicle.rear_axle(), self.vehicle.v_x
         traffic = self.traffic.at(now_us * 1e-6)
         msg = self.objects.capture(now_us, pose, speed, traffic)
-        self.ch["object_list"].publish(msg, now_us)
+        self.ch["object_list"].publish(self._camera_stamp(msg), now_us)
         if self._adas_modes is not None:
             self._ideal_objects = self._ideal_object_sensor.capture(now_us, pose, speed, traffic)
 
@@ -371,18 +468,70 @@ class Harness:
             # Filter delay the planner is not told about (Q2): the value of delay_us ago, stamped now.
             i = bisect_left(self.log.t_us, now_us - delay_us)
             yaw_rate = self.log.yaw_rate[min(i, len(self.log.yaw_rate) - 1)] if self.log.yaw_rate else yaw_rate
-        self.ch["imu"].publish(self.chassis.imu(now_us, yaw_rate, 0.0, self.vehicle.a_y), now_us)
+        err = self.sensor_errors.apply
+        yaw_rate = err("yaw_rate", yaw_rate, now_us)
+        accel_x = err("accel_x", 0.0, now_us)
+        accel_y = err("accel_y", self.vehicle.a_y, now_us)
+        msg = (self._can_tx.imu(yaw_rate, accel_x, accel_y) if self.can
+               else self.chassis.imu(now_us, yaw_rate, accel_x, accel_y))
+        self.ch["imu"].publish(msg, now_us)
 
     def _steering(self, now_us: int) -> None:
-        self.ch["steering"].publish(self.chassis.steering(now_us, self.eps.angle, self.eps.rate), now_us)
+        angle = self.sensor_errors.apply("steering_angle", self.eps.angle, now_us)
+        msg = (self._can_tx.steering(angle, self.eps.rate) if self.can
+               else self.chassis.steering(now_us, angle, self.eps.rate))
+        self.ch["steering"].publish(msg, now_us)
 
     def _speed(self, now_us: int) -> None:
-        self.ch["speed"].publish(self.chassis.speed(now_us, self.vehicle.v_x), now_us)
+        speed = self.sensor_errors.apply("speed", self.vehicle.v_x, now_us)
+        msg = self._can_tx.speed(speed) if self.can else self.chassis.speed(now_us, speed)
+        self.ch["speed"].publish(msg, now_us)
 
     def _state(self, now_us: int) -> None:
-        msg = self.estimator.message(now_us, self.vehicle.rear_axle_lateral_velocity(),
-                                     self.vehicle.slip_angle())
+        v_y = self.sensor_errors.apply("lateral_velocity", self.vehicle.rear_axle_lateral_velocity(), now_us)
+        msg = self.estimator.message(now_us, v_y, self.vehicle.slip_angle())
         self.ch["vehicle_state"].publish(msg, now_us)
+
+    def _camera_stamp(self, message):
+        """Capture time on the camera ECU clock (4.2)."""
+        if self._ideal_clocks:
+            return message
+        stamp = self.clocks["camera"].local(message.header.stamp_us)
+        return replace(message, header=replace(message.header, stamp_us=stamp))
+
+    def _planner_view(self, name: str, rx: Received | None) -> Received | None:
+        """An input as the planner gets it: rx_us, and stamps set on the ADAS ECU, on its clock."""
+        if rx is None or self._ideal_clocks:
+            return rx
+        adas = self.clocks["adas"]
+        message = rx.message
+        if name not in ("lane_model", "object_list"):  # stamped on the ADAS ECU (or at receive, CAN)
+            message = replace(message, header=replace(message.header, stamp_us=adas.local(message.header.stamp_us)))
+        return Received(message, adas.local(rx.rx_us))
+
+    def _open_loop_path(self, now_us: int) -> None:
+        """Predefined path of the open loop (4.1): the true lane centre ahead, or nothing when a
+        scripted driver steers the car (S4 to S8)."""
+        if self.scenario.driver is not None:
+            return
+        x, y, yaw = self.vehicle.rear_axle()
+        s0 = self.road.project(x, y, self._s_hint).s
+        v = max(self.vehicle.v_x, 0.1)
+        points = []
+        for i in range(TRAJECTORY_POINTS):
+            t = 0.1 * i
+            px, py, ph = self.road.pose_at(s0 + v * t, 0.0)
+            kappa = self.road.project(px, py, s0 + v * t).curvature
+            dx, dy = px - x, py - y
+            points.append(TrajectoryPoint(t, Pose2D(dx * cos(yaw) + dy * sin(yaw), -dx * sin(yaw) + dy * cos(yaw),
+                                                    ph - yaw), v, 0.0, 0.0, v * kappa, kappa,
+                                          atan2(self.vehicle_config.wheelbase * kappa, 1.0), 0.0))
+        traj = Trajectory(Header(now_us, self._open_counter % 256, True, FrameId.BASE_LINK), tuple(points), 3.0)
+        status = PathStatus(BasicHeader(now_us, self._open_counter % 256, True), True, ActiveFunction.HWA,
+                            InterventionPhase.NONE, InterventionPhase.NONE, False, False)
+        self._open_counter += 1
+        self.ch["open_trajectory"].publish(traj, now_us)
+        self.ch["open_status"].publish(status, now_us)
 
     def _sample_driver_torque(self, _now_us: int) -> None:
         self._driver_torque = self._driver.torque_nm
@@ -465,19 +614,31 @@ class Harness:
 
     def _planner(self, now_us: int) -> None:
         ch = self.ch
+        view = self._planner_view
+        t0_local = now_us if self._ideal_clocks else self.clocks["adas"].local(now_us)
         inputs = PlannerInputs(
-            t0_us=now_us,
-            lane_model=ch["lane_model"].latest,
-            object_list=ch["object_list"].latest,
-            imu=ch["imu"].latest,
-            steering=ch["steering"].latest,
-            speed=ch["speed"].latest,
-            vehicle_state=ch["vehicle_state"].latest,
-            function_requests=ch["function_requests"].latest,
-            longitudinal_plan=ch["longitudinal_plan"].latest,
+            t0_us=t0_local,
+            lane_model=view("lane_model", ch["lane_model"].latest),
+            object_list=view("object_list", ch["object_list"].latest),
+            imu=view("imu", ch["imu"].latest),
+            steering=view("steering", ch["steering"].latest),
+            speed=view("speed", ch["speed"].latest),
+            vehicle_state=view("vehicle_state", ch["vehicle_state"].latest),
+            function_requests=view("function_requests", ch["function_requests"].latest),
+            longitudinal_plan=view("longitudinal_plan", ch["longitudinal_plan"].latest),
         )
+        ego_invalid = self.ego_faults.invalid(now_us)
+        adas = self.clocks["adas"]
+
+        def ego_motion(request: EgoMotionRequest) -> EgoMotionResponse:
+            if ego_invalid:  # F20 (PP-SWR-143)
+                return EgoMotionResponse(False, 0.0, 0.0, 0.0)
+            if not self._ideal_clocks:
+                request = EgoMotionRequest(adas.to_global(request.t1_us), adas.to_global(request.t2_us))
+            return self.ego_motion.query(request)
+
         start = time.perf_counter_ns()
-        out = self.planner.step(inputs, self.ego_motion.query)
+        out = self.planner.step(inputs, ego_motion)
         compute_ns = time.perf_counter_ns() - start
         if out.trajectory is not None:
             ch["trajectory"].publish(out.trajectory, now_us)
@@ -494,9 +655,20 @@ class Harness:
             observed = self._observed_view.get(stamp, reported)
             if reported is not None and observed is not None:
                 lane_view = (stamp, min(observed, reported))
+        usable = inputs_usable(inputs)
+        usable["ego_motion"] = not ego_invalid
+        times = {name: (rx.message.header.stamp_us, rx.rx_us, rx.message.header.valid)
+                 for name in ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
+                              "function_requests", "longitudinal_plan")
+                 if (rx := getattr(inputs, name)) is not None}
+        boundaries = (None if inputs.lane_model is None else
+                      tuple((b.status, b.confidence) for b in (*inputs.lane_model.message.lines,
+                                                               *inputs.lane_model.message.road_edges)))
         self.log.cycles.append(PlannerCycle(now_us, out.trajectory, out.path_status,
                                             out.lateral_limits, compute_ns, lane_view, inputs.function_requests,
-                                            reported))
+                                            reported, usable, t0_local, times, boundaries))
+        if self.scenario.loop == "open":
+            self._open_loop_path(now_us)
 
     def _controller(self, now_us: int) -> None:
         speed = self.ch["speed"].latest
@@ -514,5 +686,12 @@ class Harness:
 
     def run(self) -> RunLog:
         self.scheduler.run_until(round(self.scenario.duration_s * 1e6))
+        position = {name: 0 for name in self._injectors}
+        for fault in self.scenario.channel_faults:
+            injector = self._injectors[fault.channel]
+            self.log.fault_hits.append(injector.fault_hits()[position[fault.channel]])
+            position[fault.channel] += 1
+        if self.can:
+            self.log.can_stats = {"dropped": dict(self._can_rx.dropped), "lost": dict(self._can_rx.lost)}
         return self.log
 

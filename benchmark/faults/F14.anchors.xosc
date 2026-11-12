@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="F14" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="F14.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F14" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Trôi ±20 ppm" />
+            <ParameterAssignment parameterRef="c0_kind" value="drift" />
+            <ParameterAssignment parameterRef="c0_ecu" value="camera" />
+            <ParameterAssignment parameterRef="c0_value" value="20.0" />
+            <ParameterAssignment parameterRef="c1_kind" value="drift" />
+            <ParameterAssignment parameterRef="c1_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c1_value" value="-20.0" />
+            <ParameterAssignment parameterRef="c1_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="c1_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="c2_kind" value="sync_loss" />
+            <ParameterAssignment parameterRef="c2_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c2_value" value="0.0" />
+            <ParameterAssignment parameterRef="c2_start_s" value="999.0" />
+            <ParameterAssignment parameterRef="c2_duration_s" value="1.0" />
+            <ParameterAssignment parameterRef="fault_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F14" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Trôi ±100 ppm" />
+            <ParameterAssignment parameterRef="c0_kind" value="drift" />
+            <ParameterAssignment parameterRef="c0_ecu" value="camera" />
+            <ParameterAssignment parameterRef="c0_value" value="100.0" />
+            <ParameterAssignment parameterRef="c1_kind" value="drift" />
+            <ParameterAssignment parameterRef="c1_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c1_value" value="-100.0" />
+            <ParameterAssignment parameterRef="c1_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="c1_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="c2_kind" value="sync_loss" />
+            <ParameterAssignment parameterRef="c2_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c2_value" value="0.0" />
+            <ParameterAssignment parameterRef="c2_start_s" value="999.0" />
+            <ParameterAssignment parameterRef="c2_duration_s" value="1.0" />
+            <ParameterAssignment parameterRef="fault_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F14" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Mất gPTP 10 s, trôi ±100 ppm" />
+            <ParameterAssignment parameterRef="c0_kind" value="drift" />
+            <ParameterAssignment parameterRef="c0_ecu" value="camera" />
+            <ParameterAssignment parameterRef="c0_value" value="100.0" />
+            <ParameterAssignment parameterRef="c1_kind" value="drift" />
+            <ParameterAssignment parameterRef="c1_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c1_value" value="-100.0" />
+            <ParameterAssignment parameterRef="c1_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="c1_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="c2_kind" value="sync_loss" />
+            <ParameterAssignment parameterRef="c2_ecu" value="adas" />
+            <ParameterAssignment parameterRef="c2_value" value="0.0" />
+            <ParameterAssignment parameterRef="c2_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="c2_duration_s" value="10.0" />
+            <ParameterAssignment parameterRef="fault_start_s" value="0.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="-1.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

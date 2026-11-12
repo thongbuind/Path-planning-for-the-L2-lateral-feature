@@ -22,6 +22,8 @@ RUNS_DIR = ROOT / "research" / "runs"
 INDEX = RUNS_DIR / "INDEX.md"
 CALIBRATION = ROOT / "planner" / "calibration" / "calibration.yaml"
 BENCHMARK = ROOT / "benchmark"
+# Severity is derived from its Type column (Software Qualification Test Specification 8.4).
+SRS = ROOT / "docs" / "vi" / "path-planner-software-requirements-specification.md"
 
 
 def _git(*args: str) -> str | None:
@@ -70,17 +72,22 @@ def parse_version(text: str | None) -> dict:
     return fields
 
 
-def library_info(path: Path) -> dict:
+def library_info(path: Path, external: bool = False) -> dict:
+    """external: chosen with --planner; may come from outside this repository."""
     from adapters.sil.sil_planner import library_version  # loads the library
     text = library_version(Path(path))
     return {"path": _rel(path), "sha256": sha256(path), "pp_version": text,
-            "build": parse_version(text)}
+            "build": parse_version(text), "external": external}
+
+
+def _known_commit(commit: str | None) -> bool:
+    return bool(commit) and _git("cat-file", "-e", f"{commit}^{{commit}}") is not None
 
 
 def input_files() -> dict:
     """sha256 of the benchmark definitions and the start calibration."""
     files = sorted(p for p in BENCHMARK.rglob("*")
-                   if p.is_file() and p.suffix in {".yaml", ".json", ".xosc", ".xodr", ".xsd"}) + [CALIBRATION]
+                   if p.is_file() and p.suffix in {".yaml", ".json", ".xosc", ".xodr", ".xsd"}) + [CALIBRATION, SRS]
     return {_rel(p): sha256(p) for p in files}
 
 
@@ -113,6 +120,8 @@ def official_problems(manifest: dict) -> list[str]:
         build = lib["build"]
         if not build:
             problems.append(f"{lib['path']}: no pp_version(); rebuild the planner library")
+        elif lib.get("external") and not _known_commit(build["commit"]):
+            continue  # another source tree: identified by sha256 and pp_version only
         elif build["dirty"]:
             problems.append(f"{lib['path']}: built from uncommitted planner sources; rebuild after commit")
         elif git["commit"] and not git["commit"].startswith(build["commit"] or "-"):

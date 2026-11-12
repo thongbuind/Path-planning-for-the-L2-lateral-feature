@@ -5,7 +5,11 @@ turned into this; sim/ never reads the benchmark itself (README import rules).
 from dataclasses import dataclass, field
 from typing import Literal
 
+from sim.faults.channel import ChannelFault
+from sim.faults.ego_motion import EgoMotionFault
 from sim.faults.lane import LaneFault
+from sim.faults.sensor import SensorFault
+from sim.runtime.clock import ClockFault
 from sim.stand_ins.driver import DriverSpec
 from sim.stand_ins.scripted import RequestEvent
 from sim.world.traffic import TrafficSpec
@@ -50,9 +54,21 @@ class Scenario:
     lka_enabled: bool = False
     elk_enabled: bool = False
     request_events: tuple[RequestEvent, ...] = ()
+    # Faults of Software Qualification Test Specification 6 beyond the lane model.
+    channel_faults: tuple[ChannelFault, ...] = ()  # F10, F11, F12, F15, F16, F17, F19
+    sensor_faults: tuple[SensorFault, ...] = ()  # F07, F08
+    clock_faults: tuple[ClockFault, ...] = ()  # F14
+    ego_motion_faults: tuple[EgoMotionFault, ...] = ()  # F20
+    can_bus: bool = False  # chassis signals through the virtual CAN of 4.3 (DBC, counter, CRC; F18)
+    # Nominal realism batch of 4.2 and 4.5 (CAN rounding, ECU clocks, speed, steering and v_y
+    # errors). Off until switched on in one batch with a new regression baseline.
+    realism: bool = False
+    loop: Literal["closed", "open"] = "closed"  # 4.1: open loop follows a predefined path
 
     def __post_init__(self) -> None:
         if self.adas_mode not in ("scripted", "A", "B"):
             raise ValueError("invalid ADAS mode")
         if self.request_events and self.adas_mode != "scripted":
             raise ValueError("request events require scripted ADAS mode")
+        if self.loop not in ("closed", "open"):
+            raise ValueError("loop must be closed or open")

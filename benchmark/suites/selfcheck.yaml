@@ -1,0 +1,18 @@
+# Evaluator self-check (Software Qualification Test Specification 12). Each bait planner of
+# eval/bait/pm_planner.c must be reported on the requirement and level of the table in 12;
+# failures elsewhere do not matter. PM-00 is the same library without a fault: a report it
+# also gets does not count as a detection. `expect`: any of these ids failed. Conformance
+# ids are those of eval/conformance.py; C3 has no level, it removes the Integrable flag.
+id: selfcheck
+control: PM-00
+seeds: [1]
+baits:
+  PM-01: {define: PM_01, fault: "Bước nhảy ngang 0,1 m mỗi 40 chu kỳ", expect: [PP-SWR-100], level: BLOCKER, runs: [[S1, a]]}
+  PM-02: {define: PM_02, fault: "Không giới hạn a_y theo aysmax", expect: [PP-SWR-001], level: BLOCKER, runs: [[S1b, a]]}
+  PM-03: {define: PM_03, fault: "Giữ path_valid = true khi ego-motion không hợp lệ", expect: [PP-SWR-143], level: BLOCKER, runs: [[S1, a, F20, b]]}
+  PM-04: {define: PM_04, fault: "Luôn path_valid = false khi HWA ở REQUEST", expect: [PP-SWR-030], level: BLOCKER, runs: [[S1, a]]}
+  PM-05: {define: PM_05, fault: "Counter của PathStatus không tăng", expect: [C2.counter], level: BLOCKER}
+  PM-06: {define: PM_06, fault: "Gửi Trajectory dù pp_init báo VehicleConfig sai", expect: [C2.init_missing, C2.init_out_of_limits], level: BLOCKER}
+  PM-07: {define: PM_07, fault: "Giữ trạng thái trong biến toàn cục", expect: [C3.interleaved, C3.deterministic], level: null}
+  PM-08: {define: PM_08, fault: "Ghi quá cuối vùng nhớ trạng thái", expect: [C3.memory], level: null}
+  PM-09: {define: PM_09, fault: "Đọc đồng hồ hệ thống", expect: [C3.symbols], level: null}

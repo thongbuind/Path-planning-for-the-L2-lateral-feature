@@ -23,6 +23,7 @@
     <ParameterDeclaration name="truck_speed_mps" parameterType="double" value="20.0" />
     <ParameterDeclaration name="truck_length_m" parameterType="double" value="12.0" />
     <ParameterDeclaration name="truck_width_m" parameterType="double" value="2.5" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -46,6 +47,7 @@
           <Property name="pp:acc" value="$acc" />
           <Property name="pp:hwa_request_s" value="$hwa_request_s" />
           <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
         </Properties>
       </Vehicle>
     </ScenarioObject>

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from eval import openx, provenance
+from eval import labels, openx, provenance
 
 BENCHMARK = openx.ROOT / 'benchmark'
 # Road and run of a fault's host anchor replace those of the fault file (lane faults are
@@ -109,7 +109,8 @@ def fault_hosts(suite):
     for sid, variant in suite.get('fault_hosts', [['S1', 'a']]):
         path = BENCHMARK / 'scenarios' / f'{sid}.xosc'
         params = openx.resolve(openx.parse(path), openx.anchors(path)[variant])[1]
-        hosts.append((f'{sid}{variant}', {k: params[k] for k in HOST_KEYS}))
+        hosts.append((f'{sid}{variant}', {k: params[k] for k in HOST_KEYS}
+                      | ({'host_expected_outcome': params['expected_outcome']} if 'expected_outcome' in params else {})))
     return hosts
 
 
@@ -145,7 +146,14 @@ def plan(name):
                         params['duration_s'] = nominal['duration_s'] * nominal['speed_mps'] / params['speed_mps']
                     selections.append((method, params))
             if folder == 'faults':
-                selections = [(method, {**params, **host_params}, host)
+                def on_host(params, host_params):
+                    # Host geometry; expected outcome the stricter of fault and host (5.3).
+                    merged = {**params, **{k: v for k, v in host_params.items() if k != 'host_expected_outcome'}}
+                    if 'expected_outcome' in merged:
+                        merged['expected_outcome'] = labels.stricter(merged['expected_outcome'],
+                                                                     host_params.get('host_expected_outcome'))
+                    return merged
+                selections = [(method, on_host(params, host_params), host)
                               for host, host_params in fault_hosts(suite) for method, params in selections]
                 for _, params, host in selections:
                     if not params['fault_start_s'] < params['duration_s']:

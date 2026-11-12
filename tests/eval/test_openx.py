@@ -277,12 +277,11 @@ def test_lane_faults_run_on_every_host_anchor():
 
 
 def test_suite_runs_keep_order_and_isolate_errors(monkeypatch):
-    def fake(case, directory, seed):
-        if case['id'] == 'bad':
-            raise RuntimeError('boom')
-        return {'case': case['id'], 'seed': seed, 'failed': [], 'failed_out_of_scope': []}
-    monkeypatch.setattr(suite, 'execute_case', fake)
-    tasks = [({'id': i}, Path('.'), {'case': i, 'seed': 1}) for i in ('a', 'bad', 'c')]
-    out = list(suite.results(tasks, 1))
-    assert [r['case'] for r in out] == ['a', 'bad', 'c']
+    monkeypatch.syspath_prepend(str(Path(__file__).parent))  # child processes inherit sys.path
+    import _fake_runs
+    tasks = [({'id': i}, Path('.'), {'case': i, 'seed': 1}, None) for i in ('a', 'bad', 'crash', 'hang', 'c')]
+    out = list(suite.results(tasks, 2, fn=_fake_runs.fake, timeout_s=5))
+    assert [r['case'] for r in out] == ['a', 'bad', 'crash', 'hang', 'c']
     assert 'boom' in out[1]['error'] and 'error' not in out[0]
+    assert 'tiến trình dừng' in out[2]['execution'] and 'không trả về' in out[3]['execution']
+    assert 'execution' not in out[4]

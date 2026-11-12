@@ -17,7 +17,7 @@ import numpy as np
 
 from eval.calibration import requirement_parameters
 from interfaces import (
-    FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US,
+    FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US, PLANNER_PERIOD_US,
     TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, RequestState, Side,
 )
 from sim.harness import PlannerCycle, RunLog
@@ -50,6 +50,12 @@ EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
 OTHER_CAR_GAP_MIN_M = 0.3  # PP-SWR-088
 LATE_ELK_DLC_M = -0.3  # PP-SWR-089
 FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132
+# PP-SWR-030 over-refusal (Software Qualification Test Specification 5.3): priority, inputs whose
+# loss allows path_valid = false (PP-SWR-124, 142, 145), and the time after such an input is
+# usable again during which not driving is not counted: upper limit of T_coast (SRS 7).
+FUNCTION_PRIORITY = (ActiveFunction.ELK, ActiveFunction.LKA, ActiveFunction.HWA)
+INPUTS_FOR_PATH = ("lane_model", "imu", "steering", "speed", "function_requests", "ego_motion")
+RECOVERY_GRACE_S = 1.0
 
 # a_y and jerk measured on the vehicle as R79 Annex 8, 2.4 prescribes (Software Qualification
 # Test Specification 5.1). Reported as information; no requirement points to it yet.
@@ -70,6 +76,7 @@ class Criterion:
     limit: str
     passed: bool
     applicable: bool = True
+    first_fail_s: float | None = None  # Simulation time of the first failing cycle, where measured
 
 
 @dataclass
@@ -89,6 +96,9 @@ class Result:
     info: dict = field(default_factory=dict)
     case_failures: list[str] = field(default_factory=list)
     scored: bool = True
+    # Same failures as case_failures, classified (Software Qualification Test Specification 8.4):
+    # {"kind": ISSUE_*, "requirement": id or None, "text": ..., "first_fail_s": s or None}
+    issues: list[dict] = field(default_factory=list)
 
     @property
     def passed(self) -> bool | None:
@@ -100,7 +110,47 @@ class Result:
         return {"scenario": self.scenario, "seed": self.seed, "passed": self.passed,
                 "criteria": [asdict(c) for c in self.criteria],
                 "targets": [asdict(t) for t in self.targets], "info": self.info,
-                "case_failures": self.case_failures, "scored": self.scored}
+                "case_failures": self.case_failures, "scored": self.scored, "issues": self.issues}
+
+
+ISSUE_REQUIREMENT = "requirement"  # the planner failed the requirement named
+ISSUE_NOT_JUDGED = "not_judged"  # precondition of the case not met on the test side: case not judged
+ISSUE_EXECUTION = "execution"  # NaN or infinity in a planner output (execution fault, 8.4)
+
+
+def add_issue(result: "Result", kind: str, text: str, requirement: str | None = None,
+              first_fail_s: float | None = None) -> None:
+    result.case_failures.append(text)
+    result.issues.append({"kind": kind, "requirement": requirement, "text": text,
+                          "first_fail_s": first_fail_s})
+
+
+def _nonfinite(value, path: str) -> str | None:
+    """Path of the first NaN or infinite float in an output message, or None."""
+    if isinstance(value, float):
+        return None if np.isfinite(value) else path
+    if hasattr(value, "__dataclass_fields__"):
+        for name in value.__dataclass_fields__:
+            found = _nonfinite(getattr(value, name), f"{path}.{name}")
+            if found:
+                return found
+    elif isinstance(value, (list, tuple)):
+        for i, item in enumerate(value):
+            found = _nonfinite(item, f"{path}[{i}]")
+            if found:
+                return found
+    return None
+
+
+def execution_fault(cycles) -> tuple[float, str] | None:
+    """First cycle whose sent outputs hold NaN or infinity: (t0 [s], field)."""
+    for c in cycles:
+        for name in ("trajectory", "path_status", "lateral_limits"):
+            message = getattr(c, name)
+            found = None if message is None else _nonfinite(message, name)
+            if found:
+                return c.t0_us * 1e-6, found
+    return None
 
 
 def _valid(c: PlannerCycle) -> bool:
@@ -391,6 +441,71 @@ def _phase(cycle: PlannerCycle, function: ActiveFunction) -> InterventionPhase:
     return status.lka_phase if function == ActiveFunction.LKA else status.elk_phase
 
 
+EGO_LINES = (1, 2)  # L1, R1 in lines L2, L1, R1, R2
+
+
+def lane_usable(c, cal: dict | None = None) -> bool:
+    """Lane model usable at this cycle: received, valid, in time, with at least one "biên làn
+    đủ tin" (Software Requirements Specification 4): L1, R1 MEASURED with confidence >=
+    conf_ego; L2, R2 or a road edge MEASURED with confidence >= conf_inferred. PREDICTED is
+    not enough."""
+    if c.inputs_ok is None or not c.inputs_ok.get("lane_model", True):
+        return c.inputs_ok is None
+    if c.lane_boundaries is None:
+        return True  # log without boundary detail
+    cal = cal or {}
+    ego, inferred = cal.get("conf_ego", 0.0), cal.get("conf_inferred", 0.0)
+    return any(status == LineStatus.MEASURED and conf >= (ego if i in EGO_LINES else inferred)
+               for i, (status, conf) in enumerate(c.lane_boundaries))
+
+
+def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal: dict | None = None) -> Criterion:
+    """PP-SWR-030 in cases labelled drive or drive_limited (Software Qualification Test
+    Specification 5.3): at each cycle the function that drives (NONE when path_valid is false)
+    must be the one chosen by priority among the functions in REQUEST. LKA and ELK count once
+    the planner has started them for the current REQUEST, until their phase is COMPLETED
+    (PP-SWR-033, 036); a start of them is judged per case. Not counted: the cycle after the
+    choice changes (PP-SWR-038), and while an input needed for a path is unusable and for
+    RECOVERY_GRACE_S after (PP-SWR-124, 142, 145)."""
+    metric = "Chu kỳ mà chức năng đang lái khác chức năng chọn theo PP-SWR-030"
+    if expected_outcome not in ("drive", "drive_limited") or not init_ok or not cycles \
+            or any(c.inputs_ok is None for c in cycles):
+        return Criterion("PP-SWR-030", metric, float("nan"), "= 0", True, applicable=False)
+    started = {ActiveFunction.LKA: False, ActiveFunction.ELK: False}
+    grace_us = round(RECOVERY_GRACE_S * 1e6)
+    last_bad_us, previous, wrong, judged, first = None, None, 0, 0, None
+    for c in cycles:
+        now_s = c.t0_us * 1e-6
+        if not (all(c.inputs_ok.get(k, True) for k in INPUTS_FOR_PATH) and lane_usable(c, cal)):
+            last_bad_us = c.t0_us
+        message = c.function_requests.message if c.inputs_ok["function_requests"] else None
+        requested = [f for f in FUNCTION_PRIORITY
+                     if message is not None and message.requests[int(f) - 1].state == RequestState.REQUEST]
+        for f in started:
+            if f not in requested or _phase(c, f) == InterventionPhase.COMPLETED:
+                started[f] = False
+        status = c.path_status
+        actual = status.active_function if _valid(c) else ActiveFunction.NONE
+        candidates = [f for f in requested if f == ActiveFunction.HWA or started[f]]
+        expected = candidates[0] if candidates else ActiveFunction.NONE
+        # Starting a requested function of higher priority is a choice by PP-SWR-030, not a refusal.
+        starting = (actual in started and actual in requested and not started[actual]
+                    and (expected == ActiveFunction.NONE
+                         or FUNCTION_PRIORITY.index(actual) < FUNCTION_PRIORITY.index(expected)))
+        if actual in started and actual in requested:
+            started[actual] = True
+        excused = (last_bad_us is not None and c.t0_us - last_bad_us <= grace_us) or expected != previous
+        previous = expected
+        if excused:
+            continue
+        judged += 1
+        if actual != expected and not starting:
+            wrong += 1
+            first = now_s if first is None else first
+    return Criterion("PP-SWR-030", metric, float(wrong), "= 0", wrong == 0, applicable=judged > 0,
+                     first_fail_s=first)
+
+
 LANE_INVALID_AGE_US = 250_000  # PP-SWR-131
 LANE_KEEP_AGE_US = 170_000  # PP-SWR-133
 T_COAST_MAX_US = 1_000_000  # SRS 7: upper limit of T_coast
@@ -519,6 +634,113 @@ def _requests_timeout_share(cycles) -> tuple[float, bool]:
             s = c.path_status
             ok += s is not None and s.active_function == ActiveFunction.NONE and not s.path_valid
     return (ok / checked if checked else 1.0), checked > 0
+
+
+LANE_MAX_AGE_US = 250_000  # PP-SWR-131
+# Criteria measured on the vehicle: not applicable in open loop, where the car follows a
+# predefined path (Software Qualification Test Specification 4.1).
+VEHICLE_CRITERIA = {"PP-SWR-007", "PP-SWR-051", "PP-SWR-060", "PP-SWR-084", "PP-SWR-085", "PP-SWR-086",
+                    "PP-SWR-088", "PP-SWR-091", "PP-SWR-122", "PP-SWR-123", "PP-SWR-148"}
+
+
+def _after_first(flags: list[bool]) -> list[bool]:
+    """A condition counts only once the input was usable at least once (a fault, not the start)."""
+    out, seen = [], False
+    for bad in flags:
+        seen |= not bad
+        out.append(bad and seen)
+    return out
+
+
+def _reaction(cycles, condition, requirement, metric, need_none=False) -> Criterion:
+    """'... within one cycle': from the second cycle of the condition on, path_valid = false
+    (and active_function = NONE)."""
+    wrong, first = 0, None
+    for i, c in enumerate(cycles):
+        if not (condition[i] and i > 0 and condition[i - 1]):
+            continue
+        status = c.path_status
+        still = _valid(c) or (need_none and status is not None and status.active_function != ActiveFunction.NONE)
+        if still:
+            wrong += 1
+            first = c.t0_us * 1e-6 if first is None else first
+    return Criterion(requirement, metric, float(wrong), "= 0", wrong == 0, applicable=any(condition),
+                     first_fail_s=first)
+
+
+def _lane_reason(c, cal: dict | None = None) -> str | None:
+    """Why the lane model is not usable at this cycle: 132 future stamp, 131 too old, 124
+    otherwise (missing, timeout, not valid, every boundary LOST); None when usable."""
+    if c.inputs_ok is None or lane_usable(c, cal):
+        return None
+    times = (c.input_times or {}).get("lane_model")
+    t0 = c.t0_local_us if c.t0_local_us is not None else c.t0_us
+    if times is not None:
+        stamp, rx, valid = times
+        if valid and t0 - stamp < -FUTURE_STAMP_TOLERANCE_US:
+            return "PP-SWR-132"
+        if valid and t0 - stamp > LANE_MAX_AGE_US:
+            return "PP-SWR-131"
+    return "PP-SWR-124"
+
+
+def lane_loss_criteria(cycles, t_coast_s: float, cal: dict | None = None) -> list[Criterion]:
+    """PP-SWR-124 (131, 132 make the input not valid, then the same rule): when the lane model
+    stops being usable, path_valid stays true for T_coast, then false; one cycle tolerance."""
+    reasons = [_lane_reason(c, cal) for c in cycles]
+    usable_once = _after_first([r is not None for r in reasons])
+    tol_us, coast_us = PLANNER_PERIOD_US, round(t_coast_s * 1e6)
+    stats = {r: [0, False, None] for r in ("PP-SWR-124", "PP-SWR-131", "PP-SWR-132")}
+    i = 0
+    while i < len(cycles):
+        if not usable_once[i]:
+            i += 1
+            continue
+        start, reason = i, reasons[i]
+        coasting = i > 0 and _valid(cycles[i - 1])
+        while i < len(cycles) and usable_once[i]:
+            dt = cycles[i].t0_us - cycles[start].t0_us
+            valid = _valid(cycles[i])
+            wrong = (coasting and not valid and dt < coast_us - tol_us) or (valid and dt > coast_us + tol_us)
+            st = stats[reason]
+            st[1] = True
+            if wrong:
+                st[0] += 1
+                st[2] = cycles[i].t0_us * 1e-6 if st[2] is None else st[2]
+            i += 1
+    metric = {"PP-SWR-124": "Chu kỳ sai so với T_coast khi lane model không dùng được",
+              "PP-SWR-131": "Chu kỳ sai so với T_coast khi lane model quá 250 ms",
+              "PP-SWR-132": "Chu kỳ sai so với T_coast khi stamp lane model ở tương lai quá 10 ms"}
+    return [Criterion(r, metric[r], float(n), "= 0", n == 0, applicable=judged, first_fail_s=first)
+            for r, (n, judged, first) in stats.items()]
+
+
+def fault_reaction_criteria(cycles, t_coast_s: float, cal: dict | None = None) -> list[Criterion]:
+    """PP-SWR-142, 143, 145, 124, 131, 132, 043 (Software Qualification Test Specification 8.1,
+    "Phản ứng với lỗi"), from the inputs as the planner got them."""
+    if not cycles or any(c.inputs_ok is None for c in cycles):
+        return []
+    chassis = _after_first([not all(c.inputs_ok[k] for k in ("imu", "speed", "steering")) for c in cycles])
+    ego = [not c.inputs_ok.get("ego_motion", True) for c in cycles]
+
+    def requests_timed_out(c) -> bool:
+        times = (c.input_times or {}).get("function_requests")
+        t0 = c.t0_local_us if c.t0_local_us is not None else c.t0_us
+        return times is None or t0 - times[1] > FUNCTION_REQUESTS_TIMEOUT_US
+
+    timeout = _after_first([requests_timed_out(c) for c in cycles])
+    not_valid_but_active = [c for c in cycles if c.path_status is not None and not c.path_status.path_valid
+                            and c.path_status.active_function != ActiveFunction.NONE]
+    return [
+        _reaction(cycles, chassis, "PP-SWR-142", "Chu kỳ còn path hợp lệ khi IMU, tốc độ hoặc góc lái không hợp lệ"),
+        _reaction(cycles, ego, "PP-SWR-143", "Chu kỳ còn path hợp lệ khi ego-motion không hợp lệ"),
+        _reaction(cycles, timeout, "PP-SWR-145", "Chu kỳ còn chức năng hoặc path hợp lệ khi FunctionRequests quá 75 ms",
+                  need_none=True),
+        *lane_loss_criteria(cycles, t_coast_s, cal),
+        Criterion("PP-SWR-043", "Chu kỳ path_valid = false mà active_function khác NONE",
+                  float(len(not_valid_but_active)), "= 0", not not_valid_but_active,
+                  first_fail_s=not_valid_but_active[0].t0_us * 1e-6 if not_valid_but_active else None),
+    ]
 
 
 def _request_windows(cycles, function):
@@ -721,7 +943,9 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
     expected = log.scenario.notes.get("expect_intervention")
     if not (expected or episodes or any(requests.values())):
         return
-    issues = result.case_failures
+    def issue(kind, text, requirement=None):
+        add_issue(result, kind, text, requirement)
+
     if expected in ("LKA", "ELK"):
         function = ActiveFunction[expected]
         desired = log.scenario.notes.get("departure_side")
@@ -729,17 +953,17 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                              if desired is None or r.message.side.name.lower() == desired]
         if not expected_requests and not _stale_requests(cycles):  # stale: PP-SWR-048
             side = "" if desired is None else f" (phía {'trái' if desired == 'left' else 'phải'})"
-            issues.append(f"{expected}: thiếu REQUEST đến planner{side}")
+            issue(ISSUE_NOT_JUDGED, f"{expected}: thiếu REQUEST đến planner{side}")
         elif (any(not any(e.request is r and e.function == function for e in episodes)
                   for r in expected_requests)
               or any(_phase(c, function) == InterventionPhase.ACTIVE and not _valid(c) for c in cycles)):
-            issues.append(f"{expected}: có REQUEST nhưng thiếu path can thiệp hợp lệ")
+            issue(ISSUE_REQUIREMENT, f"{expected}: có REQUEST nhưng thiếu path can thiệp hợp lệ", "PP-SWR-030")
     late_dlcs, accepted = _check_late_elk(truth, requests[ActiveFunction.ELK])
     if expected == "late ELK":
         if not requests[ActiveFunction.ELK]:
-            issues.append("PP-SWR-089: thiếu REQUEST bơm muộn đến planner")
+            issue(ISSUE_NOT_JUDGED, "PP-SWR-089: thiếu REQUEST bơm muộn đến planner")
         elif not late_dlcs:
-            issues.append("PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
+            issue(ISSUE_NOT_JUDGED, "PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
 
     starts = []
     durations = []
@@ -753,11 +977,11 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
     for i, episode in enumerate(episodes):
         function = episode.function
         if episode.request is None:
-            issues.append(f"{function.name}: path can thiệp thiếu REQUEST tương ứng")
+            issue(ISSUE_REQUIREMENT, f"{function.name}: path can thiệp thiếu REQUEST tương ứng", "PP-SWR-030")
             continue
         req = episode.request.message
         if req.side not in (Side.LEFT, Side.RIGHT):
-            issues.append(f"{function.name}: REQUEST thiếu phía can thiệp")
+            issue(ISSUE_NOT_JUDGED, f"{function.name}: REQUEST thiếu phía can thiệp")
             continue
         start_us = cycles[episode.start].t0_us
         end_seen = episode.stop < len(cycles)
@@ -799,7 +1023,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                         "end_handover_us": handover_us, "dtle_m": dtle})
 
     if expected in censored_functions and expected not in timed_functions:
-        issues.append(f"{expected}: ca kết thúc trước khi đủ cửa sổ chấm thời lượng")
+        issue(ISSUE_NOT_JUDGED, f"{expected}: ca kết thúc trước khi đủ cửa sổ chấm thời lượng")
 
     def lower(requirement, metric, values, limit):
         value = float(min(values, default=float("nan")))
@@ -911,20 +1135,43 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                     for c in cycles)
 
     # PP-SWR-001, 003, 006 while HWA drives; 116, 117 on every valid path; 050 target.
+    first: dict[str, float] = {}  # requirement -> time of the first failing cycle [s]
+
+    def mark(requirement: str, time_s: float) -> None:
+        first.setdefault(requirement, float(time_s))
+
+    for i, c in enumerate(cycles):
+        if c.trajectory is None or c.path_status is None:
+            mark("PP-SWR-010", t_s[i])
+        if c.lateral_limits is None:
+            mark("PP-SWR-150", t_s[i])
+        if (c.lateral_limits is not None and c.path_status is not None
+                and c.lateral_limits.lateral_limit_reached != c.path_status.lateral_limit_reached):
+            mark("PP-SWR-009", t_s[i])
+
     ay_max = jerk_max = wheel_max = wheel_rate_max = deviation_max = 0.0
     ay_floor_margin = np.inf  # PP-SWR-006: min of |a_y| - (aysmax - epsilon) where needed > aysmax
     n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
     for c, p in zip(cycles, paths):
         if p is None:
             continue
+        now_s = c.t0_us * 1e-6
         _, _, _, _, _, _, wheel = _points(c.trajectory)
         wheel_max = max(wheel_max, float(np.max(np.abs(wheel))))
         wheel_rate = np.abs(np.diff(wheel)) / GRID_STEP_S * log.steering_ratio
         wheel_rate_max = max(wheel_rate_max, float(np.max(wheel_rate)))
+        if wheel_max > log.max_wheel_angle:
+            mark("PP-SWR-116", now_s)
+        if wheel_rate_max > log.max_steering_wheel_rate:
+            mark("PP-SWR-117", now_s)
         if not _hwa(c):
             continue
         ay_max = max(ay_max, float(np.max(np.abs(p.ay))))
         jerk_max = max(jerk_max, _jerk_max(p.ay))
+        if ay_max > AYSMAX:
+            mark("PP-SWR-001", now_s)
+        if jerk_max > JERK_MAX_HWA:
+            mark("PP-SWR-003", now_s)
         deviation_max = max(deviation_max, float(np.max(np.abs(p.d[:n_window]))))
         # PP-SWR-006 judges the 0-1 s part of the path (SRS 1.2).
         near = np.arange(len(p.ay)) < n_window
@@ -933,6 +1180,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             same_side = np.sign(p.ay[over]) == np.sign(p.ay_need[over])
             margin = np.where(same_side, np.abs(p.ay[over]), -np.inf) - (AYSMAX - cal["epsilon_ay"])
             ay_floor_margin = min(ay_floor_margin, float(np.min(margin)))
+            if ay_floor_margin < 0.0:
+                mark("PP-SWR-006", now_s)
 
     # PP-SWR-005: path stays valid with HWA while the curve needs more than aysmax.
     first_hwa = int(np.argmax(hwa)) if np.any(hwa) else len(cycles)
@@ -944,6 +1193,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         sharp[i] = (need_max[i] if paths[i] is not None else need_max[i - 1]) > AYSMAX
     judged_005 = sharp & requested
     kept_005 = bool(np.all(hwa[judged_005])) if np.any(judged_005) else True
+    if not kept_005:
+        mark("PP-SWR-005", t_s[int(np.argmax(judged_005 & ~hwa))])
 
     # PP-SWR-007 (R79 5.6.2.2.3; Annex 8 3.2.5.2): when a front tyre starts to touch the
     # marking while HWA drives and the curve needs more than aysmax, the flag is already on.
@@ -966,6 +1217,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         if dlc < 0.0 and inside and driving and need_max[i] > AYSMAX:
             crossings += 1
             late_007 += 0 if flag_status[i] else 1
+            if not flag_status[i]:
+                mark("PP-SWR-007", t_us * 1e-6)
         inside = dlc >= 0.0
         need_car = log.speed[k] ** 2 * abs(pf.curvature)
         need_car_max = max(need_car_max, need_car)
@@ -995,6 +1248,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                     continue  # PP-SWR-031: exception only at the first tick
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
+                if value > (CONTINUITY_LATERAL_M, CONTINUITY_HEADING_RAD, CONTINUITY_CURVATURE)[j]:
+                    mark(("PP-SWR-100", "PP-SWR-101", "PP-SWR-102")[j], t_s[i])
 
     # PP-SWR-018: observed_horizon_s may not exceed the time the path leaves the reported view
     # range by more than HORIZON_TOL_S; reporting less is the safe side (SRS 1.10).
@@ -1195,11 +1450,27 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
     info.update(r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),
                             _cycle_mask_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool)))
+    for c in criteria:
+        if c.applicable and not c.passed:
+            c.first_fail_s = first.get(c.id)
+    criteria.append(over_refusal(cycles, log.scenario.notes.get("expected_outcome"),
+                                 log.init_result == 0, cal))
+    criteria.extend(fault_reaction_criteria(cycles, cal.get("T_coast", 1.0), cal))
     result = Result(log.scenario.name, log.seed, criteria, targets, info)
+    fault = execution_fault(cycles)
+    if fault is not None:
+        add_issue(result, ISSUE_EXECUTION, f"Lỗi thực thi: {fault[1]} không hữu hạn tại t = {fault[0]:.3f} s",
+                  first_fail_s=fault[0])
     _score_interventions(result, truth, paths, episodes, requests, cal, t_s)
+    if getattr(log.scenario, "loop", "closed") == "open":
+        for c in result.criteria:
+            if c.id in VEHICLE_CRITERIA:
+                c.applicable = False
+        result.info["loop"] = "open"
     if log.scenario.adas_mode == "A":
         result.scored = False
         result.criteria.clear()
         result.targets.clear()
         result.case_failures.clear()
+        result.issues.clear()
     return result
