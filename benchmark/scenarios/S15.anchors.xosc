@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S15" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S15.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Hai xe tải" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Xe tải bên trái, rào chắn bên phải" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S15b.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="1100" />
+            <ParameterAssignment parameterRef="truck_t_m" value="0" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="0" />
+            <ParameterAssignment parameterRef="other_t_m" value="3.2" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Xe tải bên phải, xe con bên trái" />
+            <ParameterAssignment parameterRef="other_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="other_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="other_category" value="car" />
+            <ParameterAssignment parameterRef="other_center_z_m" value="0.75" />
+            <ParameterAssignment parameterRef="other_height_m" value="1.5" />
+            <ParameterAssignment parameterRef="other_front_axle_m" value="2.9" />
+            <ParameterAssignment parameterRef="other_track_m" value="1.6" />
+            <ParameterAssignment parameterRef="other_wheel_m" value="0.65" />
+            <ParameterAssignment parameterRef="other_axle_height_m" value="0.325" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Hai xe tải, làn 3,0 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S15d.xodr" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-2.7" />
+            <ParameterAssignment parameterRef="other_t_m" value="3" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Hai rào chắn" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S15e.xodr" />
+            <ParameterAssignment parameterRef="truck_s_m" value="1100" />
+            <ParameterAssignment parameterRef="truck_t_m" value="0" />
+            <ParameterAssignment parameterRef="truck_speed_mps" value="0" />
+            <ParameterAssignment parameterRef="other_s_m" value="1110" />
+            <ParameterAssignment parameterRef="other_t_m" value="0" />
+            <ParameterAssignment parameterRef="other_speed_mps" value="0" />
+            <ParameterAssignment parameterRef="other_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="other_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="other_category" value="car" />
+            <ParameterAssignment parameterRef="other_center_z_m" value="0.75" />
+            <ParameterAssignment parameterRef="other_height_m" value="1.5" />
+            <ParameterAssignment parameterRef="other_front_axle_m" value="2.9" />
+            <ParameterAssignment parameterRef="other_track_m" value="1.6" />
+            <ParameterAssignment parameterRef="other_wheel_m" value="0.65" />
+            <ParameterAssignment parameterRef="other_axle_height_m" value="0.325" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

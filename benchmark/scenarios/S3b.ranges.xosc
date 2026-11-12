@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S3b" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S3b.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="truck_s_m">
+        <DistributionRange stepWidth="10">
+          <Range lowerLimit="10" upperLimit="30" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="truck_t_m">
+        <DistributionRange stepWidth="0.1">
+          <Range lowerLimit="-3.4" upperLimit="-3" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="acc">
+        <DistributionSet>
+          <Element value="on" />
+          <Element value="ignore_limits" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>
