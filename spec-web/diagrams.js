@@ -174,7 +174,7 @@
       y0 += s.h;
       if (deadline && s.no === deadline.after) {
         var yd = y0 + GAP / 2 - 4, dg = node("g", {}, svg);
-        var label = "◆ Deadline: " + tr("bước {a}–{b} gửi xong trước {when}", { a: deadline.first, b: deadline.after, when: deadline.when });
+        var label = "◆ " + tr("Hạn gửi") + " · " + tr("bước {a}–{b} gửi xong trước {when}", { a: deadline.first, b: deadline.after, when: deadline.when });
         tip(dg, label);
         node("line", { x1: LEFT, y1: yd, x2: W - 16, y2: yd, stroke: C.amber, "stroke-width": 1.5, "stroke-dasharray": "2 4" }, dg);
         node("text", { x: LEFT + 6, y: yd - 6, fill: C.amber, "font-weight": 600 }, dg, label);
@@ -198,7 +198,7 @@
     var rows = t.rows.map(function (r, i) {
       var labels = t.labels[i], v = plain(r[iMs]), lv = plain(labels[iMs]);
       var num = /^\d+(?:[.,]\d+)?/.exec(v), note = /\(([^)]*)\)\s*$/.exec(lv);
-      return { no: plain(r[iNo]), name: plain(labels[iName]).replace(/,\s*song song$/i, ""),
+      return { no: plain(r[iNo]), name: plain(labels[iName]).replace(/,\s*(?:song song|in parallel)$/i, ""),
         parallel: /song song/i.test(plain(r[iName])),
         ms: num ? parseFloat(num[0].replace(",", ".")) : 0, known: !!num, unknown: /\?|chưa biết/.test(v),
         raw: lv, note: note ? note[1] : "", by: plain(labels[iBy]), bu: plain(r[iBu]), compensation: plain(labels[iBu]) };
@@ -497,7 +497,7 @@
 
     arcs.forEach(function (a) {
       var b = boxes[a.to], color = fnColor(a.fns), g = node("g", {}, svg), s, e, at = 0.5;
-      tip(g, a.nos.join(", ") + " · " + a.from + " → " + a.to);
+      tip(g, a.nos.join(", ") + " · " + tr(a.from) + " → " + tr(a.to));
       if (a.from === ANY) {
         e = { x: b.x, y: b.y + b.h / 2 };
         s = { x: b.x - 150, y: e.y };
@@ -547,8 +547,8 @@
     var cols = ["Pha", "Bắt đầu khi", "Tốc độ", "Path planner", "Khối dọc", "Requirement"].map(function (n) { return column(t, n); });
     var phases = t.rows.map(function (r, i) {
       var l = t.labels[i];
-      return { name: plain(l[cols[0]]), when: plain(l[cols[1]]), speed: plain(r[cols[2]]), planner: plain(l[cols[3]]),
-        lon: plain(l[cols[4]]), req: plain(l[cols[5]]) };
+      return { name: plain(l[cols[0]]), when: plain(l[cols[1]]), speed: plain(r[cols[2]]), speedLabel: plain(l[cols[2]]),
+        planner: plain(l[cols[3]]), lon: plain(l[cols[4]]), req: plain(l[cols[5]]) };
     });
     var LEFT = 92, n = phases.length, colW = (W_FN - LEFT) / n, chars = Math.floor((colW - 12) / 6.2);
     var rowsDef = [["when", tr("Bắt đầu khi")], ["planner", tr("Path planner")], ["lon", tr("Khối dọc")], ["req", tr("Requirement")]];
@@ -580,7 +580,7 @@
       else if (/^tăng/.test(k)) end = hi;
       pts.push(x0 + "," + level, x1 + "," + end);
       level = end;
-      node("text", { x: (x0 + x1) / 2, y: HEAD + PLOT + 4, "text-anchor": "middle", fill: C.soft, "font-size": 11 }, svg, p.speed);
+      node("text", { x: (x0 + x1) / 2, y: HEAD + PLOT + 4, "text-anchor": "middle", fill: C.soft, "font-size": 11 }, svg, p.speedLabel);
     });
     node("polyline", { points: pts.join(" "), fill: "none", stroke: C.violet, "stroke-width": 3, "stroke-linejoin": "round" }, svg);
     node("text", { x: 8, y: hi + 4, fill: C.soft, "font-size": 11 }, svg, tr("tốc độ"));
@@ -589,7 +589,8 @@
     var y = top;
     rowsDef.forEach(function (d, j) {
       node("line", { x1: 4, y1: y - 4, x2: W_FN - 4, y2: y - 4, stroke: C.line }, svg);
-      node("text", { x: 8, y: y + 10, "font-weight": 600, fill: d[0] === "planner" ? C.violet : C.text, "font-size": 11.5 }, svg, d[1]);
+      multiline(svg, 8, y + 10, wrap(d[1], Math.floor((LEFT - 12) / 6.2)),
+        { "font-weight": 600, fill: d[0] === "planner" ? C.violet : C.text, "font-size": 11.5 }, 13);
       phases.forEach(function (p, i) {
         multiline(svg, LEFT + i * colW + 8, y + 10, wrapped[i][d[0]],
           { fill: d[0] === "req" ? C.soft : C.text, "font-size": 11 }, 13);
@@ -604,20 +605,27 @@
   }
 
   // ---------- Dải tốc độ và giới hạn quyền lái ----------
-  function limits(sec, opts, tr) {
+  function limits(sec, opts, tr, extra) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
     var iFn = column(t, "Chức năng"), iAy = column(t, "a_y"), iAdd = column(t, "a_y thêm vào"), iJ = column(t, "Jerk");
-    var fns = t.rows.map(function (r) {
-      return { name: plain(r[iFn]), ay: num(r[iAy]), add: num(r[iAdd]), addText: plain(r[iAdd]), jerk: num(r[iJ]) };
+    var fns = t.rows.map(function (r, i) {
+      var labels = t.labels[i];
+      return { name: plain(r[iFn]), ay: num(r[iAy]), add: num(r[iAdd]), jerk: num(r[iJ]),
+        ayText: plain(labels[iAy]), addText: plain(labels[iAdd]), jerkText: plain(labels[iJ]) };
     });
     // Dải tốc độ: dòng "Tốc độ" của bảng điều kiện khả dụng (ADAS Function Specification mục 7).
-    var avail = opts.extra && opts.extra[0] && section(opts.extra[0].md, opts.extra[0].section);
-    var speedRow = null, speedTable = null;
-    (avail ? avail.tables : []).forEach(function (tb) {
-      tb.rows.forEach(function (r) { if (!speedRow && plain(r[0]) === "Tốc độ") { speedRow = r; speedTable = tb; } });
+    var speedRow, speedLabels, speedTable;
+    (extra[0]?.tables || []).forEach(function (tb) {
+      tb.rows.forEach(function (r, i) {
+        if (!speedRow && plain(r[0]) === "Tốc độ") {
+          speedRow = r;
+          speedLabels = tb.labels[i];
+          speedTable = tb;
+        }
+      });
     });
-    if (!speedRow) throw fail("Không thấy dòng \"Tốc độ\" trong mục {id}", { id: opts.extra ? opts.extra[0].section : "?" });
+    if (!speedRow) throw fail("Không thấy dòng \"Tốc độ\" trong mục {id}", { id: opts.extra?.[0]?.section || "?" });
     var speeds = {};
     fns.forEach(function (f) {
       var i = speedTable.header.indexOf(f.name);
@@ -628,13 +636,14 @@
         hold = /giữ tới dưới (\d+)\s*km\/h/.exec(text), max = /tối đa (\d+)\s*km\/h/.exec(text);
       speeds[f.name] = {
         on: range ? +range[1] : from ? +from[1] : null, max: range ? +range[2] : max ? +max[1] : null,
-        hold: hold ? +hold[1] : null, text: text
+        hold: hold ? +hold[1] : null, text: i >= 0 ? plain(speedLabels[i]) : ""
       };
     });
 
     var LEFT = 64, PW = W_FN - LEFT - 150, ROW = 34, top1 = 44;
     var top2 = top1 + fns.length * ROW + 70, H = top2 + fns.length * ROW + 64;
     var svg = svgRoot(W_FN, H, tr("Dải tốc độ và giới hạn quyền lái"));
+    var number = new Intl.NumberFormat(opts.language || "vi");
 
     function axis(y0, max, step, unit, title) {
       node("text", { x: 4, y: y0 - 20, "font-weight": 700, fill: C.text }, svg, title);
@@ -642,7 +651,7 @@
       for (var v = 0; v <= max; v += step) {
         var x = LEFT + v / max * PW;
         node("line", { x1: x, y1: y0 - 6, x2: x, y2: yb, stroke: C.line, "stroke-dasharray": v ? "2 4" : null }, svg);
-        node("text", { x: x, y: yb + 14, "text-anchor": "middle", fill: C.soft, "font-size": 10.5 }, svg, String(v).replace(".", ","));
+        node("text", { x: x, y: yb + 14, "text-anchor": "middle", fill: C.soft, "font-size": 10.5 }, svg, number.format(v));
       }
       node("text", { x: LEFT + PW + 22, y: yb + 14, fill: C.soft, "font-size": 10.5 }, svg, unit);
     }
@@ -662,14 +671,14 @@
     axis(top2, maxAy, 0.5, "m/s²", tr("Giới hạn a_y của path"));
     fns.forEach(function (f, i) {
       var y = top2 + i * ROW + 6, g = node("g", {}, svg), sx = function (v) { return LEFT + v / maxAy * PW; };
-      tip(g, f.name + ": a_y ≤ " + f.ay + ", a_y thêm vào " + f.addText + ", jerk ≤ " + f.jerk);
+      tip(g, f.name + " · a_y " + f.ayText + " · " + tr("a_y thêm vào") + " " + f.addText + " · jerk " + f.jerkText);
       node("text", { x: 4, y: y + 15, "font-weight": 600, fill: C.text }, g, f.name);
       if (f.ay == null) return;
       node("rect", { x: LEFT, y: y + 2, width: sx(f.ay) - LEFT, height: 18, rx: 4, fill: fnColor(f.name), opacity: 0.35 }, g);
       if (f.add != null) node("rect", { x: LEFT, y: y + 6, width: sx(f.add) - LEFT, height: 10, rx: 3, fill: fnColor(f.name) }, g);
-      var addNote = f.add != null ? "≤ " + String(f.add).replace(".", ",") : f.addText && f.addText !== "—" ? f.addText : null;
-      var note = "≤ " + String(f.ay).replace(".", ",") + (addNote ? tr("; thêm vào ") + addNote : "") +
-        (f.jerk != null ? "; jerk ≤ " + f.jerk + " m/s³" : "");
+      var addNote = f.add != null ? "≤ " + number.format(f.add) : f.addText && f.addText !== "—" ? f.addText : null;
+      var note = "≤ " + number.format(f.ay) + (addNote ? " · " + tr("thêm vào {value}", { value: addNote }) : "") +
+        (f.jerk != null ? " · jerk ≤ " + number.format(f.jerk) + " m/s³" : "");
       node("text", { x: sx(f.ay) + 6, y: y + 15, fill: C.soft, "font-size": 11 }, g, note);
     });
     legend(svg, 12, H - 14, [
@@ -728,6 +737,20 @@
 
   var KINDS = { sequence: sequence, latency: latency, states: states, modes: modes, curve: curve, limits: limits, ladder: ladder };
 
+  function labelTables(source, translation, tr) {
+    var allTranslated = !!translation;
+    source.tables.forEach(function (table, i) {
+      var translated = translation && translation.tables[i];
+      var matches = translated && translated.rows.length === table.rows.length &&
+        translated.header.length === table.header.length &&
+        table.header.every(function (h, j) { return tr(h) === translated.header[j]; }) &&
+        table.rows.every(function (r, j) { return r.length === translated.rows[j].length; });
+      if (!matches) allTranslated = false;
+      table.labels = matches ? translated.rows : table.rows;
+    });
+    return allTranslated;
+  }
+
   // Trả về { node } khi vẽ được, { error } khi bảng không đọc được.
   function render(kind, md, opts) {
     opts = opts || {};
@@ -739,16 +762,14 @@
       var source = section(md, opts.section);
       if (!source) throw fail("Không thấy mục {id} trong tài liệu", { id: "{#" + opts.section + "}" });
       var translation = opts.translation && section(opts.translation, opts.section);
-      var allTranslated = !!translation;
-      source.tables.forEach(function (table, i) {
-        var translated = translation && translation.tables[i];
-        var matches = translated && translated.rows.length === table.rows.length &&
-          translated.header.length === table.header.length &&
-          table.header.every(function (h, j) { return tr(h) === translated.header[j]; });
-        if (!matches) allTranslated = false;
-        table.labels = matches ? translated.rows : table.rows;
+      var allTranslated = labelTables(source, translation, tr);
+      var extra = (opts.extra || []).map(function (ref) {
+        var sec = section(ref.md, ref.section);
+        var translated = ref.translation && section(ref.translation, ref.section);
+        if (!sec || !labelTables(sec, translated, tr)) allTranslated = false;
+        return sec;
       });
-      return { node: KINDS[kind](source, opts, tr), translated: allTranslated };
+      return { node: KINDS[kind](source, opts, tr, extra), translated: allTranslated };
     } catch (err) {
       return { error: err.key ? tr(err.key, err.values) : err.message };
     }

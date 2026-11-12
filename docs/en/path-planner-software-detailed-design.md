@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SDD` |
-| Version | 1.7 |
+| Version | 1.8 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
@@ -104,7 +104,7 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 | 1 | Transform the previous cycle's path into `base_link` at t0 using ego-motion. A path older than the Trajectory timeout (75 ms) is invalid |
 | 2 | Initial state (d, ḋ, d̈) = the previous path's state at t0, expressed relative to the new reference line. If the measured state (T6) differs by more than `stitch_reset`, use it instead. Always use the measured state when LKA or ELK starts (PP-SWR-080) |
 | 3 | T7 generates a candidate path from the initial state |
-| 4 | Project to satisfy the continuity limits. Find the maximum difference between the candidate and previous paths over their shared time interval for lateral offset Δd, heading Δψ, and curvature Δκ. λ = min(1, `cont_margin`·0.05/Δd, `cont_margin`·0.005/Δψ, `cont_margin`·0.0003/Δκ). Published path = previous path + λ·(candidate path − previous path) |
+| 4 | Project to satisfy the continuity limits. Find the maximum differences in lateral offset Δd, heading Δψ, and curvature Δκ between the candidate and previous paths over their shared time interval. Use only points with x ≤ the reference line's `view_end`, or the entire path when following the previous reference line. λ = min(1, `cont_margin`·0.05/Δd, `cont_margin`·0.005/Δψ, `cont_margin`·0.0003/Δκ). Published path = previous path + λ·(candidate path − previous path) |
 | 5 | Skip step 4 when PP-SWR-031 permits it (LKA or ELK starts after the vehicle has deviated) and when the previous path is invalid |
 
 - Step 2 finds the previous path point at t0 with Hermite interpolation using the tangent directions. Chord interpolation cuts inside the curve by κ·L²·f(1−f)/2 and pulls the initial point inward each cycle.
@@ -155,7 +155,7 @@ LKA and ELK use technique A in both builds. When T9 selects a new intervention, 
 |---|---|---|
 | A. Duration-based quintic | Use a fifth-degree d(t) from the initial state to (target d, 0, 0) over T. If `ay_add_max_hwa` or `jerk_target_hwa` is exceeded, increase T in 0.25 s steps up to `T_max`. T10 clips the path to the hard limits | `T_max` |
 | B. Frenet sampling | Generate quintics with final d within target d ± `d_sample_span` in steps of `d_sample_step`, with T from `T_set`. Discard paths that exceed limits or leave the corridor. Select the path minimizing J = `w_jerk`·∫d⃛² + `w_time`·T + `w_dev`·(final d − target d)² + `w_cons`·∫(d − d_old)² | `d_sample_span`, `d_sample_step`, `T_set`, `w_jerk`, `w_time`, `w_dev`, `w_cons` |
-| C. Unified QP | The condensed formulation uses lateral jerk j_k as the decision variable over 30 steps. Exact integration from the T4 initial state gives d, ḋ, and d̈. Minimize `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_old)² + the terminal costs `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe². Here o is the T8 offset, and d_old is the previous path projected onto the new reference line and shifted by the change in o since the previous cycle. Linear constraints use a_y = d̈/q² + v²κ_ref/q, with q = 1 − κ_ref·d evaluated on the previous path as in T11. The magnitude of a_y is limited to `qp_ay_margin`·aysmax. At points where the required a_y > aysmax − epsilon_ay/2, constrain a_y to [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) and exclude those points from σ. At other points, a_y above `qp_a_comfort` contributes to σ. When d leaves the corridor (lane width − vehicle width − `qp_corridor_margin`), the excess contributes to e. Constrain path jerk (j + v³·dκ_ref/ds) to ±0.9 times the HWA jerk limit. Curve cutting emerges when the constraints bind. Solve with ADMM, adaptive ρ per row block (a_y ×10 and jerk ×0.1), a fixed `qp_iters` iterations, and a warm start from the previous cycle. The block-diagonal KKT matrix requires factoring one 30×30 block. T4 then blends as in technique A and T10 checks the final path | Section 15 |
+| C. Unified QP | The condensed formulation uses lateral jerk j_k as the decision variable over 30 steps. Exact integration from the T4 initial state gives d, ḋ, and d̈. Minimize `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_old)² + terminal costs `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ², plus `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe². Here o is the T8 offset, and d_old is the previous path projected onto the new reference line and shifted by the change in o since the previous cycle. Linear constraints use a_y = d̈/q² + v²κ_ref/q, with q = 1 − κ_ref·d evaluated on the previous path as in T11. The magnitude of a_y is limited to `qp_ay_margin`·aysmax. At points where the required a_y > aysmax − epsilon_ay/2, constrain a_y to [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) and exclude those points from σ. At other points, a_y above `qp_a_comfort` contributes to σ. When d leaves the corridor (lane width − vehicle width − `qp_corridor_margin`), the excess contributes to e. Constrain path jerk (j + v³·dκ_ref/ds) to ±0.9 times the HWA jerk limit. The same QP handles curve cutting when the constraints bind. Solve with ADMM, adaptive ρ per row block (a_y ×10 and jerk ×0.1), a fixed `qp_iters` iterations, and a warm start from the previous cycle. The block-diagonal KKT matrix requires factoring one 30×30 block. T4 then blends as in technique A and T10 checks the final path | Section 15 |
 
 For HWA, `PP_T7` selects `quintic` or `qp` at build time. The selection is reported by `pp_version()` (PP-TS-003). Both builds use quintic paths for LKA and ELK. PP-TS-006 tracks the comparison of intervention techniques.
 
@@ -202,6 +202,7 @@ The result matches the arbitration state table in Software Architectural Design 
 - Sample at t_k = 0.1·k, k = 0…30; obtain s(t) by integrating v(t).
 - Convert (s, d) to (x, y, yaw, κ) in `base_link` using the Frenet-to-Cartesian formulas from Werling (2010).
 - `heading_rate` = v·κ; `lateral_velocity` = ḋ; `front_wheel_angle` from T10; `rear_wheel_angle` = 0.
+- Set `observed_horizon_s` to the time when path x exceeds the reference line's `view_end`, interpolating linearly between points. Use 3 s if the entire path stays in range (PP-SWR-018).
 - Set `header.stamp_us` = t0 and increment `counter` by 1.
 - Publish Trajectory, PathStatus, and LateralLimits; record computation time and log an overrun if it exceeds `t_budget`.
 
@@ -250,3 +251,4 @@ Supplement to Software Architectural Design Section 11; use the same sweep metho
 | 1.5 | 2026-11-11 | Reworked T7 C as a unified condensed QP solved by ADMM (PP-TS-003). Added T7 C calibration and build-time technique selection |
 | 1.6 | 2026-11-11 | T7 C uses `qp_w_cont` for continuity with the previous path, and T4 still blends. Added the T11 a_y formula, the PP-SWR-006 a_y band, jerk constraints, and ρ per row block. Set `qp_ay_margin` to 1.0. T8 uses clearance to large vehicles and `gap_truck_min`. T7 C shifts the previous path by the latest offset change |
 | 1.7 | 2026-11-12 | T7 uses quintic paths for LKA and ELK in both builds. T9 tracks separate phases, applies PP-SWR-145 at the output, and reselects a function in the same cycle on completion or cancellation |
+| 1.8 | 2026-11-12 | T4 step 4 considers only the path within the view range (Software Requirements Specification 1.9, PP-TS-014). T11 adds `observed_horizon_s` |

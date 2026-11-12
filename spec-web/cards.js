@@ -187,7 +187,7 @@ window.SPEC_CARDS = [
     "main": true,
     "eyebrow": "ADR · Path Planner",
     "title": "Architecture Decision Records",
-    "summary": "12 quyết định thiết kế, mỗi quyết định có bối cảnh, phương án bị loại và hệ quả."
+    "summary": "Các quyết định thiết kế, bối cảnh, phương án đã xét và hệ quả."
   },
   {
     "id": "path-planner-software-detailed-design",
@@ -391,7 +391,7 @@ window.SPEC_CARDS = [
 window.SPEC_REGIONS = [
   {
     "id": "docs",
-    "text": "Technical Documents"
+    "text": "Tài liệu kỹ thuật"
   },
   {
     "id": "vehicle",
@@ -515,7 +515,7 @@ window.SPEC_EDGES = [
       "doc": "path-planner-interface-control-document",
       "section": "path-status"
     }
-  },,
+  },
   {
     "id": "e-limits",
     "from": "path-planner",

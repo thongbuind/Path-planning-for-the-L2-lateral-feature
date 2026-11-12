@@ -620,25 +620,36 @@
   }
 
   // Sơ đồ đọc dữ liệu từ bản gốc và lấy nhãn từ bản dịch đã đối chiếu.
+  function diagramSource(ref) {
+    var vi = st(ref.doc, "vi");
+    var en = st(ref.doc, "en");
+    var record = versionRecords?.[ref.doc];
+    var translation = language === "en" && vi.ok && en.ok && vi.revision && en.revision &&
+      vi.revision === record?.vi && en.revision === record?.en ? en.md : null;
+    return { section: ref.section, md: vi.md || "", translation: translation };
+  }
+
   function refreshDiagrams(records) {
     if (!window.SpecDiagrams) return Promise.resolve();
+    var lang = language;
     return Promise.all(diagramCards().map(function (c) {
-      var extraDocs = (c.extra || []).map(function (x) { return loadDoc(x.doc, "vi"); });
-      return Promise.all([loadDoc(c.doc, "vi"), language === "en" && loadDoc(c.doc, "en"), records].concat(extraDocs)).then(function () {
+      var refs = [c].concat(c.extra || []);
+      var loads = refs.flatMap(function (ref) {
+        var vi = loadDoc(ref.doc, "vi");
+        return lang === "en" ? [vi, loadDoc(ref.doc, "en")] : [vi];
+      });
+      return Promise.all([records].concat(loads)).then(function () {
+        if (language !== lang) return;
         var card = world.querySelector('.card[data-id="' + c.id + '"]');
         var body = card && card.querySelector(".diagram-body");
-        var vi = st(c.doc, "vi");
-        var en = st(c.doc, "en");
-        var record = versionRecords?.[c.doc];
-        var translation = language === "en" && vi.ok && en.ok && vi.revision && en.revision &&
-          vi.revision === record?.vi && en.revision === record?.en ? en.md : null;
-        var extra = (c.extra || []).map(function (x) { return { md: st(x.doc, "vi").md || "", section: x.section }; });
-        var key = vi.md + extra.map(function (x) { return x.md; }).join("");
-        if (!body || !vi.md || (card._diagramMd === key && card._diagramTranslation === translation)) return;
-        card._diagramMd = key;
-        card._diagramTranslation = translation;
-        var out = window.SpecDiagrams.render(c.diagram, vi.md, {
-          section: c.section, lanes: c.lanes, own: c.own, translation: translation, tr: tr, extra: extra
+        var sources = refs.map(diagramSource);
+        var source = sources[0];
+        var key = sources.flatMap(function (ref) { return [ref.md, ref.translation]; });
+        if (!body || !source.md || key.every(function (value, i) { return value === card._diagramSource?.[i]; })) return;
+        card._diagramSource = key;
+        var out = window.SpecDiagrams.render(c.diagram, source.md, {
+          section: source.section, lanes: c.lanes, own: c.own,
+          translation: source.translation, tr: tr, language: lang, extra: sources.slice(1)
         });
         if (out.node) {
           body.replaceChildren(out.node);
@@ -1137,7 +1148,7 @@
 
   function renderReport() {
     backLink.href = HOME_PATH + (localFile ? "index.html" : "") + "?lang=" + language;
-    document.title = tr(currentDoc ? currentDoc.title : "Technical Documents");
+    document.title = tr(currentDoc ? currentDoc.title : "Tài liệu kỹ thuật");
     if (currentDoc) {
       reportIndexBack.href = reportHref();
       reportIndexBack.hidden = false;
@@ -1154,9 +1165,8 @@
     var heading = el("div");
     var project = el("p", "report-project", "G1 / Path Planner");
     project.lang = "en";
-    heading.append(project, el("h1", null, tr("Technical Documents")));
-    var count = el("p", "report-catalog-count", String(docs.length).padStart(2, "0") + " documents");
-    count.lang = "en";
+    heading.append(project, el("h1", null, tr("Tài liệu kỹ thuật")));
+    var count = el("p", "report-catalog-count", tr("{count} tài liệu", { count: String(docs.length).padStart(2, "0") }));
     masthead.append(heading, count);
     reportCatalog.replaceChildren(masthead);
     if (requestedDoc !== null) {
@@ -1166,9 +1176,8 @@
     var reference = el("section", "report-group");
     var coreGrid = el("ul", "report-grid");
     var referenceGrid = el("ul", "report-grid");
-    core.append(el("h2", "report-group-title", "Overview & Design"), coreGrid);
-    reference.append(el("h2", "report-group-title", "Reference & Verification"), referenceGrid);
-    core.firstElementChild.lang = reference.firstElementChild.lang = "en";
+    core.append(el("h2", "report-group-title", tr("Tổng quan và thiết kế")), coreGrid);
+    reference.append(el("h2", "report-group-title", tr("Tham chiếu và kiểm chứng")), referenceGrid);
     docs.forEach(function (c, i) {
       var item = el("li", c.main ? "report-tile report-tile-main" : "report-tile");
       item.dataset.id = c.id;

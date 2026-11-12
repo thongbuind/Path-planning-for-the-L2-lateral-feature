@@ -20,7 +20,7 @@ các file tài liệu `.md`. Mở thẳng `index.html` thì bản đồ vẫn xe
 - Phóng to, thu nhỏ quanh con trỏ: chụm hai ngón, lăn bánh xe chuột, hoặc giữ Ctrl/Cmd rồi cuộn.
 - Nút góc phải: phóng to, thu nhỏ, đưa tất cả thẻ vào khung. Khi bản đồ đang được focus: phím `+`, `-`, `0` và các phím mũi tên.
 - Bấm thẻ phần mềm, giả lập hoặc nhãn đường nối để mở mục tương ứng trong tài liệu.
-- Bấm **Technical Documents** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Home** đưa về bản đồ tại `home/`.
+- Bấm **Tài liệu kỹ thuật** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Trang chủ** đưa về bản đồ tại `home/`.
 
 ## Chuẩn bị bản tĩnh cho GitHub Pages
 

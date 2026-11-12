@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-MR` |
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer |   |
-| Last updated | 2026-11-11 |
+| Last updated | 2026-11-12 |
 
 ## 1. Purpose and scope {#summary-scope}
 
@@ -45,7 +45,7 @@ Select the planning technique by benchmarking three candidates: duration-based q
 | UN R79 | HWA is ACSF B1: a_y ≤ 2.5 m/s² (limit: 3), jerk ≤ 5 m/s³, no driving onto the lane marking below aysmax, and no sudden removal of steering assistance. LKA and ELK are CSF and ESF: interventions ≤ 10 s and driver warnings. Override force ≤ 50 N |
 | EU 2021/646 (ELKS) | ELK operates at 70–130 km/h and is enabled by default; DTLE follows ELKS |
 | Euro NCAP LSS, Safety Assist | DTLE ≥ −0.3 m (lane marking), ≥ −0.1 m (road edge); distance to an adjacent-lane vehicle ≥ 0.3 m; override torque 3.0 Nm (≤ 3.5 Nm) |
-| Assignment | Deviation between consecutive paths ≤ 0.05 m, 0.005 rad, 0.0003 1/m |
+| Assignment | Deviation between consecutive paths ≤ 0.05 m, 0.005 rad, and 0.0003 1/m within the reported lane model view range. `observed_horizon_s` marks where the path leaves that range |
 | ISO 26262, ISO 21448 | HARA with proposed ASIL ratings; 13 SOTIF triggering conditions linked to test cases |
 
 The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², added a_y ≤ 1.5 m/s²) and ELK (a_y ≤ 4.0 m/s², added a_y ≤ 3.0 m/s², jerk ≤ 10 m/s³) because the regulations do not specify numerical values.
@@ -88,3 +88,4 @@ The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², add
 |---|---|---|
 | 1.0 | 2026-11-10 | Rewritten as the Technical Summary for the BL1 technical document set |
 | 1.1 | 2026-11-11 | Updated the center offset to follow the revised PP-ADR-008 |
+| 1.2 | 2026-11-12 | Continuity between paths is evaluated within the view range. Added `observed_horizon_s` to Trajectory |

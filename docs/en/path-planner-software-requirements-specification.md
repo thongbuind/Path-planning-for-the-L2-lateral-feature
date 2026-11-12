@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SRS` |
-| Version | 1.6 |
+| Version | 1.9 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
@@ -68,10 +68,11 @@
 | Lateral path deviation | Maximum lateral distance between the path and the actual lane center, measured at the same longitudinal position over the 0–1 s segment of the path, unless the requirement specifies a different segment |
 | Path a_y | v²·κ at each Trajectory point, where v = `longitudinal_velocity` and κ = `curvature` |
 | Required a_y | v²·κ of the actual lane center at the corresponding point on the path |
+| Lane model view range | The segment the simulated camera actually observes on both lane boundaries in use. Exclude any reported extension beyond the observed segment |
 | Maximum required a_y | Maximum required a_y over 0–3 s, considering only the portion within the lane model's visible range |
 | Added a_y | Path a_y minus required a_y at the same point |
 | Path lateral jerk | Time derivative of path a_y, with a 0.5 s moving average |
-| Consecutive paths | Compare over the time interval both describe after transforming the previous path into the new path's base_link using the vehicle's actual motion |
+| Consecutive paths | Compare over the time interval both paths describe. Use points of the new path within the view range reported for the lane model frame used in that cycle, or the entire path if no lane model is available. Transform the previous path into the new path's base_link using the vehicle's actual motion |
 | Reliable lane boundary | L1 and R1 markings: status MEASURED, confidence ≥ `conf_ego`. L2 and R2 markings or road edges, when used to infer the lane center: status MEASURED, confidence ≥ `conf_inferred` |
 | DLC | As in ADAS Function Specification Section 5, calculated using the actual lane and actual vehicle position |
 | DTLE | Minimum distance from the outer edge of the tire to the inner edge of the lane marking during an intervention; negative means the marking has been crossed (Euro NCAP) |
@@ -116,6 +117,8 @@ Each row identifies the requirements that depend on the assumption and how to re
 | PP-ASM-017 | The Lateral Controller compensates post-planner latency by reading path points using `header.stamp_us` and `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Confirm with the Lateral Controller team | team agreement |
 | PP-ASM-018 | ASIL ratings for safety requirements follow the safety department's confirmation review of the HARA | All Safety requirements | Safety department review outcome | team agreement |
 | PP-ASM-019 | The target platform (ECU, operating system, middleware, coding standard) is unknown. The planner requires only a C11 compiler (PP-ADR-013) | All requirements, through implementation | Ask the mentor for the target platform and coding standard | team agreement |
+| PP-ASM-021 | The Lateral Controller either computes steering commands using only the path through `observed_horizon_s` or tolerates jumps in the portion beyond it | PP-SWR-018, 100, 101, 102 | Confirm with the Lateral Controller team | team agreement |
+| PP-ASM-020 | The lane model view range varies by marking and frame. Actual start and end points are unknown. The benchmark uses a nominal 0–80 m and sweeps end points from 10 to 126 m | PP-SWR-017, 149, 151 | Read the distributions of `line start distance` and `line end distance` in real vehicle logs | team agreement |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
 
@@ -143,6 +146,8 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-011 | Trajectory shall follow the format in the Interface Control Document: 31 points at 0.1 s intervals, spanning 0–3 s, frame_id = base_link | Inspection | Interface | team agreement (Autoware Trajectory) |
 | PP-SWR-012 | Trajectory `header.stamp_us` shall be the time represented by the path, with lane model latency compensated | Inspection; Test: Q1 | Interface | team agreement |
 | PP-SWR-014 | `header.counter` shall increment by 1 after every message and wrap over 0–255 | Inspection; Test: all scenarios | Interface | team agreement |
+| PP-SWR-018 | `Trajectory.observed_horizon_s` shall match the time along the path when it leaves the reported view range for the lane model frame used by the planner in that cycle, within 0.1 s | Test: all scenarios | Interface | team agreement |
+| PP-SWR-017 | The planner shall accept a lane model with any `view_range_end > view_range_start` for each marking and road edge. A view range beyond 126 m shall not invalidate the input | Test: F22 (e), Q4 | Interface | team agreement |
 | PP-SWR-015 | The planner shall record computation time for every cycle | Inspection | Interface | team agreement |
 
 ### 8.2 Arbitration {#req-arbitration}
@@ -161,7 +166,7 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-039 | While `driver_override = true`, the start of the path shall match the vehicle's current lateral position with an error of ≤ 0.05 m | Test: S9 (c), S17 | Safety, SG-05 | team agreement |
 | PP-SWR-040 | When `driver_override` changes to false while HWA is in REQUEST, the start of the HWA path shall match the vehicle's lateral position at that time with an error of ≤ 0.05 m | Test: S9 (c), S17 | Safety, SG-05 | team agreement |
 | PP-SWR-041 | The planner shall keep each function's phase at COMPLETED until that function leaves REQUEST | Test: S16 (a, b) | Functional | team agreement |
-| PP-SWR-042 | When HWA leaves REQUEST and no function is in REQUEST, the planner shall set `active_function = NONE` and keep `path_valid = true` | Test: S9 (e) | Safety, SG-02 | team agreement |
+| PP-SWR-042 | When HWA leaves REQUEST and no function is in REQUEST, the planner shall set `active_function = NONE` and keep `path_valid = true` | Test: S9 (e), F22 (f) | Safety, SG-02 | team agreement |
 | PP-SWR-043 | While `path_valid = false`, `active_function` shall equal NONE | Test: F05, F12 (Lane Model), F20 | Functional | team agreement |
 | PP-SWR-044 | When inputs recover after `path_valid = false`, the start of the new path shall match the vehicle's actual lateral state within the tolerances in PP-SWR-080 | Test: F12 (Lane Model, recovery) | Functional | team agreement |
 | PP-SWR-045 | After input recovery, the planner shall start an LKA or ELK intervention only after the state of that function leaves REQUEST and returns to it | Test: F12 (Lane Model, recovery) | Safety, SG-01 | team agreement |
@@ -239,6 +244,7 @@ Basis for steering authority limits: R79 does not limit CSF a_y. ELK at 4.0 m/s�
 |---|---|---|---|---|
 | PP-SWR-120 | When lane model c0 and c1 noise reaches nighttime levels (2.5 times the daytime level), the path shall satisfy the active function's jerk limit and PP-SWR-100 to 102 | Test: F01 | Safety, SG-01 | team agreement |
 | PP-SWR-121 | When c0 jumps by 0.3–1.0 m in one frame, the path shall satisfy PP-SWR-100 to 102 | Test: F02 | Safety, SG-04 | assignment |
+| PP-SWR-149 | When the lane model view range briefly shortens, differs by marking, varies by frame, or is reported beyond the actually observed segment, PP-SWR-051 and 100 to 102 shall still be met | Test, closed loop: F22 (a, b, c, d, e, f) | Safety, SG-01 | assignment (detection range is a quality signal) |
 | PP-SWR-122 | When the lane model misidentifies an adjacent-lane marking, PP-SWR-051 and 100 to 102 shall still be met | Test, closed loop: F03 | Safety, SG-01 | team agreement |
 | PP-SWR-123 | When the lane model loses one marking, PP-SWR-051 and 100 to 102 shall still be met | Test, closed loop: F04 (a–d) | Safety, SG-01 | team agreement |
 | PP-SWR-124 | When the lane model has no reliable lane boundary left (ego-lane markings, adjacent-lane markings, or road edges) or is invalid, the planner shall keep `path_valid = true` for `T_coast`, then set `path_valid = false` with a timing error of no more than one cycle | Test: F05, F21 (e), F12 (Lane Model) | Safety, SG-02 | team agreement |
@@ -288,7 +294,7 @@ Basis: 170 ms = maximum assumed latency of 120 ms (PP-ASM-001) plus 50 ms; 250 m
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
 | PP-SWR-150 | The planner shall publish LateralLimits every cycle | Test: S14 | Interface | team agreement |
-| PP-SWR-151 | `LateralLimits.v_max` shall equal √(a_y limit of the function in control / κ_max), where κ_max is the maximum curvature of the actual lane center within the lane model's visible range, with error ≤ 5 % | Test: S14 | Interface | team agreement |
+| PP-SWR-151 | `LateralLimits.v_max` shall equal √(a_y limit of the function in control / κ_max), within 5% error. κ_max is the maximum curvature of the actual lane center within the lane model's view range, up to 126 m | Test: S14, Q4 | Interface | team agreement |
 | PP-SWR-152 | `LateralLimits.distance` shall equal the longitudinal distance to the point with κ_max, with error ≤ 5 m | Test: S14 | Interface | team agreement |
 | PP-SWR-153 | When LongitudinalPlan is valid, Trajectory `longitudinal_velocity` and `acceleration` shall be taken from LongitudinalPlan | Test: S14 | Interface | team agreement |
 | PP-SWR-154 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant with acceleration set to 0 | Test: S14 (d) | Interface | team agreement |
@@ -300,7 +306,7 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
-| PP-SWR-050 | Lateral path deviation should be small throughout the ODD and under lane model faults | Test: S1 (a, b, d, e), S6b, S11, S19, F03, F04, F21 | Performance | assignment |
+| PP-SWR-050 | Lateral path deviation should be small throughout the ODD and under lane model faults | Test: S1 (a, b, d, e), S6b, S11, S19, F03, F04, F21, F22, Q4 | Performance | assignment |
 | PP-SWR-002 | Maximum added a_y during HWA recentering or center offset should be small | Test: S2, S3 | Performance | team agreement |
 | PP-SWR-004 | Path lateral jerk while HWA is in control should be small | Test: S1 | Performance | team agreement |
 | PP-SWR-008 | The time from when maximum required a_y drops below aysmax until `lateral_limit_reached` clears should be short | Test: S1 (a, b, d, e) | Performance | team agreement |
@@ -326,3 +332,6 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | 1.4 | 2026-11-11 | PP-SWR-051 applies only when free space on each side is ≥ `free_space_min`. The ODD permits a 2.5 m vehicle in a 2.5 m lane (PP-SWR-062), in which case a vehicle cannot maintain DLC ≥ 0. Report `lane_too_narrow` (PP-SWR-063) to make HWA unavailable. Requirements that refer to PP-SWR-051 (122, 123, 135 to 139, 148) inherit this condition |
 | 1.5 | 2026-11-11 | Rewrote PP-SWR-055 and 056 using the clearance to a large vehicle and `gap_truck_min`. Defined alongside and clearance to a large vehicle. Added `gap_truck_min` to Section 7. Comparing clearance to the vehicle with clearance to the lane boundary could leave the path centered or shift it toward a large vehicle centered in the adjacent lane |
 | 1.6 | 2026-11-12 | PP-SWR-032 and 041 separate the LKA and ELK phases. PP-SWR-036 and 037 reselect per 030 on cancellation. PP-SWR-047 distinguishes direct boundaries from boundaries outside the ego lane. Section 4 uses the magnitude of added a_y for completion. Clarified sources for 080, 083, 088, and 114 |
+| 1.7 | 2026-11-12 | Added lane model view range to the definitions, PP-SWR-017 for accepting view ranges, PP-SWR-149 for view-range faults (F22), and PP-ASM-020. PP-SWR-151 caps the range at 126 m. PP-SWR-050 and 151 include the Q4 sweep. The planner must work across view ranges beyond the nominal 80 m |
+| 1.8 | 2026-11-12 | Added F22 (f) to PP-SWR-042 and 149. A sustained loss of view range causes HWA to hand back control and then become available again |
+| 1.9 | 2026-11-12 | PP-SWR-100 to 102 evaluate the path within the reported lane model view range, as defined under consecutive paths. Added PP-SWR-018 (`observed_horizon_s`) and PP-ASM-021. Beyond the view range the path is extrapolated. Enforcing continuity there can prevent tracking the lane when the view range is short (PP-PR-021, PP-TS-014). This affects all requirements that depend on PP-SWR-100 to 102 (031, 061, 120 to 128, 135 to 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, and Software Qualification Test Specification 8.1 |
