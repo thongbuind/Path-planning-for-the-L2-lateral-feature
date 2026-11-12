@@ -16,3 +16,8 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261112-1421-suite-smoke-0d4f9f2 | suite | smoke | 0d4f9f2 | calibration 1b9b7d6367e8 | {"planned": 113, "executed": 113, "failed": 9, "failed_out_of_scope": 15, "errors": 0, "partial": false} | |
 | 20261112-1429-matrix-Q3-6b290e9 | matrix | Q3 | 6b290e9 | calibration 1b9b7d6367e8 | 12 lần chạy; 2 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
 | 20261112-1430-matrix-Q3-f94030c | matrix | Q3 | f94030c | calibration 1b9b7d6367e8 | 12 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1436-matrix-Q1-aab64f2 | matrix | Q1 | aab64f2 | calibration 1b9b7d6367e8 | 24 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1437-matrix-Q2-aab64f2 | matrix | Q2 | aab64f2 | calibration 1b9b7d6367e8 | 12 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1437-matrix-Q3-aab64f2 | matrix | Q3 | aab64f2 | calibration 1b9b7d6367e8 | 12 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1437-matrix-M1-aab64f2 | matrix | M1 | aab64f2 | calibration 1b9b7d6367e8 | 396 lần chạy; 0 trượt trong phạm vi; 38 có trượt ngoài phạm vi | |
+| 20261112-1445-suite-smoke-aab64f2 | suite | smoke | aab64f2 | calibration 1b9b7d6367e8 | {"planned": 113, "executed": 113, "failed": 9, "failed_out_of_scope": 15, "errors": 0, "partial": false} | |
