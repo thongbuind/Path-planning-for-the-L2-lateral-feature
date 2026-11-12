@@ -212,14 +212,19 @@ class Harness:
                     if scenario.acc != "off" else None)
         self.long_act = LongitudinalActuator(scenario.speed_mps)
 
+        camera_us = round(scenario.camera_latency_ms * 1000)  # Software Qualification Test Specification 4.5, Q1
+        jitter_us = round(scenario.camera_jitter_ms * 1000)
         self.ch = {
-            "lane_model": Channel("lane_model", latency_us=lane_camera.LATENCY_US),
-            "object_list": Channel("object_list", latency_us=object_sensor.LATENCY_US),
+            "lane_model": Channel("lane_model", latency_us=camera_us, jitter_us=jitter_us,
+                                  rng=self.rngs["latency"]),
+            "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
+                                   rng=self.rngs["latency"]),
             "imu": Channel("imu", on_deliver=restamp),
             "steering": Channel("steering", on_deliver=restamp),
             "speed": Channel("speed", on_deliver=restamp),
             "vehicle_state": Channel("vehicle_state"),
-            "function_requests": Channel("function_requests"),
+            "function_requests": Channel("function_requests",
+                                         latency_us=round(scenario.function_requests_latency_ms * 1000)),
             "longitudinal_plan": Channel("longitudinal_plan"),
             "trajectory": Channel("trajectory"),
             "lateral_limits": Channel("lateral_limits"),
@@ -360,8 +365,13 @@ class Harness:
             self._ideal_objects = self._ideal_object_sensor.capture(now_us, pose, speed, traffic)
 
     def _imu(self, now_us: int) -> None:
-        st = self.vehicle.state
-        self.ch["imu"].publish(self.chassis.imu(now_us, st.r, 0.0, self.vehicle.a_y), now_us)
+        yaw_rate = self.vehicle.state.r
+        delay_us = round(self.scenario.yaw_filter_delay_ms * 1000)
+        if delay_us > 0 and self.log.t_us:
+            # Filter delay the planner is not told about (Q2): the value of delay_us ago, stamped now.
+            i = bisect_left(self.log.t_us, now_us - delay_us)
+            yaw_rate = self.log.yaw_rate[min(i, len(self.log.yaw_rate) - 1)] if self.log.yaw_rate else yaw_rate
+        self.ch["imu"].publish(self.chassis.imu(now_us, yaw_rate, 0.0, self.vehicle.a_y), now_us)
 
     def _steering(self, now_us: int) -> None:
         self.ch["steering"].publish(self.chassis.steering(now_us, self.eps.angle, self.eps.rate), now_us)

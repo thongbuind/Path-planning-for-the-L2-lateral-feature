@@ -64,8 +64,25 @@ def one_at_a_time(suite: dict) -> list[CalSet]:
     return sets
 
 
-# Simulator values a run may set in a mapping at its end (trade studies, PP-TS-014).
-RUN_SIM_KEYS = ("camera_view_m", "camera_view_start_m", "acc")
+# Simulator values a sweep or a run may set (Software Qualification Test Specification 6.1;
+# PP-TS-014): camera view range (Q4) and delays (Q1 to Q3).
+SIM_KEYS = ("camera_view_m", "camera_view_start_m", "camera_latency_ms", "camera_jitter_ms",
+            "yaw_filter_delay_ms", "function_requests_latency_ms")
+RUN_SIM_KEYS = SIM_KEYS + ("acc",)
+
+
+def check_sim(scenario) -> None:
+    """Simulator values within what the models support."""
+    from eval import openx
+    ok = (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
+          and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m
+          and 0.0 <= scenario.camera_latency_ms <= 1000.0
+          and 0.0 <= scenario.camera_jitter_ms <= scenario.camera_latency_ms + 50.0
+          and 0.0 <= scenario.yaw_filter_delay_ms <= 500.0
+          and 0.0 <= scenario.function_requests_latency_ms <= 500.0
+          and scenario.acc in ("off", "on", "ignore_limits"))
+    if not ok:
+        raise ValueError("simulator values outside the supported ranges")
 
 
 def split_run(run: list) -> tuple[list, dict]:
@@ -82,7 +99,6 @@ def split_run(run: list) -> tuple[list, dict]:
 def load_run(run: list):
     """Scenario of one suite run, with its fault and simulator values; name shows the values."""
     from dataclasses import replace
-    from eval import openx
     spec, sim = split_run(run)
     scenario = loader.load(spec[0], spec[1])
     if len(spec) > 2:
@@ -90,10 +106,7 @@ def load_run(run: list):
     if sim:
         scenario = replace(scenario, **{k: (v if k == "acc" else float(v)) for k, v in sim.items()},
                            name=scenario.name + " [" + ", ".join(f"{k}={v}" for k, v in sim.items()) + "]")
-        if not (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
-                and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m
-                and scenario.acc in ("off", "on", "ignore_limits")):
-            raise ValueError(f"invalid simulator values in {run!r}")
+        check_sim(scenario)
     return scenario
 
 
