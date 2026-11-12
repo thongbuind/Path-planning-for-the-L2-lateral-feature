@@ -1,0 +1,1115 @@
+[
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0
+  },
+  "name": "S1a [camera_jitter_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.015134456712729241,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.845667
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7894720546954204,
+   "PP-SWR-001": 0.7398629531962797,
+   "PP-SWR-003": 0.17932507034856826,
+   "PP-SWR-100": 0.009138795246069335,
+   "PP-SWR-101": 0.00044753181968149036,
+   "PP-SWR-102": 2.095280426136695e-05,
+   "PP-SWR-116": 0.003432950936257839,
+   "PP-SWR-117": 0.012529164087027311
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.008987083232287887,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6403921982381511,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18650954463367128,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0
+  },
+  "name": "S1c [camera_jitter_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.38077641984931715,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 4.782541
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4765050709691929,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.7013941649347544,
+   "PP-SWR-100": 0.04381476369122231,
+   "PP-SWR-101": 0.0018133028081206426,
+   "PP-SWR-102": 7.32330805246898e-05,
+   "PP-SWR-116": 0.011599468998610973,
+   "PP-SWR-117": 0.04899655468761921
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.3554236799202812,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5461321084910273,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7130209088854204,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0
+  },
+  "name": "S1f [camera_jitter_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.26721715840865345,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.7710409999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6275161961905225,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 1.579624367877841,
+   "PP-SWR-100": 0.047387926778368145,
+   "PP-SWR-101": 0.004360069328110505,
+   "PP-SWR-102": 0.000270000021963149,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.11085353326052427
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.18318380698682826,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.452693708152847,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.4139819351706802,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0
+  },
+  "name": "S2b [camera_jitter_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 1.721125
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.04496612430044514,
+   "PP-SWR-101": 0.0018311490281184284,
+   "PP-SWR-102": 0.00024471885987872253,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.48271501545333056,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7284396295292747,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 0.0
+  },
+  "name": "S1a [camera_jitter_ms=20, camera_latency_ms=0]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.014806112500093909,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.404083
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7893983400125004,
+   "PP-SWR-001": 0.727355873095803,
+   "PP-SWR-003": 0.17899044905789196,
+   "PP-SWR-100": 0.005756084578703515,
+   "PP-SWR-101": 0.0002546337110418406,
+   "PP-SWR-102": 1.70845748116855e-05,
+   "PP-SWR-116": 0.003374918596819043,
+   "PP-SWR-117": 0.012507179053500295
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.009600881519850243,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6400444576766199,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18614812752639318,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 0.0
+  },
+  "name": "S1c [camera_jitter_ms=20, camera_latency_ms=0]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.35082945925292763,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 8.199042
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5048201912560517,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.6994785508140922,
+   "PP-SWR-100": 0.022844316214517234,
+   "PP-SWR-101": 0.0009424598380975979,
+   "PP-SWR-102": 6.095902320357976e-05,
+   "PP-SWR-116": 0.011599470861256123,
+   "PP-SWR-117": 0.0488439342007041
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.3273405748546762,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5478030842465644,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7078403502935781,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 0.0
+  },
+  "name": "S1f [camera_jitter_ms=20, camera_latency_ms=0]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.26627575575612794,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.3457909999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6431864021830775,
+   "PP-SWR-001": 2.4325789127033204,
+   "PP-SWR-003": 1.5479437570320442,
+   "PP-SWR-100": 0.047225346629506885,
+   "PP-SWR-101": 0.0044916635445613196,
+   "PP-SWR-102": 0.0002700000419294192,
+   "PP-SWR-116": 0.011286687105894089,
+   "PP-SWR-117": 0.1086542964912951
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.16558399172953342,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.4547263982220842,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.4641794996417987,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 0.0
+  },
+  "name": "S2b [camera_jitter_ms=20, camera_latency_ms=0]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.2929999999999997,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 1.5681669999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.04496629609339901,
+   "PP-SWR-101": 0.0018302113202195436,
+   "PP-SWR-102": 0.000244582581193549,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.4825885843237846,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7280153578513395,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 50.0
+  },
+  "name": "S1a [camera_jitter_ms=20, camera_latency_ms=50]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.015032841936142263,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.527666
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7894274366706855,
+   "PP-SWR-001": 0.7335721602430567,
+   "PP-SWR-003": 0.1793268893379718,
+   "PP-SWR-100": 0.009129857120601376,
+   "PP-SWR-101": 0.00043540036746847477,
+   "PP-SWR-102": 1.9287781682617933e-05,
+   "PP-SWR-116": 0.003403761889785528,
+   "PP-SWR-117": 0.012529653031378984
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.009278774396761969,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6404596730976849,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18682089732459212,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 50.0
+  },
+  "name": "S1c [camera_jitter_ms=20, camera_latency_ms=50]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.3675893221040288,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.413625
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4889315259792826,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.7001121412031353,
+   "PP-SWR-100": 0.044269316959659286,
+   "PP-SWR-101": 0.0017632111074830092,
+   "PP-SWR-102": 6.955476499424882e-05,
+   "PP-SWR-116": 0.011599471792578697,
+   "PP-SWR-117": 0.04890665877610445
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.34310495154984544,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.547403094948973,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7117312068652275,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 50.0
+  },
+  "name": "S1f [camera_jitter_ms=20, camera_latency_ms=50]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.2740238850308523,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.5978749999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6305002607364991,
+   "PP-SWR-001": 2.4827459128573537,
+   "PP-SWR-003": 1.564420890645124,
+   "PP-SWR-100": 0.04735137408848246,
+   "PP-SWR-101": 0.004491232673475398,
+   "PP-SWR-102": 0.00026999998778978566,
+   "PP-SWR-116": 0.011519432067871094,
+   "PP-SWR-117": 0.10980024235323071
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.178606280051465,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.4451330007625707,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.4351445196130463,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 50.0
+  },
+  "name": "S2b [camera_jitter_ms=20, camera_latency_ms=50]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 1.6352499999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.04496436939645976,
+   "PP-SWR-101": 0.0017728078438423722,
+   "PP-SWR-102": 0.00024137857869659216,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.48187959742634895,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7284251720055831,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 150.0
+  },
+  "name": "S1a [camera_jitter_ms=20, camera_latency_ms=150]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.015273512414794672,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 3.2322089999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7895125848700746,
+   "PP-SWR-001": 0.7402538176393136,
+   "PP-SWR-003": 0.1794521085685119,
+   "PP-SWR-100": 0.009047526605160382,
+   "PP-SWR-101": 0.00043953810761676593,
+   "PP-SWR-102": 2.223452330819565e-05,
+   "PP-SWR-116": 0.003434764454141259,
+   "PP-SWR-117": 0.012538349255919456
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.00872228856052958,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6403653670994633,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18630102066923995,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 150.0
+  },
+  "name": "S1c [camera_jitter_ms=20, camera_latency_ms=150]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.39311828264592746,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.6530829999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.46486612087324763,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.7039608317427337,
+   "PP-SWR-100": 0.042808529000417636,
+   "PP-SWR-101": 0.0017826173721315897,
+   "PP-SWR-102": 7.905830332329325e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.04918472841382027
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.36696292616267745,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.544764576728835,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7165283848009253,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 150.0
+  },
+  "name": "S1f [camera_jitter_ms=20, camera_latency_ms=150]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.2884331082913179,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 10.698749999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5991602793023747,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 1.6133703320519999,
+   "PP-SWR-100": 0.04739398754529374,
+   "PP-SWR-101": 0.004390416369389527,
+   "PP-SWR-102": 0.00027000004046314613,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.11321234051138163
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.21193581502995143,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.4486255862366983,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.384480176529363,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 150.0
+  },
+  "name": "S2b [camera_jitter_ms=20, camera_latency_ms=150]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4000000000000001,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 1.6830829999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.04496434076719783,
+   "PP-SWR-101": 0.0017736644164898507,
+   "PP-SWR-102": 0.00024146260327315746,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.035683959868038066
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.4821111572228056,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7294396264332829,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 200.0
+  },
+  "name": "S1a [camera_jitter_ms=20, camera_latency_ms=200]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.015277589289989664,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.7834999999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": -0.018860816955566406,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7896037239387947,
+   "PP-SWR-001": 0.7400168396998197,
+   "PP-SWR-003": 0.1794742638594471,
+   "PP-SWR-100": 0.009523529653883185,
+   "PP-SWR-101": 0.0004746269742663678,
+   "PP-SWR-102": 2.875534864974649e-05,
+   "PP-SWR-116": 0.003433664795011282,
+   "PP-SWR-117": 0.012540200259536505
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.008578675959261229,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6401183482942465,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18570353572345835,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 200.0
+  },
+  "name": "S1c [camera_jitter_ms=20, camera_latency_ms=200]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.40223698077429937,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.699417
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.45627690890376615,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.7048787665553391,
+   "PP-SWR-100": 0.03805544056681458,
+   "PP-SWR-101": 0.0018525689595869643,
+   "PP-SWR-102": 0.00011407026591254955,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.04924850072711706
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.37547650370707214,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5431721806334915,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7201520951953744,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 200.0
+  },
+  "name": "S1f [camera_jitter_ms=20, camera_latency_ms=200]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.26521899336083304,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.649667
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": -0.015153884887695312,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6165313634611893,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 1.608142047189176,
+   "PP-SWR-100": 0.047663965741256274,
+   "PP-SWR-101": 0.004490279202457259,
+   "PP-SWR-102": 0.00027000004422514053,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.11282942723482847
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.19520623457772204,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.4287962171223902,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.3676001816037238,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 200.0
+  },
+  "name": "S2b [camera_jitter_ms=20, camera_latency_ms=200]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4000000000000001,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 0.839042
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": -0.020919322967529297,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.044966505408494395,
+   "PP-SWR-101": 0.0018312184183773006,
+   "PP-SWR-102": 0.0002445967001892479,
+   "PP-SWR-116": 0.0008726823725737631,
+   "PP-SWR-117": 0.035683959868038066
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.48246105965138725,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7276694810527622,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 300.0
+  },
+  "name": "S1a [camera_jitter_ms=20, camera_latency_ms=300]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.7454589999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 300.0
+  },
+  "name": "S1c [camera_jitter_ms=20, camera_latency_ms=300]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.6664999999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 300.0
+  },
+  "name": "S1f [camera_jitter_ms=20, camera_latency_ms=300]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.019917
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_jitter_ms": 20.0,
+   "camera_latency_ms": 300.0
+  },
+  "name": "S2b [camera_jitter_ms=20, camera_latency_ms=300]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.646208
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ }
+]

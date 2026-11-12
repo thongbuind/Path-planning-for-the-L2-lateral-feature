@@ -47,3 +47,4 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-020 | Tick COMPLETED còn lệch ở một số neo cua và mép đường | Mở | PP-SWR-032, 090 | [report](problems/PP-PR-020-completion-mismatch-on-curves-and-edges.md) |
 | PP-PR-021 | Xe rời làn trong cua khi tầm nhìn camera ngắn (Q4) | Đã sửa, xác nhận ở 20261112-1239-matrix-Q4-1bfd184 | PP-SWR-051, 100 | [report](problems/PP-PR-021-short-view-curve-departure.md) |
 | PP-PR-022 | S14a tầm nhìn ngắn: ACC đọc LateralLimits rời làn xa hơn | Đã sửa cùng PP-PR-021 | PP-SWR-051, 151, 152 | [report](problems/PP-PR-022-s14a-short-view-acc-on.md) |
+| PP-PR-023 | Q3 ở 60 ms vượt tuổi tối đa 45 ms của FunctionRequests | Mở | PP-SWR-038, 145 | [report](problems/PP-PR-023-function-requests-max-age.md) |

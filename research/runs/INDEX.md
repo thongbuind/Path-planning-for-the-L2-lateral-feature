@@ -10,3 +10,6 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261112-1239-matrix-Q4-1bfd184 | matrix | Q4 | 1bfd184 | calibration 1b9b7d6367e8 | 49 lần chạy; 13 trượt trong phạm vi; 13 có trượt ngoài phạm vi | |
 | 20261112-1240-matrix-M1-1bfd184 | matrix | M1 | 1bfd184 | calibration 1b9b7d6367e8 | 396 lần chạy; 12 trượt trong phạm vi; 38 có trượt ngoài phạm vi | |
 | 20261112-1254-matrix-M1-8418fd9 | matrix | M1 | 8418fd9 | calibration 1b9b7d6367e8 | 396 lần chạy; 0 trượt trong phạm vi; 38 có trượt ngoài phạm vi | |
+| 20261112-1418-matrix-Q1-5e8cabc | matrix | Q1 | 5e8cabc | calibration 1b9b7d6367e8 | 24 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1418-matrix-Q2-5e8cabc | matrix | Q2 | 5e8cabc | calibration 1b9b7d6367e8 | 12 lần chạy; 0 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
+| 20261112-1419-matrix-Q3-5e8cabc | matrix | Q3 | 5e8cabc | calibration 1b9b7d6367e8 | 12 lần chạy; 2 trượt trong phạm vi; 0 có trượt ngoài phạm vi | |
