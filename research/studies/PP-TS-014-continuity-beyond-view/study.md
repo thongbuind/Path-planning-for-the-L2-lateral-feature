@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-12 |
 | Khóa ngày | 2026-11-12 |
 | Quyết định ngày | 2026-11-12 |
@@ -82,4 +82,4 @@ Lần chạy 20261112-1150-study-PP-TS-014-fe420b5. Trượt đếm theo (ca, re
 - Chọn: không chọn V1, V2. Đổi requirement: PP-SWR-100 đến 102 chỉ xét phần path trong tầm nhìn lane model báo. T4 giữ một λ, tính trên phần đó. Trajectory báo `observed_horizon_s`.
 - Lý do: phần ngoài tầm nhìn là ngoại suy; giữ nó liên tục làm path không theo được làn khi tầm nhìn ngắn. V1 sửa lại theo hình học (tính lại hướng, độ cong từ vị trí đã trộn) cho path chữ S, jerk chạm 5 m/s³, xe rời làn cả ở 80 m (thử nháp, không ghi).
 - Đưa vào: Software Requirements Specification 1.9 (định nghĩa Hai path liên tiếp, PP-SWR-018, PP-ASM-021); Interface Control Document 1.9; Software Detailed Design 1.8 (T4 bước 4, T11); Software Qualification Test Specification 1.19 (mục 8.1). Code V1, V2 đã gỡ ở commit 1bfd184.
-- Hồi quy: [20261112-1239-matrix-Q4-1bfd184](../../runs/20261112-1239-matrix-Q4-1bfd184/summary.md): S1 và S14a đạt ở mọi mức tầm nhìn; còn S14e (PP-PR-004, PP-PR-007). [20261112-1240-matrix-M1-1bfd184](../../runs/20261112-1240-matrix-M1-1bfd184/summary.md): 12 trượt trong phạm vi, đều là PP-SWR-018 ở F02 (planner bám reference line cũ nên báo `observed_horizon_s` ngắn hơn tầm nhìn lane model báo); chưa đóng
+- Hồi quy: [20261112-1239-matrix-Q4-1bfd184](../../runs/20261112-1239-matrix-Q4-1bfd184/summary.md): S1 và S14a đạt ở mọi mức tầm nhìn; còn S14e (PP-PR-004, PP-PR-007). [20261112-1240-matrix-M1-1bfd184](../../runs/20261112-1240-matrix-M1-1bfd184/summary.md): 12 trượt trong phạm vi, đều là PP-SWR-018 ở F02 (planner bám reference line cũ nên báo `observed_horizon_s` ngắn hơn tầm nhìn lane model báo). Sửa PP-SWR-018 thành chặn phía trên (SRS 1.10), chạy lại: [20261112-1254-matrix-M1-8418fd9](../../runs/20261112-1254-matrix-M1-8418fd9/summary.md), 0 trượt trong phạm vi; 38 trượt PP-SWR-051 ngoài phạm vi, bằng baseline 20261111-1024-matrix-M1-b9e5d4d
