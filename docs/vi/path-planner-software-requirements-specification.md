@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.8 |
+| Phiên bản | 1.9 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -72,7 +72,7 @@
 | a_y cần lớn nhất | Giá trị lớn nhất của a_y cần trên đoạn 0–3 s, chỉ xét phần trong tầm nhìn của lane model |
 | a_y thêm vào | a_y của path trừ a_y cần, tại cùng một điểm |
 | Jerk ngang của path | Đạo hàm theo thời gian của a_y của path, trung bình trượt 0,5 s |
-| Hai path liên tiếp | So trên đoạn thời gian cả hai cùng mô tả, sau khi đưa path cũ về base_link của path mới bằng chuyển động thật của xe |
+| Hai path liên tiếp | So trên đoạn thời gian cả hai cùng mô tả, chỉ ở các điểm của path mới nằm trong tầm nhìn mà lane model báo cho frame planner dùng ở chu kỳ đó; chu kỳ không có lane model thì cả path. Path cũ đưa về base_link của path mới bằng chuyển động thật của xe |
 | Biên làn đủ tin | Vạch L1, R1: status MEASURED, confidence ≥ `conf_ego`. Vạch L2, R2 hoặc mép đường, khi dùng để suy ra tâm làn: status MEASURED, confidence ≥ `conf_inferred` |
 | DLC | Như ADAS Function Specification, mục 5, tính trên làn thật và vị trí thật của xe |
 | DTLE | Khoảng cách từ mép ngoài lốp tới mép trong của vạch, nhỏ nhất trong một lần can thiệp; âm là đã vượt vạch (Euro NCAP) |
@@ -117,6 +117,7 @@ Mỗi dòng ghi requirement nào dựa vào nó và cách kiểm lại khi có x
 | PP-ASM-017 | Lateral Controller bù phần trễ sau planner, bằng cách đọc điểm path theo `header.stamp_us` và `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Thống nhất với đội Lateral Controller | nhóm tự thống nhất |
 | PP-ASM-018 | ASIL của các safety requirement lấy theo kết quả confirmation review của phòng an toàn trên HARA | Mọi requirement loại Safety | Kết quả review của phòng an toàn | nhóm tự thống nhất |
 | PP-ASM-019 | Nền tảng đích (ECU, hệ điều hành, middleware, coding standard) chưa biết; planner chỉ cần trình biên dịch C11 (PP-ADR-013) | Mọi requirement, qua cách triển khai | Hỏi mentor nền tảng đích và coding standard | nhóm tự thống nhất |
+| PP-ASM-021 | Lateral Controller không dựa vào phần path sau `observed_horizon_s` để tính lệnh lái, hoặc chịu được bước nhảy ở phần đó | PP-SWR-018, 100, 101, 102 | Thống nhất với đội Lateral Controller | nhóm tự thống nhất |
 | PP-ASM-020 | Tầm nhìn của lane model thay đổi theo từng vạch và từng frame; điểm đầu, điểm cuối thật chưa biết. Benchmark dùng 0–80 m danh định, quét điểm cuối 10–126 m | PP-SWR-017, 149, 151 | Đọc phân bố `line start distance`, `line end distance` trong log xe thật | nhóm tự thống nhất |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
@@ -145,6 +146,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-011 | Trajectory phải theo định dạng ở Interface Control Document: 31 điểm, bước 0,1 s, phủ 0–3 s, frame_id = base_link | Inspection | Interface | nhóm tự thống nhất (Autoware Trajectory) |
 | PP-SWR-012 | `header.stamp_us` của Trajectory phải là thời điểm mà path mô tả, đã bù trễ của lane model | Inspection; Test: Q1 | Interface | nhóm tự thống nhất |
 | PP-SWR-014 | `header.counter` phải tăng 1 sau mỗi message, quay vòng 0–255 | Inspection; Test: mọi kịch bản | Interface | nhóm tự thống nhất |
+| PP-SWR-018 | `Trajectory.observed_horizon_s` phải bằng thời điểm trên path mà path ra khỏi tầm nhìn lane model báo cho frame planner dùng ở chu kỳ đó, sai lệch ≤ 0,1 s | Test: mọi kịch bản | Interface | nhóm tự thống nhất |
 | PP-SWR-017 | Planner phải nhận lane model với mọi `view_range_end > view_range_start` của từng vạch và mép đường. Phần tầm nhìn vượt 126 m không được làm input bị coi là không hợp lệ | Test: F22 (e), Q4 | Interface | nhóm tự thống nhất |
 | PP-SWR-015 | Planner phải ghi thời gian tính của từng chu kỳ | Inspection | Interface | nhóm tự thống nhất |
 
@@ -332,3 +334,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.6 | 2026-11-12 | PP-SWR-032, 041 tách pha LKA và ELK. PP-SWR-036, 037 chọn lại theo 030 khi hủy. PP-SWR-047 phân biệt biên trực tiếp và biên ngoài làn. Mục 4 dùng trị tuyệt đối của a_y thêm vào khi kết thúc. Làm rõ nguồn 080, 083, 088, 114 |
 | 1.7 | 2026-11-12 | Tầm nhìn của lane model: thêm PP-SWR-017 (nhận mọi tầm nhìn), 149 (chịu lỗi tầm nhìn, F22), PP-ASM-020, định nghĩa Tầm nhìn của lane model; PP-SWR-151 giới hạn 126 m; PP-SWR-050, 151 thêm quét Q4. Lý do: planner phải chạy đúng với mọi tầm nhìn, không chỉ 80 m |
 | 1.8 | 2026-11-12 | PP-SWR-042, 149 thêm F22 (f): tầm nhìn tụt lâu, HWA trả lái rồi trở lại |
+| 1.9 | 2026-11-12 | PP-SWR-100 đến 102 chỉ xét phần path trong tầm nhìn lane model báo (định nghĩa Hai path liên tiếp); thêm PP-SWR-018 (`observed_horizon_s`), PP-ASM-021. Lý do: phần ngoài tầm nhìn là ngoại suy, giữ nó liên tục làm path không theo được làn khi tầm nhìn ngắn (PP-PR-021, PP-TS-014). Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, Software Qualification Test Specification 8.1 |

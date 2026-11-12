@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.8 |
+| Phiên bản | 1.9 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -238,6 +238,7 @@ Stamp là thời điểm ước lượng.
 | `points[31].curvature` | float32 [1/m] | Độ cong |
 | `points[31].front_wheel_angle_rad` | float32 [rad] | Góc bánh trước gợi ý cho feedforward |
 | `points[31].rear_wheel_angle_rad` | float32 [rad] | Luôn bằng 0 |
+| `observed_horizon_s` | float32 [s] | Thời điểm trên path mà path ra khỏi tầm nhìn lane model báo; phần sau là ngoại suy và không giữ liên tục giữa hai chu kỳ (PP-SWR-018, PP-ASM-021) |
 
 ### 6.2 PathStatus {#path-status}
 
@@ -275,3 +276,4 @@ Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một 
 | 1.6 | 2026-11-11 | Contract gọi hàm: thêm `pp_version` để định danh bản build |
 | 1.7 | 2026-11-12 | Mục 5.6: `ROAD_EDGE` chọn nguồn biên cho ELK. Mục 6.2: tách pha LKA và ELK trong PathStatus |
 | 1.8 | 2026-11-12 | Mục 5.1: tầm nhìn riêng từng vạch và mép đường; planner nhận mọi tầm nhìn, dùng tối đa 126 m (PP-SWR-017) |
+| 1.9 | 2026-11-12 | Mục 6.1: Trajectory thêm `observed_horizon_s` |

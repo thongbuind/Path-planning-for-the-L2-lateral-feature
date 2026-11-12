@@ -18,7 +18,7 @@ parameters:
 # Specification: `always` for every run, then the scenario's list, or the fault's
 # list when a fault is injected. Targets are ranked, requirements pass or fail.
 scope:
-  always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
   S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050, PP-SWR-008]
   S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
   S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
