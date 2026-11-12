@@ -25,8 +25,16 @@ def text(result: Result) -> str:
     return "\n".join(lines)
 
 
+def jsonable(value):
+    """json default: numpy scalars (np.bool_, np.float32...) as their Python value."""
+    if hasattr(value, "item"):
+        return value.item()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
 def write_json(result: Result, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{result.scenario}_seed{result.seed}.json"
-    path.write_text(json.dumps(result.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(json.dumps(result.to_dict(), ensure_ascii=False, indent=2, default=jsonable),
+                    encoding="utf-8")
     return path

@@ -1,6 +1,6 @@
 """Coverage matrix: many scenario runs with the delivered planner library.
 
-    python3 -m eval.matrix M1 --jobs 2
+    python3 -m eval.matrix M1 --jobs 2 [--planner LIB]
 
 Runs every (scenario, variant[, fault], longitudinal mode, profile, seed) of a suite in
 benchmark/suites and writes build/matrix/<suite>/summary.md, runs.json and manifest.json.
@@ -11,18 +11,22 @@ all other criteria are reported as information. --record makes it an official ru
 A block may sweep simulator settings with `sim_sweep` (Software Qualification Test
 Specification 6.1, Q4): one value at a time, the others at their scenario value, plus one
 run at the scenario values. Only the fields in SIM_SWEEP_FIELDS can be swept.
+
+B0 conformance runs first and enters the conclusion at the head of summary.md (Software
+Qualification Test Specification 8.4, 10); being a development matrix, the runs go on even
+when B0 blocks (eval.suite stops). Each run is its own process: a crash or hang is an
+execution fault of that run. MCAP logs of runs with an in-scope failure in mcap/.
 """
 
 import argparse
 import json
 import math
-from concurrent.futures import ProcessPoolExecutor
 from dataclasses import fields, replace
 from pathlib import Path
 
 import yaml
 
-from eval import loader, openx, provenance, sweep
+from eval import aspects, conclusion, conformance, isolation, labels, loader, openx, planner_choice, provenance, report, sweep
 from sim.scenario import Scenario
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,15 +77,21 @@ def expand(suite: dict) -> list[dict]:
 
 
 def scope(suite: dict, run: list) -> set[str]:
+    """Scope of the named sweep suite, plus every requirement whose Kiểm chứng column of the
+    Software Requirements Specification names the scenario or fault (8.1)."""
+    from eval.severity import srs_scope
     base = sweep.scope_of(sweep.load_suite(suite["scope_from"]), run)
     key = run[2] if len(run) > 2 else run[0]
-    return base | set(suite.get("extra_scope", {}).get(key, []))
+    return base | set(suite.get("extra_scope", {}).get(key, [])) | srs_scope(key)
 
 
-def run_one(suite_id: str, job: dict) -> dict:
-    from adapters.sil.sil_planner import SilPlanner
+RUN_TIMEOUT_S = 1800
+
+
+def run_one(suite_id: str, job: dict, planner, mcap_dir=None) -> dict:
     from eval import metrics
     from sim.harness import Harness
+    from sim.logging import run_log
 
     suite = yaml.safe_load((sweep.SUITE_DIR / f"{suite_id}.yaml").read_text(encoding="utf-8"))
     run = job["run"]
@@ -89,15 +99,45 @@ def run_one(suite_id: str, job: dict) -> dict:
     if len(run) > 2:
         scenario = loader.with_fault(scenario, run[2], run[3])
     scenario = apply_sim(replace(scenario, acc=job["acc"], profile=job["profile"]), job.get("sim", {}))
-    result = metrics.evaluate(Harness(scenario, SilPlanner, job["seed"]).run())
-    in_scope = scope(suite, run)
+    log = Harness(scenario, planner, job["seed"]).run()
+    result = metrics.evaluate(log)
+    from eval import differential
+    result.criteria.extend(differential.criteria(scenario, log, planner, job["seed"]))
+    in_scope = scope(suite, run) | labels.scope_extra(labels.of(scenario))
     failed = result.case_failures + [c.id for c in result.criteria if c.applicable and not c.passed and c.id in in_scope]
     other = [c.id for c in result.criteria if c.applicable and not c.passed and c.id not in in_scope]
     sim = ", ".join(f"{k}={v:g}" for k, v in job.get("sim", {}).items())
-    return {**job, "name": scenario.name + (f" [{sim}]" if sim else ""), "failed": failed, "failed_out_of_scope": other,
-            "targets": {t.id: t.value for t in result.targets},
-            "criteria": {c.id: c.value for c in result.criteria if c.applicable},
-            "info": {k: result.info.get(k) for k in INFO}}
+    name = scenario.name + (f" [{sim}]" if sim else "")
+    rerun = (f"python3 -m eval.runner {run[0]} {run[1]} --seed {job['seed']}"
+             + (f" --fault {run[2]} {run[3]}" if len(run) > 2 else "") + f" --acc {job['acc']}"
+             + (f" --planner {planner.path}" if planner is not None else "")
+             + (f"  # profile {job['profile']}; sim {sim}" if sim else f"  # profile {job['profile']}"))
+    case_labels = labels.of(scenario, swept=bool(job.get("sim")))
+    family = run[2] if len(run) > 2 else run[0]
+    anchor = run[3] if len(run) > 2 else run[1]
+    out = {**job, "name": name, "case": name, "failed": failed, "failed_out_of_scope": other,
+           "labels": case_labels, "aspects": aspects.members(family, anchor, ["anchor"], case_labels),
+           "targets": {t.id: t.value for t in result.targets},
+           "criteria": {c.id: c.value for c in result.criteria if c.applicable},
+           "info": {k: result.info.get(k) for k in INFO},
+           "scope": sorted(in_scope), "result": result.to_dict(), "rerun": rerun, "mcap": None}
+    if mcap_dir is not None and failed:
+        safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in f"{name}_{job['acc']}_{job['profile']}")
+        out["mcap"] = str(run_log.write(log, Path(mcap_dir) / f"{safe}_seed{job['seed']}.mcap", {"rerun": rerun}))
+    return out
+
+
+def _isolated_record(job: dict, status: str, value) -> dict:
+    run = " ".join(job["run"])
+    base = {**job, "name": run, "case": run, "failed": [], "failed_out_of_scope": [], "targets": {},
+            "criteria": {}, "info": {k: None for k in INFO}}
+    if status == "ok":
+        return value
+    if status == "crash":
+        return {**base, "failed": ["execution"], "execution": f"Lỗi thực thi: tiến trình dừng ({value})"}
+    if status == "timeout":
+        return {**base, "failed": ["execution"], "execution": f"Lỗi thực thi: không trả về sau {RUN_TIMEOUT_S} s"}
+    return {**base, "error": str(value).splitlines()[0]}
 
 
 def _fmt(v, digits=3):
@@ -122,32 +162,45 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("suite")
     parser.add_argument("--jobs", type=int, default=1)
+    planner_choice.add_argument(parser)
     parser.add_argument("--record", action="store_true",
                         help="Official run: clean working tree, library from HEAD; copy to research/runs")
     args = parser.parse_args()
-    from adapters.sil.sil_planner import library_path
+    planner = planner_choice.from_args(args)
     manifest = provenance.make("matrix", args.suite, {"jobs": args.jobs})
-    manifest["libraries"] = [provenance.library_info(library_path())]
+    manifest["libraries"] = [provenance.library_info(planner.path, external=args.planner is not None)]
     if args.record:
         provenance.preflight(manifest)
     suite = yaml.safe_load((sweep.SUITE_DIR / f"{args.suite}.yaml").read_text(encoding="utf-8"))
     jobs = expand(suite)
-    print(f"{len(jobs)} runs", flush=True)
-    with ProcessPoolExecutor(max_workers=args.jobs) as pool:
-        results = list(pool.map(run_one, [args.suite] * len(jobs), jobs, chunksize=4))
     out = OUT_DIR / args.suite
     out.mkdir(parents=True, exist_ok=True)
-    (out / "runs.json").write_text(json.dumps(results, indent=1, ensure_ascii=False), encoding="utf-8")
+    b0 = conformance.run(planner.path)
+    (out / "conformance.json").write_text(json.dumps(b0, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"B0: {'bị chặn' if b0['blocked'] else 'đạt C1, C2'}; {len(jobs)} runs", flush=True)
+    tasks = [(args.suite, job, planner, out / "mcap") for job in jobs]
+    results = [_isolated_record(job, status, value) for job, (status, value)
+               in zip(jobs, isolation.map_isolated(run_one, tasks, args.jobs, RUN_TIMEOUT_S))]
+    (out / "runs.json").write_text(json.dumps(results, indent=1, ensure_ascii=False, default=report.jsonable),
+                                   encoding="utf-8")
     failed = [r for r in results if r["failed"]]
-    head = [f"# Matrix {args.suite}", "", f"{len(results)} runs; {len(failed)} with an in-scope failure.", ""]
+    lib = manifest["libraries"][0]
+    c = conclusion.conclude(results, b0)
+    (out / "conclusion.json").write_text(json.dumps(c, indent=1, ensure_ascii=False, default=report.jsonable) + "\n",
+                                         encoding="utf-8")
+    from eval.suite import aspect_table
+    head = conclusion.markdown(c, f"{lib['pp_version']} ({lib['sha256'][:12]})") + aspect_table(results, b0) + [
+        "", f"## Matrix {args.suite}", "", f"{len(results)} runs; {len(failed)} with an in-scope failure.", ""]
     (out / "summary.md").write_text("\n".join(head + summary(results)) + "\n", encoding="utf-8")
     provenance.write(manifest, out)
     print(f"{len(failed)} runs with in-scope failures; summary: {out / 'summary.md'}", flush=True)
     if args.record:
         other = sum(1 for r in results if r["failed_out_of_scope"])
         dest = provenance.record(manifest, {"summary.md": out / "summary.md",
-                                            "results.json": out / "runs.json"},
-                                 f"{len(results)} lần chạy; {len(failed)} trượt trong phạm vi; "
+                                            "results.json": out / "runs.json",
+                                            "conclusion.json": out / "conclusion.json",
+                                            "conformance.json": out / "conformance.json"},
+                                 f"{c['verdict']}; {len(results)} lần chạy; {len(failed)} trượt trong phạm vi; "
                                  f"{other} có trượt ngoài phạm vi")
         print(f"Recorded: {dest}", flush=True)
 

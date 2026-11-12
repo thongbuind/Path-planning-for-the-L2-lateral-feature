@@ -15,7 +15,11 @@ import numpy as np
 
 from eval import departure
 from interfaces import LineType, RoadEdgeType
+from sim.faults.channel import ChannelFault
+from sim.faults.ego_motion import EgoMotionFault
 from sim.faults.lane import LaneFault
+from sim.faults.sensor import SensorFault
+from sim.runtime.clock import ClockFault
 from sim.scenario import Scenario
 from sim.vehicle.profiles import PROFILES
 from sim.world.road import Marking, RoadEdgeSpec, RoadLayout, Segment
@@ -336,10 +340,54 @@ def read_road(path):
     return segments, width
 
 
+# Fault commands beyond the lane model (Software Qualification Test Specification 6): command
+# type -> (Scenario field, fault class). JSON fields are those of the class; duration -1 is
+# until the end of the run.
+FAULT_COMMANDS = {
+    'pp:channel_fault:v1': ('channel_faults', ChannelFault),
+    'pp:sensor_fault:v1': ('sensor_faults', SensorFault),
+    'pp:clock_fault:v1': ('clock_faults', ClockFault),
+    'pp:ego_motion_fault:v1': ('ego_motion_faults', EgoMotionFault),
+}
+
+
+def fault_of_command(command):
+    """(Scenario field, fault) of one fault command of any type."""
+    kind = command.get('type')
+    if kind == 'pp:lane_fault:v1':
+        return 'lane_faults', fault_from_command(command)
+    if kind not in FAULT_COMMANDS:
+        raise ValueError(f'unsupported custom command {kind}')
+    field_name, cls = FAULT_COMMANDS[kind]
+    spec = json.loads(command.text or '{}')
+    if spec.get('duration_s') == -1:
+        spec['duration_s'] = None
+    if 'indices' in spec:
+        spec['indices'] = tuple(spec['indices'])
+    for key in ('every', 'count'):
+        if key in spec:
+            if spec[key] != int(spec[key]):
+                raise ValueError(f'{key} must be a whole number')
+            spec[key] = int(spec[key])
+    for key, value in spec.items():
+        if isinstance(value, float):
+            number(value)
+    return field_name, cls(**spec)
+
+
 def fault_from_command(command):
     if command.get('type') != 'pp:lane_fault:v1':
         raise ValueError(f'unsupported custom command {command.get("type")}')
     spec = json.loads(command.text or '{}')
+    if 'value_between' in spec:
+        # A value between two calibration limits of the build under test (F21 e:
+        # confidence between conf_ego and conf_inferred), as a bench reads the A2L.
+        from eval.calibration import requirement_parameters
+        cal = requirement_parameters()
+        low, high = (cal[name] for name in spec.pop('value_between'))
+        spec['value'] = 0.5 * (low + high)
+    if 'edges' in spec:
+        spec['edges'] = tuple(spec['edges'])
     if spec.get('duration_s') == -1:
         spec['duration_s'] = None
     spec['lines'] = tuple(spec['lines'])
@@ -348,7 +396,8 @@ def fault_from_command(command):
             or not fault.lines or any(i not in (0, 1, 2, 3) for i in fault.lines)
             or fault.sigma_c0 < 0 or fault.sigma_c1 < 0
             or (fault.kind == 'fade_line' and fault.value <= 0)
-            or (fault.kind.startswith('view_') and not fault.value > 0)):
+            or (fault.kind.startswith('view_') and not fault.value > 0)
+            or any(i not in (0, 1) for i in fault.edges)):
         raise ValueError('invalid lane fault parameters')
     for v in (fault.start_s, fault.value, fault.sigma_c0, fault.sigma_c1):
         number(v)
@@ -384,7 +433,8 @@ def load_scenario(path, overrides=None):
     properties = {p.get('name'): p.get('value') for p in objects[0].findall('./Vehicle/Properties/Property')}
     required = {'pp:adapter', 'pp:profile', 'pp:acc', 'pp:hwa_request_s', 'pp:hold_until_hwa'}
     optional = {'pp:camera_view_m', 'pp:camera_view_start_m', 'pp:adas_mode', 'pp:lka_enabled', 'pp:elk_enabled',
-                'pp:expect_intervention', 'pp:protocol', 'pp:hwa_view_gate'}
+                'pp:expect_intervention', 'pp:protocol', 'pp:hwa_view_gate', 'pp:expected_outcome',
+                'pp:can_bus', 'pp:realism', 'pp:loop'}
     if not required <= set(properties) <= required | optional:
         raise ValueError('unsupported or missing simulator properties')
     if properties.get('pp:adapter') != 'single-ego-v1':
@@ -440,12 +490,13 @@ def load_scenario(path, overrides=None):
     if scale <= 0 or direction not in (-1, 1):
         raise ValueError('positive curvature_scale and direction +/-1 required')
     segments = tuple(Segment(s.kind, s.length, s.curvature_end * scale * direction) for s in segments)
-    faults, departure_specs = [], []
+    faults, departure_specs, extra_faults = [], [], {}
     for command in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
         if command.get('type') == 'pp:departure:v1':
             departure_specs.append(json.loads(command.text or '{}'))
         else:
-            faults.append(fault_from_command(command))
+            field_name, fault = fault_of_command(command)
+            extra_faults.setdefault(field_name, []).append(fault)
     if len(departure_specs) > 1:
         raise ValueError('only one departure setup is supported')
     orientation = position.find('Orientation')
@@ -462,7 +513,12 @@ def load_scenario(path, overrides=None):
     protocol = properties.get('pp:protocol', '')
     if expect not in ('', 'LKA', 'ELK', 'late ELK') or protocol not in ('', 'Euro NCAP LSS', 'EU 2021/646'):
         raise ValueError('unknown intervention expectation or protocol')
+    outcome = properties.get('pp:expected_outcome', '')
+    if outcome not in ('', 'drive', 'drive_limited', 'refuse'):
+        raise ValueError('unknown expected outcome (Software Qualification Test Specification 5.3)')
     notes = {'description': params.get('description', '')}
+    if outcome:
+        notes['expected_outcome'] = outcome
     if expect:
         notes['expect_intervention'] = expect
     if protocol:
@@ -473,7 +529,9 @@ def load_scenario(path, overrides=None):
         duration_s=number(stop.attrib['value']), hwa_request_s=None if hwa == 'off' else number(hwa),
         start_s=number(position.attrib['s']), start_offset_m=number(position.attrib['t']),
         start_heading_rad=number(orientation.attrib['h']), hold_until_hwa=flag('hold_until_hwa'),
-        acc=properties['pp:acc'], lane_faults=tuple(faults),
+        acc=properties['pp:acc'], lane_faults=tuple(extra_faults.pop('lane_faults', [])),
+        **{name: tuple(items) for name, items in extra_faults.items()},
+        can_bus=flag('can_bus'), realism=flag('realism'), loop=properties.get('pp:loop', 'closed') or 'closed',
         camera_view_m=number(properties.get('pp:camera_view_m', 80.0)),
         camera_view_start_m=number(properties.get('pp:camera_view_start_m', 0.0)),
         traffic=tuple(traffic),
@@ -516,7 +574,8 @@ def scenario_xml(params, fault=False):
     properties = node(vehicle, 'Properties')
     node(properties, 'Property', name='pp:adapter', value='single-ego-v1')
     for key in ('profile', 'acc', 'hwa_request_s', 'hold_until_hwa', 'camera_view_m', 'camera_view_start_m',
-                'adas_mode', 'lka_enabled', 'elk_enabled', 'expect_intervention', 'protocol', 'hwa_view_gate'):
+                'adas_mode', 'lka_enabled', 'elk_enabled', 'expect_intervention', 'protocol', 'hwa_view_gate',
+                'expected_outcome', 'can_bus', 'realism', 'loop'):
         if key in params:
             node(properties, 'Property', name='pp:' + key, value='$' + key)
     story = node(root, 'Storyboard')

@@ -2,17 +2,22 @@
 
     python3 -m eval.runner S1 a --seed 1
     python3 -m eval.runner S1 a --fault F02 c
+    python3 -m eval.runner S1 a --planner path/to/libother_planner.so
 
-Needs build/planner/libpp_planner (see README). Writes build/runs/<scenario>_seed<n>.json
-and manifest.json. --record makes it an official run (research/README.md).
+The planner is any library built against interfaces/c/pp_planner.h (--planner); default
+build/planner/libpp_planner (see README). Writes build/runs/<scenario>_seed<n>.json, the
+MCAP log <scenario>_seed<n>.mcap and manifest.json; prints the conclusion of Software
+Qualification Test Specification 8.4 for this run first (scope of P1 for a scenario id,
+every criterion for a .xosc file). B0 is not run here: see eval.conformance.
+--record makes it an official run (research/README.md).
 """
 
 import argparse
 from dataclasses import replace
 from pathlib import Path
 
-from adapters.sil.sil_planner import SilPlanner, library_path
-from eval import loader, metrics, provenance, report
+from eval import conclusion, labels, loader, matrix, metrics, planner_choice, provenance, report
+from interfaces.planner import PlannerFactory
 from sim.harness import Harness, RunLog
 from sim.scenario import Scenario
 
@@ -20,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = ROOT / "build" / "runs"
 
 
-def run(scenario: Scenario, seed: int) -> RunLog:
-    return Harness(scenario, SilPlanner, seed).run()
+def run(scenario: Scenario, seed: int, planner: PlannerFactory | None = None) -> RunLog:
+    return Harness(scenario, planner or planner_choice.resolve(None), seed).run()
 
 
 def main() -> None:
@@ -35,13 +40,13 @@ def main() -> None:
                         help="Override the scenario's longitudinal side")
     parser.add_argument("--adas-mode", choices=("A", "B"),
                         help="Select the LKA/ELK stand-in inputs, A is timing comparison only")
+    planner_choice.add_argument(parser)
     parser.add_argument("--out", type=Path, default=RUN_DIR)
     parser.add_argument("--record", action="store_true",
                         help="Official run: clean working tree, library from HEAD; copy to research/runs")
     args = parser.parse_args()
 
-    if not library_path().exists():
-        raise SystemExit(f"planner library not built: {library_path()}")
+    planner = planner_choice.from_args(args)
     is_file = Path(args.scenario).suffix == ".xosc"
     if is_file and args.variant is not None:
         parser.error("omit variant when running a .xosc file")
@@ -49,7 +54,7 @@ def main() -> None:
         parser.error("a scenario ID requires a variant")
     target = (Path(args.scenario).stem if is_file else args.scenario + args.variant) + (f"-{''.join(args.fault)}" if args.fault else "")
     manifest = provenance.make("run", target, {"seed": args.seed})
-    manifest["libraries"] = [provenance.library_info(library_path())]
+    manifest["libraries"] = [provenance.library_info(planner.path, external=args.planner is not None)]
     if args.record:
         provenance.preflight(manifest)
     scenario = loader.load_file(Path(args.scenario)) if is_file else loader.load(args.scenario, args.variant)
@@ -69,11 +74,26 @@ def main() -> None:
             parser.error("--adas-mode applies to scenarios configured for the stand-in")
         scenario = replace(scenario, adas_mode=args.adas_mode, name=f"{scenario.name}_adas-{args.adas_mode}")
         manifest["adas_mode"] = args.adas_mode
-    result = metrics.evaluate(run(scenario, args.seed))
+    from eval.suite import SCOPE
+    from sim.logging import run_log
+    log = run(scenario, args.seed, planner)
+    result = metrics.evaluate(log)
+    from eval import differential
+    result.criteria.extend(differential.criteria(scenario, log, planner, args.seed))
+    spec = None if is_file else [args.scenario, args.variant] + (list(args.fault) if args.fault else [])
+    lib = manifest["libraries"][0]
+    command = "python3 -m eval.runner " + " ".join(manifest["command"][1:])
+    mcap = run_log.write(log, args.out / f"{result.scenario}_seed{result.seed}.mcap",
+                         {"pp_version": str(lib["pp_version"]), "library_sha256": lib["sha256"],
+                          "commit": str(manifest["git"]["commit"]), "rerun": command})
+    record = {"case": result.scenario, "profile": scenario.profile, "seed": result.seed,
+              "result": result.to_dict(), "scope": sorted(matrix.scope(SCOPE, spec) | labels.scope_extra(labels.of(scenario))) if spec else None,
+              "mcap": str(mcap), "rerun": command}
+    print("\n".join(conclusion.markdown(conclusion.conclude([record]), f"{lib['pp_version']}")) + "\n")
     print(report.text(result))
     path = report.write_json(result, args.out)
     provenance.write(manifest, args.out, path.stem + ".manifest.json")
-    print(f"\nJSON: {path}")
+    print(f"\nJSON: {path}\nMCAP: {mcap}")
     if args.record:
         failed = result.case_failures + [c.id for c in result.criteria if c.applicable and not c.passed]
         dest = provenance.record(manifest, {"results.json": path},

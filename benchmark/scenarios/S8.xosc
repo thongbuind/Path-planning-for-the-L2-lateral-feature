@@ -42,6 +42,7 @@
     <ParameterDeclaration name="description" parameterType="string" value="Xe vượt 80 km/h, trôi 0,2 m/s" />
     <ParameterDeclaration name="departure_v_lat_mps" parameterType="double" value="0.2" />
     <ParameterDeclaration name="departure_gap_m" parameterType="double" value="0.7" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -70,6 +71,7 @@
           <Property name="pp:elk_enabled" value="$elk_enabled" />
           <Property name="pp:expect_intervention" value="$expect_intervention" />
           <Property name="pp:protocol" value="$protocol" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
         </Properties>
       </Vehicle>
     </ScenarioObject>

@@ -61,7 +61,7 @@
 | IMU | Kịch bản chính dùng IMU sạch (mentor); nhiễu và bias IMU là fault injection |
 | Tần số | Planner và khối Chức năng ADAS 40 Hz; tín hiệu xe theo signal list (mentor) |
 | Seed | Một seed chính mỗi lần chạy, tách luồng cho từng kênh; 10 seed cho mỗi ô có nhiễu |
-| Log | Một file MCAP mỗi lần chạy, đủ để chạy lại; xem bằng Foxglove |
+| Log | Một file MCAP cho mỗi lần chạy có trượt trong phạm vi; lần chạy một ca (`eval.runner`) luôn có. Lần chạy đạt tái lập từ manifest (lệnh, commit, thư viện, seed). Xem bằng Foxglove |
 | Máy 8 GB RAM | Chạy từng lô nhỏ |
 
 ### 4.2 Bộ lập lịch và đồng hồ {#sim-scheduler}
@@ -293,7 +293,12 @@ Ba bộ chạy này là độ sâu. Mục 5.3 là khía cạnh. Mỗi khía cạ
 
 Mỗi bộ cụ thể mang hai nhãn: độ khó và kết quả mong đợi. Bên test gán nhãn, suy từ Software Requirements Specification và ADAS Function Specification. Bộ theo khía cạnh lọc theo nhãn, không theo danh sách viết tay.
 
-**Độ khó.** Ca thuộc nhiều mức thì lấy mức cao nhất.
+**Độ khó.** Ca thuộc nhiều mức thì lấy mức cao nhất. Bên test suy độ khó từ giá trị của ca:
+
+- L1: giá trị bằng đúng đầu dải: bề rộng làn 2,5 hoặc 5,5 m; bề rộng xe 2,5 m; tốc độ 10 hoặc 130 km/h khi có HWA, 70 hoặc 130 km/h khi có LKA, ELK.
+- L2: HWA được yêu cầu và a_y cần theo độ cong lớn nhất của đường (v²·κ) vượt aysmax.
+- L3: một lỗi, hoặc giá trị simulator được quét khác giá trị của kịch bản (Q1 đến Q4). L4: từ hai lỗi.
+- L5: điều kiện tầm nhìn của HWA bật và tầm nhìn chia tốc độ nhỏ hơn `t_view_hwa`.
 
 | Mức | Điều kiện của ca | Ví dụ |
 |---|---|---|
@@ -316,6 +321,8 @@ Chấm cả hai chiều:
 
 - **Từ chối thiếu.** Ca Từ chối mà planner vẫn lái: trượt requirement của ca.
 - **Từ chối thừa.** Ca Lái hoặc Lái có giới hạn mà `active_function` khác chức năng được chọn theo PP-SWR-030, trong khi không có điều kiện nào của PP-SWR-124, 142 đến 145: trượt PP-SWR-030.
+- Từ chối thừa chấm từng chu kỳ. LKA, ELK chỉ tính sau khi planner đã bắt đầu can thiệp cho REQUEST đó, tới khi pha là COMPLETED; việc không bắt đầu can thiệp chấm theo ca.
+- Không tính chu kỳ ngay sau khi chức năng được chọn đổi (PP-SWR-038). Không tính lúc input cần cho path không dùng được (PP-SWR-124, 142, 145) và 1 s sau khi input hồi phục (giới hạn trên của `T_coast`, Software Requirements Specification mục 7).
 
 **Khía cạnh.**
 
@@ -528,6 +535,8 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 - Tính riêng cho từng profile. Điểm của planner là điểm thấp nhất qua các profile (một bộ calibration cho mọi xe).
 - Điều kiện được tính điểm (ESC, ELK mặc định bật) và điểm HMI thuộc khối khác, không chấm.
 
+- Một hàng đạt khi không có trượt cấp ca của planner và: PP-SWR-086 đạt (S4, S5, S6); không va chạm theo SA 4.3.3.4 (S7, S8). Lỗi thực thi hoặc lỗi bên chấm thì hàng trượt. Dòng không có hàng nào thì không được điểm.
+
 **Tỉ lệ đạt.** Với mỗi requirement: số lần chạy đạt chia số lần chạy có chấm requirement đó. Trung bình qua các requirement, không trọng số.
 
 **Điểm thắng cặp.**
@@ -535,6 +544,8 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 - Đơn vị ghép cặp: một lần chạy (ca cụ thể, profile, seed). Riêng flexibility: một ca cụ thể và seed, giá trị là độ chênh giữa các profile.
 - Với mỗi performance target và mỗi cặp planner: lấy hiệu trên từng đơn vị, theo hướng "Tốt hơn khi" ở mục 8.2.
 - Planner A thắng B khi khoảng tin cậy 95 % của trung bình hiệu nằm hẳn về phía A tốt hơn. Khoảng tin cậy tính bằng bootstrap theo đơn vị, 10 000 lần lấy mẫu lại, seed cố định (nhóm tự thống nhất). Không thì hòa.
+- Nhóm flexibility so độ chênh giữa các profile của các target thuộc nhóm an toàn và cảm nhận người lái; độ chênh nhỏ hơn thì tốt hơn. Target không thuộc nhóm nào ở mục 9.1 chỉ báo giá trị tuyệt đối.
+- Chỉ số có ít hơn hai đơn vị chung thì hòa.
 - Điểm của một planner trong một nhóm: số lần thắng trừ số lần thua, qua mọi chỉ số của nhóm và mọi planner khác (phương pháp Copeland). Không dùng trọng số giữa các chỉ số.
 
 ## 10. Trình bày kết quả {#test-reporting}
@@ -561,6 +572,14 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | C1 API | Có đủ `pp_state_size`, `pp_init`, `pp_step`, `pp_version`. Build từ `pp_types.h` của cùng phiên bản schema; kích thước và layout struct khớp header sinh ra. Chạy được với vùng nhớ trạng thái căn theo `PP_STATE_ALIGNMENT` | Interface Control Document mục 4 | Bị chặn; không chạy bộ khác |
 | C2 Contract | `pp_init` không trả OK khi VehicleConfig thiếu hoặc ngoài giới hạn; khi đó không chu kỳ nào gửi Trajectory. Mỗi chu kỳ `pp_step` điền mọi output. Counter, stamp, enum, kích thước mảng, 31 điểm trên 0–3 s đúng Interface Control Document. Không có NaN hoặc vô cực. Input chưa nhận, `valid = false` hoặc giá trị ở hai đầu dải không làm planner dừng. `pp_version` trả cùng một chuỗi, có phiên bản, commit và mã bộ calibration | Interface Control Document mục 4, 6; PP-SWR-010, 011, 014, 146 | Bị chặn; không chạy bộ khác |
 | C3 Integration | Cùng chuỗi input cho cùng output từng bit. Hai instance chạy xen kẽ cho cùng output như khi chạy riêng. Không ghi ra ngoài vùng nhớ trạng thái (kiểm bằng byte canh ở hai đầu). Bảng symbol không có cấp phát động, đọc file, đọc đồng hồ hệ thống | Interface Control Document mục 4; PP-ADR-013 | Vẫn chạy bộ khác; không có cờ Tích hợp được |
+
+Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng phần dữ liệu.
+
+| Input | Dải | Nguồn |
+|---|---|---|
+| Tín hiệu CAN: IMU, góc lái, tốc độ | Dải mã hóa trên CAN, đổi sang SI: yaw rate ±327,68 °/s, a_x và a_y ±32,768 m/s², góc và tốc độ quay vô lăng ±3276,8 ° và °/s, tốc độ 0–655,35 km/h | Interface Control Document 5.3 |
+| `confidence`, `existence_probability`, `num_objects`, enum | 0–1; 0–32; giá trị nhỏ nhất và lớn nhất đã định nghĩa | Interface Control Document 5.1, 5.2 |
+| Trường còn lại | Dải của kiểu: float32 ±FLT_MAX, số nguyên không dấu 0 đến giá trị lớn nhất | Interface Control Document 4 |
 
 ## 12. Kiểm bên chấm {#evaluator-check}
 
@@ -613,5 +632,10 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 | 1.18 | 2026-11-12 | Mục 5.3: bộ chạy theo khía cạnh B0–B8, nhãn độ khó L0–L5 và kết quả mong đợi, chấm hai chiều. Mục 8.4: mức nghiêm trọng, kết luận. Mục 9: tách so sánh kỹ thuật (9.1) và so sánh giữa các planner (9.2). Mục 10: kết luận đầu báo cáo. Mục 11: planner conformance. Mục 12: kiểm bên chấm bằng planner mồi |
 | 1.19 | 2026-11-12 | Mục 8.1: liên tục chỉ chấm trong tầm nhìn lane model báo (SRS 1.9); thêm chỉ số `observed_horizon_s` (PP-SWR-018) |
 | 1.20 | 2026-11-12 | Mục 8.1: chỉ số `observed_horizon_s` một phía, theo SRS 1.10 |
+| 1.21 | 2026-11-12 | Mục 11: hai đầu dải của input ở C2; tín hiệu CAN dùng dải mã hóa trên CAN |
+| 1.22 | 2026-11-12 | Mục 4.1: log MCAP cho lần chạy có trượt; lần chạy đạt tái lập từ manifest |
+| 1.23 | 2026-11-12 | Mục 9.2: tiêu chí đạt của một hàng Euro NCAP; nhóm flexibility; chỉ số ít hơn hai đơn vị chung thì hòa |
+| 1.24 | 2026-11-12 | Mục 5.3: cách chấm từ chối thừa theo chu kỳ, khoảng không tính sau khi input hồi phục |
+| 1.25 | 2026-11-12 | Mục 5.3: luật suy độ khó từ giá trị của ca |
 | 1.26 | 2026-11-12 | Mục 6.1: Q3 ở 60 ms là ca FunctionRequests quá tuổi (PP-SWR-048, PP-PR-023) |
 | 1.27 | 2026-11-12 | Mục 8.2: cách tính PP-SWR-013 từ kết quả Q1 |

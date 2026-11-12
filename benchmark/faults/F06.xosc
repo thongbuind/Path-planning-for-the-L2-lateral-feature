@@ -25,6 +25,7 @@
     <ParameterDeclaration name="fault_value" parameterType="double" value="0.0005" />
     <ParameterDeclaration name="fault_sigma_c0" parameterType="double" value="0.0" />
     <ParameterDeclaration name="fault_sigma_c1" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="drive" />
   </ParameterDeclarations>
   <CatalogLocations />
   <RoadNetwork>
@@ -48,6 +49,7 @@
           <Property name="pp:acc" value="$acc" />
           <Property name="pp:hwa_request_s" value="$hwa_request_s" />
           <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
         </Properties>
       </Vehicle>
     </ScenarioObject>

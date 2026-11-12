@@ -7,7 +7,7 @@ names are appended.
 
 import numpy as np
 
-STREAMS = ("phases", "lane_camera", "chassis", "state_estimator", "perception", "latency")
+STREAMS = ("phases", "lane_camera", "chassis", "state_estimator", "perception", "latency", "faults")
 
 
 def spawn_streams(seed: int) -> dict[str, np.random.Generator]:

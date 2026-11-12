@@ -13,6 +13,10 @@ model sends no flag for any of them (PP-ASM-009).
 | view_short | camera sees the chosen lines only up to `value` m; the fit uses that shorter window |
 | view_flicker | as view_short on every other frame (50 ms camera period) |
 | view_extend | view_range_end reported as `value` m with the same polynomial, so the far part is extrapolated |
+| lose_all | every line and road edge PREDICTED (predicted_duration counting) for `value` s, then LOST (F05) |
+| confidence | confidence set to `value` on the chosen lines and edges (F21 e) |
+
+`edges` (0 left, 1 right) adds road edges to lose_line, fade_line and confidence.
 
 view_short and view_flicker act on the capture through view_limits(); the others on the frame.
 """
@@ -24,10 +28,11 @@ import numpy as np
 from interfaces import LaneModel, LineStatus
 
 KINDS = ("noise", "c0_jump", "lose_line", "fade_line", "c2_error", "c3_error",
-         "view_short", "view_flicker", "view_extend")
+         "view_short", "view_flicker", "view_extend", "lose_all", "confidence")
 VIEW_LIMIT_KINDS = ("view_short", "view_flicker")
 _CAMERA_PERIOD_US = 50_000
 ALL_LINES = (0, 1, 2, 3)  # L2, L1, R1, R2
+ALL_EDGES = (0, 1)  # left, right
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +44,7 @@ class LaneFault:
     value: float = 0.0
     sigma_c0: float = 0.0
     sigma_c1: float = 0.0
+    edges: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         if self.kind not in KINDS:
@@ -107,4 +113,34 @@ class LaneFaultInjector:
                         lines[i] = replace(line, status=LineStatus.LOST, confidence=0.0)
                     else:
                         lines[i] = replace(line, confidence=line.confidence * left)
-        return replace(message, lines=tuple(lines))
+        edges = list(message.road_edges)
+        for fault in self.faults:
+            if not fault.active(t_s):
+                continue
+            if fault.kind == "lose_all":
+                elapsed = t_s - fault.start_s
+                predicted = elapsed < fault.value
+                status = LineStatus.PREDICTED if predicted else LineStatus.LOST
+                def gone(b):
+                    if b.status == LineStatus.LOST:
+                        return b
+                    return replace(b, status=status, predicted_duration=elapsed if predicted else 0.0,
+                                   confidence=b.confidence if predicted else 0.0)
+                lines = [gone(b) for b in lines]
+                edges = [gone(b) for b in edges]
+                continue
+            for i in fault.edges:
+                edge = edges[i]
+                if fault.kind == "lose_line":
+                    edges[i] = replace(edge, status=LineStatus.LOST, confidence=0.0)
+                elif fault.kind == "fade_line":
+                    left = 1.0 - (t_s - fault.start_s) / fault.value
+                    edges[i] = (replace(edge, status=LineStatus.LOST, confidence=0.0) if left <= 0.0
+                                else replace(edge, confidence=edge.confidence * left))
+                elif fault.kind == "confidence" and edge.status != LineStatus.LOST:
+                    edges[i] = replace(edge, confidence=fault.value)
+            if fault.kind == "confidence":
+                for i in fault.lines:
+                    if lines[i].status != LineStatus.LOST:
+                        lines[i] = replace(lines[i], confidence=fault.value)
+        return replace(message, lines=tuple(lines), road_edges=tuple(edges))

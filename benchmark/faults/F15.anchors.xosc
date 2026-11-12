@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="F15" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="F15.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Lane model lặp, 1 trong 5" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_repeat" />
+            <ParameterAssignment parameterRef="c0_channel" value="lane_model" />
+            <ParameterAssignment parameterRef="c0_value" value="10.0" />
+            <ParameterAssignment parameterRef="c0_every" value="5" />
+            <ParameterAssignment parameterRef="c0_count" value="1" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="5.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Lane model nhảy 3, 1 trong 10" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_jump" />
+            <ParameterAssignment parameterRef="c0_channel" value="lane_model" />
+            <ParameterAssignment parameterRef="c0_value" value="0.0" />
+            <ParameterAssignment parameterRef="c0_every" value="10" />
+            <ParameterAssignment parameterRef="c0_count" value="3" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="5.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Lane model đứng yên 0,5 s" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_stuck" />
+            <ParameterAssignment parameterRef="c0_channel" value="lane_model" />
+            <ParameterAssignment parameterRef="c0_value" value="0.0" />
+            <ParameterAssignment parameterRef="c0_every" value="1" />
+            <ParameterAssignment parameterRef="c0_count" value="1" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="0.5" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+            <ParameterAssignment parameterRef="can_bus" value="false" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Khung IMU lặp, 1 trong 5" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_repeat" />
+            <ParameterAssignment parameterRef="c0_channel" value="imu" />
+            <ParameterAssignment parameterRef="c0_value" value="2.0" />
+            <ParameterAssignment parameterRef="c0_every" value="5" />
+            <ParameterAssignment parameterRef="c0_count" value="1" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="5.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Khung IMU đứng yên 0,5 s" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_stuck" />
+            <ParameterAssignment parameterRef="c0_channel" value="imu" />
+            <ParameterAssignment parameterRef="c0_value" value="0.0" />
+            <ParameterAssignment parameterRef="c0_every" value="1" />
+            <ParameterAssignment parameterRef="c0_count" value="1" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="0.5" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+            <ParameterAssignment parameterRef="can_bus" value="true" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="28.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="scenario_id" value="F15" />
+            <ParameterAssignment parameterRef="variant" value="f" />
+            <ParameterAssignment parameterRef="description" value="Khung IMU nhảy 3, 1 trong 10" />
+            <ParameterAssignment parameterRef="c0_kind" value="counter_jump" />
+            <ParameterAssignment parameterRef="c0_channel" value="imu" />
+            <ParameterAssignment parameterRef="c0_value" value="0.0" />
+            <ParameterAssignment parameterRef="c0_every" value="10" />
+            <ParameterAssignment parameterRef="c0_count" value="3" />
+            <ParameterAssignment parameterRef="fault_start_s" value="4.0" />
+            <ParameterAssignment parameterRef="fault_duration_s" value="5.0" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+            <ParameterAssignment parameterRef="can_bus" value="true" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

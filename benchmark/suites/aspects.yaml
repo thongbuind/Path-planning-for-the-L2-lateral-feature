@@ -1,0 +1,22 @@
+# Aspect suites B1 to B8 (Software Qualification Test Specification 5.3): filters over the
+# labels of concrete cases, not hand-written lists. A case belongs to an aspect when any of
+# the keys matches. B0 is conformance (eval.conformance), it needs no case.
+#   difficulty: [L..]   expected: [drive | drive_limited | refuse]   families: [S.. | F..]
+#   methods: [anchor | boundary | pairwise | lhs | protocol]   anchors: {family: [variant]}
+#   all: true
+B1: {title: Nominal, difficulty: [L0]}
+B2:
+  title: Regulatory
+  # Standard grids of 5.1 (protocol rows) and the anchors named in the 5.1 table.
+  methods: [protocol]
+  anchors: {S1: [f, g], S1b: [a, b, c, f], S14: [e], S5: [a, f], S9: [c]}
+  families: [F04, F21]
+B3: {title: Performance limit, difficulty: [L1, L2]}
+B4: {title: Robustness, difficulty: [L3, L4]}
+B5: {title: Degradation and refusal, expected: [drive_limited, refuse], difficulty: [L5], families: [S10]}
+B6: {title: Comfort, difficulty: [L0], note: "Performance target về cảm nhận người lái (8.2) trên ca của B1"}
+B7:
+  title: Flexibility
+  # 8.3: minimal set of the assignment (S1, S4, S7; F01, F02, F04, F06) plus S2, S3, S5, S6, S19.
+  families: [S1, S4, S7, F01, F02, F04, F06, S2, S3, S5, S6, S19]
+B8: {title: Compute, all: true, note: "PP-SWR-016 trên mọi ca"}
