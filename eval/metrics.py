@@ -966,7 +966,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
         Criterion("PP-SWR-018", "observed_horizon_s trừ thời điểm ra khỏi tầm nhìn, lớn nhất [s]",
-                  horizon_err, f"<= {HORIZON_TOL_S}", horizon_err <= HORIZON_TOL_S,
+                  float(horizon_err), f"<= {HORIZON_TOL_S}", bool(horizon_err <= HORIZON_TOL_S),
                   applicable=bool(np.isfinite(horizon_err))),
         Criterion("PP-SWR-017", "Tỉ lệ chu kỳ có path hợp lệ khi lane model báo tầm nhìn > 126 m",
                   long_view_valid, "= 1", long_view_valid == 1.0, applicable=bool(long_view)),
