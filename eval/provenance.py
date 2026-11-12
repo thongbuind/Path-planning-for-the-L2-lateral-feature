@@ -131,7 +131,7 @@ def write(manifest: dict, out_dir: Path, name: str = "manifest.json") -> Path:
     manifest = {**manifest, "finished": manifest.get("finished") or now()}
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / name
-    path.write_text(json.dumps(manifest, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(manifest, indent=1, ensure_ascii=False, default=str) + "\n", encoding="utf-8")
     return path
 
 
