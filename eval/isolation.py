@@ -5,15 +5,32 @@ that run (Software Qualification Test Specification 8.4), not the end of the sui
     status: "ok" (value = fn(*args)), "error" (value = exception text, evaluator side),
             "crash" (value = exit code or signal), "timeout" (value = None)
 
-`fn` must be importable at module level (spawn start method, also used on Linux so that
-behaviour does not depend on the platform).
+`fn` must be importable at module level. Children start from a fork server that has already
+imported the simulator and the evaluation (PRELOAD), so a run does not pay those imports
+again (Software Qualification Test Specification 4.1). Each run is still a fresh process.
+The fork server only imports: no planner library is loaded and no numerical work runs before
+the fork. `PP_START_METHOD=spawn` falls back to a clean interpreter per run.
 """
 
 import multiprocessing
+import os
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
-_CTX = multiprocessing.get_context("spawn")
+START_METHODS = ("forkserver", "spawn")
+START_METHOD = os.environ.get("PP_START_METHOD", "forkserver")
+if START_METHOD not in START_METHODS:
+    raise ValueError(f"PP_START_METHOD must be one of {START_METHODS}")
+# Modules imported once by the fork server; the planner library is never among them. The
+# drivers that use this module (eval.suite, eval.matrix) are left out, also indirectly: each
+# child re-runs its main module as __mp_main__, as with spawn, and the main module must not
+# already be imported (runpy warning, two copies of the module).
+PRELOAD = ["numpy", "scipy.signal", "yaml", "sim.harness", "eval.metrics", "eval.differential",
+           "eval.loader", "eval.labels", "eval.aspects", "eval.conformance"]
+
+_CTX = multiprocessing.get_context(START_METHOD)
+if START_METHOD == "forkserver":
+    _CTX.set_forkserver_preload(PRELOAD)
 
 
 def _child(conn, fn, args) -> None:

@@ -3,7 +3,7 @@
     python3 -m eval.suite build/concrete/smoke/manifest.json [--jobs 2] [--planner LIB] [--mcap all]
 
 B0 conformance runs first; C1 or C2 failed stops the suite (Software Qualification Test
-Specification 11). Every run is its own process: a planner that crashes or hangs is an
+Specification 11) unless --continue-after-b0. Every run is its own process: a planner that crashes or hangs is an
 execution fault of that run. Results are written in manifest order, one line per run,
 whatever the number of workers; report.md starts with the conclusion of section 8.4 and
 lists every failure by level (section 10). MCAP logs: runs with a failure (default) or all.
@@ -83,7 +83,7 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
               'failed_out_of_scope': [key for key in failed if key not in scope],
               'scope': sorted(scope), 'rerun': rerun_command(path, seed, planner),
               'result': result.to_dict(), 'mcap': None}
-    if mcap_dir is not None and (mcap == 'all' or record['failed']):
+    if mcap_dir is not None and mcap != 'none' and (mcap == 'all' or record['failed']):
         record['mcap'] = str(run_log.write(log, Path(mcap_dir) / f"{case['id']}_seed{seed}.mcap",
                                            {'rerun': record['rerun']}))
         from eval import presentation
@@ -158,8 +158,10 @@ def main():
     parser.add_argument('--max-runs', type=int, help='Exploratory prefix only; reported as partial, never official')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--jobs', type=int, default=1, help='Worker processes (each holds one SIL log)')
-    parser.add_argument('--mcap', choices=('failed', 'all'), default='failed',
-                        help='MCAP log for runs with an in-scope failure (default) or for every run')
+    parser.add_argument('--mcap', choices=('failed', 'all', 'none'), default='failed',
+                        help='MCAP log for runs with an in-scope failure (default), for every run, or none')
+    parser.add_argument('--continue-after-b0', action='store_true',
+                        help='Run every case even when B0 C1 or C2 fails; the conclusion stays as 8.4 says')
     parser.add_argument('--skip-b0', action='store_true', help='Exploratory only: do not run B0 first')
     parser.add_argument('--aspect', action='append', help='Run only the cases of aspect suites B1..B8 (repeatable)')
     planner_choice.add_argument(parser)
@@ -172,7 +174,7 @@ def main():
         parser.error('--max-runs must be positive and cannot be combined with --record')
     source, cases = verify_manifest(args.manifest)
     planner = planner_choice.from_args(args)
-    manifest = provenance.make('suite', source['suite'], {'jobs': args.jobs})
+    manifest = provenance.make('suite', source['suite'], {'jobs': args.jobs, 'start_method': isolation.START_METHOD})
     manifest['libraries'] = [provenance.library_info(planner.path, external=args.planner is not None)]
     manifest['generation'] = {'manifest': str(args.manifest.resolve()), 'sha256': provenance.sha256(args.manifest),
                               'inputs': source['inputs'], 'definition': source['definition']}
@@ -197,7 +199,9 @@ def main():
     if not args.skip_b0:
         b0 = conformance.run(planner.path)
         (out / 'conformance.json').write_text(json.dumps(b0, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
-        if b0['blocked']:
+        if b0['blocked'] and args.continue_after_b0:
+            print('B0: không đạt C1 hoặc C2; vẫn chạy mọi ca (--continue-after-b0)', flush=True)
+        elif b0['blocked']:
             c = write_report(out, [], b0, planner_text)
             provenance.write({**manifest, 'summary': {'b0_blocked': True, 'verdict': c['verdict']}}, out)
             print('\n'.join(conclusion.markdown(c, planner_text)))

@@ -132,12 +132,19 @@ def add_issue(result: "Result", kind: str, text: str, requirement: str | None = 
                           "first_fail_s": first_fail_s})
 
 
+_FIELDS: dict[type, tuple[str, ...] | None] = {}  # dataclass field names per type, None if not one
+
+
 def _nonfinite(value, path: str) -> str | None:
     """Path of the first NaN or infinite float in an output message, or None."""
     if isinstance(value, float):
-        return None if np.isfinite(value) else path
-    if hasattr(value, "__dataclass_fields__"):
-        for name in value.__dataclass_fields__:
+        return None if isfinite(value) else path
+    kind = type(value)
+    if kind not in _FIELDS:
+        _FIELDS[kind] = tuple(kind.__dataclass_fields__) if hasattr(kind, "__dataclass_fields__") else None
+    names = _FIELDS[kind]
+    if names is not None:
+        for name in names:
             found = _nonfinite(getattr(value, name), f"{path}.{name}")
             if found:
                 return found

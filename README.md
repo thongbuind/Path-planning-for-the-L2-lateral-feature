@@ -70,8 +70,8 @@ cmake -S planner -B build/planner && cmake --build build/planner
 (cd build/planner && ctest)            # C unit test của từng unit (tests/planner/c)
 python3 -m pytest
 python3 -m eval.runner S1 a --seed 1   # một kịch bản vòng kín SIL; kết quả ở build/runs/
-python3 -m eval.matrix M1 --jobs 2     # ma trận phủ rộng; build/matrix/M1/
-python3 -m eval.sweep P1 --jobs 2      # quét calibration; build/sweep/P1/
+python3 -m eval.matrix M1 --jobs 4     # ma trận phủ rộng; build/matrix/M1/
+python3 -m eval.sweep P1 --jobs 4      # quét calibration; build/sweep/P1/
 python3 -m eval.study PP-TS-003        # các phương án của một trade study; build/study/
 ```
 

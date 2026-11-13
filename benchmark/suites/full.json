@@ -64,6 +64,12 @@
     "VP-4",
     "VP-5"
   ],
+  "sampling_profiles": "factor",
+  "fault_profiles": [
+    "VP-0",
+    "VP-1",
+    "VP-5"
+  ],
   "seeds": [
     1
   ],
@@ -79,7 +85,12 @@
     9,
     10
   ],
+  "sample_noise_seeds": [
+    1,
+    2
+  ],
   "lhs_count": 24,
+  "lhs_per_factor": 4,
   "sampling_seed": 20261111,
   "fault_hosts": [
     [
@@ -118,6 +129,11 @@
   "event_offsets_s": [
     0.0,
     0.2
+  ],
+  "event_profiles": "rotate",
+  "event_noise_seeds": [
+    1,
+    2
   ],
   "combinations": [
     "G01"

@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.29 |
+| Phiên bản | 1.32 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -42,7 +42,7 @@
 - **Không đối phó bài thi.** Ca mới chỉ thêm ở phía test. Ca trượt thì sửa cơ chế chung của planner rồi chạy lại cả bộ.
 - **Báo cáo đủ và tái lập được.** Báo cáo mọi kịch bản và seed, kể cả ca xấu nhất; mỗi kết quả kèm phiên bản code, file kịch bản, seed.
 - **Ưu tiên.** An toàn, rồi quy định, rồi cảm nhận người lái, sau cùng là thời gian tính. Đo trên chuyển động thật của xe so với làn thật.
-- **Giới hạn của kết luận.** Benchmark chứng minh được planner bị chặn. Không thấy lỗi chặn chỉ có nghĩa trong phạm vi đã thử, không phải bằng chứng an toàn (ISO 21448).
+- **Giới hạn của kết luận.** Benchmark chứng minh được planner không đạt. Kết luận Đạt chỉ có nghĩa trong phạm vi đã thử, không phải bằng chứng an toàn (ISO 21448).
 - **Học qua kết quả.** Planner và bên test học từ nhau qua kết quả, problem report, log và requirement. Không qua phần bên trong của phía kia.
 
 ## 4. Test environment {#simulation-design}
@@ -60,10 +60,10 @@
 | Mốc không nhiễu | Mỗi kịch bản có bản không nhiễu để tách lỗi thuật toán khỏi ảnh hưởng của nhiễu |
 | IMU | Kịch bản chính dùng IMU sạch (mentor); nhiễu và bias IMU là fault injection |
 | Tần số | Planner và khối Chức năng ADAS 40 Hz; tín hiệu xe theo signal list (mentor) |
-| Seed | Một seed chính mỗi lần chạy, tách luồng cho từng kênh; 10 seed cho mỗi ô có nhiễu |
+| Seed | Một seed chính mỗi lần chạy, tách luồng cho từng kênh. Số seed của ô có nhiễu theo bộ chạy (mục 5.2) |
 | Log | Một file MCAP cho mỗi lần chạy có trượt trong phạm vi; lần chạy một ca (`eval.runner`) luôn có. Lần chạy đạt tái lập từ manifest (lệnh, commit, thư viện, seed). Xem bằng Foxglove |
 | Môi trường của ca | Ca có thể đặt μ mặt đường, trễ EPS thật, hệ số nhiễu ObjectList, trễ camera (S12, S13, mục 6.2). Planner vẫn nhận VehicleConfig danh định |
-| Máy 8 GB RAM | Chạy từng lô nhỏ |
+| Chạy song song | Mỗi lượt một tiến trình riêng, tạo từ forkserver đã nạp sẵn simulator và bên chấm; không nạp thư viện planner trước khi tạo. Máy 8 GB: tối đa 4 tiến trình (lượt dài nhất khoảng 420 MB). Kết quả tất định không đổi theo số tiến trình và cách tạo tiến trình; provenance ghi cả hai |
 
 ### 4.2 Bộ lập lịch và đồng hồ {#sim-scheduler}
 
@@ -74,7 +74,7 @@
 | Độ lệch pha | Mỗi khối bắt đầu ở một pha ngẫu nhiên theo seed |
 | Kênh truyền | Trễ = danh định + jitter đều; có xác suất mất; bên nhận giữ message mới nhất; kiểm counter, CRC, qualifier lúc nhận |
 | Fault injection theo kênh | Mất chuỗi, thêm trễ, gửi trùng, đảo thứ tự, ngừng gửi, CRC sai, counter đứng yên |
-| Thời gian tính của planner | Mô phỏng là 5 ms; thời gian thật đo riêng |
+| Thời gian tính của planner | Mô phỏng là 5 ms; thời gian thật đo riêng (mục 8.2) |
 | Seed | `numpy.random.SeedSequence.spawn` |
 | Đồng hồ ECU | Mỗi ECU trôi tới ±100 ppm; lệch ban đầu tới ±10 ms; đồng bộ kiểu gPTP mỗi 125 ms, sai số sau đồng bộ tới ±50 µs |
 
@@ -115,6 +115,8 @@ Tín hiệu khung gầm đi qua bus CAN ảo theo DBC ở Interface Control Docu
 | Tỉ số lái, tốc độ vô lăng tối đa, trễ chấp hành | 15; 6 rad/s; 50 ms cho mọi profile | nhóm tự thống nhất |
 
 Bỏ qua chuyển tải khi vào cua, hệ treo, mặt đường gồ ghề: nhỏ ở mức a_y của HWA và LKA.
+
+**Bộ profile biên.** C, I_z và F_z tỉ lệ với m, nên m triệt tiêu trong phương trình chuyển động, trừ lực gió tính bằng N. Profile chỉ khác nhau theo chiều dài cơ sở, bề rộng kể cả gương, góc bánh tối đa và khối lượng. VP-0, VP-1, VP-5 chứa hai đầu của cả bốn trục này; đây là bộ profile biên (mục 5.2).
 
 ### 4.5 Mô hình cảm biến {#sim-sensors}
 
@@ -283,13 +285,25 @@ Tham số riêng (bán kính, v_lat, xe khác…) và dải của chúng khai tr
 1. Neo: mọi biến thể ở mục 5.
 2. Biên: từng tham số ở giá trị nhỏ nhất và lớn nhất của dải, các tham số khác ở giá trị danh định.
 3. Ghép đôi: mọi cặp giá trị nhỏ nhất, danh định, lớn nhất của hai tham số bất kỳ (pairwise).
-4. Ngẫu nhiên: Latin hypercube trong dải, seed cố định.
+4. Ngẫu nhiên: Latin hypercube trong dải, seed cố định; 4 điểm cho mỗi tham số có hơn một giá trị, kể cả profile, tối đa 24 (nhóm tự thống nhất).
 
 | Bộ chạy | Gồm | Dùng khi |
 |---|---|---|
 | Smoke | Neo; VP-0; một seed | Mỗi lần sửa code |
-| Hồi quy | Neo và biên; mọi profile; hai seed | Mỗi thay đổi lớn của planner, trước khi chốt một trade study |
-| Đầy đủ | Bốn cách chọn; mọi profile; mười seed cho ô có nhiễu (mục 4.1) | Trước mỗi baseline |
+| Hồi quy | Neo và biên; profile theo bảng dưới; một seed, hai seed cho ô có nhiễu | Mỗi thay đổi lớn của planner, trước khi chốt một trade study |
+| Đầy đủ | Bốn cách chọn; profile và seed theo bảng dưới | Trước mỗi baseline |
+
+Profile ở bộ Hồi quy và Đầy đủ; seed ở bộ Đầy đủ (nhóm tự thống nhất):
+
+| Loại ca | Profile | Seed khi có nhiễu, bộ Đầy đủ |
+|---|---|---|
+| Neo kịch bản, lưới chuẩn, ca ghép (mục 6.2) | VP-0 đến VP-5 | 10 |
+| Neo của lỗi (mục 6) | Bộ profile biên (mục 4.4) | 10 |
+| Biên, ghép đôi, Latin hypercube | Profile là một tham số của cách chọn: VP-0 đến VP-5 với kịch bản, bộ profile biên với lỗi. Mỗi điểm một profile; ghép đôi có mọi cặp giá trị của tham số và profile | 2 |
+| Lỗi bơm theo pha của planner (mục 6) | Một profile mỗi ca, lần lượt VP-0 đến VP-5 | 2 |
+
+- Neo kịch bản giữ đủ sáu profile để thấy hành vi không đơn điệu giữa các profile.
+- Ca lỗi dùng bộ profile biên vì profile chỉ khác nhau theo các trục ở mục 4.4.
 
 Ba bộ chạy này là độ sâu. Mục 5.3 là khía cạnh. Mỗi khía cạnh chạy được ở cả ba độ sâu.
 
@@ -484,6 +498,8 @@ Không có ngưỡng đạt. Báo cáo giá trị xấu nhất qua mọi seed v�
 | Độ cong sai | Lệch ngang đoạn 2–3 s chia cho lệch của path bám đúng lane model sai | Nhỏ hơn | PP-SWR-125 |
 | Tốc độ quay vô lăng RMS | Vòng kín | Nhỏ hơn | Chỉ số phụ cho PP-SWR-004 |
 
+Thời gian tính đo bằng đồng hồ thật trên máy phát triển, trong lúc các lượt khác chạy song song (mục 4.1). Giá trị lớn hơn khi chạy một mình và không đại diện cho ECU trên xe. Chỉ so thời gian tính giữa các lần chạy cùng máy và cùng số tiến trình.
+
 Chỉ số của khối Chức năng ADAS (chọn calibration ở P2, P3): số lần kích hoạt thừa trong S10; lệch thời điểm kích hoạt giữa chế độ A và B.
 
 Với S7, S8, báo thêm có va chạm với xe mục tiêu trong ca hay không theo Euro NCAP SA 4.3.3.4. Với LKA, ELK, báo a_y và jerk của xe thật theo phương pháp R79 Annex 8, 2.4. Hai kết quả này là thông tin bổ sung.
@@ -492,9 +508,9 @@ Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi HWA đang lái: 
 
 ### 8.3 Flexibility {#benchmark-flexibility}
 
-- **Bộ chạy.** Bộ tối thiểu của đề bài, cộng S2, S3, S5, S6, S19, trên VP-0 đến VP-5; cùng một bản build và một bộ calibration.
-- **Điểm.** (1) Tỉ lệ requirement đạt trên từng profile; phải là 100 % trên mọi profile. (2) Độ chênh của mỗi performance target giữa các profile: giá trị lớn nhất, nhỏ nhất, và profile tệ nhất.
-- **Trình bày.** Bảng profile × chỉ số, đánh dấu profile tệ nhất của mỗi chỉ số.
+- **Bộ chạy.** Bộ tối thiểu của đề bài, cộng S2, S3, S5, S6, S19, trên VP-0 đến VP-5; cùng một bản build và một bộ calibration. Ở bộ Hồi quy và Đầy đủ, ca lỗi chạy trên bộ profile biên (mục 5.2).
+- **Điểm.** (1) Tỉ lệ requirement đạt trên từng profile; phải là 100 % trên mọi profile. (2) Độ chênh của mỗi performance target giữa các profile: giá trị lớn nhất, nhỏ nhất, và profile tệ nhất. Độ chênh tính trên ca có từ hai profile.
+- **Trình bày.** Bảng profile × chỉ số, đánh dấu profile tệ nhất của mỗi chỉ số. Giá trị xấu nhất của từng profile chỉ lấy từ ca chạy đủ mọi profile của lần chạy.
 
 ### 8.4 Mức nghiêm trọng và kết luận {#benchmark-severity}
 
@@ -510,11 +526,11 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 - Một lần trượt ở bất kỳ ca, profile, seed nào là đủ, như mục 8.1.
 - Lỗi thực thi của planner: tiến trình dừng trong lúc gọi `pp_init` hoặc `pp_step`; lời gọi không trả về; output có NaN hoặc vô cực. Lỗi ở simulator hoặc bên chấm báo riêng, ca đó không được chấm.
 
-| Kết luận | Khi |
-|---|---|
-| Bị chặn | Có ít nhất một trượt BLOCKER |
-| Không qua phê duyệt | Không có BLOCKER; có trượt MAJOR |
-| Không thấy lỗi chặn trong phạm vi đã thử | Không có BLOCKER và MAJOR |
+| Kết luận | Khi | Ý nghĩa |
+|---|---|---|
+| Không đạt | Có ít nhất một trượt BLOCKER | Không được tích hợp lên xe |
+| Không đạt quy định | Không có BLOCKER; có trượt MAJOR | Chưa qua phê duyệt kiểu loại |
+| Đạt trong phạm vi đã thử | Không có BLOCKER và MAJOR | Không phải bằng chứng an toàn; MINOR vẫn liệt kê |
 
 - Cờ riêng: Tích hợp được khi đạt C3 (mục 11).
 - Báo cáo không ghi planner là an toàn (mục 3).
@@ -543,7 +559,7 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 
 | Tầng | Chấm | Cách xếp |
 |---|---|---|
-| 1 | Kết luận ở mục 8.4 | Không thấy lỗi chặn, rồi Không qua phê duyệt, rồi Bị chặn. Trong cùng kết luận Bị chặn, ít requirement BLOCKER trượt hơn thì xếp trên |
+| 1 | Kết luận ở mục 8.4 | Đạt trong phạm vi đã thử, rồi Không đạt quy định, rồi Không đạt. Trong cùng kết luận Không đạt, ít requirement BLOCKER trượt hơn thì xếp trên |
 | 2 | Điểm Euro NCAP LSS; tỉ lệ đạt của requirement MAJOR, MINOR | Điểm Euro NCAP cao hơn; bằng nhau thì tỉ lệ đạt trung bình cao hơn |
 | 3 | Performance target theo bốn nhóm của mục 9.1, bước 2 đến 5 | Điểm thắng cặp từng nhóm; nhóm sau chỉ xét khi nhóm trước bằng điểm |
 
@@ -580,7 +596,7 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 
 | Loại | Nội dung |
 |---|---|
-| Kết luận | Đầu báo cáo: kết luận ở mục 8.4 và cờ Tích hợp được. Bị chặn thì liệt kê mọi trượt BLOCKER: ID requirement, safety goal, mã ca, profile, seed, thời điểm trượt đầu tiên, file MCAP |
+| Kết luận | Đầu báo cáo: kết luận ở mục 8.4 và cờ Tích hợp được. Không đạt thì liệt kê mọi trượt BLOCKER: ID requirement, safety goal, mã ca, profile, seed, thời điểm trượt đầu tiên, file MCAP |
 | So sánh planner | Mục 9.2: kết luận, điểm Euro NCAP, tỉ lệ đạt, điểm thắng cặp từng nhóm; kèm giá trị tuyệt đối của mọi chỉ số |
 | Bảng tổng | Mỗi kỹ thuật một hàng: requirement đạt hay trượt, giá trị xấu nhất của mỗi performance target qua mọi seed |
 | Theo thời gian | d(t) của path và xe cùng hai biên làn; a_y; jerk; chức năng đang lái; thời điểm đổi chức năng và bơm lỗi |
@@ -597,8 +613,8 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 
 | Mức | Kiểm | Nguồn | Trượt thì |
 |---|---|---|---|
-| C1 API | Có đủ `pp_state_size`, `pp_init`, `pp_step`, `pp_version`. Build từ `pp_types.h` của cùng phiên bản schema; kích thước và layout struct khớp header sinh ra. Chạy được với vùng nhớ trạng thái căn theo `PP_STATE_ALIGNMENT` | Interface Control Document mục 4 | Bị chặn; không chạy bộ khác |
-| C2 Contract | `pp_init` không trả OK khi VehicleConfig thiếu hoặc ngoài giới hạn; khi đó không chu kỳ nào gửi Trajectory. Mỗi chu kỳ `pp_step` điền mọi output. Counter, stamp, enum, kích thước mảng, 31 điểm trên 0–3 s đúng Interface Control Document. Không có NaN hoặc vô cực. Input chưa nhận, `valid = false` hoặc giá trị ở hai đầu dải không làm planner dừng. `pp_version` trả cùng một chuỗi, có phiên bản, commit và mã bộ calibration | Interface Control Document mục 4, 6; PP-SWR-010, 011, 014, 146 | Bị chặn; không chạy bộ khác |
+| C1 API | Có đủ `pp_state_size`, `pp_init`, `pp_step`, `pp_version`. Build từ `pp_types.h` của cùng phiên bản schema; kích thước và layout struct khớp header sinh ra. Chạy được với vùng nhớ trạng thái căn theo `PP_STATE_ALIGNMENT` | Interface Control Document mục 4 | Không đạt; không chạy bộ khác |
+| C2 Contract | `pp_init` không trả OK khi VehicleConfig thiếu hoặc ngoài giới hạn; khi đó không chu kỳ nào gửi Trajectory. Mỗi chu kỳ `pp_step` điền mọi output. Counter, stamp, enum, kích thước mảng, 31 điểm trên 0–3 s đúng Interface Control Document. Không có NaN hoặc vô cực. Input chưa nhận, `valid = false` hoặc giá trị ở hai đầu dải không làm planner dừng. `pp_version` trả cùng một chuỗi, có phiên bản, commit và mã bộ calibration | Interface Control Document mục 4, 6; PP-SWR-010, 011, 014, 146 | Không đạt; không chạy bộ khác |
 | C3 Integration | Cùng chuỗi input cho cùng output từng bit. Hai instance chạy xen kẽ cho cùng output như khi chạy riêng. Không ghi ra ngoài vùng nhớ trạng thái (kiểm bằng byte canh ở hai đầu). Bảng symbol không có cấp phát động, đọc file, đọc đồng hồ hệ thống | Interface Control Document mục 4; PP-ADR-013 | Vẫn chạy bộ khác; không có cờ Tích hợp được |
 
 Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng phần dữ liệu.
@@ -671,3 +687,6 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.27 | 2026-11-12 | Mục 8.2: cách tính PP-SWR-013 từ kết quả Q1 |
 | 1.28 | 2026-11-12 | Mục 4.1: môi trường của ca; 4.5: lane model khi xe sang làn; 4.7: cách đo khoảng cách bám xe; 5.3: đếm lỗi theo định nghĩa; 6: ba thời điểm bơm lỗi theo pha của planner; 6.2: ca ghép G01; 9.1: bảng từ `eval.techniques`; 12: PM-00 lái LKA, ELK, thêm PM-10, mỗi planner mồi hai ca |
 | 1.29 | 2026-11-12 | Mục 4.6: EPS theo tài xế khi ghi đè, trễ EPS theo ca; 4.8: đánh lái và FunctionRequests theo pha, đổi làn, ca không được can thiệp; 5: S15 rào cách vạch 0,5 m, S16 lần trôi sau tính từ COMPLETED; 5.3: ví dụ L4 là G01; 8.1: cách chấm 034 đến 042, 051 khi ghi đè, 057, 061, 062, 091, 153, 154 |
+| 1.30 | 2026-11-12 | Mục 8.4: đổi tên kết luận thành Không đạt, Không đạt quy định, Đạt trong phạm vi đã thử, thêm cột Ý nghĩa; mục 3, 9.2, 10, 11 theo tên mới. Lý do: "Bị chặn" khó hiểu với người đọc báo cáo |
+| 1.31 | 2026-11-13 | Mục 4.4: bộ profile biên; 5.2: profile của bộ Hồi quy và Đầy đủ, seed của hai bộ, số điểm Latin hypercube theo số tham số; 4.1, 8.3 theo đó. Lý do: hai bộ lặp mọi điểm lấy mẫu trên sáu profile và nhiều seed; bộ Hồi quy lớn hơn bộ Đầy đủ |
+| 1.32 | 2026-11-13 | Mục 4.1: chạy song song tối đa 4 tiến trình, tạo từ forkserver; 8.2: thời gian tính đo khi chạy song song, chỉ so giữa các lần chạy cùng số tiến trình; 4.2 trỏ tới 8.2. Lý do: tăng tốc benchmark, kết quả tất định không đổi |

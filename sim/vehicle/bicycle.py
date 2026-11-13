@@ -47,24 +47,28 @@ class Bicycle:
         self.v_x = 0.0
         self.a_y = 0.0  # [m/s^2] lateral acceleration at the CG, body frame
         self.external_force_y = 0.0  # [N] bank or crosswind, body frame
+        # Profile values used every substep, evaluated once with the same expressions.
+        p = profile
+        self._lf, self._lr, self._mass = p.lf, p.lr, p.mass
+        self._c_front, self._c_rear, self._yaw_inertia = p.c_front, p.c_rear, p.yaw_inertia
+        self._fz_f = p.mass * G * p.lr / p.wheelbase
+        self._fz_r = p.mass * G * p.lf / p.wheelbase
 
     def _axle_forces(self, v_y: float, r: float, delta: float) -> tuple[float, float]:
-        p, v = self.p, max(self.v_x, 0.1)
-        alpha_f = delta - (v_y + p.lf * r) / v
-        alpha_r = -(v_y - p.lr * r) / v
-        fz_f = p.mass * G * p.lr / p.wheelbase
-        fz_r = p.mass * G * p.lf / p.wheelbase
-        lim_f, lim_r = self.mu * fz_f, self.mu * fz_r
-        fy_f = min(lim_f, max(-lim_f, p.c_front * alpha_f))
-        fy_r = min(lim_r, max(-lim_r, p.c_rear * alpha_r))
+        v = max(self.v_x, 0.1)
+        alpha_f = delta - (v_y + self._lf * r) / v
+        alpha_r = -(v_y - self._lr * r) / v
+        lim_f, lim_r = self.mu * self._fz_f, self.mu * self._fz_r
+        fy_f = min(lim_f, max(-lim_f, self._c_front * alpha_f))
+        fy_r = min(lim_r, max(-lim_r, self._c_rear * alpha_r))
         return fy_f, fy_r
 
     def _derivative(self, s: tuple[float, ...], delta: float) -> tuple[float, ...]:
         _, _, psi, v_y, r = s
-        p, v = self.p, self.v_x
+        v = self.v_x
         fy_f, fy_r = self._axle_forces(v_y, r, delta)
-        dv_y = (fy_f * cos(delta) + fy_r + self.external_force_y) / p.mass - v * r
-        dr = (p.lf * fy_f * cos(delta) - p.lr * fy_r) / p.yaw_inertia
+        dv_y = (fy_f * cos(delta) + fy_r + self.external_force_y) / self._mass - v * r
+        dr = (self._lf * fy_f * cos(delta) - self._lr * fy_r) / self._yaw_inertia
         dx = v * cos(psi) - v_y * sin(psi)
         dy = v * sin(psi) + v_y * cos(psi)
         return dx, dy, r, dv_y, dr
