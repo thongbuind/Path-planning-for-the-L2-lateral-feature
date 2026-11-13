@@ -15,6 +15,8 @@ from interfaces.conventions import Header
 LONGITUDINAL_PLAN_POINTS = 31  # Same 0.1 s grid as Trajectory
 LONGITUDINAL_PLAN_TIMEOUT_US = 75000
 LONGITUDINAL_PLAN_MAX_AGE_US = 45000
+LONGITUDINAL_PLAN_V_MAX_MPS = 182.04  # Range of v is 0 to this; speed range of ESC_Speed (5.3), 655.35 km/h
+LONGITUDINAL_PLAN_A_MAX_MPS2 = 32.767  # Range of a is -this to this; range of AccelX of IMU_Data (5.3)
 
 
 class LongitudinalMode(IntEnum):

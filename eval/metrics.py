@@ -21,7 +21,7 @@ from interfaces import (
     TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, LineStatus, RequestState,
     RoadEdgeType, Side,
 )
-from sim.harness import PlannerCycle, RunLog
+from sim.harness import PlannerCycle, RunLog, plan_in_range
 from sim.stand_ins.eps import HANDOVER_S
 from sim.world.road import lane_boundaries
 from sim.world.traffic import Traffic
@@ -225,6 +225,13 @@ def _points(traj):
             np.array([p.pose.y for p in pts]), np.array([p.pose.yaw for p in pts]),
             np.array([p.curvature for p in pts]), np.array([p.longitudinal_velocity_mps for p in pts]),
             np.array([p.front_wheel_angle_rad for p in pts]))
+
+
+def _finite_outputs(c: PlannerCycle) -> bool:
+    """No NaN or infinity in the sent outputs of the cycle (execution fault, Software
+    Qualification Test Specification 8.4; reported by execution_fault). Such a cycle is not
+    projected on the road, so the run is still scored (PP-PR-026)."""
+    return all(m is None or _nonfinite(m, "") is None for m in (c.trajectory, c.path_status, c.lateral_limits))
 
 
 def _jerk_max(a_y: np.ndarray) -> float:
@@ -462,6 +469,17 @@ def _cycle_mask_at(times_s: np.ndarray, cycle_t_s: np.ndarray, active: np.ndarra
     """Ground-truth samples for which the latest planner cycle matches the mask."""
     idx = np.searchsorted(cycle_t_s, times_s, side="right") - 1
     return (idx >= 0) & active[np.clip(idx, 0, len(active) - 1)]
+
+
+def _steering_rate_rms(log: RunLog, cycle_t_s: np.ndarray, hwa: np.ndarray) -> float | None:
+    """Secondary metric of PP-SWR-004 (8.2): RMS steering wheel rate of the simulated car
+    [rad/s], true wheel angle times the steering ratio, while HWA drives. None without HWA."""
+    if len(log.wheel_angle) != len(log.t_us) or len(log.t_us) < 2 or not len(cycle_t_s):
+        return None
+    t = np.asarray(log.t_us, dtype=float) * 1e-6
+    rate = np.diff(np.asarray(log.wheel_angle)) / np.diff(t) * log.steering_ratio
+    mask = _cycle_mask_at(t[1:], cycle_t_s, hwa)
+    return float(np.sqrt(np.mean(rate[mask] ** 2))) if np.any(mask) else None
 
 
 @dataclass(frozen=True)
@@ -845,6 +863,8 @@ def _path_at(cycle, t_us, truth):
 
 
 def _entry_errors(cycle, t_us, truth):
+    if not _finite_outputs(cycle):
+        return np.inf, np.inf  # execution fault (8.4); nothing to project
     i = truth.index(t_us)
     rear = truth.rear[i]
     actual = truth.log.road.project(rear[0], rear[1])
@@ -1151,13 +1171,15 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
 
 
 def longitudinal_criteria(log: RunLog, cycles) -> list[Criterion]:
-    """PP-SWR-153 to 155 on the Trajectory and the LongitudinalPlan the planner received.
+    """PP-SWR-153 to 156 on the Trajectory and the LongitudinalPlan the planner received.
 
     153: with a usable plan, every point's v and a lies between the plan value at the same
     index and the value moved by the age of the plan (Interface Control Document 5.7 gives the
     same grid, not the alignment). 154: with the plan lost or past its timeout, v is constant
-    and equal to the current speed, a is 0. 155: a valid path stays valid when the plan is lost."""
-    follow_bad = follow_n = lost_bad = lost_n = drop_bad = drop_n = 0
+    and equal to the current speed, a is 0. 155: a valid path stays valid when the plan is lost.
+    156: a plan received with v or a out of the ranges of Interface Control Document 5.7 is
+    handled as not received, so the Trajectory is that of 154."""
+    follow_bad = follow_n = lost_bad = lost_n = drop_bad = drop_n = range_bad = range_n = 0
     t = np.asarray(log.t_us)
     prev_valid = False
     for c in cycles:
@@ -1188,9 +1210,15 @@ def longitudinal_criteria(log: RunLog, cycles) -> list[Criterion]:
                 follow_bad += not inside
             elif not ok:
                 speed = log.speed[int(np.clip(np.searchsorted(t, c.t0_us), 0, len(t) - 1))]
-                lost_n += 1
-                lost_bad += not (np.ptp(v) <= FLOAT32_TOL and abs(v[0] - speed) <= CURRENT_SPEED_TOL_MPS
-                                 and np.all(np.abs(a) <= FLOAT32_TOL))
+                fallback = bool(np.ptp(v) <= FLOAT32_TOL and abs(v[0] - speed) <= CURRENT_SPEED_TOL_MPS
+                                and np.all(np.abs(a) <= FLOAT32_TOL))
+                rx = c.longitudinal_plan
+                if rx is not None and rx.message.header.valid and not plan_in_range(rx.message):
+                    range_n += 1
+                    range_bad += not fallback
+                else:
+                    lost_n += 1
+                    lost_bad += not fallback
         prev_valid = valid
     return [
         Criterion("PP-SWR-153", "Chu kỳ có v, a của Trajectory không theo LongitudinalPlan", follow_bad, "= 0",
@@ -1199,6 +1227,8 @@ def longitudinal_criteria(log: RunLog, cycles) -> list[Criterion]:
                   lost_bad, "= 0", lost_bad == 0, applicable=lost_n > 0),
         Criterion("PP-SWR-155", "Chu kỳ mất LongitudinalPlan làm path hợp lệ thành không hợp lệ", drop_bad, "= 0",
                   drop_bad == 0, applicable=drop_n > 0),
+        Criterion("PP-SWR-156", "Chu kỳ LongitudinalPlan ngoài dải mà v không giữ tốc độ hiện tại hoặc a khác 0",
+                  range_bad, "= 0", range_bad == 0, applicable=range_n > 0),
     ]
 
 
@@ -1358,7 +1388,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         for e in episodes:
             if e.function == function:
                 active[e.start:e.stop] = True
-        active_paths = [p for p, use in zip(paths, active) if use]
+        active_paths = [p for p, use in zip(paths, active) if use and p is not None]  # None: execution fault
         ay_limit, added_limit, jerk_limit = INTERVENTION_LIMITS[function]
         later = [e for e in episodes if e.function == function][1:]
         if later:  # PP-SWR-035: every new intervention, the limits of the first
@@ -1494,11 +1524,14 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     requests = {f: _request_windows(cycles, f) for f in INTERVENTION_FUNCTIONS}
     episodes = _intervention_windows(cycles, valid, requests)
 
+    # Execution fault (8.4) first: a cycle with a non-finite output is not projected on the road.
+    finite = np.array([_finite_outputs(c) for c in cycles])
+
     # Truth along every valid path, once.
     paths: list[_PathTruth | None] = []
     s_hint = None
-    for c, ok in zip(cycles, valid):
-        if ok:
+    for c, ok, good in zip(cycles, valid, finite):
+        if ok and good:
             p, s_hint = _path_truth(c, truth, road, s_hint)
             paths.append(p)
         else:
@@ -1530,6 +1563,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             mark("PP-SWR-009", t_s[i])
 
     ay_max = jerk_max = wheel_max = wheel_rate_max = deviation_max = 0.0
+    jerk_sq_sum, jerk_count = 0.0, 0  # PP-SWR-004 RMS: jerk of the 0-1 s part of HWA paths
     ay_floor_margin = np.inf  # PP-SWR-006: min of |a_y| - (aysmax - epsilon) where needed > aysmax
     n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
     for c, p in zip(cycles, paths):
@@ -1548,6 +1582,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             continue
         ay_max = max(ay_max, float(np.max(np.abs(p.ay))))
         jerk_max = max(jerk_max, _jerk_max(p.ay))
+        near_jerk = np.diff(p.ay[:n_window]) / GRID_STEP_S
+        jerk_sq_sum += float(np.sum(near_jerk ** 2))
+        jerk_count += len(near_jerk)
         if ay_max > AYSMAX:
             mark("PP-SWR-001", now_s)
         if jerk_max > JERK_MAX_HWA:
@@ -1624,7 +1661,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     cont = [0.0, 0.0, 0.0]
     intervention_starts = {e.start for e in episodes}
     for i in range(1, len(cycles)):
-        if valid[i - 1] and valid[i]:
+        if valid[i - 1] and valid[i] and finite[i - 1] and finite[i]:
             if i in intervention_starts:
                 d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
                 if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
@@ -1637,8 +1674,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     # PP-SWR-018: observed_horizon_s may not exceed the time the path leaves the reported view
     # range by more than HORIZON_TOL_S; reporting less is the safe side (SRS 1.10).
     horizon_err = -np.inf
-    for c in cycles:
-        if not _valid(c) or c.lane_view is None or c.lane_view_reported is None:
+    for c, good in zip(cycles, finite):
+        if not good or not _valid(c) or c.lane_view is None or c.lane_view_reported is None:
             continue
         t_p, x_p = _points(c.trajectory)[0], _points(c.trajectory)[1]
         x_lim = _view_limit(c, truth)
@@ -1832,6 +1869,15 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Target("PP-SWR-016", "Thời gian tính p99", float(np.percentile(compute_ms, 99)), "ms"),
         Target("PP-SWR-016", "Thời gian tính lớn nhất", float(np.max(compute_ms)), "ms"),
     ]
+    if jerk_count:  # PP-SWR-004 (Software Qualification Test Specification 8.2), path while HWA drives
+        targets.append(Target("PP-SWR-004", "Jerk ngang lớn nhất của path khi HWA lái (trung bình 0,5 s)",
+                              jerk_max, "m/s³"))
+        targets.append(Target("PP-SWR-004", "Jerk ngang RMS của path 0–1 s khi HWA lái",
+                              float(np.sqrt(jerk_sq_sum / jerk_count)), "m/s³"))
+    wheel_rate_rms = _steering_rate_rms(log, t_s, hwa)
+    if wheel_rate_rms is not None:
+        targets.append(Target("PP-SWR-004", "Tốc độ quay vô lăng RMS khi HWA lái, vòng kín",
+                              wheel_rate_rms, "rad/s"))
     if big is not None and np.isfinite(big.clearance_057):
         targets.append(Target("PP-SWR-057", "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng",
                               big.clearance_057, "m"))
@@ -1882,7 +1928,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     adas = adas_requests(log)
     if adas is not None:
         result.info["adas_requests"] = adas
-    fault = execution_fault(cycles)
+    fault = execution_fault([cycles[k] for k in np.flatnonzero(~finite)[:1]])  # first bad cycle
     if fault is not None:
         add_issue(result, ISSUE_EXECUTION, f"Lỗi thực thi: {fault[1]} không hữu hạn tại t = {fault[0]:.3f} s",
                   first_fail_s=fault[0])

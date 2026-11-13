@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.32 |
+| Phiên bản | 1.33 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -393,6 +393,7 @@ Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của f
 | F20 | Ego-motion | Không hợp lệ | a) một lần; b) liên tục; c) xen kẽ mỗi chu kỳ; d) như b, giữa lúc LKA | PP-SWR-043, 143 |
 | F21 | Lane model | Mất hai vạch làn mình, còn biên khác | a) còn L2, R2, độ tin ≥ `conf_inferred`; b) chỉ còn L2; c) chỉ còn mép đường phải ngoài hành lang làn đang chạy, kéo dài 5 s; d) như a, cua R = 500 m; e) như a, độ tin giữa `conf_ego` và `conf_inferred` | PP-SWR-047, 050, 124 (e), 147 (a–d), 148 (a–d, vòng kín) |
 | F22 | Lane model | Tầm nhìn ngắn hoặc thay đổi, không có cờ | Bật điều kiện tầm nhìn của HWA (mục 4.8); đường chủ chạy 25 m/s. a) mọi vạch còn 30 m trong 0,5 s, ngắn hơn `t_view_hold` nên HWA vẫn lái; b) chỉ R1 còn 30 m, tới cuối ca; c) mọi vạch còn 30 m trong 2 s, ở đoạn vào cua; d) 30 m và tầm nhìn danh định xen kẽ từng frame, 2 s; e) báo 150 m với cùng đa thức, phần ngoài đoạn đã thấy là ngoại suy, 1 s, ở đoạn vào cua; f) mọi vạch còn 15 m trong 3 s (0,6 s nhìn trước): HWA rời REQUEST sau `t_view_hold`, rồi trở lại | PP-SWR-017 (e), 042 (f), 050, 149 (a, b, c, d, e, f, vòng kín) |
+| F23 | Toàn vẹn | LongitudinalPlan ngoài dải | Ngoài dải của Interface Control Document 5.7, 0,5 s. a) `v` = 3,4·10³⁸ m/s mọi điểm (đầu cao float32); b) `v` = 500 m/s; c) `a` = 50 m/s²; d) chỉ điểm 30 có `v` = −5 m/s | PP-SWR-156 |
 
 ### 6.1 Quét độ trễ và tầm nhìn
 
@@ -690,3 +691,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.30 | 2026-11-12 | Mục 8.4: đổi tên kết luận thành Không đạt, Không đạt quy định, Đạt trong phạm vi đã thử, thêm cột Ý nghĩa; mục 3, 9.2, 10, 11 theo tên mới. Lý do: "Bị chặn" khó hiểu với người đọc báo cáo |
 | 1.31 | 2026-11-13 | Mục 4.4: bộ profile biên; 5.2: profile của bộ Hồi quy và Đầy đủ, seed của hai bộ, số điểm Latin hypercube theo số tham số; 4.1, 8.3 theo đó. Lý do: hai bộ lặp mọi điểm lấy mẫu trên sáu profile và nhiều seed; bộ Hồi quy lớn hơn bộ Đầy đủ |
 | 1.32 | 2026-11-13 | Mục 4.1: chạy song song tối đa 4 tiến trình, tạo từ forkserver; 8.2: thời gian tính đo khi chạy song song, chỉ so giữa các lần chạy cùng số tiến trình; 4.2 trỏ tới 8.2. Lý do: tăng tốc benchmark, kết quả tất định không đổi |
+| 1.33 | 2026-11-13 | Mục 6: thêm F23, LongitudinalPlan ngoài dải (PP-SWR-156, PP-PR-024) |

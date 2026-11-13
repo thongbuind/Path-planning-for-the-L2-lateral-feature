@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.9 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -199,8 +199,8 @@ Stamp là thời điểm ước lượng.
 | Trường | Kiểu [đơn vị] | Ý nghĩa |
 |---|---|---|
 | `mode` | uint8 enum { OFF, CRUISE, FOLLOW, CURVE_LIMIT } | Chế độ của khối dọc |
-| `points[31].v` | float32 [m/s] | Tốc độ dự kiến, bước 0,1 s, cùng lưới với Trajectory |
-| `points[31].a` | float32 [m/s²] | Gia tốc dự kiến |
+| `points[31].v` | float32 [m/s] | Tốc độ dự kiến, bước 0,1 s, cùng lưới với Trajectory. Dải 0–182,04 m/s, bằng dải tốc độ của `ESC_Speed` (mục 5.3) |
+| `points[31].a` | float32 [m/s²] | Gia tốc dự kiến. Dải ±32,767 m/s², bằng dải AccelX của `IMU_Data` (mục 5.3) |
 | `target_id` | uint32 | Vật thể đang bám; 0 nếu không có |
 
 ### 5.8 VehicleConfig {#vehicle-config}
@@ -277,3 +277,4 @@ Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một 
 | 1.7 | 2026-11-12 | Mục 5.6: `ROAD_EDGE` chọn nguồn biên cho ELK. Mục 6.2: tách pha LKA và ELK trong PathStatus |
 | 1.8 | 2026-11-12 | Mục 5.1: tầm nhìn riêng từng vạch và mép đường; planner nhận mọi tầm nhìn, dùng tối đa 126 m (PP-SWR-017) |
 | 1.9 | 2026-11-12 | Mục 6.1: Trajectory thêm `observed_horizon_s` |
+| 1.10 | 2026-11-13 | Mục 5.7: dải của `v`, `a` trong LongitudinalPlan; ngoài dải planner xử lý như chưa nhận (PP-SWR-156) |
