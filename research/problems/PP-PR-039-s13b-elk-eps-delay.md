@@ -33,3 +33,5 @@ Sau khi có nguyên nhân. Sửa cơ chế chung, không riêng cho VP-3.
 
 | Run ID | Kết quả |
 |---|---|
+
+Lần chạy [20261113-2255-suite-regression-e99cf08](../runs/20261113-2255-suite-regression-e99cf08/report.md): 100, 102 không còn trượt; 085, 086, 091 vẫn trượt.

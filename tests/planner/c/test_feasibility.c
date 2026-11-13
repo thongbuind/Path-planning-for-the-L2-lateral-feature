@@ -84,6 +84,31 @@ static void test_jerk_is_limited(void)
     PP_CHECK_NEAR(625.0 * (double)pts[10].curvature, 1.875, 1e-5);
 }
 
+/* PP-PR-040: a ramp at the jerk limit for the whole 0.5 s window, measured on the float32
+ * points as the evaluator does, stays at or below the limit (no rounding above it). */
+static void test_jerk_stays_below_limit_after_float32(void)
+{
+    pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
+    const pp_ref_samples_t ref = ref_samples(0.0);
+    unsigned at_limit = 0U;
+    double worst = 0.0;
+    for (unsigned iv = 0U; iv < 40U; iv++) {
+        const double v = 12.0 + (0.613 * (double)iv);
+        for (unsigned ia = 0U; ia < 11U; ia++) {
+            const double a0 = -2.4 + (0.47 * (double)ia);        /* a_y at point 0 */
+            const double a1 = (a0 > 0.0) ? -2.45 : 2.45;         /* step the other way */
+            path(pts, v, a0 / (v * v), a1 / (v * v));
+            (void)pp_feasibility_limit(pts, &ref, &HWA, &VP0);
+            pp_path_check_t c;
+            pp_feasibility_check(pts, &ref, &c);
+            at_limit += (c.jerk_max > 0.99 * PP_JERK_MAX_HWA) ? 1U : 0U;
+            worst = fmax(worst, c.jerk_max);
+        }
+    }
+    PP_CHECK(at_limit > 0U);                       /* the grid does reach the limit */
+    PP_CHECK(worst <= PP_JERK_MAX_HWA);
+}
+
 static void test_steering_wheel_rate_is_limited(void)
 {
     pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
@@ -166,6 +191,7 @@ int main(void)
     test_cut_to_aysmax_and_integrate_again();
     test_point0_curvature_is_cut_too();
     test_jerk_is_limited();
+    test_jerk_stays_below_limit_after_float32();
     test_steering_wheel_rate_is_limited();
     test_path_within_limits_is_untouched();
     test_flag_hysteresis_and_confirmation();

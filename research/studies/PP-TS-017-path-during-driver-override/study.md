@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết V2b, cách B; đã đưa vào, chờ hồi quy chính thức |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-13 |
 | Khóa ngày | — (người dùng chọn trước khi chạy so sánh, mục 7) |
 | Quyết định ngày | 2026-11-13 |
@@ -37,6 +37,8 @@ Nguồn: R79 5.6.4.3 (ưu tiên tài xế trong lúc ghi đè); R171 5.5.3.4.1, 
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261113-2330-matrix-PP-PR-032-e99cf08](../../runs/20261113-2330-matrix-PP-PR-032-e99cf08/summary.md) | V2b, cách B | Chỉ còn S16 d (PP-PR-038) |
+| [20261113-2255-suite-regression-e99cf08](../../runs/20261113-2255-suite-regression-e99cf08/report.md) | V2b, cách B | Hồi quy |
 
 ## 5. Kết quả
 
@@ -89,4 +91,4 @@ Hướng mở thêm, chưa đề xuất làm: như Mando, sau khi buông giữ v
 - Chọn: V2 cho hình dạng path (thongbui, 2026-11-13); rồi cách B ở mục 6, tức V2b và không chấm liên tục trong lúc ghi đè (thongbui, 2026-11-13, sau khi xem cách làm của hệ thống thật)
 - Lý do: như mục 6; V1 loại theo lần chạy nháp; V3 đi ngược R79 5.6.4.3; A để điểm đầu lệch xe 0,3 m khi tài xế lái nhanh
 - Đưa vào: Software Requirements Specification 1.16 (định nghĩa Hai path liên tiếp); Software Qualification Test Specification 1.37 mục 8.1; Software Detailed Design 1.11 T4, T7; planner (`pp_state.h`, `pp_planner.c`); bên chấm (`eval/metrics.py`: `_overriding`, 100 đến 102, 061); unit test C `test_driver_override_path_starts_at_car`, Python `test_continuity_not_judged_while_the_driver_overrides`
-- Hồi quy: chưa có run ID
+- Hồi quy: [20261113-2255-suite-regression-e99cf08](../../runs/20261113-2255-suite-regression-e99cf08/report.md): không có trượt mới trong phạm vi; 039, 040 hết trượt ở S17, S9 c. Ngoài phạm vi có trượt mới PP-SWR-003 ở S17 b (PP-PR-040)

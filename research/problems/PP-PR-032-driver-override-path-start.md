@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa theo PP-TS-017 (V2b, cách B); chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-2255-suite-regression-e99cf08 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-039, 040 (SG-05) |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S17 a–e, S9 c, S16 d |
@@ -71,3 +71,5 @@ Theo PP-TS-017 (V2b, cách B): lần chạy nháp cuối, S17 a–e và S9 c đ�
 
 | Run ID | Kết quả |
 |---|---|
+
+Xác nhận chính thức [20261113-2255-suite-regression-e99cf08](../runs/20261113-2255-suite-regression-e99cf08/report.md): 039, 040 hết trượt ở S17 (32 lần chạy) và S9 c (6); 039 ngoài phạm vi hết trượt ở S8c, S13, S5, S16; không có trượt mới trong phạm vi. [20261113-2330-matrix-PP-PR-032-e99cf08](../runs/20261113-2330-matrix-PP-PR-032-e99cf08/summary.md): S17 a–e, S9 c đạt hết; còn S16 d (PP-PR-038). Hệ quả phụ: PP-PR-040 (jerk S17 b chạm giới hạn).

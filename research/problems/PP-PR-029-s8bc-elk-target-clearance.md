@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã đưa vào (SRS 1.15, SQTS 1.36, bên chấm); chờ chạy chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-2255-suite-regression-e99cf08 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-088 (cột Kiểm chứng: S7, S8; chưa có S8b) |
 | Tái hiện | Lần chạy nháp 2026-11-13: `python3 -m eval.runner S8b c --seed 1`, VP-0, thư viện build từ `1f61551` có sửa đổi |
@@ -38,3 +38,5 @@ Quyết định: thongbui, 2026-11-13. PP-SWR-088 đo khi xe ở làn bên ngang
 
 | Run ID | Kết quả |
 |---|---|
+
+Xác nhận chính thức [20261113-2255-suite-regression-e99cf08](../runs/20261113-2255-suite-regression-e99cf08/report.md): PP-SWR-088 chấm trong phạm vi ở S8b c, d, e (18 lần chạy), đạt hết: khoảng hở khi ngang hàng 0,79–1,13 m. ELK kéo xe về kịp trước khi xe sau tới ngang.

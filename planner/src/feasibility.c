@@ -99,10 +99,11 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
         curvature_interval(ref->kappa[k], v, limit, limits, &lo, &hi);
         double c = pp_clamp(wanted, lo, hi);
 
-        /* Jerk per step (PP-SWR-003); stricter than the 0.5 s mean of the requirement. */
+        /* Jerk per step (PP-SWR-003); stricter than the 0.5 s mean of the requirement, and
+         * slightly inside the limit like a_y (PP-PR-040). */
         const double ay_prev = v_prev * v_prev * kappa[k - 1U];
-        const double ay = pp_clamp(v * v * c, ay_prev - (limits->jerk_max * dt),
-                                   ay_prev + (limits->jerk_max * dt));
+        const double jerk_step = PP_LIMIT_SCALE * limits->jerk_max * dt;
+        const double ay = pp_clamp(v * v * c, ay_prev - jerk_step, ay_prev + jerk_step);
         c = ay / (v * v);
 
         /* Steering wheel rate (PP-SWR-117). */
