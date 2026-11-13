@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-ICD` |
-| Version | 1.9 |
+| Version | 1.10 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -199,8 +199,8 @@ The timestamp is the estimation time.
 | Field | Type [unit] | Meaning |
 |---|---|---|
 | `mode` | uint8 enum { OFF, CRUISE, FOLLOW, CURVE_LIMIT } | Longitudinal module mode |
-| `points[31].v` | float32 [m/s] | Planned speed at 0.1 s intervals on the same time grid as Trajectory |
-| `points[31].a` | float32 [m/s²] | Planned acceleration |
+| `points[31].v` | float32 [m/s] | Planned speed at 0.1 s intervals on the same time grid as Trajectory. Range: 0–182.04 m/s, matching the speed range of `ESC_Speed` (Section 5.3) |
+| `points[31].a` | float32 [m/s²] | Planned acceleration. Range: ±32.767 m/s², matching the range of AccelX in `IMU_Data` (Section 5.3) |
 | `target_id` | uint32 | Object being followed; 0 if none |
 
 ### 5.8 VehicleConfig {#vehicle-config}
@@ -277,3 +277,4 @@ When an intervention is canceled, that function's phase returns to NONE. One Pat
 | 1.7 | 2026-11-12 | Section 5.6 uses `ROAD_EDGE` to select the ELK boundary source. Section 6.2 separates the LKA and ELK phases in PathStatus |
 | 1.8 | 2026-11-12 | Section 5.1 specifies the view range for each marking and road edge. The planner accepts all valid view ranges and uses at most 126 m (PP-SWR-017) |
 | 1.9 | 2026-11-12 | Section 6.1 adds `observed_horizon_s` to Trajectory |
+| 1.10 | 2026-11-13 | Section 5.7 defines the `v` and `a` ranges in LongitudinalPlan. The planner treats out-of-range messages as missing (PP-SWR-156) |

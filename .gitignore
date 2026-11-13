@@ -1,23 +1,24 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-CLAUDE.md
+# OS and editor files
 .DS_Store
+Thumbs.db
+.vscode/
+
+# Python bytecode, test caches, and local virtual environments
 __pycache__/
-/docs/reference/
-/spec-web/data/review-comments/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+
+# Local build output
+/build/
 /spec-web/dist/
 /spec-web/.dist-*/
-tmp_mini_pitching/
-/build/
-.vscode/
+
+# Local project files
+/CLAUDE.md
+/docs/reference/
+/spec-web/data/review-comments/

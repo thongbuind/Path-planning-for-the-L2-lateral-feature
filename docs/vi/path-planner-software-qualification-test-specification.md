@@ -33,7 +33,6 @@
 | ISO 26262-8:2018, mục 11 | Độ tin cậy của công cụ phần mềm: kiểm bên chấm (mục 12) |
 | Menzel, Bagschik, Maurer, Scenarios for Development, Test and Validation of Automated Vehicles, IEEE IV 2018 (PEGASUS) | Ba tầng kịch bản: chức năng, logic, cụ thể (mục 5.2) |
 | ASAM OpenSCENARIO XML 1.x, ASAM OpenDRIVE 1.x | Định dạng kịch bản logic và đường (mục 5.2) |
-| Thông số công bố của VinFast VF 3, VF 6, VF 8, VF 9 | Vehicle profiles (mục 4.4) |
 
 ## 3. Test principles {#test-principles}
 
@@ -96,19 +95,21 @@ Tín hiệu khung gầm đi qua bus CAN ảo theo DBC ở Interface Control Docu
 
 **Vehicle profiles.** Planner nhận profile qua VehicleConfig. VP-0 là profile mặc định của mọi kịch bản; VP-1 đến VP-5 dùng cho S19 và bộ flexibility (mục 8.3).
 
+Kích thước trong tên VP-1 đến VP-4 ghi theo thứ tự chiều dài tổng thể × bề rộng thân xe (không tính gương).
+
 | Profile | Xe | Chiều dài cơ sở (m) | Bề rộng thân / kể cả gương (m) | Khối lượng (kg) | Bán kính quay vòng (m) | Góc bánh tối đa (rad) |
 |---|---|---|---|---|---|---|
 | VP-0 | Xe điện cỡ trung, giá trị điển hình | 2,90 | — / 1,90 | 2000 | — | 0,61 |
-| VP-1 | VinFast VF 3 | 2,075 | 1,679 / 1,96 | 857 | 4,05 | 0,54 |
-| VP-2 | VinFast VF 6 | 2,730 | 1,834 / 2,11 | 1600 | 5,5 | 0,52 |
-| VP-3 | VinFast VF 8 (2022) | 2,950 | 1,934 / 2,21 | 2540 | 6,2 | 0,50 |
-| VP-4 | VinFast VF 9 | 3,150 | 2,004 / 2,254 | 2932 | 7,33 | 0,44 |
+| VP-1 | Xe điện 3.190 × 1.679 mm | 2,075 | 1,679 / 1,96 | 857 | 4,05 | 0,54 |
+| VP-2 | SUV điện 4.241 × 1.834 mm | 2,730 | 1,834 / 2,11 | 1600 | 5,5 | 0,52 |
+| VP-3 | SUV điện 4.750 × 1.934 mm | 2,950 | 1,934 / 2,21 | 2540 | 6,2 | 0,50 |
+| VP-4 | SUV điện 5.119 × 2.004 mm | 3,150 | 2,004 / 2,254 | 2932 | 7,33 | 0,44 |
 | VP-5 | Tổng hợp: như VP-4, rộng tối đa | 3,150 | — / 2,50 | 2932 | 7,33 | 0,44 |
 
 | Tham số | Cách lấy | Nguồn |
 |---|---|---|
-| Chiều dài cơ sở, bề rộng thân, khối lượng, bán kính quay vòng | Thông số công bố | VF 3, VF 6, VF 8, VF 9: bonbanh.com và brochure VinFast; VF 9 bề rộng 2,254 m: Vietnam News, 2,004 m: bonbanh (Appendix A) |
-| Bề rộng kể cả gương | VF 9: hiểu 2,254 m là có gương, 2,004 m là không. VF 3, VF 6, VF 8: thân + 0,28 m, theo chênh lệch có và không có gương mà Volkswagen công bố cho Golf 8 (1,789 / 2,073 m) | nhóm tự thống nhất |
+| Chiều dài tổng thể, chiều dài cơ sở, bề rộng thân, khối lượng, bán kính quay vòng | Giá trị tham chiếu cho VP-1 đến VP-4 | Thông số kỹ thuật công bố |
+| Bề rộng kể cả gương | VP-1 đến VP-3 dùng bề rộng thân + 0,28 m (làm tròn đến 0,01 m). VP-4 dùng 2,254 m cả gương và 2,004 m cho thân xe. | Giả định mô phỏng của nhóm. Xem Phụ lục A về phần cộng bề rộng gương. |
 | Góc bánh tối đa | asin(chiều dài cơ sở / bán kính quay vòng) | nhóm tự thống nhất |
 | Phân bố khối lượng | l_f = l_r = chiều dài cơ sở / 2 | nhóm tự thống nhất |
 | Độ cứng lốp | C_f = 100 000·m/2000, C_r = 140 000·m/2000 N/rad: giữ hệ số thiếu lái K ≈ 0,0029 rad/(m/s²) cho mọi profile | nhóm tự thống nhất |

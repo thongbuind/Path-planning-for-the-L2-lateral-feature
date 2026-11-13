@@ -1,7 +1,7 @@
 {
   "adas-function-specification": {
-    "en": "ec014100b54fe2bfca694c89fd4e3b5a6a95ef60a031c20e2f600338be948a97",
-    "vi": "e47caac7a71009785cfc2eaf18b8c16ea8c51e2c1e5bfc6d003171af95b302fa"
+    "en": "11ec765f2bdfe5dbd544a27345170962c6b18ad247a98fd9d913d9b857ed6e9d",
+    "vi": "8fe5be1420a7d35e434f27067e84f22421b28f34b0d190c2e744fbe34b7fd82b"
   },
   "adas-functions": {
     "en": "957d0e7a1e5d037241ad5f0d0798ba8d49904a01b973fec65333b9b244b3655a",
@@ -16,8 +16,8 @@
     "vi": "b1e27ec081d2f92b92ac538caae1590d01294038dbb78f612319e9bd5b043571"
   },
   "mentor-report": {
-    "en": "08298061f68753a6f26710a42499a0448a632a417f4e0bf90d2364483d3d8f60",
-    "vi": "eb22bf62f4256e45333aa0289729df2f8a6f7d852eccc892a4be41b89044fd55"
+    "en": "d8365890dcfad79a360f023a1a1075529c59353076a03a620c1e4860d0d9dfc9",
+    "vi": "e7071b4156271a42f6a1605d3ce9fea37a8ce742b4b106e832a782d0e8e46b35"
   },
   "path-planner-architecture-decision-records": {
     "en": "df60f9678b0c61db0ed82bd0a2a996afa9fd62e1ac7d229a65fcf8234bff18fa",
@@ -36,27 +36,27 @@
     "vi": "d2fc7d62f05fe2d3a80686323b09363a72691a522d46e113ce25af654c6945e7"
   },
   "path-planner-interface-control-document": {
-    "en": "b8d5cabee0fccdd7fa057730cc33a1267789c8e2a2535fc0753331bf051cc3b9",
-    "vi": "f0d563d2eb9b9224f906a1412af73eba037db4149b5b3098f284f4912dd05354"
+    "en": "ed4862823ca6228af3805543eaaf14bebaced2fbc1102502c4b952b84ffeff3c",
+    "vi": "b25ac769085a7e23571358048860360d99367cf70d115b3febb3018e949febaf"
   },
   "path-planner-software-architectural-design": {
     "en": "82e4e342cfd7eed7e6f54dfa69cd058d7a56e7d343e7051cb11f1f82556d48d2",
     "vi": "7e11503d172335556c1a378efffde4307363cdfa26dba055c3780a1a278fc3e1"
   },
   "path-planner-software-detailed-design": {
-    "en": "7c136c830addc5bae27f8d3cf1afd2dddd6977ce0dc21788b100c443d8e04549",
-    "vi": "b8a08e2076714afa1786bc4922f93192613f2b5563529fe7bce8a407fbec35fb"
+    "en": "e9146277a2e1b2e9f72745732fba88090a1b316ee6a59fde8abd852f1cbc1ec1",
+    "vi": "5e3d81ff6ba99df742b2f670316ccea3d17f7289f10227564b06f56761f244f1"
   },
   "path-planner-software-qualification-test-specification": {
-    "en": "966e8dff505be4ad48a9ad694fb348d0dc14e06866e98ee4d5b0cb13bdf6838c",
-    "vi": "4014fadb145fe69a00de7b088bec865dee17c0c5ef92a80f92522bdb4b71cd5d"
+    "en": "78c1b82cea1f491a61a105f75a89ae1568e51d96276c7cfa72a64199354ad83e",
+    "vi": "e71b6953c4f23019cf64627697a2044217e78a9bb96d651ecc4dfacd79c830f4"
   },
   "path-planner-software-requirements": {
     "en": "492ed57cb7eb6f6453d2245edbb866b91203c6f93e6a96e6278dcf66cf974058",
     "vi": "4ea6fec3c5ba42a492d69332a3b36dc37346d8092d80d8c14ba15529a3cc8dc9"
   },
   "path-planner-software-requirements-specification": {
-    "en": "5912d8f2a87d260608e0d6b06c34f43099dcbab21666e041c64aba9732702707",
-    "vi": "b67c0665997d0a930536d6577bf938508c52b39ad9928aee21b775269cf192b3"
+    "en": "c84166b9ab6a4b10e9bc9f65daa7e4e8cdf8e212dfb057d0af53f83ef7272430",
+    "vi": "c44a9a8dcd167d03db06da861775da3afbd93e9b235163f7abd703b0833eb941"
   }
 }

@@ -124,6 +124,30 @@ def test_b0_evidence_is_written(tmp_path):
     assert 'Chưa ghi nhận cho lượt chạy này' in main
 
 
+def test_english_report_localizes_legacy_run_data(tmp_path):
+    folder = tmp_path / "s"
+    case = _case("c1", "S1")
+    record = _record("c1", ["B1", "B6"], failed=["PP-SWR-051"])
+    record["result"]["targets"] = [{"id": "PP-SWR-004", "value": 0.5, "unit": "rad/s",
+                                     "metric": "Tốc độ quay vô lăng RMS khi HWA lái, vòng kín"}]
+    _suite(folder, [record], [case])
+    b0 = folder / "conformance.json"
+    checks = json.loads(b0.read_text())
+    checks["checks"][1]["detail"] = "longitudinal_plan đầu cao của dải: chu kỳ 0: acceleration = inf"
+    b0.write_text(json.dumps(checks), encoding="utf-8")
+
+    out = report_html.write(folder, lang="en")
+    main = out.read_text(encoding="utf-8")
+    details = out.with_name("report-en-details.html").read_text(encoding="utf-8")
+
+    assert out.name == "report-en.html"
+    assert '<html lang="en">' in main and '<html lang="en">' in details
+    assert '✕ Fail' in main and 'report-en-details.html#C2.robust' in main
+    assert 'longitudinal_plan upper range endpoint: cycle 0: acceleration = inf' in details
+    assert 'RMS steering wheel rate [rad/s]' in main and '0.5 rad/s' in main
+    assert 'id="PP-SWR-156"' in details and 'id="run-c1-1"' in details
+
+
 def test_one_colour_set():
     """Every colour comes from the token block at the top; no hex literal elsewhere."""
     import re

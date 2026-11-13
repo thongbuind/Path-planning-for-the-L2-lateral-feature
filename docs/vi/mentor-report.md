@@ -59,7 +59,7 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 - **Simulator:** Python và numpy, tất định, bước 1 ms; mô phỏng trễ, jitter, mất message, đồng hồ lệch, CAN có counter, CRC. Không có log xe thật.
 - **Test:** 24 kịch bản × 3–5 biến thể, 23 loại lỗi bơm vào, 4 quét (độ trễ, tầm nhìn), vòng hở và vòng kín; bộ tối thiểu 3 × 5 của đề bài. Bộ Hồi quy 2.037 ca, bộ Đầy đủ 3.916 ca, chạy song song 4 tiến trình, kết quả tất định.
 - **Kết luận:** Mức trượt suy từ Type của requirement (BLOCKER, MAJOR, MINOR). Kết luận là Không đạt, Không đạt quy định hoặc Đạt trong phạm vi đã thử; không ghi planner là an toàn. Lần chạy trượt có log MCAP.
-- **Flexibility:** Cùng bản build và calibration chạy trên 6 vehicle profile: VinFast VF 3, VF 6, VF 8, VF 9, một xe chuẩn và một xe tổng hợp rộng 2,5 m.
+- **Flexibility:** Cùng bản build và calibration chạy trên 6 vehicle profile. VP-0 là xe tham chiếu, VP-1 đến VP-4 trải từ 3.190 × 1.679 mm đến 5.119 × 2.004 mm (dài tổng thể × rộng thân xe) và VP-5 là profile tổng hợp rộng 2,5 m kể cả gương.
 - **Công tâm:** Bên test chỉ thấy planner qua interface; chọn calibration trên bộ chỉnh, chấm trên bộ kiểm.
 
 ## 6. An toàn {#summary-safety}

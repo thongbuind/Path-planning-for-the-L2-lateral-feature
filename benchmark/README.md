@@ -45,9 +45,12 @@ python3 -m eval.run_full --jobs 4
 python3 -m eval.run_full --planner <thư-viện>.so --jobs 4
 python3 -m eval.run_full --suite smoke --max-runs 6
 python3 -m eval.report_html <thư-mục-suite> [--generation <manifest>] [--conformance <file>]
+python3 -m eval.report_html <thư-mục-suite> --lang en
 ```
 
 `eval.run_full` sinh ca, chạy B0 rồi mọi lần chạy (`eval.suite --continue-after-b0`), và lập dashboard. B0 trượt hay một bộ B1–B8 trượt đều không dừng lần chạy. Mọi thứ nằm trong `build/benchmark/<thời-gian>-<suite>-<commit>/`: `concrete/` (ca), `suite/` (kết quả như `eval.suite`), `run.log` (đầu ra từng bước, có giờ), `report.html`. Dashboard là các slide 16:9, chỉ để xem và in PDF: tổng quan các bộ, B0, rồi một slide cho mỗi bộ B1–B8 (kết luận, số ca, biểu đồ chính, requirement trượt, ca tệ nhất). Bộ chạy dừng giữa chừng vẫn lập được dashboard, có ghi số lần chạy đã có. Full gồm 3.916 lần chạy, khoảng 1,5–2 giờ với 4 tiến trình (ước từ smoke: 195 lần chạy trong 4–5 phút với `--mcap none`); MCAP và hình của lần chạy có trượt cộng thêm thời gian. MCAP mặc định chỉ ghi lần chạy có trượt; `--mcap all` cho full tốn khoảng 15 GB.
+
+Lệnh `--lang en` tạo `report-en.html` và `report-en-details.html` từ dữ liệu đã chạy. Hai trang dùng cùng ID ca, requirement và bằng chứng với bản tiếng Việt.
 
 Viết ca mới: [AUTHORING.md](AUTHORING.md). `--at` bơm mọi lỗi của lần chạy sau một sự kiện ở output của planner (`lka_active`, `elk_active`, `intervention_active`); `--fault` lặp lại để ghép lỗi. Mỗi lần chạy của `eval.runner` ghi thêm hình theo thời gian (`.png`); `eval.suite` vẽ hình cho lần chạy có trượt (`figures/runs/`) và thêm vào `report.md` các mục Flexibility, Thời gian tính, DTLE theo v_lat (Software Qualification Test Specification 10); `eval.matrix` thêm đồ thị quét. Suite khai báo thêm `event_hosts`, `event_faults`, `event_offsets_s` (lỗi trên ca LKA, ELK theo thời điểm của mục 6) và `combinations` (ca ghép `combinations/G*.yaml`, mục 6.2). Bộ regression và full giảm lặp bằng `sampling_profiles: factor` (profile là một tham số của biên, ghép đôi, Latin hypercube), `fault_profiles` (neo của lỗi), `sample_noise_seeds`, `lhs_per_factor`, `event_profiles: rotate`, `event_noise_seeds` (Software Qualification Test Specification 5.2). Phạm vi chấm của mỗi lần chạy ở `suites/scope.yaml`. XSD của ASAM thuộc điều khoản license của ASAM: `eval.fetch_schemas` tải bản chính thức và kiểm SHA-256 theo `schema/sources.json`.
 
