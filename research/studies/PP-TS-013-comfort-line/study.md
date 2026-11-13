@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; nghiên cứu nguyên mẫu Python, chưa áp dụng vào planner |
+| Trạng thái | Mở. Đã so sánh nháp qua SIL với quintic C làm mốc |
 | Mở ngày | 2026-11-12 (mở với số PP-TS-012; đổi sang PP-TS-013 cùng ngày vì trùng số với study đưa v_y về t0, study đó đã có problem report trỏ tới) |
 | Khóa ngày | — |
 | Quyết định ngày | — |
@@ -83,7 +83,7 @@ Cua chữ S của R171 Annex 4, 4.2.4.1 (hình học S1f, 90 km/h, đoạn thẳ
 Vòng kín ở 150 m (`python3 sample_figure.py --xodr ../../../benchmark/roads/S1f.xodr --kmh 90 --deg 10 --exag 12 --view 150 --lead 300 --out sample-r171-sbend.png`): a_y đỉnh 1,84 → 0,89 m/s² (−51 %), tốc độ vô-lăng đỉnh −63 %, tổng hành trình vô-lăng −46 %, khoảng hở thân xe–vạch 0,67 → 0,48 m.
 
 - Hiệu quả nhất: khúc uốn đổi hướng nhỏ, cả khúc cua nằm trong tầm nhìn. Cua chữ S cùng góc kém hơn cua đơn một chút.
-- Tầm nhìn 150 m là giả định thử trong research, không phải giả định cảm biến của SQTS (80 m). Với nó, PP-SWR-100 đạt ở mọi cua tới 15°. Vấn đề PP-SWR-100 ở mục 5 chủ yếu do khúc cua dài hơn tầm nhìn.
+- Tầm nhìn 150 m là mức thử nghiên cứu. SQTS dùng 80 m danh định. Ở 150 m, cua đơn 15° đổi 1,8 mm, còn cua chữ S 15° đổi 92,7 mm. Phép đo này dùng đường tham chiếu thật của nguyên mẫu.
 
 ## 5. Kết quả
 
@@ -111,19 +111,84 @@ Vấn đề tìm được:
 | Vấn đề | Chi tiết | Hướng xử lý |
 |---|---|---|
 | PP-SWR-100 | Trên Rf, S1f, S14e, đoạn 2–3 s của path đổi tới 0,11–0,13 m giữa hai lần lập liên tiếp, khi lối ra cua vừa vào tầm nhìn. Đoạn 0–1 s đổi ≤ 0,015 m | Thêm chi phí liên tục so với path cũ như `qp_w_cont` của PP-TS-003 V1, rồi đo lại lợi ích |
-| PP-SWR-006 | Câu hiện tại so a_y path với a_y tâm làn cần. Khi a_y cần > aysmax, path cắt cua có a_y thấp hơn aysmax − `epsilon_ay` dù vẫn ở trong làn (S14e) | Cần viết lại theo ý gốc của R79 5.6.2.2.3, ví dụ theo a_y mà path cần để ở trong làn |
+| PP-SWR-006 | Câu hiện tại so a_y path với a_y tâm làn cần. Khi a_y cần > aysmax, path cắt cua có a_y thấp hơn aysmax − `epsilon_ay` dù vẫn ở trong làn (S14e) | Thử đồng thời sàn và trần theo SRS ở mục 5.2 |
 | PP-SWR-053, 059 | Đo thời gian tới lúc lệch ngang ≤ 0,1 m; S2d chạy trên cua R 500 m. Path cắt cua có thể làm kết quả xấu đi | Đo khi tích hợp |
 | PP-SWR-056 | Không được lệch về phía xe lớn. Hành lang phải hẹp về 0 ở phía đó | Hành lang theo từng phía, là input liên tục, như PP-TS-003 đã đề xuất |
 | Phía trong cua | Đường hai chiều: phía trong cua trái là làn ngược chiều | Hành lang theo từng phía; cần quyết định có cắt về phía đó không |
 
+### 5.1. Giới hạn độ đổi của path trong tầm nhìn
+
+R-limited giải cùng QP với R-cam. Sau khi dời path cũ theo 1 m đã đi, lấy phần chung trong 3 s và trong tầm nhìn hiện tại. Từ chênh lệch (d), (d') và độ cong xấp xỉ, tính một hệ số trộn cho cả đường. Mục tiêu từng cặp path là 45 mm, 4,5 mrad và 0,00027 1/m, tương ứng 90% ngưỡng PP-SWR-100 đến 102. Trộn trực tiếp (d(s)) rồi suy ra hình học. Hai đường nằm trong cùng hành lang tĩnh nên đường trộn cũng nằm trong hành lang đó.
+
+Chạy `continuity_experiment.py` bằng một luồng BLAS. Kết quả ở `continuity_results.json` gồm số liệu chuyển động xe, giới hạn hành lang và số đo theo từng cặp path. Độ cong đường tham chiếu vẫn là độ cong thật. Hai ca chặn phía của S1f dùng hành lang cố định suốt ca. Phép đo trên từng path xấp xỉ gia tốc ngang tại các nút trong tầm nhìn, kèm biên nhỏ nhất so với sàn PP-SWR-006 trên 0–1 s.
+
+| Ca, tầm nhìn | Lệch ngang giữa hai path, mm | Đỉnh a_y xe, m/s² | Chu kỳ phải trộn |
+|---|---|---|---|
+| Rf, 80 m | 123,0 → 45,0 | 2,19 → 2,22 | 3/348 |
+| S1f, 80 m | 128,8 → 45,0 | 0,936 → 0,938 | 8/401 |
+| S14e, 80 m | 108,8 → 45,0 | 2,00 → 2,00 | 6/401 |
+| S1c, 80 m | 2,5 → 2,5 | 2,51 → 2,51 | 0/351 |
+| S1f, 150 m | 31,9 → 32,2 | 0,893 → 0,893 | 1/401 |
+
+Ở S1f, R-limited giữ mức giảm 49% đỉnh a_y của xe so với bám tâm làn. Khi chặn cố định phía trái hoặc phải, path ở trong hành lang đã cấp và mức giảm lần lượt là 32% và 36%. Hai thử nghiệm đó đo đáp ứng với biên tĩnh.
+
+Ở S14e 80 m, a_y đỉnh của xe vẫn giảm khoảng 50%. Trên các path được lập theo từng chu kỳ, a_y đỉnh xấp xỉ 2,729 m/s², cao hơn giới hạn 2,5 m/s² của PP-SWR-001. Ở những điểm trong 0–1 s cần hỗ trợ sát giới hạn, giá trị thấp nhất xấp xỉ 1,374 m/s², hụt 0,926 m/s² so với sàn 2,3 m/s² của PP-SWR-006. Giữ hai ràng buộc này là việc cần thử trước khi dùng kết quả S14e để xếp hạng độ êm.
+
+### 5.2. Sàn và trần gia tốc ngang với độ cong ước lượng
+
+R-ay bắt đầu bằng path R-limited. Ở các nút trong tầm nhìn, chặn trị tuyệt đối a_y ở 2,5 m/s². Trên 0–1 s, khi độ cong đầu vào báo a_y cần vượt 2,5 m/s², áp thêm sàn 2,3 m/s² theo hướng cua. Một bài toán tuyến tính đo mức nới chung nhỏ nhất cho hai ngưỡng trong hành lang ±0,3 m, giữ ba điểm đầu và ba giới hạn liên tục của mục 5.1. Nếu mức nới nằm trong dung sai số 0,00001 m/s², bài toán bậc hai chiếu toàn bộ đường, kể cả đoạn nối với đuôi ngoại suy, về tập nghiệm khả thi gần path R-limited. Khi bộ giải dừng sớm, chỉ nhận nghiệm đã kiểm các ràng buộc và có chi phí không cao hơn điểm khởi tạo. Cửa sổ bất khả thi được ghi lại và dùng path R-limited để tiếp tục phép đo. Các cửa sổ đó vẫn được tính khi báo vi phạm.
+
+Chạy trong thư mục hồ sơ bằng `OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 -B acceleration_experiment.py`. `acceleration_results.json` giữ cả số đo path theo hình học thật và số liệu chuyển động xe. Cửa sổ dùng lưới 1 m. Phép đo xét các nút trong phần quan sát của horizon 3 s.
+
+| Ca dùng độ cong thật | Cửa sổ R-ay cần nới | Mức nới lớn nhất, m/s² | Đỉnh a_y trên path, m/s² |
+|---|---|---|---|
+| S1f, 90 km/h | 0/401 | 0 | 1,158 |
+| S14e, 130 km/h | 61/401 | 0,924 | 2,776 |
+| S1be, 90 km/h | 279/311 | 0,630 | 3,131 |
+| Hình học S14e, 110 km/h | 0/401 | 0 | 1,986 |
+
+Trên đoạn cung R 200 m ở 90 km/h, thử thả tự do ba điểm đầu và bỏ giới hạn liên tục vẫn cần nới ít nhất 0,080 m/s² trên cửa sổ 75 điểm. Ở S14e, phép thử hạ tốc độ hằng từ 130 xuống 110 km/h cho a_y đỉnh của xe 1,412 m/s² khi dùng độ cong thật. Hai kết quả này định lượng vai trò của tốc độ và độ dài cua trong hành lang đang xét.
+
+Đối chứng camera lấy mẫu đường tâm ở 20 Hz, trễ 100 ms, tầm nhìn dọc đường 80 m tại lúc chụp. Thử giữ độ cong thật trong phần tầm nhìn còn lại, khớp một đa thức bậc ba cho cả đoạn, rồi thêm nhiễu Gaussian σ = 0,03 m vào từng mẫu ngang trước khi khớp, seed 1. Chỉ tín hiệu độ cong nhìn trước đi qua mô hình này. Vị trí ngang, mô phỏng xe và phép đo vẫn dùng đường thật. Đây là phép thử độ nhạy của đầu vào độ cong.
+
+| Đầu vào S1f ở 90 km/h | Đỉnh a_y của xe, m/s² |
+|---|---|
+| Bám tâm làn | 1,839 |
+| Độ cong thật trong 80 m | 0,938 |
+| Độ cong thật với tầm nhìn rút ngắn do trễ | 0,961 |
+| Một cubic có trễ, không nhiễu | 1,881 |
+| Một cubic có trễ và nhiễu | 1,880 |
+
+Với S1f, đổi sang một cubic làm mất mức giảm đỉnh a_y trong phép thử này. Ảnh hưởng từ việc rút ngắn tầm nhìn do trễ và từ mức nhiễu đã thử nhỏ hơn nhiều. Ở S14e, cả hai bản cubic đánh giá hụt nhu cầu hỗ trợ tại ít nhất một nút của cả 59 cửa sổ có a_y cần thực vượt giới hạn trong 0–1 s. Với bản cubic có nhiễu, R-ay vẫn vượt trần a_y theo đường thật trong 95/401 cửa sổ.
+
+### 5.3. So sánh quintic C và quintic có điểm trung gian
+
+Mốc là generator quintic C hiện tại với T4, T8 và T10. Phương án thử cộng vào path mốc một độ lệch ngang có hai đoạn quintic. Độ lệch và hai đạo hàm bằng 0 ở đầu và cuối horizon. Hai đoạn có cùng vị trí và đạo hàm ngang bậc 1, 2 tại điểm nối. Quét thời điểm giữa 1,0, 1,5 và 2,0 s, với lệch ±0,05, ±0,10, ±0,20 và ±0,30 m. Chỉ xét ca HWA có hai biên đủ tin, ObjectList hợp lệ và trống, đủ tầm nhìn cho cả horizon, đang giữ làn và a_y cần còn cách giới hạn ít nhất nửa epsilon_ay.
+
+Mỗi ứng viên qua T4 và T10 trước khi so điểm. Ứng viên cần ở trong hành lang tính từ bề rộng xe và làn, đạt ngưỡng gia tốc ngang, jerk và độ đổi path theo dữ liệu planner có. Điểm thử là đỉnh trị tuyệt đối a_y cộng 0,2 s nhân jerk RMS. Chọn ứng viên khi điểm giảm ít nhất 0,005 m/s². Bên chấm SIL kiểm riêng chuyển động thật và tính liên tục từ output. Sàn PP-SWR-006 vẫn được chấm trên các cửa sổ áp dụng.
+
+`quintic_experiment.py` build tuần tự hai thư viện từ cùng bản chụp mã nguồn trong thư mục tạm dưới hồ sơ này. Bản thử thêm `quintic_comfort.inc` vào bản sao C. Tám lượt chạy cặp dùng VP-0, camera 80 m, trễ 100 ms, cùng kịch bản và seed trong mỗi cặp. Các ca S1 và S14 dùng harness nghiên cứu cho cảm biến ObjectList chuẩn phát cả khi đường trống. Một ca S1f + F01(a) dùng lịch phát mặc định để kiểm hành vi khi vắng ObjectList. S3a dùng kênh ObjectList của ca gốc. Số liệu và hash thư viện ở `quintic_results.json`.
+
+| Ca S1f có ObjectList | Đỉnh a_y xe, m/s² | Đỉnh jerk xe, m/s³ | Chu kỳ chọn điểm trung gian |
+|---|---|---|---|
+| Sạch, seed 1 | 1,439 → 1,412 | 1,407 → 1,616 | 136 |
+| F01(a), seed 1 | 1,416 → 1,418 | 1,398 → 1,641 | 118 |
+| F01(a), seed 2 | 1,447 → 1,443 | 1,390 → 1,649 | 151 |
+| F01(c), seed 1 | 1,367 → 1,375 | 1,377 → 1,462 | 102 |
+
+Cả hai bản đạt các tiêu chí đã chấm trên bốn lượt S1f trong bảng. Khoảng hở nhỏ nhất của bản điểm trung gian giảm khoảng 1,3–2,7 cm. Bản có điểm trung gian giảm đỉnh a_y của xe 1,9% ở ca sạch, còn jerk đỉnh tăng 6–19% trên bốn lượt. Hai bản cho cùng số đo khi vắng ObjectList ở S1f + F01(a). Bản thử chọn 0 lần ở S3a và S14e. Hai bản cùng trượt PP-SWR-006, 100 và 101 ở S14e trong cấu hình này.
+
+Quintic C là mốc phù hợp để tiếp tục so sánh SIL. Với lưới điểm trung gian và hàm điểm đã thử, mức giảm đỉnh a_y thiếu ổn định dưới nhiễu và jerk đỉnh tăng trên xe.
+
 ## 6. Đề xuất
 
-Chưa đề xuất áp dụng. Bước tiếp theo nếu người dùng muốn đi tiếp:
+Tiếp tục kiểm chứng trong nguyên mẫu nghiên cứu:
 
-1. Thêm chi phí liên tục với path cũ, đo lại PP-SWR-100 và lợi ích.
-2. Hành lang theo từng phía làm input; nối với T8 (PP-SWR-055, 056).
-3. Gộp vào PP-TS-003 thành phương án V3 của T7 C (cùng QP: thêm hành lang và ngưỡng đỉnh a_y), chạy trên bộ chính thức.
-4. Đề xuất viết lại PP-SWR-006.
+1. So một cubic với ước lượng độ cong cục bộ theo đoạn, dùng cùng mẫu camera, trễ và nhiễu. Đo sai số trong 0–1 s và mức giảm đỉnh a_y trên S1f.
+2. Thử tốc độ thay đổi theo preview trên S14e và S1be. Giữ sàn, trần a_y và hành lang khi đánh giá mức giảm tốc cần thiết.
+3. Thử hành lang đổi theo thời gian khi xe ở làn bên tiến tới. Đo thời gian rời phía bị chặn và khoảng hở trong lúc chuyển tiếp theo PP-SWR-055 và 056.
+4. Giữ quintic C làm mốc. Nếu thử lại quintic có điểm trung gian, kiểm jerk đỉnh và độ đổi điểm trung gian giữa chu kỳ cùng với chi phí trong horizon.
+5. Để xét chọn generator chính thức, so ứng viên với quintic và QP V2 trên cùng dữ liệu và bộ kiểm SIL.
 
 ## 7. Quyết định
 

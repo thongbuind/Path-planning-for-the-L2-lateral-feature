@@ -305,14 +305,20 @@ class Road:
     def project(self, x: float, y: float, s_hint: float | None = None,
                 window_m: float = 20.0) -> LaneProjection:
         """Foot of the perpendicular on the ego-lane centre, searched near s_hint."""
+        n = len(self.s)
         if s_hint is None:
-            lo, hi = 0, len(self.s)
+            lo, hi = 0, n
         else:
-            lo = int(np.clip((s_hint - window_m) / SAMPLE_STEP_M, 0, len(self.s) - 1))
-            hi = int(np.clip((s_hint + window_m) / SAMPLE_STEP_M, 1, len(self.s)))
+            # Scalar min/max: same values as np.clip, without its per-call cost (hot path).
+            a = (s_hint - window_m) / SAMPLE_STEP_M
+            b = (s_hint + window_m) / SAMPLE_STEP_M
+            if a != a or b != b:
+                raise ValueError("cannot convert float NaN to integer")
+            lo = int(min(max(a, 0), n - 1))
+            hi = int(min(max(b, 1), n))
         dx = x - self.x[lo:hi]
         dy = y - self.y[lo:hi]
-        i = lo + int(np.argmin(dx * dx + dy * dy))
+        i = lo + int((dx * dx + dy * dy).argmin())
         th = self.theta[i]
         ex, ey = x - self.x[i], y - self.y[i]
         along = ex * cos(th) + ey * sin(th)

@@ -49,3 +49,4 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-022 | S14a tầm nhìn ngắn: ACC đọc LateralLimits rời làn xa hơn | Đã sửa cùng PP-PR-021 | PP-SWR-051, 151, 152 | [report](problems/PP-PR-022-s14a-short-view-acc-on.md) |
 | PP-PR-023 | Q3 ở 60 ms vượt tuổi tối đa 45 ms của FunctionRequests | Đã sửa, xác nhận ở 20261112-1430-matrix-Q3-f94030c | PP-SWR-038, 145 | [report](problems/PP-PR-023-function-requests-max-age.md) |
 | PP-PR-024 | B0 C2: LongitudinalPlan ở đầu cao của dải làm Trajectory có vô cực | Mở | Software Qualification Test Specification 11 (C2), PP-SWR-010 | [report](problems/PP-PR-024-longitudinal-plan-range-end.md) |
+| PP-PR-025 | Bên chấm không tính performance target jerk ngang PP-SWR-004 | Mở | PP-SWR-004, Software Qualification Test Specification 8.2 | [report](problems/PP-PR-025-jerk-target-not-measured.md) |

@@ -62,9 +62,14 @@
     "VP-4",
     "VP-5"
   ],
+  "sampling_profiles": "factor",
+  "fault_profiles": [
+    "VP-0",
+    "VP-1",
+    "VP-5"
+  ],
   "seeds": [
-    1,
-    2
+    1
   ],
   "noise_seeds": [
     1,
@@ -105,6 +110,7 @@
     0.0,
     0.2
   ],
+  "event_profiles": "rotate",
   "combinations": [
     "G01"
   ]

@@ -167,7 +167,7 @@ def main() -> None:
                         help="Official run: clean working tree, library from HEAD; copy to research/runs")
     args = parser.parse_args()
     planner = planner_choice.from_args(args)
-    manifest = provenance.make("matrix", args.suite, {"jobs": args.jobs})
+    manifest = provenance.make("matrix", args.suite, {"jobs": args.jobs, "start_method": isolation.START_METHOD})
     manifest["libraries"] = [provenance.library_info(planner.path, external=args.planner is not None)]
     if args.record:
         provenance.preflight(manifest)

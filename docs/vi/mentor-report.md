@@ -3,16 +3,16 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-MR` |
-| Phiên bản | 1.2 |
+| Phiên bản | 1.3 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#summary-scope}
 
 - **Mục đích:** Tóm tắt thiết kế path planner và hệ thống đánh giá.
-- **Phạm vi:** Path planner cho HWA, LKA, ELK; bộ tài liệu kỹ thuật baseline.
+- **Phạm vi:** Technical Documents; Path Planner; 8 bộ Benchmark đánh giá Path Planner.
 
 ## 2. Hệ thống {#summary-system}
 
@@ -35,6 +35,8 @@
 | Dời tâm khi có xe lớn | Dời ra xa phần khoảng hở còn thiếu so với `gap_truck_min`; giới hạn offset theo khoảng trống thật, đúng cho mọi làn và mọi xe | Offset cố định ±0,3 m; cân bằng khoảng hở | 008 |
 | Nhiễu và continuity | Bắt đầu từ path cũ, giới hạn tốc độ đổi tham chiếu, phạt jerk; chiếu path về ngưỡng liên tục | Lọc lại cảm biến trong planner | 004, 007 |
 | Calibration | Một bộ cho mọi xe; planner chỉ biết xe qua VehicleConfig | Mỗi xe một bộ | 012 |
+| Dạng bàn giao | Thư viện C11, API C, không cấp phát động, không I/O, không biến toàn cục; simulator gọi cùng thư viện qua adapter SIL | Python; prototype Python rồi port; C++17 | 013 |
+| Trạng thái ngang, pha | Planner tự tính trạng thái ngang; PathStatus có pha riêng cho LKA và ELK | Dùng chung với khối Chức năng ADAS; một pha chung | 014, 015 |
 
 Kỹ thuật lập path chọn bằng benchmark trong ba ứng viên: quintic theo thời lượng, lấy mẫu trong Frenet, QP.
 
@@ -52,10 +54,11 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 
 ## 5. Kiểm chứng {#summary-verification}
 
-- **Requirement:** 94 requirement (53 Safety, 22 Functional, 11 Interface, 8 Regulatory) chấm đạt hoặc trượt; 12 performance target đo và xếp hạng. Truy vết tự động bằng `tools/trace.py`.
+- **Requirement:** 98 requirement (56 Safety, 20 Functional, 14 Interface, 8 Regulatory) chấm đạt hoặc trượt; 14 performance target đo và xếp hạng. Input ngoài dải (FunctionRequests quá tuổi, LongitudinalPlan ngoài dải) xử lý như chưa nhận. Truy vết tự động bằng `tools/trace.py`.
 - **Calibration:** Hơn 70 calibration parameter, mỗi tham số có giá trị khởi đầu, dải quét và giới hạn lấy từ requirement.
 - **Simulator:** Python và numpy, tất định, bước 1 ms; mô phỏng trễ, jitter, mất message, đồng hồ lệch, CAN có counter, CRC. Không có log xe thật.
-- **Test:** 24 kịch bản × 3–5 biến thể, 21 loại lỗi bơm vào, 3 quét độ trễ, vòng hở và vòng kín; bộ tối thiểu 3 × 5 của đề bài.
+- **Test:** 24 kịch bản × 3–5 biến thể, 23 loại lỗi bơm vào, 4 quét (độ trễ, tầm nhìn), vòng hở và vòng kín; bộ tối thiểu 3 × 5 của đề bài. Bộ Hồi quy 2.037 ca, bộ Đầy đủ 3.916 ca, chạy song song 4 tiến trình, kết quả tất định.
+- **Kết luận:** Mức trượt suy từ Type của requirement (BLOCKER, MAJOR, MINOR). Kết luận là Không đạt, Không đạt quy định hoặc Đạt trong phạm vi đã thử; không ghi planner là an toàn. Lần chạy trượt có log MCAP.
 - **Flexibility:** Cùng bản build và calibration chạy trên 6 vehicle profile: VinFast VF 3, VF 6, VF 8, VF 9, một xe chuẩn và một xe tổng hợp rộng 2,5 m.
 - **Công tâm:** Bên test chỉ thấy planner qua interface; chọn calibration trên bộ chỉnh, chấm trên bộ kiểm.
 
@@ -75,7 +78,7 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 |---|---|
 | [Software Requirements Specification](report.html?doc=path-planner-software-requirements-specification&lang=vi) | Requirement, performance target, ODD, giả định, giới hạn calibration |
 | [Software Architectural Design](report.html?doc=path-planner-software-architectural-design&lang=vi) | Kiến trúc, chu kỳ, thiết kế, calibration parameter |
-| [Architecture Decision Records](report.html?doc=path-planner-architecture-decision-records&lang=vi) | 12 quyết định, mỗi quyết định có phương án bị loại |
+| [Architecture Decision Records](report.html?doc=path-planner-architecture-decision-records&lang=vi) | 15 quyết định, mỗi quyết định có phương án bị loại |
 | [Software Detailed Design](report.html?doc=path-planner-software-detailed-design&lang=vi) | Thuật toán T1 đến T11, cấu trúc code |
 | [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=vi) | 11 message, trường, tần số, timeout |
 | [ADAS Function Specification](report.html?doc=adas-function-specification&lang=vi) | Khi nào HWA, LKA, ELK được can thiệp |
@@ -89,3 +92,4 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 | 1.0 | 2026-11-10 | Viết lại thành Technical Summary cho bộ tài liệu kỹ thuật BL1 |
 | 1.1 | 2026-11-11 | Dời tâm theo PP-ADR-008 mới |
 | 1.2 | 2026-11-12 | Liên tục giữa hai path chỉ xét phần trong tầm nhìn; Trajectory thêm `observed_horizon_s` |
+| 1.3 | 2026-11-13 | Thêm PP-ADR-013 đến 015; cập nhật số requirement, lỗi, quét; thêm cỡ bộ chạy và cách kết luận |

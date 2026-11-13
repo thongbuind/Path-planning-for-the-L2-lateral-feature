@@ -32,6 +32,7 @@ import json
 import sys
 import time
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from dataclasses import dataclass
 from math import atan2, cos, sin
 from pathlib import Path
@@ -222,6 +223,8 @@ def solve_window(kr, v, fixed_head, corridor, tail_parallel=True, fixed_tail=Non
                  tail_centre=False, x0=None):
     """Least squares in d with corridor bounds; optional soft cap |kappa_p| <= klim per node.
 
+    The corridor is a symmetric half-width or a signed (right, left) pair.
+
     The cap is a one-sided quadratic penalty (weight W_PK) on the excess, solved by a
     semismooth Newton loop over the set of nodes that exceed it."""
     n = len(kr)
@@ -246,10 +249,17 @@ def solve_window(kr, v, fixed_head, corridor, tail_parallel=True, fixed_tail=Non
         fix[n - len(fixed_tail):] = fixed_tail
     free = np.isnan(fix)
     dfix = np.where(free, 0.0, fix)
-    if corridor <= 0:
+    if isinstance(corridor, tuple):
+        lower, upper = corridor
+    else:
+        half = max(0.0, corridor)
+        lower, upper = -half, half
+    if not lower <= 0.0 <= upper:
+        raise ValueError("corridor must contain the lane centre")
+    if lower == upper == 0.0:
         return dfix
-    lo = np.full(free.sum(), -corridor)
-    hi = -lo
+    lo = np.full(free.sum(), lower)
+    hi = np.full(free.sum(), upper)
     Af = A[:, free]
     r0 = b - A[:, ~free] @ dfix[~free]
     H0 = Af.T @ Af
@@ -308,22 +318,45 @@ def plan_global(road: Road, corridor: float, cap: bool = True) -> np.ndarray:
     return d
 
 
-def plan_receding(road: Road, corridor: float, view: float = VIEW_M, cap: bool = True,
-                  extrap: float = EXTRAP_M, cont_stats: dict | None = None) -> np.ndarray:
+def continuity_change(new: np.ndarray, old: np.ndarray, curvature: np.ndarray) -> np.ndarray:
+    """Approximate lateral, heading and curvature changes on one shared Frenet reference."""
+    delta = new - old
+    heading = np.diff(delta) / H
+    bend = np.diff(delta, n=2) / H**2 + curvature[1:-1]**2 * delta[1:-1]
+    return np.array([np.max(np.abs(a), initial=0.0) for a in (delta, heading, bend)])
+
+
+def plan_receding(road: Road, corridor: float | tuple[float, float], view: float = VIEW_M,
+                  cap: bool = True, extrap: float = EXTRAP_M, cont_stats: dict | None = None,
+                  continuity_limits: tuple[float, float, float] | None = None,
+                  observe_plan: Callable[[int, np.ndarray], None] | None = None,
+                  preview: Callable[[int], np.ndarray] | None = None,
+                  adjust_plan: Callable[[int, np.ndarray, int, np.ndarray, np.ndarray | None],
+                                        np.ndarray] | None = None) -> np.ndarray:
     """Camera only: sees [s, s + view]; beyond it assumes the last seen curvature for `extrap`
-    metres and asks to be back on the centre there. Replans every H metres (about 1 cycle)."""
+    metres and asks to be back on the centre there. Replans every H metres.
+    Optional continuity limits apply on the observed part of the common 3 s horizon.
+    The entire Frenet curve is blended with one weight before deriving its geometry."""
     kr = road.kn
     n = len(kr)
     nv = int(round(view / H)) + 1
     ne = int(round(extrap / H))
+    horizon = int(3.0 * road.v / H)
+    limits = None if continuity_limits is None else np.asarray(continuity_limits, dtype=float)
+    if limits is not None and (limits.shape != (3,) or not np.all(np.isfinite(limits) & (limits > 0))):
+        raise ValueError("continuity_limits requires three positive, finite thresholds")
     d = np.zeros(n)
-    first = int(np.argmax(np.abs(kr) > 1e-9))
+    first = int(np.argmax(np.abs(kr) > 1e-9)) if preview is None else 0
+    history = np.zeros(n) if preview is not None else kr
     prev = None
     for i in range(max(0, first - nv - 3), n - nv):
-        seen = kr[i:i + nv]
-        kw = np.concatenate([seen, np.full(ne, seen[-1])])
+        seen = kr[i:i + nv] if preview is None else preview(i)
+        nh = min(len(seen), horizon)
+        if preview is not None:
+            history[i] = seen[0]
+        kw = np.concatenate([seen, np.full(nv + ne - len(seen), seen[-1])])
         if cap:
-            known = np.concatenate([kr[max(0, i - nv):i], kw])
+            known = np.concatenate([history[max(0, i - nv):i], kw])
             off = min(i, nv)
             klim = peak_limit(known, off, off + len(kw))
         else:
@@ -331,13 +364,23 @@ def plan_receding(road: Road, corridor: float, view: float = VIEW_M, cap: bool =
         x0 = None if prev is None else np.concatenate([prev[1:], prev[-1:]])
         w = solve_window(kw, road.v, d[i:i + 3], corridor, tail_parallel=True,
                          tail_centre=(ne > 0), klim=klim, x0=x0)
+        scale = 1.0
+        if x0 is not None and limits is not None:
+            change = continuity_change(w[:nh], x0[:nh], seen[:nh])
+            scale = max(1.0, float(np.max(change / limits)))
+            if scale > 1.0:
+                w = x0 + (w - x0) / scale
+        if adjust_plan is not None:
+            w = adjust_plan(i, kw, nh, w, x0)
+        if x0 is not None and cont_stats is not None and road.focus[0] <= road.sn[i] <= road.focus[1]:
+            change = continuity_change(w[:nh], x0[:nh], kr[i:i + nh])
+            for key, value in zip(("max", "heading_max", "curvature_max"), change):
+                cont_stats[key] = max(cont_stats.get(key, 0.0), float(value))
+            cont_stats["cycles"] = cont_stats.get("cycles", 0) + 1
+            cont_stats["limited_cycles"] = cont_stats.get("limited_cycles", 0) + int(scale > 1.0)
         d[i + 3] = w[3]
-        if cont_stats is not None and prev is not None:
-            # PP-SWR-100 style: change of the planned path between two cycles over 0-3 s ahead
-            nh = min(nv, int(3.0 * road.v / H))
-            diff = np.max(np.abs(w[:nh] - prev[1:nh + 1]))
-            if road.focus[0] <= road.sn[i] <= road.focus[1]:
-                cont_stats["max"] = max(cont_stats.get("max", 0.0), float(diff))
+        if observe_plan is not None:
+            observe_plan(i, w[:nh])
         prev = w
     return d
 

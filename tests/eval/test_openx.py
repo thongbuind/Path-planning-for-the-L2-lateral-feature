@@ -185,7 +185,11 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
                                                  for f in c.get('inject', {}).get('faults', []))
                      or (own.get('fault_kind') == 'noise'
                          and (own.get('fault_sigma_c0', 0) > 0 or own.get('fault_sigma_c1', 0) > 0)))
-            expected = {1} if name == 'smoke' else {1, 2} if name == 'regression' else set(range(1, 11)) if noisy else {1}
+            expected = {1} if name == 'smoke' or not noisy else {1, 2} if name == 'regression' else set(range(1, 11))
+            # Full: noisy samples and event cases take the reduced seed set (4.1, 5.2).
+            fixed = {'anchor', 'protocol'} & set(c['methods']) and not c.get('inject', {}).get('trigger')
+            if name == 'full' and noisy and not fixed:
+                expected = {1, 2}
             assert seeds == expected
         for folder in ('scenarios', 'faults'):
             for sid in p['definition'][folder]:
@@ -265,6 +269,49 @@ def test_all_planned_parameter_combinations_are_loadable():
     for name in ('smoke', 'regression', 'full'):
         for case in generate.plan(name)['cases']:
             openx.load_scenario(openx.ROOT / case['source'], case['parameters'])
+
+
+def test_full_profile_reduction_keeps_profile_coverage():
+    p = generate.plan('full')
+    d = p['definition']
+    plain = [c for c in p['cases'] if 'inject' not in c]
+    # Scenario anchors and protocol rows on every profile; fault anchors on the bracketing set.
+    for c in plain:
+        if c['anchor'] or 'protocol' in c['methods']:
+            allowed = d['fault_profiles'] if c['host'] else d['profiles']
+            assert c['family'] in generate.OWN_PROFILE or c['parameters']['profile'] in allowed
+    # Profile as a sampling factor: every (level, profile) pair of every scenario parameter.
+    for sid in d['scenarios']:
+        if sid in generate.OWN_PROFILE:
+            continue
+        space = {k: v for k, v in generate.domains(BENCHMARK / 'scenarios' / f'{sid}.xosc').items() if k != 'profile'}
+        seen = {(k, c['parameters'][k], c['parameters']['profile']) for c in plain if c['family'] == sid for k in space}
+        assert {(k, level, prof) for k, dom in space.items() for level in dom.levels() for prof in d['profiles']} <= seen
+    # Event cases rotate the profiles: each event fault still meets every profile.
+    events = [c for c in p['cases'] if c.get('inject', {}).get('trigger')]
+    for fid in d['event_faults']:
+        assert {c['parameters']['profile'] for c in events if c['family'] == fid} == set(d['profiles'])
+
+
+def test_regression_profiles_and_suite_depth_order():
+    p = generate.plan('regression')
+    d = p['definition']
+    for c in p['cases']:
+        if 'inject' not in c and c['host'] and c['anchor']:
+            assert c['parameters']['profile'] in d['fault_profiles']
+    events = [c for c in p['cases'] if c.get('inject', {}).get('trigger')]
+    for fid in d['event_faults']:
+        assert {c['parameters']['profile'] for c in events if c['family'] == fid} == set(d['profiles'])
+    # Depth order of 5.2: smoke, then regression, then full.
+    sizes = [len(generate.plan(name)['runs']) for name in ('smoke', 'regression', 'full')]
+    assert sizes == sorted(sizes) and len(set(sizes)) == 3
+
+
+def test_lhs_count_follows_varying_factors():
+    space = {'x': generate.Domain(3., bounds=(1., 5.)), 'fixed': generate.Domain(1., bounds=(1., 1.))}
+    assert generate.lhs_count({'lhs_count': 24}, space) == 24
+    assert generate.lhs_count({'lhs_count': 24, 'lhs_per_factor': 4}, space) == 4
+    assert generate.lhs_count({'lhs_count': 24, 'lhs_per_factor': 4}, {'fixed': space['fixed']}) == 0
 
 
 def test_lane_faults_run_on_every_host_anchor():

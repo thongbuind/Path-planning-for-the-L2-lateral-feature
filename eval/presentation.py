@@ -76,22 +76,30 @@ def flexibility(records, cases) -> list[str]:
         return ["", "## Flexibility", "", "Chỉ một profile: không có bảng flexibility (mục 8.3)."]
     per_profile = defaultdict(lambda: {"runs": 0, "passed": 0, "values": defaultdict(list)})
     units = defaultdict(lambda: defaultdict(dict))  # unit -> indicator -> profile -> value
+    # Worst value per profile only over units run on every profile: samples, fault and event
+    # cases on fewer profiles would compare different case sets (5.2).
+    unit_profiles = defaultdict(set)
+    for r in runs:
+        unit_profiles[_unit_key(r, cases)].add(r["profile"])
+    complete = {u for u, seen in unit_profiles.items() if len(seen) == len(profiles)}
     for r in runs:
         row = per_profile[r["profile"]]
         row["runs"] += 1
         row["passed"] += not r.get("failed")
+        unit = _unit_key(r, cases)
         for key, value in _targets(r).items():
             if key.split("|")[0] in FLEX_TARGETS:
-                row["values"][key].append(value)
-                units[_unit_key(r, cases)][key][r["profile"]] = value
+                if unit in complete:
+                    row["values"][key].append(value)
+                units[unit][key][r["profile"]] = value
     indicators = sorted({k for row in per_profile.values() for k in row["values"]})
 
     def worst(key, values):
         return min(values) if key.split("|")[0] in LARGER_IS_BETTER else max(values)
 
     lines = ["", "## Flexibility", "",
-             "Cùng bản build và bộ calibration trên mọi profile (mục 8.3). Ô là giá trị xấu nhất của profile; "
-             "**đậm** là profile tệ nhất của chỉ số.", "",
+             "Cùng bản build và bộ calibration trên mọi profile (mục 8.3). Ô là giá trị xấu nhất của profile "
+             "trên các ca chạy đủ mọi profile; **đậm** là profile tệ nhất của chỉ số. Tỉ lệ đạt tính trên mọi lần chạy.", "",
              "| Profile | Lần chạy | Tỉ lệ đạt requirement | " + " | ".join(_label(k) for k in indicators) + " |",
              "|---|---|---|" + "---|" * len(indicators)]
     worst_profile = {}

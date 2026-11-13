@@ -99,6 +99,13 @@ def latin_hypercube(space, count, seed):
     return [{k: d.sample(columns[k][i]) for k, d in space.items()} for i in range(count)]
 
 
+def lhs_count(suite, space):
+    """Latin hypercube size: `lhs_count`, or `lhs_per_factor` points per varying factor if fewer."""
+    per = suite.get('lhs_per_factor')
+    varying = sum(len(d.levels()) > 1 for d in space.values())
+    return suite['lhs_count'] if per is None else min(suite['lhs_count'], per * varying)
+
+
 def load_suite(name):
     path = BENCHMARK / 'suites' / f'{name}.json'
     suite = json.loads(path.read_text())
@@ -124,6 +131,11 @@ def _identity(params):
 
 def plan(name):
     suite = load_suite(name)
+    # Software Qualification Test Specification 5.2: with `sampling_profiles: factor` the profile
+    # is one more factor of boundary, pairwise and Latin hypercube samples (one profile per
+    # sample); anchors and protocol rows run on every profile of the suite, fault anchors on
+    # `fault_profiles` when given.
+    factor = suite.get('sampling_profiles') == 'factor'
     cases, runs = [], []
     for folder in ('scenarios', 'faults'):
         for sid in suite[folder]:
@@ -131,6 +143,11 @@ def plan(name):
             raw = openx.parse(path)
             nominal = openx.declarations(raw)
             space = {k: d for k, d in domains(path).items() if k != 'profile'}
+            family_profiles = suite.get('fault_profiles', suite['profiles']) if folder == 'faults' else suite['profiles']
+            if factor and sid not in OWN_PROFILE:
+                if nominal['profile'] not in family_profiles:
+                    raise ValueError(f'{sid}: nominal profile outside the suite profiles')
+                space = {**space, 'profile': Domain(nominal['profile'], values=tuple(family_profiles))}
             selections = [('anchor', dict(openx.resolve(raw, values)[1]))
                           for values in openx.anchors(path).values()]
             for method in suite['methods']:
@@ -141,8 +158,11 @@ def plan(name):
                         selections.extend((method, openx.resolve(raw, values)[1])
                                           for values in openx.parameter_sets(path, '.protocol.xosc').values())
                     continue
-                samples = (boundary_samples(space) if method == 'boundary' else pairwise_samples(space)
-                           if method == 'pairwise' else latin_hypercube(space, suite['lhs_count'], suite['sampling_seed']))
+                if method == 'lhs':
+                    count = lhs_count(suite, space)
+                    samples = latin_hypercube(space, count, suite['sampling_seed']) if count else []
+                else:
+                    samples = boundary_samples(space) if method == 'boundary' else pairwise_samples(space)
                 for sample in samples:
                     params = {**nominal, **sample}
                     # Keep the nominal travelled distance when sampling speed; anchors remain exact.
@@ -168,7 +188,9 @@ def plan(name):
             for method, params, host in selections:
                 # Both sides of the longitudinal constraint exchange (benchmark/suites/scope.yaml).
                 acc_modes = ('on', 'ignore_limits') if sid in ACC_BOTH else (params['acc'],)
-                profiles = [params['profile']] if sid in OWN_PROFILE else suite['profiles']
+                sampled = method not in ('anchor', 'protocol')
+                profiles = ([params['profile']] if sid in OWN_PROFILE or (sampled and factor)
+                            else family_profiles)
                 for profile, acc in product(profiles, acc_modes):
                     concrete_params = {**params, 'profile': profile, 'acc': acc}
                     # IDs for anchors retain a,b,...; samples use a content hash in filenames.
@@ -188,7 +210,9 @@ def plan(name):
                     seen[key] = case
                     cases.append(case)
                     noisy = params.get('fault_kind') == 'noise' and (params.get('fault_sigma_c0', 0) > 0 or params.get('fault_sigma_c1', 0) > 0)
-                    seeds = suite['noise_seeds'] if noisy else suite['seeds']
+                    # Samples spread over the space; the full seed count stays on anchors (4.1).
+                    seeds = (suite.get('sample_noise_seeds', suite['noise_seeds']) if sampled else suite['noise_seeds']) \
+                        if noisy else suite['seeds']
                     for seed in seeds:
                         runs.append({'case': case_id, 'seed': seed})
     _injected_cases(suite, cases, runs)
@@ -214,7 +238,10 @@ def load_combination(cid):
 def _injected_cases(suite, cases, runs):
     """Fault definitions added to whole host scenarios: at a planner-output event of LKA or ELK
     hosts (`event_hosts`, `event_faults`, `event_offsets_s`; section 6), and the combined faults
-    of 6.2 (`combinations`). Anchors only; profiles and seeds as the rest of the suite."""
+    of 6.2 (`combinations`). Anchors only; profiles and seeds as the rest of the suite, except
+    `event_profiles: rotate` (one profile per event case, in turn) and `event_noise_seeds`."""
+    rotate = suite.get('event_profiles') == 'rotate'
+    event_index = 0
     jobs = []
     for host_sid, host_variant, event in suite.get('event_hosts', []):
         for fsid in suite.get('event_faults', []):
@@ -237,7 +264,15 @@ def _injected_cases(suite, cases, runs):
         for f, v in faults:
             fparams = anchor_params('faults', f, v)[1]
             noisy |= fparams.get('fault_kind') == 'noise'
-        for profile in suite['profiles']:
+        profiles = suite['profiles']
+        seeds = suite['noise_seeds'] if noisy else suite['seeds']
+        if event:
+            if rotate:
+                profiles = [profiles[event_index % len(profiles)]]
+                event_index += 1
+            if noisy:
+                seeds = suite.get('event_noise_seeds', seeds)
+        for profile in profiles:
             params = {**host_params, 'profile': profile}
             key = _identity({'host': params, 'inject': inject})
             digest = hashlib.sha256(key.encode()).hexdigest()[:12]
@@ -247,7 +282,7 @@ def _injected_cases(suite, cases, runs):
             cases.append({'id': case_id, 'family': family, 'host': host, 'anchor': anchor, 'methods': ['anchor'],
                           'source': str(host_path.relative_to(openx.ROOT)), 'parameters': params,
                           'inject': inject, 'scope_keys': scope_keys, 'file': f'cases/{case_id}.xosc'})
-            for seed in suite['noise_seeds'] if noisy else suite['seeds']:
+            for seed in seeds:
                 runs.append({'case': case_id, 'seed': seed})
 
 
