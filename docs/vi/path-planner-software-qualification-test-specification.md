@@ -95,19 +95,21 @@ Tín hiệu khung gầm đi qua bus CAN ảo theo DBC ở Interface Control Docu
 
 **Vehicle profiles.** Planner nhận profile qua VehicleConfig. VP-0 là profile mặc định của mọi kịch bản; VP-1 đến VP-5 dùng cho S19 và bộ flexibility (mục 8.3).
 
+Kích thước trong tên VP-1 đến VP-4 ghi theo thứ tự chiều dài tổng thể × bề rộng thân xe (không tính gương).
+
 | Profile | Xe | Chiều dài cơ sở (m) | Bề rộng thân / kể cả gương (m) | Khối lượng (kg) | Bán kính quay vòng (m) | Góc bánh tối đa (rad) |
 |---|---|---|---|---|---|---|
 | VP-0 | Xe điện cỡ trung, giá trị điển hình | 2,90 | — / 1,90 | 2000 | — | 0,61 |
-| VP-1 | 3.190 × 1.679 mm | 2,075 | 1,679 / 1,96 | 857 | 4,05 | 0,54 |
-| VP-2 | 4.241 × 1.834 mm | 2,730 | 1,834 / 2,11 | 1600 | 5,5 | 0,52 |
-| VP-3 | 4.750 × 1.934 mm | 2,950 | 1,934 / 2,21 | 2540 | 6,2 | 0,50 |
-| VP-4 | 5.119 × 2.004 mm | 3,150 | 2,004 / 2,254 | 2932 | 7,33 | 0,44 |
+| VP-1 | Xe điện 3.190 × 1.679 mm | 2,075 | 1,679 / 1,96 | 857 | 4,05 | 0,54 |
+| VP-2 | SUV điện 4.241 × 1.834 mm | 2,730 | 1,834 / 2,11 | 1600 | 5,5 | 0,52 |
+| VP-3 | SUV điện 4.750 × 1.934 mm | 2,950 | 1,934 / 2,21 | 2540 | 6,2 | 0,50 |
+| VP-4 | SUV điện 5.119 × 2.004 mm | 3,150 | 2,004 / 2,254 | 2932 | 7,33 | 0,44 |
 | VP-5 | Tổng hợp: như VP-4, rộng tối đa | 3,150 | — / 2,50 | 2932 | 7,33 | 0,44 |
 
 | Tham số | Cách lấy | Nguồn |
 |---|---|---|
-| Chiều dài cơ sở, bề rộng thân, khối lượng, bán kính quay vòng | Giá trị tham chiếu cho VP-1 đến VP-4 | Thông số kỹ thuật công bố |
-| Bề rộng kể cả gương | VP-1 đến VP-3 dùng bề rộng thân + 0,28 m. VP-4 dùng 2,254 m cả gương và 2,004 m cho thân xe. | Giả định mô phỏng của nhóm |
+| Chiều dài tổng thể, chiều dài cơ sở, bề rộng thân, khối lượng, bán kính quay vòng | Giá trị tham chiếu cho VP-1 đến VP-4 | Thông số kỹ thuật công bố |
+| Bề rộng kể cả gương | VP-1 đến VP-3 dùng bề rộng thân + 0,28 m (làm tròn đến 0,01 m). VP-4 dùng 2,254 m cả gương và 2,004 m cho thân xe. | Giả định mô phỏng của nhóm. Xem Phụ lục A về phần cộng bề rộng gương. |
 | Góc bánh tối đa | asin(chiều dài cơ sở / bán kính quay vòng) | nhóm tự thống nhất |
 | Phân bố khối lượng | l_f = l_r = chiều dài cơ sở / 2 | nhóm tự thống nhất |
 | Độ cứng lốp | C_f = 100 000·m/2000, C_r = 140 000·m/2000 N/rad: giữ hệ số thiếu lái K ≈ 0,0029 rad/(m/s²) cho mọi profile | nhóm tự thống nhất |

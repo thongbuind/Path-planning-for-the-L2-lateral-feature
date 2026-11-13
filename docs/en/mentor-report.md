@@ -3,16 +3,16 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-MR` |
-| Version | 1.2 |
+| Version | 1.3 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer |   |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#summary-scope}
 
 - **Purpose:** Summarize the path planner design and the evaluation system.
-- **Scope:** The path planner for HWA, LKA, and ELK and the baseline technical documents.
+- **Scope:** Technical Documents, Path Planner, and eight benchmark suites for evaluating the Path Planner.
 
 ## 2. System {#summary-system}
 
@@ -35,6 +35,8 @@
 | Center offset near a large vehicle | Shift away by the shortfall from `gap_truck_min`. Limit the offset to the actual free space for any lane and vehicle | Fixed offset of ±0.3 m. Balancing clearances | 008 |
 | Noise and continuity | Start from the previous path, rate-limit reference changes, and penalize jerk; project the path to satisfy continuity limits | Filter sensor data again in the planner | 004, 007 |
 | Calibration | One set for all vehicles; the planner obtains vehicle information only through VehicleConfig | One set per vehicle | 012 |
+| Deliverable | C11 library with a C API and no dynamic allocation, I/O, or global variables. The simulator calls the same library through the SIL adapter | Python, Python prototype followed by a port, or C++17 | 013 |
+| Lateral state and intervention phases | The planner computes its own lateral state. PathStatus reports separate LKA and ELK phases | Share lateral state with the ADAS Functions module. Use a common phase | 014, 015 |
 
 Select the planning technique by benchmarking three candidates: duration-based quintic polynomials, Frenet sampling, and QP.
 
@@ -52,11 +54,12 @@ The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², add
 
 ## 5. Verification {#summary-verification}
 
-- **Requirements:** 94 pass/fail requirements (53 Safety, 22 Functional, 11 Interface, 8 Regulatory); 12 performance targets are measured and ranked. Traceability is automated with `tools/trace.py`.
+- **Requirements:** 98 pass/fail requirements (56 Safety, 20 Functional, 14 Interface, 8 Regulatory). The benchmark measures and ranks 14 performance targets. The planner treats stale FunctionRequests and out-of-range LongitudinalPlan inputs as missing. `tools/trace.py` automates traceability.
 - **Calibration:** More than 70 calibration parameters, each with an initial value, a sweep range, and limits derived from requirements.
 - **Simulator:** Deterministic Python and numpy simulation with a 1 ms step; models latency, jitter, message loss, clock skew, and CAN with counters and CRC. No logs from real vehicles.
-- **Tests:** 24 scenarios × 3–5 variants, 21 types of injected faults, 3 latency sweeps, open-loop and closed-loop testing, and the assignment's minimum 3 × 5 test set.
-- **Flexibility:** The same build and calibration run on 6 vehicle profiles: 3,190 × 1,679 mm, 4,241 × 1,834 mm, 4,750 × 1,934 mm, 5,119 × 2,004 mm, a reference vehicle, and a synthetic 2.5 m-wide vehicle.
+- **Tests:** 24 scenarios × 3–5 variants, 23 types of injected faults, four latency and view-range sweeps, open-loop and closed-loop testing, and the assignment’s minimum 3 × 5 test set. Regression has 2,037 cases and Full has 3,916. The benchmark runs deterministically with four parallel worker processes.
+- **Verdicts:** Requirement type determines failure severity (BLOCKER, MAJOR, or MINOR). The verdict is Fail, Regulatory failure, or Pass within the tested scope. The report limits its conclusions to the tests performed. Failed runs have MCAP logs.
+- **Flexibility:** The same build and calibration run on six vehicle profiles. VP-0 is the reference vehicle, VP-1 through VP-4 range from 3,190 × 1,679 mm to 5,119 × 2,004 mm (overall length × body width), and VP-5 is a synthetic profile that is 2.5 m wide including mirrors.
 - **Fairness:** The test system observes the planner only through its interfaces. Select the calibration on the tuning set and score it on the test set.
 
 ## 6. Safety {#summary-safety}
@@ -75,7 +78,7 @@ The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², add
 |---|---|
 | [Software Requirements Specification](report.html?doc=path-planner-software-requirements-specification&lang=en) | Requirements, performance targets, ODD, assumptions, and calibration limits |
 | [Software Architectural Design](report.html?doc=path-planner-software-architectural-design&lang=en) | Architecture, cycle sequence, design, and calibration parameters |
-| [Architecture Decision Records](report.html?doc=path-planner-architecture-decision-records&lang=en) | 12 decisions, each with rejected alternatives |
+| [Architecture Decision Records](report.html?doc=path-planner-architecture-decision-records&lang=en) | 15 decisions, each with rejected alternatives |
 | [Software Detailed Design](report.html?doc=path-planner-software-detailed-design&lang=en) | Algorithms T1 through T11 and code structure |
 | [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=en) | 11 messages, fields, rates, and timeouts |
 | [ADAS Function Specification](report.html?doc=adas-function-specification&lang=en) | When HWA, LKA, and ELK may intervene |
@@ -89,3 +92,4 @@ The team agreed on the steering authority limits for LKA (a_y ≤ 3.0 m/s², add
 | 1.0 | 2026-11-10 | Rewritten as the Technical Summary for the BL1 technical document set |
 | 1.1 | 2026-11-11 | Updated the center offset to follow the revised PP-ADR-008 |
 | 1.2 | 2026-11-12 | Continuity between paths is evaluated within the view range. Added `observed_horizon_s` to Trajectory |
+| 1.3 | 2026-11-13 | Added PP-ADR-013 through 015. Updated the requirement, fault, and sweep counts and added suite sizes and verdict rules |

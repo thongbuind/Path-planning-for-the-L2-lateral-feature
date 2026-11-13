@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SRS` |
-| Version | 1.9 |
+| Version | 1.13 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -117,7 +117,7 @@ Each row identifies the requirements that depend on the assumption and how to re
 | PP-ASM-017 | The Lateral Controller compensates post-planner latency by reading path points using `header.stamp_us` and `time_from_start` (PP-ADR-010) | PP-SWR-012, 086, 091 | Confirm with the Lateral Controller team | team agreement |
 | PP-ASM-018 | ASIL ratings for safety requirements follow the safety department's confirmation review of the HARA | All Safety requirements | Safety department review outcome | team agreement |
 | PP-ASM-019 | The target platform (ECU, operating system, middleware, coding standard) is unknown. The planner requires only a C11 compiler (PP-ADR-013) | All requirements, through implementation | Ask the mentor for the target platform and coding standard | team agreement |
-| PP-ASM-021 | The Lateral Controller either computes steering commands using only the path through `observed_horizon_s` or tolerates jumps in the portion beyond it | PP-SWR-018, 100, 101, 102 | Confirm with the Lateral Controller team | team agreement |
+| PP-ASM-021 | The Lateral Controller uses pure pursuit with a maximum lookahead of 0.6 s and computes steering commands using only the path through `observed_horizon_s` | PP-SWR-018, 100, 101, 102 | Confirm with the Lateral Controller team. An MPC controller that uses the full path would invalidate this assumption | team agreement, based on Autoware pure pursuit (maximum lookahead distance of 15 m, about 0.6 s at 90 km/h) |
 | PP-ASM-020 | The lane model view range varies by marking and frame. Actual start and end points are unknown. The benchmark uses a nominal 0–80 m and sweeps end points from 10 to 126 m | PP-SWR-017, 149, 151 | Read the distributions of `line start distance` and `line end distance` in real vehicle logs | team agreement |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
@@ -146,7 +146,7 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-011 | Trajectory shall follow the format in the Interface Control Document: 31 points at 0.1 s intervals, spanning 0–3 s, frame_id = base_link | Inspection | Interface | team agreement (Autoware Trajectory) |
 | PP-SWR-012 | Trajectory `header.stamp_us` shall be the time represented by the path, with lane model latency compensated | Inspection; Test: Q1 | Interface | team agreement |
 | PP-SWR-014 | `header.counter` shall increment by 1 after every message and wrap over 0–255 | Inspection; Test: all scenarios | Interface | team agreement |
-| PP-SWR-018 | `Trajectory.observed_horizon_s` shall match the time along the path when it leaves the reported view range for the lane model frame used by the planner in that cycle, within 0.1 s | Test: all scenarios | Interface | team agreement |
+| PP-SWR-018 | `Trajectory.observed_horizon_s` shall be no more than 0.1 s later than the point in time when the path leaves the view range reported by the lane model frame used in that cycle | Test: all scenarios | Interface | team agreement |
 | PP-SWR-017 | The planner shall accept a lane model with any `view_range_end > view_range_start` for each marking and road edge. A view range beyond 126 m shall not invalidate the input | Test: F22 (e), Q4 | Interface | team agreement |
 | PP-SWR-015 | The planner shall record computation time for every cycle | Inspection | Interface | team agreement |
 
@@ -172,6 +172,7 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | PP-SWR-045 | After input recovery, the planner shall start an LKA or ELK intervention only after the state of that function leaves REQUEST and returns to it | Test: F12 (Lane Model, recovery) | Safety, SG-01 | team agreement |
 | PP-SWR-046 | If VehicleStateEstimate becomes invalid during LKA or ELK intervention, the planner shall continue that intervention path until it ends | Test: F12 (v_y, in S5) | Safety, SG-03 | team agreement |
 | PP-SWR-047 | While the lane center can only be inferred from boundaries outside the ego lane, the planner shall not select LKA or ELK. Road-edge ELK is allowed if the hazard-side boundary of the ego lane is a MEASURED edge with confidence ≥ `conf_edge` and a reliable opposite boundary or stored lane width is available | Test: F21 | Safety, SG-01 | mentor, with the scope of road-edge ELK clarified by the team in PP-TS-007 |
+| PP-SWR-048 | If the age of FunctionRequests (t0 minus `header.stamp_us`) exceeds 45 ms, the planner shall treat the message as missing, including for the PP-SWR-145 timeout | Test: Q3 | Safety | Interface Control Document 4 (maximum age of 45 ms) |
 
 ### 8.3 HWA: a_y limits {#req-hwa-lateral-limit}
 
@@ -299,6 +300,7 @@ Basis: 170 ms = maximum assumed latency of 120 ms (PP-ASM-001) plus 50 ms; 250 m
 | PP-SWR-153 | When LongitudinalPlan is valid, Trajectory `longitudinal_velocity` and `acceleration` shall be taken from LongitudinalPlan | Test: S14 | Interface | team agreement |
 | PP-SWR-154 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant with acceleration set to 0 | Test: S14 (d) | Interface | team agreement |
 | PP-SWR-155 | If LongitudinalPlan is missing or exceeds its 75 ms timeout, the planner shall keep `path_valid = true` | Test: S14 (d) | Safety | team agreement |
+| PP-SWR-156 | If `v` or `a` at any LongitudinalPlan point is outside the range specified in Interface Control Document 5.7, including NaN or infinity, the planner shall treat the message as missing | Test: F23 | Interface | Interface Control Document 5.3, 5.7 |
 
 ## 9. Performance targets {#req-targets}
 
@@ -335,3 +337,7 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | 1.7 | 2026-11-12 | Added lane model view range to the definitions, PP-SWR-017 for accepting view ranges, PP-SWR-149 for view-range faults (F22), and PP-ASM-020. PP-SWR-151 caps the range at 126 m. PP-SWR-050 and 151 include the Q4 sweep. The planner must work across view ranges beyond the nominal 80 m |
 | 1.8 | 2026-11-12 | Added F22 (f) to PP-SWR-042 and 149. A sustained loss of view range causes HWA to hand back control and then become available again |
 | 1.9 | 2026-11-12 | PP-SWR-100 to 102 evaluate the path within the reported lane model view range, as defined under consecutive paths. Added PP-SWR-018 (`observed_horizon_s`) and PP-ASM-021. Beyond the view range the path is extrapolated. Enforcing continuity there can prevent tracking the lane when the view range is short (PP-PR-021, PP-TS-014). This affects all requirements that depend on PP-SWR-100 to 102 (031, 061, 120 to 128, 135 to 139, 148, 149), Interface Control Document 6.1, Software Detailed Design T4, and Software Qualification Test Specification 8.1 |
+| 1.10 | 2026-11-12 | PP-SWR-018 now specifies only an upper bound. When the planner follows the previous reference line after a c0 jump (F02), it may conservatively report a shorter observed horizon than the lane model would indicate. The evaluator cannot observe when the planner follows the previous line. Changed after run 20261112-1240-matrix-M1-1bfd184 |
+| 1.11 | 2026-11-12 | PP-ASM-021 specifies the controller type and a maximum lookahead of 0.6 s so the ADAS Functions module’s view-range thresholds can be verified |
+| 1.12 | 2026-11-12 | Added PP-SWR-048 to treat FunctionRequests older than 45 ms as missing. Q3 at 60 ms exceeds the Interface Control Document’s maximum age. PP-PR-023 identified the missing planner response requirement |
+| 1.13 | 2026-11-13 | Added PP-SWR-156 to treat out-of-range LongitudinalPlan messages as missing. B0 C2 failed because a plan near the upper float32 limit produced infinite Trajectory values (PP-PR-024). Verified by F23 |

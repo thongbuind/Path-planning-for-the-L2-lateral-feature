@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document ID | `ADAS-FS` |
-| Version | 1.5 |
+| Version | 1.7 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
@@ -96,9 +96,9 @@ If the conditions are not met, the function shall not send REQUEST. Except for t
 |---|---|---|---|---|
 | Settings | Enabled by the driver, with ACC enabled | Enabled in the menu | Enabled | R79 5.6.2.1.2; EU 2021/646 3.2.1 |
 | Speed | 10–130 km/h; wait below 10 km/h | Activates from 70 km/h, remains active until speed falls below 65 km/h, up to 130 km/h | Same as LKA | EU 2021/646 3.6.1; R79 B1 |
-| Lane boundaries | Two markings, one marking plus stored lane width, or a lane center the planner infers from adjacent-lane markings and road edges | Marking on the drift side is MEASURED with confidence ≥ `conf_ego` and visible range ≥ `view_min` | Same as LKA. Road-edge ELK uses a directly MEASURED edge with confidence ≥ `conf_edge`. It also needs a reliable opposite boundary, or the stored lane width if the edge has already been associated with the ego lane | mentor, PP-SWR-047, PP-TS-007 |
+| Lane boundaries | Two markings, one marking plus stored lane width, or a lane center the planner infers from adjacent-lane markings and road edges | Marking on the drift side is MEASURED with confidence ≥ `conf_ego` and lookahead time (view range divided by speed) ≥ `t_view_min` | Same as LKA. Road-edge ELK uses a directly MEASURED edge with confidence ≥ `conf_edge`. It also needs a reliable opposite boundary, or the stored lane width if the edge has already been associated with the ego lane | mentor, PP-SWR-047, PP-TS-007 |
 | Unreliable boundary | — | UNAVAILABLE | UNAVAILABLE on that side | mentor |
-| View range | Lookahead time = the end of the two lane boundaries' common visible range divided by speed. It must be ≥ `t_view_hwa`. If it stays below the threshold for more than `t_view_hold`, enter UNAVAILABLE. HWA stays in control during shorter dips | Use `view_min` in the Lane boundaries row | Same as LKA | R171 5.3.7.1.4 (no abrupt loss of steering assistance). The team set the thresholds |
+| View range | Lookahead time = the end of the two lane boundaries' common visible range divided by speed. It must be ≥ `t_view_hwa`. If it stays below the threshold for more than `t_view_hold`, enter UNAVAILABLE. HWA stays in control during shorter dips | Use `t_view_min` in the Lane boundaries row | Same as LKA | R171 5.3.7.1.4 (no abrupt loss of steering assistance). The team set the thresholds |
 | Free space | `lane_too_narrow = false` | — | — | PP-SWR-063 |
 | ESC | HWA continues if ESC intervenes | Suppressed if ESC intervenes or is disabled | Same as LKA | EU 2021/646 3.2.2, 3.3.2 |
 | Inputs | Valid LaneModel, IMU, speed, and steering angle | Same as HWA, plus VehicleStateEstimate | Same as LKA; object-based intervention also requires ObjectList | PP-SWR-140 to 144 |
@@ -247,8 +247,8 @@ One set for all vehicles. The Software Qualification Test Specification sweeps t
 | `n_confirm` | frame | 2 | 1–3 | ≥ 1 |
 | `conf_ego` | — | 0.6 | 0.4–0.8 | 0–1 |
 | `conf_edge` | — | 0.7 | 0.5–0.9 | 0–1 |
-| `view_min` | m | 20 | 15–30 | > 0 |
-| `t_view_hwa` | s | 1.0 | 0.5–1.5 | > 0 |
+| `t_view_min` | s | 1.0 | 0.7–1.5 | ≥ 0.7 (same as `t_view_hwa`, PP-ASM-021) |
+| `t_view_hwa` | s | 1.0 | 0.7–1.5 | ≥ 0.7 (0.6 s of controller lookahead under PP-ASM-021 plus one 0.1 s Trajectory time step) |
 | `t_view_hold` | s | 0.5 | 0.2–1.0 | ≥ 0 |
 | `exist_min` | — | 0.7 | 0.5–0.9 | 0–1 |
 | `n_track` | frame | 3 | 2–5 | ≥ 1 |
@@ -307,3 +307,5 @@ Most noise comes from c1 multiplied by speed. With `k_sigma` = 2, confirming the
 | 1.3 | 2026-11-11 | Section 9 handles COMPLETED by function and withdraws the same-side LKA REQUEST on ELK completion |
 | 1.4 | 2026-11-12 | Section 7 specifies the conditions for direct ELK boundaries. Section 9 withdraws same-side LKA from ELK ACTIVE onward. Section 13 sets `t_conflict` before verification per PP-TS-009 |
 | 1.5 | 2026-11-12 | Section 7 adds the HWA lookahead-time condition with a hold period. Section 13 adds `t_view_hwa` and `t_view_hold` |
+| 1.6 | 2026-11-12 | Section 13 sets `t_view_hwa` ≥ 0.7 s under PP-ASM-021, with a sweep range of 0.7–1.5 s |
+| 1.7 | 2026-11-12 | Sections 7 and 13 replace `view_min` (20 m) with `t_view_min` (default 1.0 s, minimum 0.7 s) to give the controller enough observed path at every speed (PP-ASM-021) |

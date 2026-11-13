@@ -791,4 +791,3 @@ class Harness:
         if self.can:
             self.log.can_stats = {"dropped": dict(self._can_rx.dropped), "lost": dict(self._can_rx.lost)}
         return self.log
-

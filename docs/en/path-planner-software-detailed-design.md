@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SDD` |
-| Version | 1.8 |
+| Version | 1.9 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -53,7 +53,7 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 
 | Step | Action |
 |---|---|
-| 1 | Input check: discard messages with an invalid CRC or repeated counter; record a loss when the counter skips; treat `valid = false` as not received. Input is invalid if it exceeds the timeout, age > 250 ms, or its timestamp is > 10 ms in the future. Log age > 170 ms (PP-SWR-131 to 134) |
+| 1 | Input check: discard messages with an invalid CRC or repeated counter; record a loss when the counter skips; treat `valid = false` as not received. Input is invalid if it exceeds the timeout, age > 250 ms, or its timestamp is > 10 ms in the future. Log age > 170 ms (PP-SWR-131 to 134). If any LongitudinalPlan point has a `v` or `a` outside the range in Interface Control Document 5.7, including NaN or infinity, discard the entire message. T11 uses the current speed and zero acceleration (PP-SWR-154, 156) |
 | 2 | Take the latest LaneModel with timestamp t_c. Query ego-motion from t_c to t0. If invalid, set `path_valid = false` (PP-SWR-143) |
 | 3 | For each marking and road edge, sample y(x) every 1 m within the visible range. Transform the samples to `base_link` at t0 using p_new = R(−Δψ)·(p_old − [Δx, Δy]). Refit a degree-3 polynomial by least squares and shift the visible range by Δx |
 | 4 | Between camera frames, repeat steps 2–3 with the latest frame. Do not carry over the polynomial transformed in the previous cycle (PP-SWR-128) |
@@ -252,3 +252,4 @@ Supplement to Software Architectural Design Section 11; use the same sweep metho
 | 1.6 | 2026-11-11 | T7 C uses `qp_w_cont` for continuity with the previous path, and T4 still blends. Added the T11 a_y formula, the PP-SWR-006 a_y band, jerk constraints, and ρ per row block. Set `qp_ay_margin` to 1.0. T8 uses clearance to large vehicles and `gap_truck_min`. T7 C shifts the previous path by the latest offset change |
 | 1.7 | 2026-11-12 | T7 uses quintic paths for LKA and ELK in both builds. T9 tracks separate phases, applies PP-SWR-145 at the output, and reselects a function in the same cycle on completion or cancellation |
 | 1.8 | 2026-11-12 | T4 step 4 considers only the path within the view range (Software Requirements Specification 1.9, PP-TS-014). T11 adds `observed_horizon_s` |
+| 1.9 | 2026-11-13 | T1 step 1 rejects out-of-range LongitudinalPlan messages (PP-SWR-156) |
