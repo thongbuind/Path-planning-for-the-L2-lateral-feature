@@ -105,7 +105,7 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang ≤ 0,05 m", "PP-
              "PP-SWR-088": "Khoảng cách tới xe làn bên ≥ 0,3 m", "PP-SWR-143": "Path không hợp lệ khi ego-motion hỏng",
              "PP-SWR-124": "Xử lý mất lane model đúng hạn", "PP-SWR-063": "Báo làn quá hẹp",
              "EXECUTION_FAULT": "Planner dừng hoặc ra NaN",
-             "PP-SWR-061": "Path liền mạch khi lane model sang làn", "PP-SWR-083": "LKA, ELK kết thúc trong ≤ 10 s",
+             "PP-SWR-061": "Path liền mạch khi lane model sang làn",
              "PP-SWR-090": "Không báo COMPLETED quá sớm", "PP-SWR-110": "a_y path LKA ≤ 3,0 m/s²",
              "PP-SWR-111": "a_y path ELK ≤ 4,0 m/s²", "PP-SWR-112": "a_y thêm vào LKA ≤ 1,5 m/s²",
              "PP-SWR-113": "a_y thêm vào ELK ≤ 3,0 m/s²", "PP-SWR-114": "Jerk path LKA ≤ 5 m/s³",

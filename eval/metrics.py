@@ -46,7 +46,6 @@ INTERVENTION_FUNCTIONS = (ActiveFunction.LKA, ActiveFunction.ELK)
 INTERVENTION_LIMITS = {ActiveFunction.LKA: (3.0, 1.5, 5.0),
                        ActiveFunction.ELK: (4.0, 3.0, 10.0)}  # PP-SWR-110 to 115
 ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
-MAX_INTERVENTION_S = 10.0  # PP-SWR-083
 MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
 EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
 EPS_DELAY_MAX_S = 0.1  # PP-SWR-091
@@ -1285,9 +1284,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
             issue(ISSUE_NOT_JUDGED, "PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
 
     starts = []
-    durations = []
-    timed_functions = set()
-    censored_functions = set()
     opposite_dlcs, completed_dlcs = [], []
     dtle_mark, dtle_edge, dtle_lka = [], [], []
     times_to_complete = {f: [] for f in INTERVENTION_FUNCTIONS}
@@ -1310,12 +1306,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         edge = req.elk_reason == ElkReason.ROAD_EDGE
         lka = function == ActiveFunction.LKA
         starts.append(_entry_errors(cycles[episode.start], start_us, truth))
-        elapsed_s = (stop_us - episode.request.rx_us) * 1e-6
-        if end_seen or elapsed_s >= MAX_INTERVENTION_S:
-            durations.append(elapsed_s if end_seen else float("inf"))
-            timed_functions.add(function.name)
-        else:
-            censored_functions.add(function.name)
+        elapsed_s = (stop_us - episode.request.rx_us) * 1e-6  # information; no duration limit (PP-TS-016)
         handover_us = _handover_end_us(truth, stop_us, next_us)
         opposite_dlcs.append(_min_dlc(truth, start_us, handover_us, _opposite(req.side)))
         dtle = _min_dlc(truth, start_us, stop_us, req.side, edge=edge)
@@ -1341,9 +1332,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                         "observed_duration_s": elapsed_s,
                         "end_handover_us": handover_us, "dtle_m": dtle})
 
-    if expected in censored_functions and expected not in timed_functions:
-        issue(ISSUE_NOT_JUDGED, f"{expected}: ca kết thúc trước khi đủ cửa sổ chấm thời lượng")
-
     def lower(requirement, metric, values, limit):
         value = float(min(values, default=float("nan")))
         result.criteria.append(Criterion(requirement, metric, value, f">= {limit}",
@@ -1358,7 +1346,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
     upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
     upper("PP-SWR-032", "Lần chưa báo COMPLETED tại tick đủ điều kiện", [late_completion] if end_judged else [], 0)
     upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
-    upper("PP-SWR-083", "Thời lượng từ REQUEST tới COMPLETED hoặc hủy [s]", durations, MAX_INTERVENTION_S)
     lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
     lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
     lower("PP-SWR-086", "DTLE vạch nhỏ nhất [m]", dtle_mark, MARK_DTLE_MIN_M)

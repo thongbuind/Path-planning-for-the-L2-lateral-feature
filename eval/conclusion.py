@@ -13,9 +13,10 @@ A run record, as eval.suite and eval.matrix keep them:
 
 from eval import severity
 
-BLOCKED = "Bị chặn"
-NOT_APPROVED = "Không qua phê duyệt"
-NO_BLOCKER = "Không thấy lỗi chặn trong phạm vi đã thử"
+# Names of Software Qualification Test Specification 8.4 (renamed in 1.30).
+BLOCKED = "Không đạt"
+NOT_APPROVED = "Không đạt quy định"
+NO_BLOCKER = "Đạt trong phạm vi đã thử"
 LEVELS = (severity.BLOCKER, severity.MAJOR, severity.MINOR)
 
 
@@ -31,6 +32,9 @@ def _level(requirement: str) -> str | None:
         return severity.level(requirement)
     except KeyError:
         return severity.BLOCKER  # unknown to the specification: never hidden
+
+
+level_of = _level  # public name for other report sections
 
 
 def run_failures(run: dict) -> tuple[list[dict], list[dict], list[str]]:

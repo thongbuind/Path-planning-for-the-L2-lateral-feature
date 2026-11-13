@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.9 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -143,7 +143,7 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 | LKA | Điểm có DLC phía đã trôi = `dlc_target_lka`, giới hạn từ tâm làn tới phía đó | Khởi đầu bằng `T_lka` |
 | ELK | Trong hành lang theo biên nguy hiểm, cách biên ít nhất `dlc_target_lka` nếu còn chỗ | Khởi đầu bằng `T_elk` |
 
-LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step` nếu path ban đầu chưa đạt. Giới hạn thời lượng là phần còn lại của 10 s kể từ lúc nhận REQUEST (PP-SWR-083).
+LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step`, tới `intervention_T_max`, nếu path ban đầu chưa đạt.
 
 - Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ưu tiên ứng viên thoả giới hạn và giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
 - Giữ hệ số quintic và mốc bắt đầu trong suốt lần can thiệp. Mỗi chu kỳ lấy mẫu theo thời gian đã qua, dùng reference line hiện tại. Sau thời lượng quintic, mẫu ngang giữ đích và vận tốc ngang bằng 0 cho tới khi T9 kết thúc hoặc hủy.
@@ -179,7 +179,7 @@ Mỗi chức năng LKA và ELK giữ riêng pha, mốc nhận REQUEST, side, lý
 | 1 | Kiểm timeout FunctionRequests theo thời gian nhận. Khi quá 75 ms, vô hiệu path ở cả PathStatus và Trajectory (PP-SWR-145) |
 | 2 | Khi state rời REQUEST, xóa pha và cờ chặn của chức năng đó. Khi vừa nhận ELK REQUEST, chặn yêu cầu nếu lốp trước đã qua vạch phía yêu cầu quá 0,3 m (PP-SWR-089) |
 | 3 | Lần can thiệp đang ACTIVE: tính điều kiện kết thúc từ DLC hai phía, v_lat, góc lệch và trị tuyệt đối a_y thêm vào của path đang áp dụng tại t0. Đưa v_y về t0 bằng ngoại suy tuyến tính từ hai VehicleStateEstimate hợp lệ gần nhất. Đặt COMPLETED khi giữ liên tục `T_end_hold`. Giữ pha tới khi state rời REQUEST (PP-SWR-032, 041, 090) |
-| 4 | Chọn ELK > LKA > HWA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện hoặc đã tới giới hạn thời gian của PP-SWR-083 |
+| 4 | Chọn ELK > LKA > HWA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện. Không có mốc cắt thời lượng |
 | 5 | Khi hoàn tất hoặc hủy, chọn chức năng kế tiếp ngay trong cùng chu kỳ. Nếu không còn ứng viên, báo NONE và giữ path bàn giao hợp lệ khi input cho phép. ELK mép đường vẫn xét hành lang theo biên trực tiếp ở tick nhận OFF. Trộn T4 theo PP-SWR-031, 036, 037 |
 | 6 | Khi path không hợp lệ, báo NONE. Chặn các REQUEST can thiệp đang giữ cho tới khi rời REQUEST rồi yêu cầu lại (PP-SWR-043, 045) |
 
@@ -225,6 +225,7 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | `T_hwa` | s | 3,0 | 2,0–4,0 | T7 |
 | `T_max` | s | 5,0 | 4,0–8,0 | T7 |
 | `intervention_T_step` | s | 0,25 | 0,1–0,5 | T7 A |
+| `intervention_T_max` | s | 10,0 | 5,0–10,0 | T7 A |
 | `recenter_done` | m | 0,1 | 0,05–0,2 | T7 |
 | `d_sample_span`, `d_sample_step` | m | 0,3; 0,05 | 0,2–0,5; 0,025–0,1 | T7 B |
 | `T_set` | s | 1,5 đến 4,0, bước 0,5 | — | T7 B |
@@ -253,3 +254,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.7 | 2026-11-12 | T7 quintic cho LKA, ELK trong cả hai bản build. T9 giữ pha riêng, áp PP-SWR-145 tại output và chọn lại trong cùng chu kỳ khi hoàn tất hoặc hủy |
 | 1.8 | 2026-11-12 | T4 bước 4 chỉ xét phần path trong tầm nhìn (SRS 1.9, PP-TS-014). T11 thêm `observed_horizon_s` |
 | 1.9 | 2026-11-13 | T1 bước 1 bỏ LongitudinalPlan ngoài dải (PP-SWR-156) |
+| 1.10 | 2026-11-13 | T7: lưới thời lượng quintic của LKA, ELK tới `intervention_T_max` (mục 15), thay cho phần còn lại của 10 s; T9 bước 4 bỏ hủy khi quá 10 s (PP-SWR-083 obsolete, PP-TS-016) |

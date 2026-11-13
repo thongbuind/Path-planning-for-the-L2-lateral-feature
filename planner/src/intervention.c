@@ -241,8 +241,7 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     const double sign = (req->side == PP_SIDE_LEFT) ? 1.0 : -1.0;
     const double half = 0.5 * (ref->width - (double)vehicle->vehicle_width);
     const double target = sign * fmax(0.0, half - (double)cal->dlc_target_lka);
-    const double elapsed = (double)(t0_us - req->received_us) / PP_US_PER_S;
-    const double max_duration = (double)PP_INTERVENTION_MAX_US / PP_US_PER_S - elapsed;
+    const double max_duration = (double)cal->intervention_T_max;      /* Software Detailed Design 15 */
     const double step = (double)cal->intervention_T_step;
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
     path->start_us = t0_us;

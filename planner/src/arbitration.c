@@ -69,19 +69,17 @@ void pp_arbitrate(pp_arbitration_memory_t *mem, const pp_arbitration_input_t *in
             state->side = req->side;
             state->reason = req->elk_reason;
         }
-        const uint64_t elapsed = (in->t0_us >= state->received_us) ? in->t0_us - state->received_us : 0U;
-        if (active && !override && in->path_available && in->can_continue[i]
-            && (elapsed <= PP_INTERVENTION_MAX_US)) {
+        if (active && !override && in->path_available && in->can_continue[i]) {
             check_completion(state, in->can_finish[i], in->t0_us, in->hold_s);
         }
         if (state->phase == PP_INTERVENTION_PHASE_COMPLETED) {
             continue;
         }
 
-        /* Do not let an ACTIVE sample remain in effect past the 10 s deadline. */
-        const bool timeout = elapsed > (PP_INTERVENTION_MAX_US - PP_PLANNER_PERIOD_US);
+        /* No duration cut-off: an intervention ends by COMPLETED, by its REQUEST leaving
+         * or by the conditions to continue (PP-TS-016; R79 5.1.6.1.2.1 only warns). */
         const bool late = (i == PP_FUNCTION_ELK - 1U) && new_request && in->elk_too_late;
-        state->blocked |= timeout || late;                                /* PP-SWR-083, 089 */
+        state->blocked |= late;                                           /* PP-SWR-089 */
         allowed[i] = !state->blocked && !override && (active ? in->can_continue[i] : in->can_start[i]);
         out->cancelled |= active && !allowed[i];
     }

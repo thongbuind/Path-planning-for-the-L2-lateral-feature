@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.13 |
+| Phiên bản | 1.14 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -210,16 +210,16 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
 | PP-SWR-080 | Khi LKA hoặc ELK bắt đầu can thiệp, điểm đầu của path phải khớp trạng thái ngang thật của xe: lệch vị trí ≤ 0,1 m, lệch v_lat ≤ 0,1 m/s | Test: S4, S5, S6 | Functional | đề bài, dung sai do nhóm tự thống nhất |
-| PP-SWR-083 | Một lần LKA hoặc ELK phải kết thúc, bằng COMPLETED hoặc bị hủy, trong ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất, dựa trên R79 5.1.6.1.2.1 (quá 10 s phải cảnh báo âm thanh) |
+| PP-SWR-083 | obsolete (1.14, PP-TS-016): R79 5.1.6.1.2.1 và EU 2021/646 Annex I 3.6.4.1.1 cho phép can thiệp dài hơn 10 s, chỉ đòi cảnh báo âm thanh | — | Safety, SG-01 | R79 5.1.6.1.2.1, Annex 8 3.1.1.1; EU 2021/646 Annex I 3.6.4.1.1 |
 | PP-SWR-084 | Khi LKA báo COMPLETED, DLC ở phía xe đã trôi về phải ≥ 0 | Test, vòng kín: S4 | Functional | đề bài |
-| PP-SWR-085 | Sau một lần LKA hoặc ELK, DLC nhỏ nhất ở phía đối diện phải ≥ 0 | Test, vòng kín: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | đề bài |
+| PP-SWR-085 | Sau một lần LKA hoặc ELK, DLC nhỏ nhất ở phía đối diện phải ≥ 0 | Test, vòng kín: S4, S4b, S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | đề bài |
 | PP-SWR-086 | DTLE nhỏ nhất trong một lần can thiệp phải ≥ −0,3 m với LKA và ELK vạch liền, và ≥ −0,1 m với ELK mép đường | Test, vòng kín: S4, S5, S6 | Regulatory, SG-03 | Euro NCAP Assessment 4.3.2, 4.3.3.3; EU 2021/646 3.6.2 |
 | PP-SWR-088 | Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó phải ≥ 0,3 m | Test, vòng kín: S7, S8 | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) là mức tối thiểu, 0,3 m theo LSS 7.4.7, nhóm chọn chặt hơn |
 | PP-SWR-089 | Nếu ELK được yêu cầu khi lốp trước đã sang quá 0,3 m qua vạch phía side, thì planner không được bắt đầu can thiệp ELK đó | Test: S8 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-090 | Planner không được báo COMPLETED khi điều kiện kết thúc chưa giữ liên tục `T_end_hold` | Test: S4, S5 | Functional | nhóm tự thống nhất |
 | PP-SWR-091 | Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086 | Test, vòng kín: S13 (a, b) | Safety, SG-03 | nhóm tự thống nhất |
 
-Giới hạn 083 khống chế thời gian planner giữ quyền lái của chức năng can thiệp khi xe chưa ổn định. Khi hết hạn, arbitration nhả chức năng can thiệp và controller áp dụng cơ chế bàn giao hiện có.
+Không có mốc cắt thời lượng. Một lần LKA hoặc ELK kết thúc khi COMPLETED (PP-SWR-032), khi REQUEST rời (PP-SWR-036, 037), khi tài xế ghi đè, hoặc khi không còn đủ điều kiện tiếp tục (PP-SWR-046, 047). Can thiệp dài hơn 10 s được cảnh báo âm thanh ở khối Chức năng ADAS (ADAS Function Specification mục 10).
 
 ### 8.7 Giới hạn, liên tục, khả thi {#req-limits}
 
@@ -229,11 +229,11 @@ Giới hạn 083 khống chế thời gian planner giữ quyền lái của ch�
 | PP-SWR-101 | Trong khi `path_valid = true`, lệch hướng giữa hai path liên tiếp phải ≤ 0,005 rad | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | đề bài |
 | PP-SWR-102 | Trong khi `path_valid = true`, lệch độ cong giữa hai path liên tiếp phải ≤ 0,0003 1/m | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | đề bài |
 | PP-SWR-110 | Trong khi LKA đang lái, a_y của path phải ≤ 3,0 m/s² | Test: S4, S4b | Safety, SG-01 | nhóm tự thống nhất |
-| PP-SWR-111 | Trong khi ELK đang lái, a_y của path phải ≤ 4,0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
+| PP-SWR-111 | Trong khi ELK đang lái, a_y của path phải ≤ 4,0 m/s² | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-112 | Trong khi LKA đang lái, a_y thêm vào phải ≤ 1,5 m/s² | Test: S4, S4b | Safety, SG-01 | nhóm tự thống nhất |
-| PP-SWR-113 | Trong khi ELK đang lái, a_y thêm vào phải ≤ 3,0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
+| PP-SWR-113 | Trong khi ELK đang lái, a_y thêm vào phải ≤ 3,0 m/s² | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-114 | Trong khi LKA đang lái, jerk ngang của path phải ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270, cần kiểm số mục |
-| PP-SWR-115 | Trong khi ELK đang lái, jerk ngang của path phải ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | nhóm tự thống nhất |
+| PP-SWR-115 | Trong khi ELK đang lái, jerk ngang của path phải ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-116 | `front_wheel_angle` tại mọi điểm của path phải ≤ `max_wheel_angle` của VehicleConfig | Test: mọi kịch bản | Safety | VehicleConfig |
 | PP-SWR-117 | Tốc độ quay vô lăng suy ra từ path (tốc độ đổi `front_wheel_angle` nhân `steering_ratio`) phải ≤ `max_steering_wheel_rate` của VehicleConfig | Test: mọi kịch bản | Safety | VehicleConfig |
 
@@ -319,7 +319,7 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | PP-SWR-057 | Khoảng cách ngang nhỏ nhất từ thân xe tới vật ở hai bên trong lúc dời tâm nên lớn | Test: S3, S3b, S15 | Performance | nhóm tự thống nhất |
 | PP-SWR-059 | Thời gian từ lúc đuôi xe lớn qua tới lúc lệch ngang ≤ 0,1 m nên ngắn | Test: S3 | Performance | nhóm tự thống nhất |
 | PP-SWR-081 | Thời gian từ lúc LKA bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S4 | Performance | nhóm tự thống nhất |
-| PP-SWR-082 | Thời gian từ lúc ELK bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S5, S6, S7, S8, S8b (d, e) | Performance | nhóm tự thống nhất |
+| PP-SWR-082 | Thời gian từ lúc ELK bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S5, S6, S7, S8, S8b (c, d, e) | Performance | nhóm tự thống nhất |
 | PP-SWR-087 | DTLE nhỏ nhất của LKA nên lớn | Test, vòng kín: S4 | Performance | nhóm tự thống nhất |
 | PP-SWR-125 | Khi lane model có c2 sai, tỉ lệ giữa lệch ngang của path trên đoạn 2–3 s và lệch của một path bám đúng lane model sai đó nên nhỏ | Test: F06 | Performance | đề bài |
 
@@ -341,3 +341,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.11 | 2026-11-12 | PP-ASM-021 ghi kiểu controller và thời gian nhìn trước tối đa 0,6 s, để kiểm được các ngưỡng tầm nhìn của khối Chức năng ADAS |
 | 1.12 | 2026-11-12 | Thêm PP-SWR-048: FunctionRequests quá tuổi 45 ms xử lý như chưa nhận. Lý do: Q3 ở 60 ms vượt tuổi tối đa của Interface Control Document mà SRS chưa nói planner phải làm gì (PP-PR-023) |
 | 1.13 | 2026-11-13 | Thêm PP-SWR-156: LongitudinalPlan ngoài dải xử lý như chưa nhận. Lý do: B0 C2 trượt, plan ở đầu cao của dải float32 làm Trajectory có vô cực (PP-PR-024). Kiểm chứng bằng F23 |
+| 1.14 | 2026-11-13 | PP-SWR-083 obsolete và ghi chú mục 8.6 theo PP-TS-016: R79 và EU 2021/646 chỉ đòi cảnh báo khi can thiệp quá 10 s; cắt ở 10 s đi ngược SG-02, SG-03. S8b (c) chuyển thành ca can thiệp ở PP-SWR-082, 085, 111, 113, 115 (PP-PR-027). Ảnh hưởng: Hazard Analysis and Risk Assessment mục 4, Software Architectural Design, Software Detailed Design T7, T9, Software Qualification Test Specification 5, 8.1, Mentor Report |

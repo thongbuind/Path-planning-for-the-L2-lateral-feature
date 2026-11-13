@@ -62,6 +62,7 @@ python3 -m eval.check_case F05 --host S4 a --at lka_active+0.2 --run
 | Bật, tắt theo biến thể | Lệnh: `"enabled": $tham_số` trong JSON. Xe khác: `<Property name="pp:present" value="$tham_số" />` trong Vehicle | S10, S14 b–d, S17 e |
 | Ca khối ADAS không được can thiệp | `pp:expect_intervention` = `none`; REQUEST nào cũng làm ca không chấm planner | S8b a–c, S8c a–c, S10 |
 | Profile cố định theo biến thể | Thêm mã vào `own_profile` của `suites/scope.yaml` (người tích hợp) | S19 |
+| Biến thể là anchor khác dưới điều kiện khác | Khai biến thể và anchor trong `hosts` của `suites/scope.yaml` (người tích hợp); ca nhận cả phạm vi của anchor đó (Software Qualification Test Specification 8.1) | S12, S13, S14 a, c |
 | Bề rộng làn đổi dọc đường, tách nhánh, thêm làn | Đa thức `width` của lane trong OpenDRIVE (xem S6b) | S6b |
 | Rào chắn, mép đường, nhiều làn | OpenDRIVE `objects`, `lanes` (xem S6 d) | S6, S15 |
 | Xe khác đổi làn, cắt vào | `CustomCommandAction type="pp:traffic_lateral:v1"`: `{"entity": "Car1", "start_s": 4.0, "duration_s": 3.0, "target_offset_m": 0.0}` | S3b, S8b, S11 d |

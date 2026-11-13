@@ -60,7 +60,7 @@ static void test_profile_advances_from_original_start_time(void)
     const double d_at_one_second = lateral.d[10];
     pp_intervention_sample(&path, request.received_us + 1000000U, &lateral);
     PP_CHECK_NEAR(lateral.d[0], d_at_one_second, 1.0e-8);
-    pp_intervention_sample(&path, request.received_us + PP_INTERVENTION_MAX_US, &lateral);
+    pp_intervention_sample(&path, request.received_us + 10000000U, &lateral);  /* after the quintic */
     PP_CHECK_NEAR(lateral.d[0], 0.3, 1.0e-6);
     PP_CHECK_NEAR(lateral.d_dot[0], 0.0, 1.0e-8);
 }

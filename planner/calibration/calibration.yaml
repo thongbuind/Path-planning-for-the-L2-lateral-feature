@@ -20,9 +20,10 @@ parameters:
   heading_end:      {value: 0.5, unit: deg, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   ay_add_end:       {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   T_end_hold:       {value: 0.5, unit: s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
-  T_lka:            {value: 3.0, unit: s, gt: 0, max: 10, source: "Limits of PP-SWR-083, 110, 112, 114"}
-  T_elk:            {value: 2.0, unit: s, gt: 0, max: 10, source: "Limits of PP-SWR-083, 111, 113, 115"}
+  T_lka:            {value: 3.0, unit: s, gt: 0, source: "Limits of PP-SWR-110, 112, 114"}
+  T_elk:            {value: 2.0, unit: s, gt: 0, source: "Limits of PP-SWR-111, 113, 115"}
   intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
+  intervention_T_max: {value: 10.0, unit: s, gt_param: intervention_T_step, source: "Software Detailed Design 15; T7 A (PP-TS-016)"}
   dlc_target_lka:   {value: 0.5, unit: m, min: 0, source: "PP-SWR-084"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}
   ay_add_max_hwa:   {value: 0.5, unit: m/s^2, max: 2.5, source: "PP-SWR-001"}

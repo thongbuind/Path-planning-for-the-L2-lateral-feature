@@ -12,7 +12,6 @@
 #define PP_FUNCTION_LKA (1U)
 #define PP_FUNCTION_ELK (2U)
 #define PP_INTERVENTIONS (2U)            /* slot 0 = LKA, slot 1 = ELK */
-#define PP_INTERVENTION_MAX_US (10000000ULL)   /* PP-SWR-083 */
 
 typedef struct {
     bool requested;

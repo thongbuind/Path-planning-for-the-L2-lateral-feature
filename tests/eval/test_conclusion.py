@@ -45,7 +45,7 @@ def test_case_issues_execution_and_not_judged():
     assert {f["requirement"] for f in c["failures"]} == {"PP-SWR-030", "execution"}
     assert len(c["not_judged"]) == 2  # precondition, evaluator error
     text = "\n".join(conclusion.markdown(c, "lib"))
-    assert text.startswith("# Kết luận: Bị chặn") and "## Trượt BLOCKER" in text and "## Ca không được chấm" in text
+    assert text.startswith("# Kết luận: Không đạt\n") and "## Trượt BLOCKER" in text and "## Ca không được chấm" in text
 
 
 def test_b0_blocks_and_sets_the_integrable_flag():

@@ -69,12 +69,27 @@ def _unit_key(record, cases) -> str:
 
 # ---- 8.3 Flexibility -----------------------------------------------------------------------
 
+def _requirements(run) -> tuple[set[str], set[str]]:
+    """(requirements judged in the run's scope, those failed in scope): criteria and case
+    issues with a level (performance targets have none)."""
+    from eval import conclusion
+    inside, _, _ = conclusion.run_failures(run)
+    failed = {f["requirement"] for f in inside}
+    scope = run.get("scope")
+    judged = {c["id"] for c in (run.get("result") or {}).get("criteria", [])
+              if c["applicable"] and (scope is None or c["id"] in scope) and conclusion.level_of(c["id"]) is not None}
+    return judged | failed, failed
+
+
 def flexibility(records, cases) -> list[str]:
     runs = [r for r in records if "result" in r and r.get("profile")]
+    # 8.3: the runs of B7 when the records carry aspects (eval.suite); every run otherwise.
+    if any("aspects" in r for r in runs):
+        runs = [r for r in runs if "B7" in r.get("aspects", [])]
     profiles = sorted({r["profile"] for r in runs})
     if len(profiles) < 2:
         return ["", "## Flexibility", "", "Chỉ một profile: không có bảng flexibility (mục 8.3)."]
-    per_profile = defaultdict(lambda: {"runs": 0, "passed": 0, "values": defaultdict(list)})
+    per_profile = defaultdict(lambda: {"runs": 0, "judged": set(), "failed": set(), "values": defaultdict(list)})
     units = defaultdict(lambda: defaultdict(dict))  # unit -> indicator -> profile -> value
     # Worst value per profile only over units run on every profile: samples, fault and event
     # cases on fewer profiles would compare different case sets (5.2).
@@ -85,7 +100,9 @@ def flexibility(records, cases) -> list[str]:
     for r in runs:
         row = per_profile[r["profile"]]
         row["runs"] += 1
-        row["passed"] += not r.get("failed")
+        judged, failed = _requirements(r)
+        row["judged"] |= judged
+        row["failed"] |= failed
         unit = _unit_key(r, cases)
         for key, value in _targets(r).items():
             if key.split("|")[0] in FLEX_TARGETS:
@@ -99,9 +116,10 @@ def flexibility(records, cases) -> list[str]:
 
     lines = ["", "## Flexibility", "",
              "Cùng bản build và bộ calibration trên mọi profile (mục 8.3). Ô là giá trị xấu nhất của profile "
-             "trên các ca chạy đủ mọi profile; **đậm** là profile tệ nhất của chỉ số. Tỉ lệ đạt tính trên mọi lần chạy.", "",
-             "| Profile | Lần chạy | Tỉ lệ đạt requirement | " + " | ".join(_label(k) for k in indicators) + " |",
-             "|---|---|---|" + "---|" * len(indicators)]
+             "trên các ca chạy đủ mọi profile; **đậm** là profile tệ nhất của chỉ số. Bộ chạy là B7. Tỉ lệ đạt requirement: "
+             "số requirement không trượt ở lần chạy nào của profile, chia số requirement được chấm trên profile đó.", "",
+             "| Profile | Lần chạy | Tỉ lệ đạt requirement | Requirement trượt | " + " | ".join(_label(k) for k in indicators) + " |",
+             "|---|---|---|---|" + "---|" * len(indicators)]
     worst_profile = {}
     for key in indicators:
         vals = {p: worst(key, per_profile[p]["values"][key]) for p in profiles if per_profile[p]["values"][key]}
@@ -109,19 +127,21 @@ def flexibility(records, cases) -> list[str]:
             worst_profile[key] = (min if key.split("|")[0] in LARGER_IS_BETTER else max)(vals, key=vals.get)
     for p in profiles:
         row = per_profile[p]
-        rate = row["passed"] / row["runs"] if row["runs"] else float("nan")
+        judged = len(row["judged"])
+        rate = (judged - len(row["failed"])) / judged if judged else float("nan")
         cells = []
         for key in indicators:
             v = worst(key, row["values"][key]) if row["values"][key] else None
             text = _fmt(v)
             cells.append(f"**{text}**" if worst_profile.get(key) == p else text)
-        lines.append(f"| {p} | {row['runs']} | {rate:.1%} | " + " | ".join(cells) + " |")
+        failed = ", ".join(sorted(row["failed"])) or "—"
+        lines.append(f"| {p} | {row['runs']} | {rate:.1%} | {failed} | " + " | ".join(cells) + " |")
     lines += ["", "| Chỉ số | Độ chênh lớn nhất giữa profile | Độ chênh nhỏ nhất | Profile tệ nhất |", "|---|---|---|---|"]
     for key in indicators:
         spreads = [max(v.values()) - min(v.values()) for u in units.values() if len(v := u.get(key, {})) >= 2]
         lines.append(f"| {_label(key)} | {_fmt(max(spreads) if spreads else None)} | "
                      f"{_fmt(min(spreads) if spreads else None)} | {worst_profile.get(key, '—')} |")
-    failing = [p for p in profiles if per_profile[p]["passed"] < per_profile[p]["runs"]]
+    failing = [p for p in profiles if per_profile[p]["failed"]]
     lines += ["", "Requirement đạt 100 % trên mọi profile: " + ("có" if not failing else "không (" + ", ".join(failing) + ")")]
     return lines
 

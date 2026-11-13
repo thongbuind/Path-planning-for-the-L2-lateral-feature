@@ -82,7 +82,7 @@ def test_expected_intervention_cannot_pass_if_activation_is_missing(requested, s
 
 def test_reports_duration_completion_dwell_and_path_limits():
     result = evaluate(_log())
-    assert _criteria(result, 83)[0].value == pytest.approx((END - BEGIN) * 1e-6)
+    assert result.info["interventions"][0]["observed_duration_s"] == pytest.approx((END - BEGIN) * 1e-6)
     assert _criteria(result, 32)[0].passed and _criteria(result, 90)[0].passed
     assert _criteria(result, 84)[0].value == pytest.approx(.8)
     assert all(c.passed for c in _criteria(result, 80))
@@ -117,16 +117,18 @@ def test_opposite_dlc_stops_at_next_independent_intervention():
     result = evaluate(log)
     assert result.info["interventions"][0]["end_handover_us"] == next_start
     assert _criteria(result, 85)[0].passed
-    assert _criteria(result, 83)[0].passed and not result.case_failures
+    assert not result.case_failures
     assert result.info["interventions"][1]["end_us"] is None
 
 
-def test_duration_handles_cutoff_before_and_after_10_seconds():
+def test_no_duration_limit_and_duration_kept_as_information():
+    """PP-SWR-083 is obsolete (PP-TS-016): a long intervention is not a failure, a log that
+    stops during one is still judged, and the observed duration stays in the result."""
     short = evaluate(_log(end_us=11_000_000))
-    assert not _criteria(short, 83)
-    assert any("cửa sổ chấm thời lượng" in issue for issue in short.case_failures)
+    assert not _criteria(short, 83) and not short.case_failures
     long = evaluate(_log(end_us=11_000_000, duration_us=10_200_000))
-    assert not _criteria(long, 83)[0].passed
+    assert not _criteria(long, 83)
+    assert long.info["interventions"][0]["observed_duration_s"] > 10.0
 
 
 def test_continuity_exemption_applies_only_at_the_initial_tick():

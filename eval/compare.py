@@ -27,7 +27,6 @@ from pathlib import Path
 import numpy as np
 
 from eval import conclusion, matrix, report, severity
-from eval.suite import SCOPE
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "compare"
@@ -64,11 +63,7 @@ LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}  # 8.2 "Tốt hơn
 # ---- loading ---------------------------------------------------------------------------
 
 def _scope(case: dict) -> list[str]:
-    if "scope_keys" in case:
-        return sorted(set().union(*(matrix.scope(SCOPE, k) for k in case["scope_keys"])))
-    family, anchor = case["family"], case["anchor"] or "a"
-    spec = ["S1", "a", family, anchor] if family.startswith("F") else [family, anchor]
-    return sorted(matrix.scope(SCOPE, spec))
+    return sorted(matrix.case_scope(case))
 
 
 def load(folder: Path, name: str | None = None) -> dict:

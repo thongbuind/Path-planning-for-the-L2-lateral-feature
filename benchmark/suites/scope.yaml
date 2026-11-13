@@ -1,8 +1,41 @@
-# Scope of a run (Software Qualification Test Specification 8.1): the scope of the P1 sweep
-# (eval.sweep) for its scenario or fault, plus every requirement whose Kiểm chứng column in
-# the Software Requirements Specification names the code (eval.severity.srs_scope), plus
-# extra_scope below. Edited by the integrator only (benchmark/AUTHORING.md).
-scope_from: P1
+# Scope of a run (Software Qualification Test Specification 8.1): `base` for its scenario and
+# for each fault on it, plus every requirement whose Kiểm chứng column in the Software
+# Requirements Specification names one of those codes (eval.severity.srs_scope), plus
+# extra_scope below. A case with a host (a fault on a host anchor, a combined case of 6.2, a
+# scenario of `hosts`) also gets the whole scope of its host (PP-TS-015 V1). Edited by the
+# integrator only (benchmark/AUTHORING.md). Calibration sweeps keep their own scope in their
+# suite file; this file does not depend on them.
+base:
+  # Copied from the scope of P1 on 2026-11-13 (PP-TS-015), now owned here; PP-SWR-083 left
+  # out since it is obsolete (PP-TS-016).
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-038, PP-SWR-048, PP-SWR-100, PP-SWR-101, PP-SWR-102,
+           PP-SWR-116, PP-SWR-117, PP-SWR-131, PP-SWR-133, PP-SWR-138]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050, PP-SWR-008]
+  S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S3: [PP-SWR-055, PP-SWR-056, PP-SWR-058, PP-SWR-057, PP-SWR-059]
+  S4: [PP-SWR-032, PP-SWR-080, PP-SWR-081, PP-SWR-084, PP-SWR-085, PP-SWR-086,
+       PP-SWR-087, PP-SWR-090, PP-SWR-110, PP-SWR-112, PP-SWR-114]
+  S4b: [PP-SWR-085, PP-SWR-110, PP-SWR-112, PP-SWR-114]
+  S5: [PP-SWR-032, PP-SWR-080, PP-SWR-082, PP-SWR-085, PP-SWR-086, PP-SWR-090,
+       PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S6: [PP-SWR-080, PP-SWR-082, PP-SWR-085, PP-SWR-086, PP-SWR-111, PP-SWR-113,
+       PP-SWR-115]
+  S7: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S8: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-089, PP-SWR-111, PP-SWR-113,
+       PP-SWR-115]
+  F01: [PP-SWR-003]
+  F02: []
+  F03: [PP-SWR-051, PP-SWR-050]
+  F04: [PP-SWR-051, PP-SWR-050]
+  F06: [PP-SWR-125]
+  F22: [PP-SWR-051, PP-SWR-050, PP-SWR-017, PP-SWR-042]
+# Scenarios whose variants are another anchor run under other conditions (5): the variant
+# also gets the scope of that anchor. Only variants the table of 5 names as an anchor.
+hosts:
+  S12: {a: [S1, c], b: [S4, c], c: [S7, c], d: [S4b, d]}  # rain
+  S13: {a: [S4, c], b: [S4, c], c: [S4, c], a-elk: [S5, c], b-elk: [S5, c], c-elk: [S5, c]}  # slow EPS
+  S14: {a: [S1b, a], c: [S1b, a]}  # c: a plus the encroaching car of b
 extra_scope:
   # S14 judges both sides of the longitudinal exchange (5, S14).
   S14: [PP-SWR-009, PP-SWR-150, PP-SWR-051]

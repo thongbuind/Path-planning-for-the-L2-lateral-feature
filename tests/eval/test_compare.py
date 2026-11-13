@@ -6,7 +6,7 @@ import json
 import numpy as np
 import pytest
 
-from eval import compare, severity
+from eval import compare, conclusion, severity
 
 FUNCTIONAL = next(i for i, t in severity.requirement_types().items() if t == "Functional")
 
@@ -59,7 +59,7 @@ def test_conclusion_ranks_first_then_pairwise_wins(tmp_path):
     # Copeland over every planner that passed C1 and C2, blocked ones included (9.2).
     score = {n: c["rows"][n]["copeland"]["An toàn"] for n in c["order"]}
     assert score == {"good": 0, "worse": -2, "blocked": 2}
-    assert c["rows"]["blocked"]["tier1"]["verdict"] == "Bị chặn"
+    assert c["rows"]["blocked"]["tier1"]["verdict"] == conclusion.BLOCKED
 
 
 def test_fewer_blocker_requirements_rank_higher_within_blocked(tmp_path):

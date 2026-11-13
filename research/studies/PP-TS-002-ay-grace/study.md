@@ -55,4 +55,6 @@ Lốp trước đè vạch: số lần chạy có ít nhất một lần lốp t
 
 Chọn A cho BL1. Mở lại study khi S1b d có trong simulator; nếu S1b d với ACC `on` có xe ra khỏi làn thì chạy B.
 
+2026-11-13: S1b d đã có trong `S1b.anchors.xosc` (camera thấy 40 m). Người dùng đồng ý chạy điều kiện mở lại trước khi chốt A: `benchmark/suites/PP-TS-002.yaml`, S1b d, ACC `ignore_limits` và `on`, VP-0 đến VP-5, seed 1, 2. Cùng luật ở mục 3.
+
 ## 7. Quyết định

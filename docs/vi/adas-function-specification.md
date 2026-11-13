@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.7 |
+| Phiên bản | 1.8 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#adas-scope}
 
@@ -86,7 +86,7 @@ v: tốc độ; v_y: vận tốc ngang tại tâm trục sau; r: yaw rate; x_f: 
 2. Dự đoán vị trí dọc với vận tốc không đổi.
 3. Cửa sổ xung đột [TLC, TLC + `t_conflict`].
 4. Làn bên không an toàn nếu trong cửa sổ, vật thể nằm trong hộp quanh thân xe mình, nới mỗi đầu `box_margin`.
-5. Tài xế bật xi-nhan chuyển làn: ELK chỉ can thiệp khi xe sau không thể phanh kịp, tức một trong ba điều đúng: xe kia ngang hàng (hộp nới `abreast_margin` trong [TLC, TLC + 1 s]); TTC xe sau tới đuôi xe mình ≤ `ttc_rear`; xe sau cần giảm tốc Δv² / (2·khoảng cách) > `decel_rear`. Còn lại chỉ cảnh báo. Bài thử Euro NCAP có xi-nhan rơi vào trường hợp ngang hàng, nên vẫn đạt.
+5. Tài xế bật xi-nhan chuyển làn: ELK chỉ can thiệp khi xe sau không thể phanh kịp, tức một trong ba điều đúng: xe kia ngang hàng (hộp nới `abreast_margin` trong [TLC, TLC + 1 s]); TTC xe sau tới đuôi xe mình ≤ `ttc_rear`; xe sau cần giảm tốc Δv² / (2·khoảng cách) > `decel_rear`. Ba điều kiện xét ở mọi chu kỳ, tới khi lốp trước qua vạch quá 0,3 m (mục 11, dòng 4), vì khe tới xe sau còn giảm sau lúc chạm vạch. Còn lại chỉ cảnh báo. Bài thử Euro NCAP có xi-nhan rơi vào trường hợp ngang hàng, nên vẫn đạt.
 
 ## 7. Điều kiện khả dụng {#adas-availability}
 
@@ -309,3 +309,4 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 | 1.5 | 2026-11-12 | Mục 7: HWA thêm điều kiện tầm nhìn theo thời gian nhìn trước, có thời gian giữ. Mục 13: thêm `t_view_hwa`, `t_view_hold` |
 | 1.6 | 2026-11-12 | Mục 13: `t_view_hwa` ≥ 0,7 s theo PP-ASM-021; dải quét 0,7–1,5 s |
 | 1.7 | 2026-11-12 | Mục 7, 13: `view_min` (20 m) thay bằng `t_view_min` (1,0 s, ≥ 0,7 s) để phần path quan sát đủ cho controller ở mọi tốc độ (PP-ASM-021) |
+| 1.8 | 2026-11-13 | Mục 6, bước 5: điều kiện xe sau xét ở mọi chu kỳ tới khi lốp trước qua vạch quá 0,3 m (PP-PR-027) |

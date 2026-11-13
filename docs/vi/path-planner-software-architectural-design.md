@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.6 |
+| Phiên bản | 1.7 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -193,7 +193,7 @@ Theo R171 5.3.7.1.1.1 (tốc độ phải chỉnh theo độ cong) và 5.3.7.1.3
 | Đích | Trong làn, DLC phía đã trôi ≥ `dlc_target_lka` | Trong làn, không vọt sang phía đối diện | PP-SWR-084, 085 |
 | Siết biên | Không | Biên phía nguy hiểm siết lại để bánh xe không qua vạch phía đó | PP-SWR-086 |
 | Tài xế chuyển làn có chủ đích, làn bên có xe đang vượt | — | Chỉ khi khối Chức năng ADAS yêu cầu theo quy tắc chặt; path đưa xe về làn cũ. Lốp trước đã qua vạch quá 0,3 m thì không bắt đầu | PP-SWR-089 |
-| Thời lượng tối đa | 10 s | 10 s | PP-SWR-083 |
+| Kết thúc | COMPLETED, REQUEST rời, tài xế ghi đè hoặc không còn đủ điều kiện; không có mốc cắt thời lượng | Như LKA | PP-SWR-032, 036, 037, 046 |
 | Giới hạn | a_y ≤ 3,0; a_y thêm vào ≤ 1,5 m/s²; jerk ≤ 5 m/s³ | a_y ≤ 4,0; a_y thêm vào ≤ 3,0 m/s²; jerk ≤ 10 m/s³ | PP-SWR-110 đến 115 |
 
 LKA và ELK dùng quintic trong cả hai bản build (Software Detailed Design mục 10). T7 của HWA được chọn qua `PP_T7`.
@@ -291,8 +291,8 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `heading_end` | ° | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
 | `ay_add_end` | m/s² | 0,2 | 0,1–0,3 | ≥ 0 | PP-SWR-032, 090 |
 | `T_end_hold` | s | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
-| `T_lka` | s | 3,0 | 2,0–4,0 | > 0 và ≤ 10 | PP-SWR-083, 110, 112, 114. Target 081, 087 |
-| `T_elk` | s | 2,0 | 1,0–3,0 | > 0 và ≤ 10 | PP-SWR-083, 111, 113, 115. Target 082 |
+| `T_lka` | s | 3,0 | 2,0–4,0 | > 0 | PP-SWR-110, 112, 114. Target 081, 087 |
+| `T_elk` | s | 2,0 | 1,0–3,0 | > 0 | PP-SWR-111, 113, 115. Target 082 |
 | `dlc_target_lka` | m | 0,5 | 0–0,8 | ≥ 0 (PP-SWR-084) | Target 081, 087 |
 | `T_recenter` | s | 3,5 | 2,5–5,0 | Giới hạn của PP-SWR-001, 003 | Target 002, 053 |
 | `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,5 (PP-SWR-001) | Target 002, 053, 059 |
@@ -361,3 +361,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.4 | 2026-11-11 | Thêm mục 6.2 chiến lược tốc độ trong cua (R171 5.3.7.1.3) và mục 8.3 bậc suy giảm (R79 Annex 6, 3.4.3), gom từ các mục đã có |
 | 1.5 | 2026-11-11 | T8: offset theo khoảng hở tới xe lớn và `gap_truck_min` (PP-ADR-008 mới); thêm `gap_truck_min` |
 | 1.6 | 2026-11-12 | T9 tách pha và chọn lại khi hủy. ELK mép đường dùng biên trực tiếp và `conf_edge`. Kiểm điều kiện kết thúc theo chu kỳ |
+| 1.7 | 2026-11-13 | Mục LKA, ELK: dòng Thời lượng tối đa thay bằng điều kiện kết thúc; giới hạn của `T_lka`, `T_elk` bỏ ≤ 10 s (PP-SWR-083 obsolete, PP-TS-016) |

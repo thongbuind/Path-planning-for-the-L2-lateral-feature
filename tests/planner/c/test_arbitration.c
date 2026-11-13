@@ -51,7 +51,7 @@ static void test_completion_waits_and_belongs_to_its_function(void)
     PP_CHECK(out.elk_phase == PP_INTERVENTION_PHASE_NONE);
 }
 
-static void test_late_and_expired_requests_require_a_new_request(void)
+static void test_late_request_needs_a_new_one_and_long_ones_go_on(void)
 {
     pp_arbitration_memory_t mem = {0};
     pp_function_requests_t req = {0};
@@ -74,13 +74,11 @@ static void test_late_and_expired_requests_require_a_new_request(void)
     in.requests_rx_us = in.t0_us;
     pp_arbitrate(&mem, &in, &out);
     PP_CHECK(out.starting && out.active_function == PP_ACTIVE_FUNCTION_ELK);
-    in.t0_us = in.requests_rx_us + PP_INTERVENTION_MAX_US - PP_PLANNER_PERIOD_US;
+    /* No 10 s cut-off (PP-TS-016): the intervention goes on while REQUEST and the conditions hold. */
+    in.t0_us = in.requests_rx_us + 10000000U + PP_PLANNER_PERIOD_US;
     pp_arbitrate(&mem, &in, &out);
-    PP_CHECK(out.active_function == PP_ACTIVE_FUNCTION_ELK);
-    in.t0_us += PP_PLANNER_PERIOD_US;
-    pp_arbitrate(&mem, &in, &out);
-    PP_CHECK(out.cancelled && out.active_function == PP_ACTIVE_FUNCTION_NONE);
-    PP_CHECK(out.elk_phase == PP_INTERVENTION_PHASE_NONE);
+    PP_CHECK(!out.cancelled && out.active_function == PP_ACTIVE_FUNCTION_ELK);
+    PP_CHECK(out.elk_phase == PP_INTERVENTION_PHASE_ACTIVE);
 }
 
 static void test_invalid_path_blocks_current_request(void)
@@ -108,7 +106,7 @@ static void test_invalid_path_blocks_current_request(void)
 int main(void)
 {
     test_completion_waits_and_belongs_to_its_function();
-    test_late_and_expired_requests_require_a_new_request();
+    test_late_request_needs_a_new_one_and_long_ones_go_on();
     test_invalid_path_blocks_current_request();
     return PP_TEST_RESULT();
 }

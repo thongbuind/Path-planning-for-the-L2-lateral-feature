@@ -4,7 +4,7 @@
 
 Runs every (scenario, variant[, fault], longitudinal mode, profile, seed) of a suite in
 benchmark/suites and writes build/matrix/<suite>/summary.md, runs.json and manifest.json.
-Each run is judged with the scope of the named sweep suite (Kiểm chứng column of the SRS);
+Each run is judged with eval.matrix.scope (benchmark/suites/scope.yaml, Kiểm chứng column of the SRS);
 all other criteria are reported as information. --record makes it an official run
 (research/README.md).
 
@@ -76,13 +76,59 @@ def expand(suite: dict) -> list[dict]:
     return jobs
 
 
+SCOPE_FILE = ROOT / "benchmark" / "suites" / "scope.yaml"
+# Scope rule of every qualification run (Software Qualification Test Specification 8.1).
+SCOPE = yaml.safe_load(SCOPE_FILE.read_text(encoding="utf-8"))
+_SCENARIO_IDS = sorted((p.name[:-len(".xosc")] for p in (ROOT / "benchmark" / "scenarios").glob("*.xosc")
+                        if p.name.count(".") == 1), key=len, reverse=True)
+
+
+def _base_table(suite: dict) -> dict:
+    """Requirement lists by code: those of scope.yaml (`scope_from: scope`, or the scope file
+    itself), else the scope of the named sweep suite."""
+    if "base" in suite:
+        return suite["base"]
+    source = suite.get("scope_from", "scope")
+    return SCOPE["base"] if source == "scope" else sweep.load_suite(source)["scope"]
+
+
 def scope(suite: dict, run: list) -> set[str]:
-    """Scope of the named sweep suite, plus every requirement whose Kiểm chứng column of the
-    Software Requirements Specification names the scenario or fault (8.1)."""
+    """Scope of a run [scenario, variant(, fault, level)][, {sim}] (8.1): for the scenario and
+    for the fault, the base list, extra_scope and every requirement whose Kiểm chứng column of
+    the Software Requirements Specification names the code; plus the whole scope of the host
+    anchor when scope.yaml `hosts` names the scenario variant (PP-TS-015 V1)."""
     from eval.severity import srs_scope
-    base = sweep.scope_of(sweep.load_suite(suite["scope_from"]), run)
-    key = run[2] if len(run) > 2 else run[0]
-    return base | set(suite.get("extra_scope", {}).get(key, [])) | srs_scope(key)
+    spec, _ = sweep.split_run(run)
+    table = _base_table(suite)
+    out = set(table["always"])
+    for key in [spec[0]] + spec[2:3]:
+        out |= set(table.get(key, [])) | set(suite.get("extra_scope", {}).get(key, [])) | srs_scope(key)
+    host = SCOPE.get("hosts", {}).get(spec[0], {}).get(spec[1])
+    if host is not None:
+        out |= scope(suite, list(host))
+    return out
+
+
+def split_host(host: str) -> list[str]:
+    """'S1c' -> ['S1', 'c']: the longest scenario id that starts the host name."""
+    for sid in _SCENARIO_IDS:
+        if host.startswith(sid) and len(host) > len(sid):
+            return [sid, host[len(sid):]]
+    raise ValueError(f"unknown host anchor {host!r}")
+
+
+def case_scope(case: dict) -> set[str]:
+    """Scope of a concrete case of eval.generate (8.1). A fault on a host anchor gets the scope
+    of the host and of the fault; injected and combined cases list their keys; a sampled case
+    (no anchor) has no host of `hosts`."""
+    if "scope_keys" in case:
+        keys = case["scope_keys"]
+    elif case["family"].startswith("F"):
+        host = split_host(case["host"]) if case.get("host") else ["S1", "a"]
+        keys = [host + [case["family"], case["anchor"] or "a"]]
+    else:
+        keys = [[case["family"], case["anchor"]]]
+    return set().union(*(scope(SCOPE, k) for k in keys))
 
 
 RUN_TIMEOUT_S = 1800

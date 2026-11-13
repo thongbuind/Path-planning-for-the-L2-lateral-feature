@@ -7,7 +7,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | ID | Câu hỏi | Trạng thái | Quyết định | Hồ sơ |
 |---|---|---|---|---|
 | PP-TS-001 | T2 xử lý lane model nhảy: J0, J1, J2, J3 | Mở | — | [study](studies/PP-TS-001-lane-jumps/study.md) |
-| PP-TS-002 | Khoảng nới a_y 40 % trong 2 s cho PP-SWR-001 | Chờ quyết định | Đề xuất A (giữ nguyên) | [study](studies/PP-TS-002-ay-grace/study.md) |
+| PP-TS-002 | Khoảng nới a_y 40 % trong 2 s cho PP-SWR-001 | Chờ quyết định; chạy S1b d trước khi chốt | Đề xuất A (giữ nguyên) | [study](studies/PP-TS-002-ay-grace/study.md) |
 | PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | Mở | — | [study](studies/PP-TS-003-path-generator/study.md) |
 | PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở | — | [study](studies/PP-TS-005-lane-fit-error/study.md) |
 | PP-TS-004 | Calibration T2, T5, cờ giới hạn (sweep P1) | Mở, cần chạy lại | — | [study](studies/PP-TS-004-p1-calibration/study.md) |
@@ -20,6 +20,8 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-012 | Tuổi của VehicleStateEstimate khi T9 kiểm điều kiện kết thúc | Mở | Kiểm V1 | [study](studies/PP-TS-012-intervention-end-estimate-age/study.md) |
 | PP-TS-013 | Path êm trong hành lang an toàn (ý tưởng racing line) | Mở; nguyên mẫu nghiên cứu | — | [study](studies/PP-TS-013-comfort-line/study.md) |
 | PP-TS-014 | Liên tục của path khi phần xa ngoài tầm nhìn: V0–V3 | Đóng; hồi quy 20261112-1254-matrix-M1-8418fd9 | Đổi PP-SWR-100 đến 102 về tầm nhìn; T4 một λ trong tầm nhìn | [study](studies/PP-TS-014-continuity-beyond-view/study.md) |
+| PP-TS-015 | Phạm vi chấm của ca có ca chủ (lỗi trên ca chủ, ca ghép, S12, S13, S14) | Đã quyết; chờ hồi quy chính thức | V1 | [study](studies/PP-TS-015-scope-of-hosted-cases/study.md) |
+| PP-TS-016 | Chức năng đang lái sau giới hạn 10 s của PP-SWR-083 (mâu thuẫn với 030) | Đã quyết; đã đưa vào, chờ build và hồi quy | V4 (theo R79, EU 2021/646) | [study](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 
 ## Problem reports
 
@@ -27,11 +29,11 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 |---|---|---|---|---|
 | PP-PR-001 | F06: độ cong sai ở xa làm xe ra khỏi làn | Mở | PP-SWR-051, 125 | [report](problems/PP-PR-001-f06-wrong-curvature.md) |
 | PP-PR-002 | S1b e: cờ giới hạn bật muộn | Đóng | PP-SWR-007 | [report](problems/PP-PR-002-s1b-late-flag.md) |
-| PP-PR-003 | S2c, S2d: đưa về giữa khi xe hướng ra ngoài, lốp đè vạch | Mở | PP-SWR-051, 052 | [report](problems/PP-PR-003-s2-outward-overshoot.md) |
+| PP-PR-003 | S2c, S2d: đưa về giữa khi xe hướng ra ngoài, lốp đè vạch | Mở, đã tìm nguyên nhân: stand-in chưa kiểm điều kiện vào HWA; ngưỡng vào mâu thuẫn với `ay_add_max_hwa` | PP-SWR-051, 052 | [report](problems/PP-PR-003-s2-outward-overshoot.md) |
 | PP-PR-005 | F01 trên S1c: path nhảy giữa hai chu kỳ khi phần xa bị cắt theo aysmax | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 | PP-SWR-100, 120 | [report](problems/PP-PR-005-noise-at-aysmax-continuity.md) |
 | PP-PR-004 | S14e: giữ làn và liên tục path trên cua chữ S | Mở, đã tìm nguyên nhân; sửa qua PP-TS-005 | PP-SWR-051, 100; 006, 007 | [report](problems/PP-PR-004-s14-s-bend.md) |
 | PP-PR-006 | Vào cua vượt aysmax: xe bám trễ, stitching reset làm path nhảy | Mở, đã tìm nguyên nhân | PP-SWR-100 | [report](problems/PP-PR-006-stitch-reset-curve-entry.md) |
-| PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Mở; cần quyết định về requirement | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
+| PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Đã quyết B; chờ ghi giới hạn vào Software Requirements Specification | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
 | PP-PR-008 | S1ba 130 km/h: path T7 A trễ so với a_y cần lúc vào cua | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 | PP-SWR-006 | [report](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md) |
 | PP-PR-009 | F03 c: cả bốn vạch nhảy 3,5 m trong 2 s, xe đi theo sang làn bên | Mở; sửa qua PP-TS-001 | PP-SWR-051, 100 | [report](problems/PP-PR-009-f03c-whole-lane-shift.md) |
 | PP-PR-010 | FunctionRequests quá timeout, PathStatus vẫn báo path hợp lệ | Đã sửa, chờ xác nhận chính thức | PP-SWR-145 | [report](problems/PP-PR-010-function-requests-timeout.md) |
@@ -51,3 +53,6 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-024 | B0 C2: LongitudinalPlan ở đầu cao của dải làm Trajectory có vô cực | Đã sửa, chờ xác nhận chính thức | Software Qualification Test Specification 11 (C2), PP-SWR-010, 156 | [report](problems/PP-PR-024-longitudinal-plan-range-end.md) |
 | PP-PR-025 | Bên chấm không tính performance target jerk ngang PP-SWR-004 | Đã sửa, chờ xác nhận chính thức | PP-SWR-004, Software Qualification Test Specification 8.2 | [report](problems/PP-PR-025-jerk-target-not-measured.md) |
 | PP-PR-026 | Output có NaN trong lần chạy kịch bản bị ghi là lỗi bên chấm, không phải trượt | Đã sửa, chờ xác nhận chính thức | Software Qualification Test Specification 8.4 | [report](problems/PP-PR-026-non-finite-output-evaluator-error.md) |
+| PP-PR-027 | S8b(c): khối Chức năng ADAS chạy thử gửi REQUEST trong ca không được can thiệp | Đã sửa theo cách C; nháp xác nhận c, f; chờ chạy chính thức | Software Qualification Test Specification 5 (S8b c), ADAS Function Specification mục 6 | [report](problems/PP-PR-027-s8bc-stand-in-request.md) |
+| PP-PR-028 | Báo cáo lệch Software Qualification Test Specification 8.3, 8.4: tên kết luận, cách tính flexibility | Đã sửa, chờ xác nhận chính thức | Software Qualification Test Specification 8.3, 8.4, 11 | [report](problems/PP-PR-028-report-lags-test-specification.md) |
+| PP-PR-029 | S8b(c): ELK để khoảng cách ngang tới xe sau 0,22 m, dưới 0,3 m; PP-SWR-088 chưa truy về S8b | Mở; chờ quyết định về truy vết | PP-SWR-088 | [report](problems/PP-PR-029-s8bc-elk-target-clearance.md) |

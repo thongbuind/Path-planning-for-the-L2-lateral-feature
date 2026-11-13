@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <OpenSCENARIO>
-  <FileHeader author="Path Planner" date="2026-11-12T00:00:00Z" description="S8b" revMajor="1" revMinor="3" />
+  <FileHeader author="Path Planner" date="2026-11-13T00:00:00Z" description="S8b" revMajor="1" revMinor="4" />
   <ParameterValueDistribution>
     <ScenarioFile filepath="S8b.xosc" />
     <Deterministic>
@@ -21,8 +21,8 @@
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="c" />
-            <ParameterAssignment parameterRef="expect_intervention" value="none" />
-            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 20 m tại TLC 0,8 s, Δv 8 m/s, không yêu cầu LKA/ELK" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 20 m tại TLC 0,8 s, Δv 8 m/s; TTC còn 1,1 s khi lốp qua vạch 0,3 m, yêu cầu ELK (PP-PR-027)" />
             <ParameterAssignment parameterRef="scenario_id" value="S8b" />
             <ParameterAssignment parameterRef="target_s_m" value="45.353092123441826" />
             <ParameterAssignment parameterRef="target_speed_mps" value="28" />
@@ -42,6 +42,14 @@
             <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
             <ParameterAssignment parameterRef="target_s_m" value="11.922154359671822" />
             <ParameterAssignment parameterRef="target_speed_mps" value="34" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="f" />
+            <ParameterAssignment parameterRef="expect_intervention" value="none" />
+            <ParameterAssignment parameterRef="description" value="Xi-nhan trái, khe sau 40 m tại TLC 0,8 s, Δv 8 m/s; TTC còn 3,6 s khi lốp qua vạch 0,3 m, không yêu cầu LKA/ELK (PP-PR-027)" />
+            <ParameterAssignment parameterRef="scenario_id" value="S8b" />
+            <ParameterAssignment parameterRef="target_s_m" value="25.353092123441826" />
+            <ParameterAssignment parameterRef="target_speed_mps" value="28" />
           </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>

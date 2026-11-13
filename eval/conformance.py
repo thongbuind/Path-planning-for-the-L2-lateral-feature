@@ -433,7 +433,7 @@ _STATUS = {"pass": "đạt", "fail": "TRƯỢT", "not_checked": "không kiểm �
 
 
 def text(result: dict, version: str | None) -> str:
-    verdict = ("Bị chặn: trượt " + ", ".join(lv for lv in ("C1", "C2") if result["levels"][lv] == "fail")
+    verdict = ("Không đạt: trượt " + ", ".join(lv for lv in ("C1", "C2") if result["levels"][lv] == "fail")
                + "; không chạy bộ khác") if result["blocked"] else (
         "Đạt C1, C2" + ("; Tích hợp được" if result["integrable"] else "; không có cờ Tích hợp được"))
     lines = [f"B0 Conformance: {verdict}", f"pp_version: {version or '—'}", ""]
