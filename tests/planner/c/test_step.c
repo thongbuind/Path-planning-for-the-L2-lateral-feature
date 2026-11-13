@@ -1,5 +1,8 @@
 /* One full planner cycle through the public API (pp_init, pp_step), white box. */
 
+#include <float.h>
+#include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -283,6 +286,71 @@ static void test_elk_road_edge_keeps_path_on_cancellation_tick(void)
     PP_CHECK(out.path_status.path_valid && out.trajectory.header.valid); /* PP-SWR-037 */
 }
 
+/* Fresh LongitudinalPlan with every point at (v, a). */
+static void set_plan(pp_planner_inputs_t *in, float v, float a)
+{
+    in->longitudinal_plan.present = true;
+    in->longitudinal_plan.rx_us = in->t0_us - 3000U;
+    in->longitudinal_plan.message.header.stamp_us = in->t0_us;
+    in->longitudinal_plan.message.header.valid = true;
+    in->longitudinal_plan.message.header.frame_id = PP_FRAME_ID_BASE_LINK;
+    in->longitudinal_plan.message.mode = PP_LONGITUDINAL_MODE_CRUISE;
+    for (unsigned i = 0U; i < PP_LONGITUDINAL_PLAN_POINTS; i++) {
+        in->longitudinal_plan.message.points[i].v = v;
+        in->longitudinal_plan.message.points[i].a = a;
+    }
+}
+
+static bool trajectory_finite(const pp_trajectory_t *t)
+{
+    bool ok = true;
+    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        const pp_trajectory_point_t *p = &t->points[k];
+        ok = ok && isfinite(p->pose.x) && isfinite(p->pose.y) && isfinite(p->pose.yaw)
+                && isfinite(p->longitudinal_velocity_mps) && isfinite(p->acceleration_mps2)
+                && isfinite(p->lateral_velocity_mps) && isfinite(p->heading_rate_rps)
+                && isfinite(p->curvature) && isfinite(p->front_wheel_angle_rad);
+    }
+    return ok;
+}
+
+/* Plan used when in range (PP-SWR-153); out of range it is ignored (PP-SWR-156, 154). */
+static void test_longitudinal_plan_range(void)
+{
+    struct { float v; float a; float v_out; float a_out; } cases[] = {
+        {20.0F, 0.5F, 20.0F, 0.5F},                                     /* in range: used */
+        {PP_LONGITUDINAL_PLAN_V_MAX_MPS, -PP_LONGITUDINAL_PLAN_A_MAX_MPS2,
+         PP_LONGITUDINAL_PLAN_V_MAX_MPS, -PP_LONGITUDINAL_PLAN_A_MAX_MPS2}, /* range ends: used */
+        {FLT_MAX, 0.0F, 25.0F, 0.0F},                                   /* B0 C2 high end */
+        {-FLT_MAX, -FLT_MAX, 25.0F, 0.0F},                              /* B0 C2 low end */
+        {20.0F, NAN, 25.0F, 0.0F},
+        {INFINITY, 0.0F, 25.0F, 0.0F},
+        {20.0F, 40.0F, 25.0F, 0.0F},
+        {-1.0F, 0.0F, 25.0F, 0.0F},
+    };
+    for (unsigned c = 0U; c < sizeof(cases) / sizeof(cases[0]); c++) {
+        PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
+        pp_planner_inputs_t in = inputs();
+        set_plan(&in, cases[c].v, cases[c].a);
+        pp_planner_outputs_t out;
+        pp_step(memory, &in, ego_motion, NULL, &out);
+        PP_CHECK(out.trajectory_sent);
+        PP_CHECK(out.path_status.path_valid);
+        PP_CHECK(trajectory_finite(&out.trajectory));
+        PP_CHECK_NEAR(out.trajectory.points[10].longitudinal_velocity_mps, cases[c].v_out, 1e-3);
+        PP_CHECK_NEAR(out.trajectory.points[10].acceleration_mps2, cases[c].a_out, 1e-3);
+    }
+
+    /* One bad point is enough to ignore the whole plan. */
+    PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
+    pp_planner_inputs_t in = inputs();
+    set_plan(&in, 20.0F, 0.0F);
+    in.longitudinal_plan.message.points[30].v = FLT_MAX;
+    pp_planner_outputs_t out;
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK_NEAR(out.trajectory.points[10].longitudinal_velocity_mps, 25.0, 1e-3);
+}
+
 int main(void)
 {
     test_hwa_path_from_car_to_centre();
@@ -292,5 +360,6 @@ int main(void)
     test_function_requests_timeout_and_recovery();
     test_interventions_can_switch_and_cancel_in_one_cycle();
     test_elk_road_edge_keeps_path_on_cancellation_tick();
+    test_longitudinal_plan_range();
     return PP_TEST_RESULT();
 }

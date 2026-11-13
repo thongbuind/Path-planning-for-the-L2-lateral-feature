@@ -63,6 +63,26 @@ def test_future_stamp_and_invalid():
     assert [m[2] for m in got] == [False, False, True]
 
 
+def test_longitudinal_plan_out_of_range():
+    """F23: the field of the chosen points gets the value; the range check of PP-SWR-156."""
+    from sim.harness import plan_in_range
+    points = tuple(I.LongitudinalPoint(20.0, 0.0) for _ in range(I.LONGITUDINAL_PLAN_POINTS))
+    plan = I.LongitudinalPlan(I.Header(0, 0, True, I.FrameId.BASE_LINK), I.LongitudinalMode.CRUISE, points, 0)
+    assert plan_in_range(plan)
+    every = ChannelFaultInjector((ChannelFault("out_of_range", "longitudinal_plan", field="v", value=3.4e38),))
+    hit = every.deliveries(plan, 0, 0)[0][1]
+    assert all(p.v == 3.4e38 for p in hit.points) and not plan_in_range(hit)
+    one = ChannelFaultInjector((ChannelFault("out_of_range", "longitudinal_plan", field="a", value=50.0,
+                                             indices=(30,)),))
+    hit = one.deliveries(plan, 0, 0)[0][1]
+    assert [p.a for p in hit.points].count(50.0) == 1 and hit.points[30].a == 50.0 and not plan_in_range(hit)
+    edge = tuple(I.LongitudinalPoint(I.LONGITUDINAL_PLAN_V_MAX_MPS, -I.LONGITUDINAL_PLAN_A_MAX_MPS2)
+                 for _ in range(I.LONGITUDINAL_PLAN_POINTS))
+    assert plan_in_range(I.LongitudinalPlan(plan.header, plan.mode, edge, 0))  # range ends are in range
+    with pytest.raises(ValueError):
+        ChannelFault("out_of_range", "imu", field="v")
+
+
 def test_can_frames_round_by_the_dbc_and_the_receiver_checks_crc_and_counter():
     assert crc8_j1850(b"123456789") == 0x4B  # SAE J1850 check value
     tx, rx = CanSender(), CanReceiver()

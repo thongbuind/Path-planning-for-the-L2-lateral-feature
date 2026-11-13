@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.8 |
+| Phiên bản | 1.9 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -53,7 +53,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 
 | Bước | Việc |
 |---|---|
-| 1 | Input check: bỏ message có CRC sai hoặc counter lặp; ghi nhận mất khi counter nhảy; `valid = false` coi như chưa nhận. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134) |
+| 1 | Input check: bỏ message có CRC sai hoặc counter lặp; ghi nhận mất khi counter nhảy; `valid = false` coi như chưa nhận. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134). LongitudinalPlan có một điểm `v` hoặc `a` ngoài dải của Interface Control Document 5.7, kể cả NaN và vô cực: bỏ cả message, T11 dùng tốc độ hiện tại và gia tốc 0 (PP-SWR-154, 156) |
 | 2 | Lấy LaneModel mới nhất, stamp t_c. Truy vấn ego-motion (t_c, t0). Không hợp lệ: `path_valid = false` (PP-SWR-143) |
 | 3 | Với mỗi vạch và mép đường: lấy mẫu y(x) mỗi 1 m trong tầm nhìn; đổi mẫu sang `base_link` tại t0 bằng p_mới = R(−Δψ)·(p_cũ − [Δx, Δy]); khớp lại đa thức bậc 3 bằng bình phương tối thiểu; dời tầm nhìn đi Δx |
 | 4 | Giữa hai frame camera, lặp bước 2–3 với frame mới nhất; không giữ đa thức đã dời từ chu kỳ trước (PP-SWR-128) |
@@ -252,3 +252,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.6 | 2026-11-11 | T7 C: liên tục với path cũ thành chi phí `qp_w_cont`, T4 vẫn trộn; a_y theo công thức của T11; dải a_y của PP-SWR-006; ràng buộc jerk; ρ theo khối hàng; `qp_ay_margin` 1,0. T8: offset theo khoảng hở tới xe lớn và `gap_truck_min`; T7 C dời path cũ theo phần offset vừa đổi |
 | 1.7 | 2026-11-12 | T7 quintic cho LKA, ELK trong cả hai bản build. T9 giữ pha riêng, áp PP-SWR-145 tại output và chọn lại trong cùng chu kỳ khi hoàn tất hoặc hủy |
 | 1.8 | 2026-11-12 | T4 bước 4 chỉ xét phần path trong tầm nhìn (SRS 1.9, PP-TS-014). T11 thêm `observed_horizon_s` |
+| 1.9 | 2026-11-13 | T1 bước 1 bỏ LongitudinalPlan ngoài dải (PP-SWR-156) |

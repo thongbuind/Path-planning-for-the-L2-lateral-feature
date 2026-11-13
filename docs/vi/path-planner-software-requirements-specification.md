@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.12 |
+| Phiên bản | 1.13 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -300,6 +300,7 @@ Nguồn: 170 ms = trễ giả định lớn nhất 120 ms (PP-ASM-001) cộng 50
 | PP-SWR-153 | Khi LongitudinalPlan hợp lệ, `longitudinal_velocity` và `acceleration` của Trajectory phải lấy theo LongitudinalPlan | Test: S14 | Interface | nhóm tự thống nhất |
 | PP-SWR-154 | Nếu LongitudinalPlan mất hoặc quá timeout 75 ms, thì Trajectory phải dùng tốc độ hiện tại không đổi và gia tốc 0 | Test: S14 (d) | Interface | nhóm tự thống nhất |
 | PP-SWR-155 | Nếu LongitudinalPlan mất hoặc quá timeout 75 ms, thì planner phải giữ `path_valid = true` | Test: S14 (d) | Safety | nhóm tự thống nhất |
+| PP-SWR-156 | Nếu LongitudinalPlan có `v` hoặc `a` ở bất kỳ điểm nào ngoài dải của Interface Control Document 5.7 (gồm NaN và vô cực), thì planner phải xử lý như chưa nhận được message đó | Test: F23 | Interface | Interface Control Document 5.3, 5.7 |
 
 ## 9. Performance targets {#req-targets}
 
@@ -339,3 +340,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.10 | 2026-11-12 | PP-SWR-018 chỉ chặn phía trên. Lý do: khi bám reference line cũ (c0 jump, F02) planner báo phần quan sát ngắn hơn tầm nhìn lane model báo; báo ngắn là phía an toàn và bên chấm không biết lúc nào planner bám reference line cũ. Đổi sau lần chạy 20261112-1240-matrix-M1-1bfd184 |
 | 1.11 | 2026-11-12 | PP-ASM-021 ghi kiểu controller và thời gian nhìn trước tối đa 0,6 s, để kiểm được các ngưỡng tầm nhìn của khối Chức năng ADAS |
 | 1.12 | 2026-11-12 | Thêm PP-SWR-048: FunctionRequests quá tuổi 45 ms xử lý như chưa nhận. Lý do: Q3 ở 60 ms vượt tuổi tối đa của Interface Control Document mà SRS chưa nói planner phải làm gì (PP-PR-023) |
+| 1.13 | 2026-11-13 | Thêm PP-SWR-156: LongitudinalPlan ngoài dải xử lý như chưa nhận. Lý do: B0 C2 trượt, plan ở đầu cao của dải float32 làm Trajectory có vô cực (PP-PR-024). Kiểm chứng bằng F23 |

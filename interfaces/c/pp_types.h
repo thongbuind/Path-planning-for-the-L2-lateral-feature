@@ -86,6 +86,8 @@ typedef uint8_t pp_lane_width_source_t;
 #define PP_LONGITUDINAL_PLAN_POINTS (31U) /* Same 0.1 s grid as Trajectory */
 #define PP_LONGITUDINAL_PLAN_TIMEOUT_US (75000ULL)
 #define PP_LONGITUDINAL_PLAN_MAX_AGE_US (45000ULL)
+#define PP_LONGITUDINAL_PLAN_V_MAX_MPS (182.04F) /* Range of v is 0 to this; speed range of ESC_Speed (5.3), 655.35 km/h */
+#define PP_LONGITUDINAL_PLAN_A_MAX_MPS2 (32.767F) /* Range of a is -this to this; range of AccelX of IMU_Data (5.3) */
 typedef uint8_t pp_longitudinal_mode_t;
 #define PP_LONGITUDINAL_MODE_OFF ((pp_longitudinal_mode_t)0U)
 #define PP_LONGITUDINAL_MODE_CRUISE ((pp_longitudinal_mode_t)1U)

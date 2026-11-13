@@ -1,5 +1,5 @@
 """Faults on one message channel (Software Qualification Test Specification 4.2, 6: F10,
-F11, F12, F15, F16, F19).
+F11, F12, F15, F16, F19, F23).
 
 Applied when a message is published, to messages published inside [start_s, start_s +
 duration_s). Which message is hit depends only on its index on the channel, so a fault
@@ -20,6 +20,7 @@ messages the fault made unusable (PP-SWR-130).
 | invalid | header.valid = false; on a CAN frame qualifier FAULT (F16) |
 | crc | CAN frame with a wrong CRC (F17) |
 | drop_listed | the messages with index in `indices` are not delivered (loss-equivalent) |
+| out_of_range | LongitudinalPlan only: `field` (v or a) of points `indices` (all when empty) set to `value` (F23) |
 
 On a CAN channel the message is a sim.can.frames.CanFrame: the counter is the 4-bit frame
 counter, changed by the sender (CRC still right). The CAN receive layer drops wrong CRC and
@@ -33,7 +34,7 @@ import numpy as np
 from sim.faults import trigger
 
 KINDS = ("drop", "burst", "jitter", "late", "stop", "future_stamp", "counter_repeat",
-         "counter_jump", "counter_stuck", "invalid", "crc", "drop_listed")
+         "counter_jump", "counter_stuck", "invalid", "crc", "drop_listed", "out_of_range")
 CHANNELS = ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
             "function_requests", "longitudinal_plan")
 # Faults whose correct handling equals the loss of the messages they hit (PP-SWR-130), or
@@ -53,11 +54,14 @@ class ChannelFault:
     count: int = 1
     indices: tuple[int, ...] = ()
     trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
+    field: str = ""  # out_of_range: payload field of LongitudinalPoint
 
     def __post_init__(self) -> None:
         trigger.check(self.trigger)
         if self.kind not in KINDS or self.channel not in CHANNELS:
             raise ValueError(f"unknown channel fault {self.kind!r} on {self.channel!r}")
+        if self.kind == "out_of_range" and (self.channel != "longitudinal_plan" or self.field not in ("v", "a")):
+            raise ValueError("out_of_range needs channel longitudinal_plan and field v or a")
         if self.every < 1 or self.count < 0 or self.start_s < 0 or (self.duration_s is not None and self.duration_s <= 0):
             raise ValueError("channel fault needs every >= 1, count >= 0, start >= 0, duration > 0")
 
@@ -119,6 +123,9 @@ class ChannelFaultInjector:
             elif kind == "crc":
                 out = [(d, m.with_bad_crc()) for d, m in out]
                 st.hit.append(index)
+            elif kind == "out_of_range":
+                out = [(d, _with_points(m, fault)) for d, m in out]
+                st.hit.append(index)
         return out
 
     def fault_hits(self) -> list[list[int]]:
@@ -170,6 +177,12 @@ def _with_valid(message, valid: bool):
     if _is_frame(message):
         return message.with_byte6(message.counter, 0 if valid else 3)  # qualifier VALID or FAULT
     return replace(message, header=replace(message.header, valid=valid))
+
+
+def _with_points(message, fault: ChannelFault):
+    points = tuple(replace(p, **{fault.field: fault.value}) if not fault.indices or i in fault.indices else p
+                   for i, p in enumerate(message.points))
+    return replace(message, points=points)
 
 
 def _restamp(message, add_us: int):

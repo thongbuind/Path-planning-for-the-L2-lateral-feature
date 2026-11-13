@@ -80,6 +80,18 @@ def test_sharp_curve_flag_on_before_lane_crossing(sharp_result):
     assert lead is not None
 
 
+def test_sharp_curve_reports_lateral_jerk_targets(sharp_result):
+    """PP-SWR-004 (Software Qualification Test Specification 8.2): peak equals the PP-SWR-003
+    value, RMS is below the peak, steering wheel rate RMS of the car is measured (PP-PR-025)."""
+    jerk = {t.metric: t.value for t in sharp_result.targets if t.id == "PP-SWR-004"}
+    assert len(jerk) == 3
+    peak = next(v for m, v in jerk.items() if "lớn nhất" in m)
+    rms = next(v for m, v in jerk.items() if "Jerk ngang RMS" in m)
+    wheel = next(v for m, v in jerk.items() if "vô lăng" in m)
+    assert peak == next(c.value for c in sharp_result.criteria if c.id == "PP-SWR-003")
+    assert 0 < rms < peak and wheel > 0
+
+
 def test_s1_scenario_file_loads():
     s = loader.load("S1", "a")
     assert s.name == "S1a" and s.speed_mps == pytest.approx(25.0)

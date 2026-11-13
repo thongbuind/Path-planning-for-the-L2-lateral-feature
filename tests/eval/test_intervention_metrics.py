@@ -188,3 +188,23 @@ def test_mode_a_does_not_grade_planner():
 def test_091_is_judged_when_the_real_eps_is_slower_up_to_100ms(eps, judged):
     result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.ROAD_EDGE, eps_delay_s=eps))
     assert bool(_criteria(result, 91)) == judged
+
+
+@pytest.mark.parametrize("index", [2, 10])  # start of the intervention (t = BEGIN), mid-way
+def test_non_finite_output_is_an_execution_fault_not_an_evaluator_error(index):
+    """PP-PR-026: a cycle with infinity is not projected on the road; the run is still scored."""
+    log = _log()
+    c = log.cycles[index]
+    points = tuple(replace(p, pose=replace(p.pose, x=inf)) if i >= 11 else p
+                   for i, p in enumerate(c.trajectory.points))
+    log.cycles[index] = replace(c, trajectory=replace(c.trajectory, points=points))
+    result = evaluate(log)
+    assert not result.passed
+    execution = [i for i in result.issues if i["kind"] == "execution"]
+    assert len(execution) == 1 and "trajectory.points[11].pose.x" in execution[0]["text"]
+    assert execution[0]["first_fail_s"] == pytest.approx(index * 0.025)
+
+
+def test_no_lateral_jerk_targets_without_hwa():
+    """PP-SWR-004 is measured only while HWA drives (PP-PR-025)."""
+    assert not [t for t in evaluate(_log()).targets if t.id == "PP-SWR-004"]

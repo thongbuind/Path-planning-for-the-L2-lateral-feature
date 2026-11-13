@@ -55,7 +55,8 @@ from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, 
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
 from interfaces.inputs.object_list import OBJECT_LIST_MAX_AGE_US, OBJECT_LIST_TIMEOUT_US
 from interfaces.inputs.vehicle_state import VEHICLE_STATE_MAX_AGE_US, VEHICLE_STATE_TIMEOUT_US
-from interfaces.inputs.longitudinal_plan import (LONGITUDINAL_PLAN_MAX_AGE_US, LONGITUDINAL_PLAN_TIMEOUT_US,
+from interfaces.inputs.longitudinal_plan import (LONGITUDINAL_PLAN_A_MAX_MPS2, LONGITUDINAL_PLAN_MAX_AGE_US,
+                                                 LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_V_MAX_MPS,
                                                  LongitudinalPlan)
 import numpy as np
 
@@ -136,10 +137,21 @@ def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int |
     return rx.message
 
 
+def plan_in_range(plan: LongitudinalPlan) -> bool:
+    """Every v and a within the ranges of Interface Control Document 5.7 (PP-SWR-156), compared
+    in float32 as the planner receives them."""
+    with np.errstate(over="ignore", invalid="ignore"):
+        v = np.array([p.v for p in plan.points], dtype=np.float32)
+        a = np.array([p.a for p in plan.points], dtype=np.float32)
+    return bool(np.all((v >= 0) & (v <= np.float32(LONGITUDINAL_PLAN_V_MAX_MPS))
+                       & (np.abs(a) <= np.float32(LONGITUDINAL_PLAN_A_MAX_MPS2))))
+
+
 def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
     now = inputs.t0_us
     _fresh = _usable
     lane = _fresh(inputs.lane_model, now, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
+    plan = _fresh(inputs.longitudinal_plan, now, LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_MAX_AGE_US)
     return {
         "lane_model": lane is not None,  # received, valid, in time; boundaries judged by eval
         "object_list": _fresh(inputs.object_list, now, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US) is not None,
@@ -150,8 +162,7 @@ def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
                                 VEHICLE_STATE_MAX_AGE_US) is not None,
         "function_requests": _fresh(inputs.function_requests, now, FUNCTION_REQUESTS_TIMEOUT_US,
                                     FUNCTION_REQUESTS_MAX_AGE_US) is not None,
-        "longitudinal_plan": _fresh(inputs.longitudinal_plan, now, LONGITUDINAL_PLAN_TIMEOUT_US,
-                                    LONGITUDINAL_PLAN_MAX_AGE_US) is not None,
+        "longitudinal_plan": plan is not None and plan_in_range(plan),  # PP-SWR-156
     }
 
 

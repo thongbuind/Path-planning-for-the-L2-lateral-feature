@@ -117,7 +117,8 @@ def srs_text() -> dict[str, str]:
 # Two metrics of one target: short names for the comfort slide.
 METRIC_SHORT = {"Khoảng cách ngang nhỏ nhất từ thân xe tới rào chắn khi HWA lái": "Khoảng hở tới rào chắn",
                 "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng": "Khoảng hở tới xe lớn khi ngang hàng"}
-COMFORT_TARGETS = ["PP-SWR-053", "PP-SWR-002", "PP-SWR-057", "PP-SWR-081", "PP-SWR-087", "PP-SWR-064"]
+COMFORT_TARGETS = ["PP-SWR-053", "PP-SWR-002", "PP-SWR-004", "PP-SWR-057", "PP-SWR-081", "PP-SWR-087",
+                   "PP-SWR-064"]
 LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
 
 

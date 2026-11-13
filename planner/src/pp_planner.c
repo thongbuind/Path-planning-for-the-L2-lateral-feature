@@ -57,6 +57,19 @@ static bool vehicle_config_valid(const pp_vehicle_config_t *cfg)
     return ok;
 }
 
+/* Interface Control Document 5.7: every v in 0 to V_MAX and every a within +-A_MAX (PP-SWR-156). */
+static bool longitudinal_plan_in_range(const pp_longitudinal_plan_t *plan)
+{
+    bool ok = true;
+    for (uint32_t i = 0U; ok && (i < PP_LONGITUDINAL_PLAN_POINTS); i++) {
+        const float v = plan->points[i].v;
+        const float a = plan->points[i].a;
+        ok = isfinite(v) && (v >= 0.0F) && (v <= PP_LONGITUDINAL_PLAN_V_MAX_MPS)
+             && isfinite(a) && (fabsf(a) <= PP_LONGITUDINAL_PLAN_A_MAX_MPS2);
+    }
+    return ok;
+}
+
 /* State memory that pp_init has set up, whether or not initialisation succeeded. */
 static pp_state_t *prepared_state(void *state)
 {
@@ -178,8 +191,9 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
                         in->longitudinal_plan.message.header.valid,
                         in->longitudinal_plan.rx_us,
                         in->longitudinal_plan.message.header.stamp_us, t0,
-                        PP_LONGITUDINAL_PLAN_TIMEOUT_US, PP_LONGITUDINAL_PLAN_MAX_AGE_US)) {
-        out->longitudinal_plan = &in->longitudinal_plan.message;
+                        PP_LONGITUDINAL_PLAN_TIMEOUT_US, PP_LONGITUDINAL_PLAN_MAX_AGE_US)
+        && longitudinal_plan_in_range(&in->longitudinal_plan.message)) {
+        out->longitudinal_plan = &in->longitudinal_plan.message; /* else PP-SWR-154 fallback */
     }
 }
 

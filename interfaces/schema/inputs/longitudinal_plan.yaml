@@ -4,6 +4,8 @@ constants:
   LONGITUDINAL_PLAN_POINTS: {type: uint, value: 31, doc: "Same 0.1 s grid as Trajectory"}
   LONGITUDINAL_PLAN_TIMEOUT_US: {type: uint64, value: 75000}
   LONGITUDINAL_PLAN_MAX_AGE_US: {type: uint64, value: 45000}
+  LONGITUDINAL_PLAN_V_MAX_MPS: {type: float, value: 182.04, doc: "Range of v is 0 to this; speed range of ESC_Speed (5.3), 655.35 km/h"}
+  LONGITUDINAL_PLAN_A_MAX_MPS2: {type: float, value: 32.767, doc: "Range of a is -this to this; range of AccelX of IMU_Data (5.3)"}
 enums:
   LongitudinalMode:
     values: {OFF: 0, CRUISE: 1, FOLLOW: 2, CURVE_LIMIT: 3}
