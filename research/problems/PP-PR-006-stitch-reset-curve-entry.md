@@ -29,9 +29,17 @@ Chưa chọn. Các hướng chung, không riêng cho S1b:
 | B | Chọn lại `stitch_reset` trong sweep P1 (PP-TS-004) |
 | C | T7 C giới hạn tốc độ tăng a_y ở đầu path theo độ trễ bám đã biết |
 
+Phân tích thêm 2026-11-13:
+
+- Lateral Controller chạy thử (Software Qualification Test Specification 4.6) có feedforward theo κ tại `actuator_delay`, nhưng không bù khâu bậc một τ = 0,1 s của EPS. Với a_y path tăng khoảng 4,2 m/s³ (T7 C), riêng τ gây thiếu khoảng 0,4 m/s² a_y lúc vào cua; quintic (khoảng 1,9 m/s³) thiếu khoảng 0,2 m/s². Đây là giả thuyết cho phần lớn sai số bám 0,2 m; cần đo trên log.
+- Controller thật chưa biết. C làm planner phụ thuộc vào độ trễ của một controller cụ thể. A không phụ thuộc controller. Đề xuất A.
+- Sửa controller chạy thử là sửa bên chấm sau khi thấy kết quả: chỉ làm nếu có nguồn cho thấy controller thật bù độ trễ của actuator, và phải chạy lại mọi phương án.
+
 Chỉnh `qp_w_jerk` (3, 10, 30) trên lần chạy nháp: không sửa được S1b e và làm thời gian tính tăng, nên không chọn.
 
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+
+Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md) (T7 quintic): PP-SWR-100 sát ngưỡng 0,050–0,056 m ở S7 a và ncap-oncoming (3), S8b c VP-1 (1), S17 b VP-4 (1), S1b a (1). Chưa xác định có cùng cơ chế stitching reset không.

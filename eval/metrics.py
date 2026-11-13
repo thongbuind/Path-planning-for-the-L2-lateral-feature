@@ -861,6 +861,18 @@ def _path_at(cycle, t_us, truth):
     return projected.d, v_lat, ay_add
 
 
+def _overriding(cycles) -> set[int]:
+    """Cycles with driver_override = true, as for PP-SWR-039: read from usable
+    FunctionRequests, the last usable value held in between."""
+    out, now = set(), False
+    for i, c in enumerate(cycles):
+        if (c.inputs_ok or {}).get("function_requests") and c.function_requests is not None:
+            now = bool(c.function_requests.message.driver_override)
+        if now:
+            out.add(i)
+    return out
+
+
 def _entry_errors(cycle, t_us, truth):
     if not _finite_outputs(cycle):
         return np.inf, np.inf  # execution fault (8.4); nothing to project
@@ -939,7 +951,8 @@ def _end_condition(truth, prev, cur, side, edge, cal):
 
 
 def _target_geometry(truth, episodes):
-    """Ground-truth lateral gap while ELK drives and rectangle contact over the encounter."""
+    """Ground-truth lateral gap while ELK drives and the target is abreast (PP-SWR-088), and
+    rectangle contact over the encounter."""
     log = truth.log
     if not log.scenario.traffic:
         return None, None
@@ -968,7 +981,11 @@ def _target_geometry(truth, episodes):
             tx, ty = cos(target.heading), sin(target.heading)
             dx, dy = target.x - x, target.y - y
             half_w, half_l = target.width / 2, target.length / 2
-            if target_active[i]:
+            # PP-SWR-088: only while the two cars are abreast (Ngang hàng, Software Requirements
+            # Specification): the target's length overlaps the car body along the road.
+            abreast = (target_active[i] and target.s + half_l >= p.s - widths[1]
+                       and target.s - half_l <= p.s + widths[1])
+            if abreast:
                 span = half_w * abs(nx * ty - ny * tx) + half_l * abs(nx * tx + ny * ty)
                 min_gap = min(min_gap, abs(nx * dx + ny * dy) - ego_span - span)
             if contact or hypot(dx, dy) > hypot(*widths) + hypot(half_l, half_w):
@@ -1136,9 +1153,12 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
     lane_changes = [stamp for stamp, _ in getattr(log, "lane_index_changes", [])]
     cont = [0.0, 0.0, 0.0]
     n_061 = 0
-    for prev, c in zip(cycles, cycles[1:]):
+    override_cycles = _overriding(cycles)
+    for i, (prev, c) in enumerate(zip(cycles, cycles[1:]), start=1):
         if not (_valid(prev) and _valid(c)) or c.path_status.active_function != prev.path_status.active_function:
             continue
+        if i in override_cycles:
+            continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017)
         stamp = c.lane_view[0] if c.lane_view is not None else None
         if stamp is None or not any(ch <= stamp <= ch + LANE_CHANGE_WINDOW_S * 1e6 for ch in lane_changes):
             continue
@@ -1647,12 +1667,15 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     # PP-SWR-100 to 102: consecutive valid paths.
     cont = [0.0, 0.0, 0.0]
     intervention_starts = {e.start for e in episodes}
+    override_cycles = _overriding(cycles)
     for i in range(1, len(cycles)):
         if valid[i - 1] and valid[i] and finite[i - 1] and finite[i]:
             if i in intervention_starts:
                 d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
                 if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
                     continue  # PP-SWR-031: exception only at the first tick
+            if i in override_cycles:
+                continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017): not judged while the driver overrides
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
                 if value > (CONTINUITY_LATERAL_M, CONTINUITY_HEADING_RAD, CONTINUITY_CURVATURE)[j]:

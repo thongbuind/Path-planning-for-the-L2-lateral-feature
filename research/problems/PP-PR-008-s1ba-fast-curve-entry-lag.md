@@ -25,3 +25,5 @@ T7 C bám a_y cần vì ràng buộc a_y nằm trong cùng bài toán. Lần ch�
 
 | Run ID | Kết quả |
 |---|---|
+
+Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): ca lấy mẫu `S1b-a-VP-0-693b15015bfa` (130 km/h, ACC tắt, camera 80 m) còn trượt PP-SWR-005 (mất path hoặc HWA trong cua gắt, từ 8,0 s), 006 (−0,14 m/s²), 030 (25 chu kỳ) và 100 (0,052 m). Cần xem vì sao path mất ở 8,0 s.

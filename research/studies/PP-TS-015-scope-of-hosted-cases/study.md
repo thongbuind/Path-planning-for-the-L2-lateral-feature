@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết; chờ lần chạy hồi quy chính thức |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-13 |
 | Khóa ngày | — |
 | Quyết định ngày | 2026-11-13 |
@@ -62,4 +62,4 @@ V1. Lý do: một quy tắc cho mọi ca có ca chủ; SQTS 8.1 đã yêu cầu 
 - Chọn: V1, gồm hai điểm của mục 5: ca lấy mẫu của S12, S13, S14 không nhận phạm vi của anchor; S14(e) không nhận phạm vi của S1(f)
 - Lý do: như mục 6. Ca lỗi mà planner không tự phát hiện được (ví dụ F03 c) vẫn trượt PP-SWR-051; đây là giới hạn cần báo, không thu hẹp phạm vi để giấu
 - Đưa vào: Software Qualification Test Specification 1.34 mục 8.1; `benchmark/suites/scope.yaml`; `eval/matrix.py`
-- Hồi quy: chưa có run ID
+- Hồi quy: [20261113-1851-matrix-M1-5afcaf5](../../runs/20261113-1851-matrix-M1-5afcaf5/summary.md): 10 trượt trong phạm vi, đều PP-SWR-051 ở F02 e và F06 trên ca chủ S1(a), S1(c), đúng như mục 5; 28 trượt ngoài phạm vi (S2 c, d, PP-PR-003). [20261113-1803-suite-regression-3c31309](../../runs/20261113-1803-suite-regression-3c31309/report.md): F03 c, F08 c, F17 b, F21 c trượt PP-SWR-051 trong phạm vi theo cùng quy tắc.

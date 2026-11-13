@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết; đã đưa vào tài liệu và code, chờ build, unit test C và hồi quy |
+| Trạng thái | Đã quyết; đã đưa vào; hồi quy có trượt PP-SWR-030 mới chưa phân tích |
 | Mở ngày | 2026-11-13 |
 | Khóa ngày | — |
 | Quyết định ngày | 2026-11-13 |
@@ -72,4 +72,4 @@ V4 (đổi từ V1 sau khi đối chiếu văn bản, 2026-11-13). Lý do:
 - Chọn: V4
 - Lý do: như mục 6; bám R79 5.1.6.1.2.1, Annex 8 3.1.1.1 và EU 2021/646 Annex I 3.6.4.1.1, giữ SG-02, SG-03
 - Đưa vào: Software Requirements Specification (PP-SWR-083 obsolete); Hazard Analysis and Risk Assessment mục 4; Software Architectural Design; Software Detailed Design T7, T9 và mục 15 (`intervention_T_max`); Software Qualification Test Specification 8.1; Mentor Report; planner (`arbitration.c`, `intervention.c`); bên chấm (bỏ tiêu chí 083)
-- Hồi quy: chưa có run ID
+- Hồi quy: [20261113-1803-suite-regression-3c31309](../../runs/20261113-1803-suite-regression-3c31309/report.md). Build và 14/14 unit test C đạt ở `3c31309`. Bên chấm không còn tiêu chí PP-SWR-083. Có trượt PP-SWR-030 lần đầu được chấm (F02, F20 trong lúc LKA, ELK; F21; G01 S4c), chưa phân tích xem có liên quan tới thay đổi trong `arbitration.c` không; chưa đóng.

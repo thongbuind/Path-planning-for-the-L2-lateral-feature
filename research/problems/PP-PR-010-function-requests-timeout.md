@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-145 |
 | Tái hiện | Chẩn đoán nháp `diag-pp-swr-145-s1a-seed1` trên baseline `9b12b83`, S1a, seed 1, T7 quintic |
@@ -24,3 +24,5 @@ T1 theo dõi thời gian từ lần nhận FunctionRequests hợp lệ gần nh�
 ## 4. Xác nhận
 
 Unit test API `test_function_requests_timeout_and_recovery` kiểm trước, đúng và sau mốc timeout, rồi cấp lại message hợp lệ. Xác nhận SIL chính thức cần cây sạch và hai thư viện từ cùng commit.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): PP-SWR-145 đo ở 6 lần chạy, đạt.

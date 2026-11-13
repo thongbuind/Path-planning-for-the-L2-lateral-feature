@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | Định nghĩa S4b(c), S8(b) trong Software Qualification Test Specification mục 5 |
 | Tái hiện | Đọc hai neo bằng `eval.loader.load` |
@@ -22,3 +22,5 @@ Ghi rõ hướng trái, vào trong cung ở S4b(c), và tốc độ xe mục ti�
 ## 4. Xác nhận
 
 Chạy unit test kiểm tham số hai neo. Sinh lại manifest trước khi chạy SIL.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S4b(c), S8(b) chạy đúng tham số; không có trượt trong phạm vi.

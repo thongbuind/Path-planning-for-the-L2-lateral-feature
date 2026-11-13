@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã cài PP-TS-007 V1, chờ xác nhận chính thức |
+| Trạng thái | Đã cài PP-TS-007 V1; chưa xác nhận được: bên chấm chưa đo PP-SWR-047 |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-047, 086 |
 | Tái hiện | Đối chiếu S6 (a, b) trong Software Qualification Test Specification mục 5 với Software Requirements Specification 8.2. Phát hiện qua phân tích |
@@ -24,3 +24,5 @@ Chốt điều kiện ELK ở mép đường theo PP-TS-007 và cập nhật đ�
 ## 4. Xác nhận
 
 Kiểm S6 có và không có vạch theo phạm vi đã duyệt. Kiểm ELK vẫn bị chặn với tâm làn suy từ biên xa trong trường hợp F21.
+
+Lần chạy chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S6 không có REQUEST nào thiếu path can thiệp, nhưng bên chấm chưa có tiêu chí cho PP-SWR-047, nên chưa xác nhận.

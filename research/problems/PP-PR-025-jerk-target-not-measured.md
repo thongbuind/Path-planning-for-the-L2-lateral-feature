@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-004; Software Qualification Test Specification 8.2 (dòng "Jerk ngang của HWA: đỉnh và RMS"), 9.1 bước 3 |
 | Tái hiện | Đọc mã: `eval/metrics.py` không tạo `Target("PP-SWR-004", …)`; mọi `results.jsonl` (ví dụ `build/suites/speed3-fork-j4`) không có target PP-SWR-004 |
@@ -43,3 +43,5 @@ Chưa có lần chạy chính thức. Lần chạy nháp 2026-11-13, VP-0, seed 
 | S1 a | 0,179 | 0,057 | 0,007 |
 | S1 c | 0,700 | 0,262 | 0,030 |
 | S2 a | 0,171 | 0,028 | 0,008 |
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): Performance target PP-SWR-004 có ở mục targets của mọi ca HWA.

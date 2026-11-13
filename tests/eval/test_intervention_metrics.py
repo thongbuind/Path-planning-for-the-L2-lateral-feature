@@ -180,6 +180,54 @@ def test_other_car_gap_is_scored_while_no_impact_is_information():
     assert json.loads(json.dumps(result.to_dict()))["info"]["no_impact"]
 
 
+def test_other_car_gap_is_not_scored_while_the_car_is_behind():
+    """PP-SWR-088 is judged only while the two cars are abreast (PP-PR-029)."""
+    result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.OVERTAKING,
+                           traffic=(TrafficSpec(1, 11.45 - 20.0, 1.95, 20.0),)))
+    assert not _criteria(result, 88)
+    assert result.info["no_impact"]
+
+
+def test_other_car_gap_counts_only_from_when_the_car_is_abreast():
+    """Closer laterally while still behind, then abreast at 0.5 m: the gap is 0.5 m - widths."""
+    near = TrafficSpec(1, 11.45 - 20.0, 1.95, 20.0)          # behind, 0.05 m gap if abreast
+    far = TrafficSpec(2, 11.45, 2.40, 20.0)                  # abreast all along, 0.5 m gap
+    result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.OVERTAKING,
+                           traffic=(near, far)))
+    assert _criteria(result, 88)[0].value == pytest.approx(.5)
+    assert _criteria(result, 88)[0].passed
+
+
+OVERRIDE_US = 1_000_000
+INPUTS_OK = {k: True for k in ("lane_model", "imu", "speed", "steering", "ego_motion", "function_requests")}
+
+
+def _override_log(override: bool, jump_us: int = OVERRIDE_US):
+    """Path 0.12 m left of the car until jump_us, then at the car; driver_override from
+    OVERRIDE_US when `override`."""
+    log = _log(expect="", requested=NONE, active=NONE)
+    for n, c in enumerate(log.cycles):
+        shift = 0.0 if c.t0_us >= jump_us else 0.12
+        points = tuple(replace(p, pose=replace(p.pose, y=shift)) for p in c.trajectory.points)
+        on = override and c.t0_us >= OVERRIDE_US
+        message = replace(c.function_requests,
+                          message=replace(c.function_requests.message, driver_override=on))
+        log.cycles[n] = replace(c, trajectory=replace(c.trajectory, points=points),
+                                function_requests=message, inputs_ok=dict(INPUTS_OK))
+    return log
+
+
+@pytest.mark.parametrize("override, jump_us, passed", [
+    (True, OVERRIDE_US, True),             # path jumps to the car when the override starts
+    (True, OVERRIDE_US + 500_000, True),   # path jumps while the driver overrides
+    (False, OVERRIDE_US, False),           # no override: the jump is a continuity failure
+])
+def test_continuity_not_judged_while_the_driver_overrides(override, jump_us, passed):
+    """Hai path liên tiếp (SRS 1.16, PP-TS-017): pairs are not judged while driver_override."""
+    result = evaluate(_override_log(override, jump_us))
+    assert _criteria(result, 100)[0].passed == passed
+
+
 def test_mode_a_does_not_grade_planner():
     result = evaluate(_log(active=NONE, mode="A"))
     assert result.passed is None

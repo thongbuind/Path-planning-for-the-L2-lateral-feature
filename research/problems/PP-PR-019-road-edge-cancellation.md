@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-037 |
 | Tái hiện | ELK ROAD_EDGE đang ACTIVE với hai mép đo được, không có vạch. Khối ADAS gửi OFF hợp lệ |
@@ -22,3 +22,5 @@ Xét hành lang mép đường cho tick bàn giao nếu pha trước là ELK ACT
 ## 4. Xác nhận
 
 Unit test API `test_elk_road_edge_keeps_path_on_cancellation_tick` kiểm NONE với PathStatus và Trajectory hợp lệ sau khi nhận OFF.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): PP-SWR-037 đo ở 55 lần chạy, đạt.

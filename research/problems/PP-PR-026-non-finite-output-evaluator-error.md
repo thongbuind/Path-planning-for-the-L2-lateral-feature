@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | Software Qualification Test Specification 8.4 (lỗi thực thi của planner: output có NaN hoặc vô cực, BLOCKER) |
 | Tái hiện | Lần chạy nháp: F23 a trên S1a, seed 1, thư viện `build/planner-qp/libpp_planner.dylib` build 2026-11-12, chưa có PP-SWR-156 |
@@ -33,3 +33,5 @@ Thời gian chấm không đổi: kiểm hữu hạn 108 ms trên 2,4 s cho S1 a
 ## 4. Xác nhận
 
 Chưa có lần chạy chính thức. Lần chạy nháp 2026-11-13, F23 a với thư viện của mục Tái hiện: chấm xong, trượt "Lỗi thực thi: trajectory.points[11].pose.x không hữu hạn tại t = 4.033 s" và PP-SWR-156.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): 0 lỗi thực thi, 0 lỗi bên chấm; F23 chấm xong ở cả 30 lần chạy.

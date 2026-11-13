@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.35 |
+| Phiên bản | 1.37 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -225,7 +225,7 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | S6b | Làn mở rộng | HWA bật. a) làn khẩn cấp rộng dần 1,5 m trên 100 m, phía phải; b) tách nhánh lối ra; c) thêm làn bên trái; d) mở rộng trong cua R = 500 m; e) mở rộng lúc đang dời tâm vì xe tải bên kia | PP-SWR-050, 060 (vòng kín) |
 | S7 | ELK xe ngược chiều | Xe kia cách mép trong vạch giữa 1,5 m, 10 % chồng lấn nếu không can thiệp. a) cả hai 72 km/h, v_lat 0,2; b) 0,4; c) 0,6; d) xe kia 90 km/h; e) trong cua R = 500 m | PP-SWR-082, 085 (vòng kín), 088 (vòng kín), 111, 113, 115 |
 | S8 | ELK xe đang vượt | a) xe kia 80 km/h, mình 72 km/h, trôi 0,2 m/s; b) cùng 72 km/h, trôi 0,4; c) xi-nhan 1,0 ± 0,5 s trước lúc đánh lái, 0,5 m/s; d) như c, 0,7 m/s; e) xe kia 100 km/h, trôi 0,4. Ca bổ sung late bơm ELK REQUEST sau khi lốp trước đã qua vạch | PP-SWR-082, 085 (vòng kín), 088 (vòng kín), 089, 111, 113, 115 |
-| S8b | Chuyển làn có xi-nhan, xe sau ở nhiều khoảng cách | Khe tại TLC 0,8 s. a) cách 20 m, nhanh hơn 2,2 m/s; b) 10 m, 2,2 m/s; c) 20 m, 8 m/s (TTC còn 1,1 s khi lốp qua vạch 0,3 m); d) 12 m, 10 m/s (TTC 1,2 s); e) 30 m, 14 m/s (cần 3,3 m/s²); f) 40 m, 8 m/s (TTC còn 3,6 s khi lốp qua vạch 0,3 m). a, b, f: không can thiệp; c, d, e: can thiệp theo ADAS Function Specification mục 6, bước 5 | PP-SWR-082 (c, d, e), 085 (c, d, e, vòng kín), 111 (c, d, e), 113 (c, d, e), 115 (c, d, e) |
+| S8b | Chuyển làn có xi-nhan, xe sau ở nhiều khoảng cách | Khe tại TLC 0,8 s. a) cách 20 m, nhanh hơn 2,2 m/s; b) 10 m, 2,2 m/s; c) 20 m, 8 m/s (TTC còn 1,1 s khi lốp qua vạch 0,3 m); d) 12 m, 10 m/s (TTC 1,2 s); e) 30 m, 14 m/s (cần 3,3 m/s²); f) 40 m, 8 m/s (TTC còn 3,6 s khi lốp qua vạch 0,3 m). a, b, f: không can thiệp; c, d, e: can thiệp theo ADAS Function Specification mục 6, bước 5 | PP-SWR-082 (c, d, e), 085 (c, d, e, vòng kín), 088 (c, d, e, vòng kín), 111 (c, d, e), 113 (c, d, e), 115 (c, d, e) |
 | S8c | Bẻ lái gấp tránh vật, làn bên có xe | Không xi-nhan. a) v_lat 1,2 m/s; b) 1,5 m/s; c) bẻ rồi trả ngay; d) bẻ khi LKA đang can thiệp | PP-SWR-031 (d), 036 (d), 037 (d) |
 | S9 | Chuyển giữa chức năng | a) LKA lên ELK; b) ELK xong về HWA; c) HWA bị ghi đè rồi buông; d) yêu cầu bị hủy vì xi-nhan; e) tài xế tắt HWA giữa cua R = 500 m | PP-SWR-030 (a), 031, 033 (b), 036 (d), 037 (d), 038, 039 (c), 040 (c), 042 (e) |
 | S10 | Đi gần vạch mà không trôi | a) DLC 0,2 m, v_lat gần 0; b) DLC 0,4 m; c) cắt cua R = 500 m; d) đi lệch một bên khi có xe tải; e) như a, ban đêm, chế độ A |   |
@@ -449,7 +449,7 @@ Ca chạy trên một anchor khác là một lần chạy của anchor đó, nê
 | Chỉ số | Cách đo | Ngưỡng | Requirement |
 |---|---|---|---|
 | DTLE nhỏ nhất | Từ mép ngoài lốp trước tới mép trong vạch hoặc mép đường, nhỏ nhất trong lần can thiệp | ≥ −0,3 m (LKA, ELK vạch liền), ≥ −0,1 m (ELK mép đường) | PP-SWR-086, 091 |
-| Khoảng cách tới xe ở làn bên | Khoảng cách ngang nhỏ nhất giữa hai xe trong lần ELK do xe ở làn bên | ≥ 0,3 m | PP-SWR-088 |
+| Khoảng cách tới xe ở làn bên | Khoảng cách ngang nhỏ nhất giữa hai xe trong lần ELK do xe ở làn bên, ở các thời điểm hai xe ngang hàng (phần dọc của xe kia chồng lên thân xe, gồm phần nhô trước và sau). Lần ELK không có lúc ngang hàng thì không chấm | ≥ 0,3 m | PP-SWR-088 |
 | DLC so với làn thật | Nhỏ nhất ở mỗi phía. Với PP-SWR-051 chỉ khi khoảng trống thật mỗi bên ≥ `free_space_min` | ≥ 0 | PP-SWR-051, 060, 122, 123, 148 |
 | DLC phía trôi khi LKA hoàn tất | DLC thật phía yêu cầu tại tick LKA báo COMPLETED | ≥ 0 | PP-SWR-084 |
 | DLC phía đối diện | DLC nhỏ nhất ở phía đối diện từ lúc bắt đầu can thiệp tới hết 1 s bàn giao EPS sau COMPLETED hoặc hủy. Dừng cửa sổ tại lần can thiệp độc lập kế tiếp | ≥ 0 | PP-SWR-085 |
@@ -481,7 +481,7 @@ Cách chấm bổ sung:
 
 Ca được định trước cần can thiệp phải có REQUEST đến planner và path can thiệp của chức năng tương ứng. Thiếu một trong hai thì ca trượt và báo rõ bước thiếu.
 
-Khi LKA hoặc ELK bắt đầu và trạng thái thật lệch khỏi path cũ quá 0,1 m hoặc 0,1 m/s, áp PP-SWR-080 tại tick đó theo PP-SWR-031. Những cặp path tiếp theo vẫn chấm liên tục.
+Khi LKA hoặc ELK bắt đầu và trạng thái thật lệch khỏi path cũ quá 0,1 m hoặc 0,1 m/s, áp PP-SWR-080 tại tick đó theo PP-SWR-031. Ở các chu kỳ có `driver_override = true`, cặp path không chấm PP-SWR-100 đến 102 và 061 (định nghĩa Hai path liên tiếp); PP-SWR-039 vẫn chấm. Từ chu kỳ đầu sau ghi đè lại chấm liên tục. Những cặp path tiếp theo vẫn chấm liên tục.
 
 ### 8.2 Performance target: đo và xếp hạng {#benchmark-metrics}
 
@@ -699,3 +699,5 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.33 | 2026-11-13 | Mục 6: thêm F23, LongitudinalPlan ngoài dải (PP-SWR-156, PP-PR-024) |
 | 1.34 | 2026-11-13 | Mục 8.1: ca chạy trên anchor khác được chấm theo cả phạm vi của anchor đó. Lý do: lỗi trên ca chủ và S12 không nhận phạm vi của ca chủ, nên xe rời làn ở các ca này không được tính (PP-TS-015) |
 | 1.35 | 2026-11-13 | Mục 5: S8b c chuyển thành ca can thiệp, thêm f khe an toàn; 4.8 theo đó (PP-PR-027). Mục 8.1: bỏ chỉ số thời lượng can thiệp và cách chấm PP-SWR-083 (obsolete, PP-TS-016) |
+| 1.36 | 2026-11-13 | Mục 8.2: khoảng cách tới xe ở làn bên chỉ đo lúc hai xe ngang hàng, theo PP-SWR-088 của Software Requirements Specification 1.15 (PP-PR-029) |
+| 1.37 | 2026-11-13 | Mục 8.1: không chấm liên tục trong lúc tài xế ghi đè (Software Requirements Specification 1.16, PP-TS-017) |

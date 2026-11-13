@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa theo cách C (thongbui, 2026-11-13); chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | Không có requirement của planner. Định nghĩa S8b(c) ở Software Qualification Test Specification 5; ADAS Function Specification mục 6, bước 5 |
 | Tái hiện | Lần chạy nháp `20261113-1218-full-ecf2f15`: S8b(c) trên VP-0 đến VP-5, seed 1, cả 6 ca "không được chấm" |
@@ -62,3 +62,5 @@ Câu hỏi mở cho ADAS Function Specification: tiêu chí giảm tốc của x
 
 | Run ID | Kết quả |
 |---|---|
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S8b(c, d, e) có can thiệp; S8b(a, b, f) không có REQUEST; 0 lỗi phía test.

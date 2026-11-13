@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-088 |
 | Tái hiện | S7(a–d), S8(a–e) khi ghi kết quả SIL |
@@ -22,3 +22,5 @@ Chuyển giá trị và kết quả so sánh sang kiểu Python tại nơi tạo
 ## 4. Xác nhận
 
 Unit test serialize kết quả có PP-SWR-088. Chạy lại neo xe mục tiêu bằng cùng đầu vào.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): 0 lỗi bên chấm; kết quả PP-SWR-088 ghi được JSON ở mọi lần chạy S7, S8, S8b.

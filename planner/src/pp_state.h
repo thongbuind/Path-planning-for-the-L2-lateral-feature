@@ -32,6 +32,7 @@ typedef struct {
     pp_previous_path_t prev_path;   /* T4: path sent in the previous cycle */
     pp_limit_flag_t limit_flag;     /* T10: lateral_limit_reached */
     bool recentering;               /* T7: HWA brings the car back to the centre */
+    bool driver_override;           /* T4: driver_override of the last usable FunctionRequests */
     pp_active_function_t last_active; /* T9 result of the previous cycle */
     pp_arbitration_memory_t arbitration;
     pp_edge_memory_t edge_mem;

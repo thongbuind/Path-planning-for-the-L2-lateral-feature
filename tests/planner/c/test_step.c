@@ -351,8 +351,77 @@ static void test_longitudinal_plan_range(void)
     PP_CHECK_NEAR(out.trajectory.points[10].longitudinal_velocity_mps, 25.0, 1e-3);
 }
 
+/* 25 m/s straight, plus a lateral drift to the left of 0.5 m/s (the driver steering). */
+#define DRIFT_MPS (0.5)
+static void drifting_motion(void *context, const pp_ego_motion_request_t *request,
+                            pp_ego_motion_response_t *response)
+{
+    (void)context;
+    const double dt = (double)(request->t2_us - request->t1_us) * 1e-6;
+    response->valid = true;
+    response->dx = (float)(25.0 * dt);
+    response->dy = (float)(DRIFT_MPS * dt);
+    response->dyaw = 0.0F;
+}
+
+/* Cycle k after T0: fresh inputs, the lines moved right in base_link by the drift. */
+static void drift_inputs(pp_planner_inputs_t *in, unsigned k, bool override)
+{
+    const uint64_t t = T0 + ((uint64_t)k * PP_PLANNER_PERIOD_US);
+    fresh_chassis(in, t);
+    fresh_requests(in);
+    const float shift = (float)(DRIFT_MPS * (double)(t - T0) * 1e-6);
+    in->lane_model.message.lines[1].c0 = 0.3F + 1.75F - shift;
+    in->lane_model.message.lines[2].c0 = 0.3F - 1.75F - shift;
+    /* v_y stays 0: the planner does not see the drift coming, as when the driver starts
+     * to steer; the old path then does not follow the car. */
+    in->vehicle_state.message.lateral_velocity = 0.0F;
+    in->function_requests.message.driver_override = override;
+}
+
+static void test_driver_override_path_starts_at_car(void)
+{
+    pp_planner_outputs_t out;
+    pp_planner_inputs_t in = inputs();
+    PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
+    unsigned k = 0U;
+    /* Without override the start is stitched to the old path, which the car leaves. */
+    for (; k < 10U; k++) {
+        drift_inputs(&in, k, false);
+        pp_step(memory, &in, drifting_motion, NULL, &out);
+        PP_CHECK(out.path_status.path_valid);
+    }
+    PP_CHECK(fabs((double)out.trajectory.points[0].pose.y) > 0.05);
+    /* PP-SWR-039: while the driver overrides, point 0 is the car. */
+    for (; k < 14U; k++) {
+        drift_inputs(&in, k, true);
+        pp_step(memory, &in, drifting_motion, NULL, &out);
+        PP_CHECK(out.path_status.path_valid);
+        PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
+        PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 0.01);
+        /* PP-TS-017 V2: parallel to the lane at the car's offset, not pulled to the centre. */
+        PP_CHECK_NEAR(out.trajectory.points[30].pose.y, out.trajectory.points[0].pose.y, 0.01);
+    }
+    /* PP-SWR-040: the first HWA path after the override starts at the car. */
+    drift_inputs(&in, k, false);
+    pp_step(memory, &in, drifting_motion, NULL, &out);
+    PP_CHECK(out.path_status.path_valid);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
+    PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 0.01);
+    /* Then back towards the centre, left of the car (the car is right of the centre). */
+    for (k++; k < 40U; k++) {
+        drift_inputs(&in, k, false);
+        in.lane_model.message.lines[1].c0 = 0.3F + 1.75F - (float)(DRIFT_MPS * 0.35);
+        in.lane_model.message.lines[2].c0 = 0.3F - 1.75F - (float)(DRIFT_MPS * 0.35);
+        pp_step(memory, &in, ego_motion, NULL, &out);
+        PP_CHECK(out.path_status.path_valid);
+    }
+    PP_CHECK(out.trajectory.points[30].pose.y > 0.05F);
+}
+
 int main(void)
 {
+    test_driver_override_path_starts_at_car();
     test_hwa_path_from_car_to_centre();
     test_no_lane_model_means_no_path();
     test_stale_lane_model();

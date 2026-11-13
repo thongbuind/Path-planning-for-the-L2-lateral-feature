@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.14 |
+| Phiên bản | 1.16 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -72,13 +72,13 @@
 | a_y cần lớn nhất | Giá trị lớn nhất của a_y cần trên đoạn 0–3 s, chỉ xét phần trong tầm nhìn của lane model |
 | a_y thêm vào | a_y của path trừ a_y cần, tại cùng một điểm |
 | Jerk ngang của path | Đạo hàm theo thời gian của a_y của path, trung bình trượt 0,5 s |
-| Hai path liên tiếp | So trên đoạn thời gian cả hai cùng mô tả, chỉ ở các điểm của path mới nằm trong tầm nhìn mà lane model báo cho frame planner dùng ở chu kỳ đó; chu kỳ không có lane model thì cả path. Path cũ đưa về base_link của path mới bằng chuyển động thật của xe |
+| Hai path liên tiếp | So trên đoạn thời gian cả hai cùng mô tả, chỉ ở các điểm của path mới nằm trong tầm nhìn mà lane model báo cho frame planner dùng ở chu kỳ đó; chu kỳ không có lane model thì cả path. Path cũ đưa về base_link của path mới bằng chuyển động thật của xe. Không tính cặp path mà path mới thuộc chu kỳ có `driver_override = true`: khi tài xế ghi đè, path đi theo xe (PP-SWR-039) |
 | Biên làn đủ tin | Vạch L1, R1: status MEASURED, confidence ≥ `conf_ego`. Vạch L2, R2 hoặc mép đường, khi dùng để suy ra tâm làn: status MEASURED, confidence ≥ `conf_inferred` |
 | DLC | Như ADAS Function Specification, mục 5, tính trên làn thật và vị trí thật của xe |
 | DTLE | Khoảng cách từ mép ngoài lốp tới mép trong của vạch, nhỏ nhất trong một lần can thiệp; âm là đã vượt vạch (Euro NCAP) |
 | Khoảng trống mỗi bên | (bề rộng làn thật − bề rộng xe kể cả gương) / 2 |
 | Xe lớn | Vật thể ở làn bên kề, bề rộng ≥ 2,3 m |
-| Ngang hàng | Phần dọc của xe lớn chồng lên thân xe |
+| Ngang hàng | Phần dọc của xe kia chồng lên thân xe |
 | Khoảng hở tới xe lớn | Khoảng cách ngang từ thân xe (kể cả gương), khi xe ở tâm làn thật, tới mép gần nhất của xe lớn |
 | Điều kiện kết thúc | DLC ≥ 0 ở cả hai phía, trị tuyệt đối của v_lat ≤ `v_lat_end`, trị tuyệt đối của góc lệch so với hướng làn ≤ `heading_end`, trị tuyệt đối của a_y thêm vào ≤ `ay_add_end` |
 
@@ -214,7 +214,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-084 | Khi LKA báo COMPLETED, DLC ở phía xe đã trôi về phải ≥ 0 | Test, vòng kín: S4 | Functional | đề bài |
 | PP-SWR-085 | Sau một lần LKA hoặc ELK, DLC nhỏ nhất ở phía đối diện phải ≥ 0 | Test, vòng kín: S4, S4b, S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | đề bài |
 | PP-SWR-086 | DTLE nhỏ nhất trong một lần can thiệp phải ≥ −0,3 m với LKA và ELK vạch liền, và ≥ −0,1 m với ELK mép đường | Test, vòng kín: S4, S5, S6 | Regulatory, SG-03 | Euro NCAP Assessment 4.3.2, 4.3.3.3; EU 2021/646 3.6.2 |
-| PP-SWR-088 | Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó phải ≥ 0,3 m | Test, vòng kín: S7, S8 | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) là mức tối thiểu, 0,3 m theo LSS 7.4.7, nhóm chọn chặt hơn |
+| PP-SWR-088 | Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó khi hai xe ngang hàng phải ≥ 0,3 m | Test, vòng kín: S7, S8, S8b (c, d, e) | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) là mức tối thiểu, 0,3 m theo LSS 7.4.7, nhóm chọn chặt hơn |
 | PP-SWR-089 | Nếu ELK được yêu cầu khi lốp trước đã sang quá 0,3 m qua vạch phía side, thì planner không được bắt đầu can thiệp ELK đó | Test: S8 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-090 | Planner không được báo COMPLETED khi điều kiện kết thúc chưa giữ liên tục `T_end_hold` | Test: S4, S5 | Functional | nhóm tự thống nhất |
 | PP-SWR-091 | Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086 | Test, vòng kín: S13 (a, b) | Safety, SG-03 | nhóm tự thống nhất |
@@ -342,3 +342,5 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.12 | 2026-11-12 | Thêm PP-SWR-048: FunctionRequests quá tuổi 45 ms xử lý như chưa nhận. Lý do: Q3 ở 60 ms vượt tuổi tối đa của Interface Control Document mà SRS chưa nói planner phải làm gì (PP-PR-023) |
 | 1.13 | 2026-11-13 | Thêm PP-SWR-156: LongitudinalPlan ngoài dải xử lý như chưa nhận. Lý do: B0 C2 trượt, plan ở đầu cao của dải float32 làm Trajectory có vô cực (PP-PR-024). Kiểm chứng bằng F23 |
 | 1.14 | 2026-11-13 | PP-SWR-083 obsolete và ghi chú mục 8.6 theo PP-TS-016: R79 và EU 2021/646 chỉ đòi cảnh báo khi can thiệp quá 10 s; cắt ở 10 s đi ngược SG-02, SG-03. S8b (c) chuyển thành ca can thiệp ở PP-SWR-082, 085, 111, 113, 115 (PP-PR-027). Ảnh hưởng: Hazard Analysis and Risk Assessment mục 4, Software Architectural Design, Software Detailed Design T7, T9, Software Qualification Test Specification 5, 8.1, Mentor Report |
+| 1.15 | 2026-11-13 | PP-SWR-088 chỉ xét lúc hai xe ngang hàng; thêm S8b (c, d, e) vào cột Kiểm chứng; định nghĩa Ngang hàng dùng cho mọi xe. Lý do: khoảng hở ngang khi xe kia còn ở phía sau không cho biết rủi ro va chạm; S8b (c, d, e) là ELK vì xe ở làn bên (PP-PR-029). Ảnh hưởng: Software Qualification Test Specification 8.2, bên chấm |
+| 1.16 | 2026-11-13 | Định nghĩa Hai path liên tiếp: không tính cặp path trong lúc tài xế ghi đè. Lý do: khi tài xế lái, PP-SWR-039 và 100 không cùng thoả được; R79 5.6.4.3 ưu tiên tài xế (PP-TS-017, PP-PR-032). Ảnh hưởng: PP-SWR-100 đến 102 và các requirement dựa vào chúng; Software Qualification Test Specification 8.1; bên chấm |

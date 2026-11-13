@@ -1,0 +1,736 @@
+{
+ "verdict": "Không đạt",
+ "integrable": true,
+ "b0_blocked": false,
+ "runs": 396,
+ "counts": {
+  "BLOCKER": 10,
+  "MAJOR": 0,
+  "MINOR": 0
+ },
+ "failures": [
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F02e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1117834390422574,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F02e_on_VP-5_seed1.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 1 --fault F02 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F02e",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.1119911521293151,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F02e_on_VP-5_seed2.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 2 --fault F02 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F06a",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.34561527861904096,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F06a_on_VP-0_seed1.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 1 --fault F06 a --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F06a",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.6535287124353479,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F06a_on_VP-5_seed1.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 1 --fault F06 a --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F06a",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.35398916226977173,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F06a_on_VP-0_seed2.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 2 --fault F06 a --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1a_F06a",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.6613461150747668,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1a_F06a_on_VP-5_seed2.mcap",
+   "rerun": "python3 -m eval.runner S1 a --seed 2 --fault F06 a --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1c_F06e",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.03181616037670465,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1c_F06e_on_VP-0_seed1.mcap",
+   "rerun": "python3 -m eval.runner S1 c --seed 1 --fault F06 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1c_F06e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3358346014506849,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1c_F06e_on_VP-5_seed1.mcap",
+   "rerun": "python3 -m eval.runner S1 c --seed 1 --fault F06 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1c_F06e",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.026924314683317352,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1c_F06e_on_VP-0_seed2.mcap",
+   "rerun": "python3 -m eval.runner S1 c --seed 2 --fault F06 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1c_F06e",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.3310078503573073,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/matrix/M1/mcap/S1c_F06e_on_VP-5_seed2.mcap",
+   "rerun": "python3 -m eval.runner S1 c --seed 2 --fault F06 e --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  }
+ ],
+ "out_of_scope": [
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1848232327706968,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.18704449695514058,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1726568713983727,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-1"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.17531901445230313,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-1"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.2814086095192351,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-2"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.2835902707452863,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-2"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3421812883605223,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-3"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.34438582184595357,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-3"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3737039943608448,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-4"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.375867535873771,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-4"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.4967039943608448,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.498867535873771,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1848232327706968,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.18704449695514058,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-0"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1726568713983727,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-1"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.17531901445230313,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-1"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.2814086095192351,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-2"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.2835902707452863,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-2"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3421812883605223,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-3"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.34438582184595357,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-3"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3737039943608448,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-4"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.375867535873771,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-4"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.4967039943608448,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.498867535873771,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2c",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 c --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.023396568363829084,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 1 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.02382453147255026,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 2 --acc off --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.023396568363829084,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 1 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.02382453147255026,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2d",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner S2 d --seed 2 --acc on --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib  # profile VP-5"
+  }
+ ],
+ "not_judged": []
+}

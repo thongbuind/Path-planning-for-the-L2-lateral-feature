@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | Software Qualification Test Specification 11, C2 (hai đầu dải của input); Interface Control Document 4, 5.7; PP-SWR-010, 154, 156 |
 | Tái hiện | Lần chạy nháp: `python3 -m eval.conformance --planner build/planner/libpp_planner.dylib`, thư viện build lúc 12:38 ngày 2026-11-12, chưa có lần chạy chính thức |
@@ -38,3 +38,5 @@ Chọn 2026-11-13: kiểm dải và bỏ LongitudinalPlan ngoài dải, như inp
 ## 4. Xác nhận
 
 Chưa có lần chạy chính thức. Lần chạy nháp 2026-11-13 (thư viện `ecf2f153aeef-dirty`): B0 đạt C1, C2. Cần chạy lại B0 và F23 với thư viện build từ commit có bản sửa.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): B0 đạt C1, C2, không chặn; F23 30 lần chạy, không trượt.

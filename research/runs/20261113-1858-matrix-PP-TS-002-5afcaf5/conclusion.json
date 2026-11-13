@@ -1,0 +1,14 @@
+{
+ "verdict": "Đạt trong phạm vi đã thử",
+ "integrable": true,
+ "b0_blocked": false,
+ "runs": 24,
+ "counts": {
+  "BLOCKER": 0,
+  "MAJOR": 0,
+  "MINOR": 0
+ },
+ "failures": [],
+ "out_of_scope": [],
+ "not_judged": []
+}

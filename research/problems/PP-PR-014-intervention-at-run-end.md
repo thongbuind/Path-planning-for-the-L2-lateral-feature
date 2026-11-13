@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ xác nhận chính thức |
+| Trạng thái | Bỏ; PP-SWR-083 obsolete (PP-TS-016) |
 | Mở ngày | 2026-11-12 |
 | Requirement bị ảnh hưởng | PP-SWR-083 |
 | Tái hiện | S4(d, e), seed 1. Lần can thiệp mới bắt đầu sau các lần đã COMPLETED, sát lúc kết thúc mô phỏng |
@@ -22,3 +22,5 @@ Chấm các lần có kết thúc quan sát được hoặc đã qua hạn. Báo
 ## 4. Xác nhận
 
 Unit test với lần đầu kết thúc đúng hạn và lần kế tiếp còn ACTIVE khi log dừng. Unit test với ACTIVE quá hạn. Chạy lại các neo bằng cùng bộ đầu vào.
+
+PP-SWR-083 obsolete theo PP-TS-016; bên chấm không còn tiêu chí thời lượng can thiệp. [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md) không có lỗi bên chấm.

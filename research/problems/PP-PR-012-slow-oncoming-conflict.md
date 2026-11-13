@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã cài PP-TS-009 V1, chờ xác nhận chính thức |
+| Trạng thái | Đã cài PP-TS-009 V1; xác nhận một phần: chưa có ca xe ngược chiều không xung đột |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-088, 089 |
 | Tái hiện | Phân tích hình học S7(a), Euro NCAP LSS 7.2.4.3. Giả sử VP-0 và xe mục tiêu đều rộng 1,90 m. Chưa chạy SIL |
@@ -22,3 +22,7 @@ Chốt hình học xe mục tiêu và quy tắc dự báo theo PP-TS-009 trướ
 ## 4. Xác nhận
 
 Kiểm bằng tín hiệu lý tưởng với bài xe ngược chiều trôi chậm. Chấm REQUEST, can thiệp, 088 và hành vi với xe không tạo xung đột.
+
+Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S7(a): PP-SWR-088, 089 đạt; PP-SWR-089 đo ở 6 lần chạy.
+
+Đánh giá lại 2026-11-13: chưa đủ điều kiện đóng. Mọi ca S7 trong lần chạy trên đều có xung đột và có can thiệp (PP-SWR-088 đạt, 0,43–1,10 m). Mục 4 còn đòi hành vi với xe không tạo xung đột: chưa có ca nào như vậy trong bộ hồi quy.

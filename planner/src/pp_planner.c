@@ -531,6 +531,13 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
         const double v_y = (in->vehicle_state != NULL)
                            ? (double)in->vehicle_state->lateral_velocity : 0.0;
         const double yaw_rate = (in->imu != NULL) ? (double)in->imu->yaw_rate_rps : 0.0;
+        /* PP-TS-017 (V2b, choice B). While the driver overrides, and in the first cycle after, the HWA path
+         * starts at the car (T4 step 2; PP-SWR-039, 040; R79 5.6.4.3: priority to the driver).
+         * The last usable FunctionRequests counts while none is usable. */
+        const bool override_now = (in->function_requests != NULL)
+                                  ? in->function_requests->driver_override : s->driver_override;
+        const bool follow_car = override_now || s->driver_override;
+        s->driver_override = override_now;
         pp_lane_at_t0_t lane;
 
         /* T1: a lane model that is not usable counts as no boundary at all (T2 coasts). */
@@ -635,12 +642,15 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
             pp_ref_walk_begin(&walker, &out->ref, &foot);
             pp_lateral_state(&foot, v, v_y, yaw_rate, &measured);                  /* T6 */
             bool from_old = false;
-            if (out->arbitration.cancelled) {
-                start = measured;                                      /* PP-SWR-036 */
+            if (out->arbitration.cancelled || follow_car) {
+                start = measured;                                      /* PP-SWR-036, 039, 040 */
             } else {
                 from_old = pp_stitch_start(&old, &out->ref, &measured, s->cal, &start); /* T4 step 2 */
             }
             update_recentering(s, in->function_requests, measured.d);
+            if (override_now) {
+                s->recentering = true;      /* after the override: back to the centre, T_recenter */
+            }
             /* T8: offset from a large vehicle in an adjacent lane; car front and rear
              * approximated from the wheelbase (VehicleConfig has no length). */
             const double wheelbase_m = (double)s->vehicle.wheelbase;
@@ -648,20 +658,24 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
                                                    (double)s->vehicle.vehicle_width,
                                                    wheelbase_m + 1.0, -1.0, s->cal, dt);
             pp_speed_profile(in->longitudinal_plan, t0_us, v, &speed);
-            /* HWA lane keeping: target d = 0, T8 Offset not yet (Software Detailed Design 10). */
+            /* T7 target: the T8 offset; while the driver overrides, the car's own offset, so the
+             * path runs parallel to the lane from the car and does not pull it back. */
+            const double d_target = override_now ? measured.d : offset;
 #ifdef PP_T7_QP
             /* Continuity is a cost of the QP; T4 steps 4, 5 still guarantee it. */
-            out->path_valid = generate_hwa_qp(s, &out->ref, &start, &speed, &old, from_old, offset,
+            out->path_valid = generate_hwa_qp(s, &out->ref, &start, &speed, &old, from_old, d_target,
                                               out->points, &out->samples);         /* T7 C, T11 */
 #else
             (void)from_old;
-            out->path_valid = generate_hwa(s, &out->ref, &start, &speed, offset, out->points,
+            out->path_valid = generate_hwa(s, &out->ref, &start, &speed, d_target, out->points,
                                            &out->samples);                         /* T7 A, T11 */
 #endif
             if (out->path_valid) {
                 const double wheelbase = (double)s->vehicle.wheelbase;
-                (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
-                                      out->points);                                /* T4 steps 4, 5 */
+                if (!override_now) {   /* T4 step 5: no blend while the driver overrides */
+                    (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
+                                          out->points);                            /* T4 steps 4, 5 */
+                }
                 (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
                                            &s->vehicle);                           /* T10 step 2 */
                 /* T10 steps 3, 4 on the larger of camera and fused curvature (safe side). */

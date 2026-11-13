@@ -20,7 +20,7 @@
 
 ## 3. Cách sửa
 
-Thuộc câu hỏi của PP-TS-001 (J0–J3). Hướng chung: cả làn dời một bước mà ego-motion không dời thì không nhận dù ổn định; coast theo T_coast rồi suy giảm. Cần giữ đúng các ca làn thật đổi (lối ra, nhập làn), nơi chỉ một biên dời.
+Thuộc câu hỏi của PP-TS-001 (J0–J3). J1 (song song, bề rộng) không bắt được ca này: cả làn dời, vẫn song song, bề rộng không đổi. Cần thêm một phép kiểm theo ego-motion: tốc độ dời ngang biểu kiến của cả làn (3,5 m trong 2 s, 1,75 m/s) so với chuyển động ngang của xe (gần 0). Lệch cho phép lấy theo sai số của ego-motion: bias yaw rate 0,3 °/s (PP-SWR-136) gây khoảng 0,26 m sau 2 s ở 25 m/s, nhỏ hơn nhiều so với 3,5 m. Hướng chung: cả làn dời một bước mà ego-motion không dời thì không nhận dù ổn định; coast theo T_coast rồi suy giảm. Cần giữ đúng các ca làn thật đổi (lối ra, nhập làn), nơi chỉ một biên dời.
 
 ## 4. Xác nhận
 

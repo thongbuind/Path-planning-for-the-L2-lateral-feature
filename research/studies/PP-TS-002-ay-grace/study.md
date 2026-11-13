@@ -34,6 +34,8 @@ Luật quyết định, thống nhất ngày 2026-11-11, trước khi chạy:
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
 | 20261111-1024-matrix-M1-b9e5d4d | A | Đăng ký lại. S1b a, b, c, e và S14a; ACC `on` và `ignore_limits`; VP-0 đến VP-5; seed 1, 2 |
+| [20261113-1858-matrix-PP-TS-002-5afcaf5](../../runs/20261113-1858-matrix-PP-TS-002-5afcaf5/summary.md) | A | Điều kiện mở lại: S1b d (camera thấy 40 m); ACC `on` và `ignore_limits`; VP-0 đến VP-5; seed 1, 2 |
+| [20261113-1851-matrix-M1-5afcaf5](../../runs/20261113-1851-matrix-M1-5afcaf5/summary.md) | A | S1b a, b, c, e và S14a trên `5afcaf5`; cùng kết quả với lần đầu |
 
 ## 5. Kết quả
 
@@ -46,15 +48,18 @@ Lốp trước đè vạch: số lần chạy có ít nhất một lần lốp t
 | S1b c (R = 300 m, 110 km/h) | 12/12 | 0/12 | 24,1 m/s | 2,0 s |
 | S1b e (clothoid 60 m) | 12/12 | 0/12 | 18,9 m/s | 2,5 s |
 | S14a | 12/12 | 0/12 | 20,0 m/s | 2,4–2,5 s |
+| S1b d (sau đỉnh dốc, thấy 40 m) | 12/12 | 0/12 | 20,1 m/s | 0,9 s |
 
 - Không giảm tốc thì xe luôn đè vạch; ACC đọc LateralLimits thì không lần nào. Cờ báo trước 2,0–2,6 s là đủ để ACC giảm tốc.
 - Theo luật ở mục 3, số liệu hiện có chọn A.
-- Chưa có ca thấy cua muộn: S1b d (đỉnh dốc) chưa có trong simulator. Đây đúng là ca mà B nhắm tới.
+- Ca thấy cua muộn S1b d (đỉnh dốc, camera thấy 40 m) là ca mà B nhắm tới. Cờ chỉ báo trước 0,9 s nhưng ACC vẫn giữ xe trong làn ở cả 12 lần chạy.
 
 ## 6. Đề xuất
 
 Chọn A cho BL1. Mở lại study khi S1b d có trong simulator; nếu S1b d với ACC `on` có xe ra khỏi làn thì chạy B.
 
 2026-11-13: S1b d đã có trong `S1b.anchors.xosc` (camera thấy 40 m). Người dùng đồng ý chạy điều kiện mở lại trước khi chốt A: `benchmark/suites/PP-TS-002.yaml`, S1b d, ACC `ignore_limits` và `on`, VP-0 đến VP-5, seed 1, 2. Cùng luật ở mục 3.
+
+Đã chạy điều kiện mở lại (2026-11-13): S1b d với ACC `on` không lần nào chạm vạch; cờ báo trước 0,9 s vẫn đủ để ACC giảm về 20,1 m/s. Với `ignore_limits`, PP-SWR-007 đạt ở cả 12 lần (cờ bật trước lúc chạm vạch). Theo luật ở mục 3: chọn A. Không cần chạy B.
 
 ## 7. Quyết định
