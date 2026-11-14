@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.16 |
+| Phiên bản | 1.17 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -68,7 +68,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | 1 | Kiểm tính nhất quán từng biên (bảng dưới). Biên đủ tin = đạt điều kiện ở Software Requirements Specification mục 4 và nhất quán |
 | 2 | L1 và R1 cùng đủ tin: tâm làn = (y_L1 + y_R1) / 2. Cập nhật w_mem và mọi o_k bằng lọc thông thấp hằng số thời gian `tau_mem`, chỉ khi bề rộng đo trong 2,5–5,5 m; đặt lại σ_o,k = `sigma_mem0` |
 | 3 | Chỉ một trong L1, R1 đủ tin: tâm làn = biên đó ∓ w_mem/2. Không cập nhật bộ nhớ |
-| 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây |
+| 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây. Nếu vạch làn mình chỉ bị loại ở kiểm nhất quán (không mất, vẫn đủ tin theo SRS 4), làm bước 5 trước; hết `T_coast` mới suy tâm |
 | 5 | Không còn biên nào đủ tin, kể cả khi lane model không hợp lệ: bám reference line cũ đã dời bằng ego-motion tối đa `T_coast`, path nối tiếp path cũ qua T4; rồi `path_valid = false` |
 | 6 | Biên làn của reference line = tâm làn ± w/2, dùng cho khoảng hở (T8) và corridor (T7). Khoảng trống mỗi bên = (w − `vehicle_width`) / 2; nhỏ hơn `free_space_min` thì `lane_too_narrow = true` |
 
@@ -264,3 +264,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.14 | 2026-11-14 | T1 bước 1: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5 và giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035. Ảnh hưởng: PP-SWR-129, 130 |
 | 1.15 | 2026-11-14 | HWA: T10 bước 2 cắt path ứng viên trước T4 bước 4, rồi kiểm lại path gửi. Lý do: PP-TS-003 chọn V0b (20261114-1934-study-PP-TS-003-272a711); T10 sau T4 phá liên tục ở cua tại aysmax (PP-PR-005, 006). Ảnh hưởng: PP-SWR-100 đến 102, 001; T4, T10 |
 | 1.16 | 2026-11-14 | T2: khi đang có ứng viên, frame khớp ứng viên hơn bộ nhớ thì tính cho ứng viên. Lý do: PP-PR-048; hình dạng sai ngắn hơn `T_confirm` lọt qua bộ nhớ cũ và không để lại vị trí cũ cho R2 (F06 c). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
+| 1.17 | 2026-11-14 | T2 bước 4: vạch làn mình bị loại ở kiểm nhất quán thì bám reference line cũ trước khi suy tâm từ biên ngoài. Lý do: PP-PR-052; một frame nhiễu làm tâm thành suy ra và LKA bị hủy (G01 trên S4c). Ảnh hưởng: PP-SWR-047, 030; T2 |

@@ -184,6 +184,33 @@ static void test_inferred_centre_uses_remembered_offsets(void)
     PP_CHECK(!ref.valid);
 }
 
+static void test_rejected_ego_line_coasts_before_inference(void)
+{
+    /* PP-PR-052: an ego-lane line only rejected by the consistency check is a suspected
+     * glitch, not a lost line. Coast on the last direct reference line first; infer from
+     * outer boundaries only once coasting has ended. */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    lane.boundary[PP_LINE_L2] = line_at(5.25, 0.0, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    lane.boundary[PP_LINE_L1].present = false;               /* F04: one line lost */
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && !ref.inferred && !ref.coasting);   /* R1 + w_mem / 2 */
+    lane.boundary[PP_LINE_R1].poly.c[0] -= 0.6;               /* one noisy frame of R1 */
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.line_rejected[1]);
+    PP_CHECK(ref.valid && ref.coasting && !ref.inferred);
+    PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-9);
+    const int coast = (int)lround((double)pp_calibration.T_coast / DT);
+    for (int i = 0; i < coast; i++) {
+        lane.boundary[PP_LINE_R1].poly.c[0] = -1.75 - 0.6 - 0.6 * (double)(i % 2);  /* flicker */
+        pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    }
+    PP_CHECK(ref.valid && ref.inferred && !ref.coasting);    /* coasting over: infer from L2 */
+}
+
 static void test_inference_needs_a_known_boundary(void)
 {
     pp_reference_memory_t mem;
@@ -369,6 +396,7 @@ int main(void)
     test_no_trusted_line();
     test_inferred_centre_uses_remembered_offsets();
     test_inference_needs_a_known_boundary();
+    test_rejected_ego_line_coasts_before_inference();
     test_width_memory_filters_and_rejects();
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();

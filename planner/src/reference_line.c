@@ -337,11 +337,18 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
 
     bool outer_trusted[PP_OUTER_BOUNDARIES];
     update_outer(mem, lane, cycle_motion, cal, dt, measured_ref, outer_trusted);
-    if (!left_ok && !right_ok && mem->width_valid) {
+    /* An ego-lane line rejected by the consistency check is a suspected glitch, not a lost
+     * line: coast on the last direct reference line first, infer only after (PP-PR-052). */
+    const bool suspected = out->line_rejected[0] || out->line_rejected[1];
+    const bool may_infer = !left_ok && !right_ok && mem->width_valid;
+    if (may_infer && !suspected) {
         infer_centre(mem, lane, outer_trusted, out);
     }
     if (!out->valid) {
         coast(mem, cycle_motion, cal, dt, out);
+    }
+    if (!out->valid && may_infer && suspected) {
+        infer_centre(mem, lane, outer_trusted, out);
     }
 
     if (out->valid && !out->coasting) {
