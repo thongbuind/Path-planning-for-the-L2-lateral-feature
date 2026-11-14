@@ -184,7 +184,7 @@ static void test_inferred_centre_uses_remembered_offsets(void)
     PP_CHECK(!ref.valid);
 }
 
-static void test_inference_needs_a_known_boundary()
+static void test_inference_needs_a_known_boundary(void)
 {
     pp_reference_memory_t mem;
     pp_reference_line_t ref;
