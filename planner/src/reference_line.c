@@ -97,6 +97,41 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
     return true;
 }
 
+/* Largest of the normalised differences used by consistent(): c0 and the shape samples. */
+static double mismatch(const pp_boundary_t *b, const pp_line_track_t *t)
+{
+    double worst = fabs(b->poly.c[0] - t->poly.c[0]) / sqrt(b->variance[0] + t->variance[0]);
+    const double lo = fmax(0.0, fmax(b->view_start, t->view_start));
+    const double hi = fmin(b->view_end, t->view_end);
+    if (hi > lo) {
+        const double fractions[] = {0.5, 0.75};
+        for (size_t i = 0U; i < sizeof(fractions) / sizeof(fractions[0]); i++) {
+            const double x = lo + fractions[i] * (hi - lo);
+            double variance = 0.0;
+            double power = 1.0;
+            for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
+                variance += power * (b->variance[k] + t->variance[k]);
+                power *= x * x;
+            }
+            const double delta = pp_cubic_value(&b->poly, x) - pp_cubic_value(&t->poly, x);
+            worst = fmax(worst, fabs(delta) / sqrt(variance));
+        }
+    }
+    return worst;
+}
+
+/*
+ * R1 while a change is pending (PP-PR-048): the accepted memory is only moved by
+ * ego-motion, so the window both frames observe shrinks and the shape test weakens. A frame
+ * that fits the pending candidate better than the aged memory continues the candidate.
+ */
+static bool continues_candidate(const pp_boundary_memory_t *m, const pp_boundary_t *b,
+                                const pp_calibration_t *cal)
+{
+    return m->candidate.valid && consistent(b, &m->candidate, cal)
+        && (mismatch(b, &m->candidate) < mismatch(b, &m->accepted));
+}
+
 /* Step 1: SRS 4 condition and the consistency check against the memory, with R1 and R2. */
 static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
                        const pp_calibration_t *cal, double confidence, double dt, bool *rejected)
@@ -117,7 +152,8 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
         }
     } else {
         m->absent_s = 0.0;
-        if (!m->accepted.valid || consistent(b, &m->accepted, cal)) {
+        if (!m->accepted.valid
+            || (consistent(b, &m->accepted, cal) && !continues_candidate(m, b, cal))) {
             set_track(&m->accepted, b, 0.0);
             m->candidate.valid = false;
             trusted = true;
