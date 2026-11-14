@@ -1,21 +1,34 @@
 # Evaluation plan of PP-TS-003 (research/README.md, step 2). Not locked: waiting for review.
+# Suite PP-TS-003 replaces P1 (2026-11-14): P1 had none of the PP-SWR-100 failure groups of
+# regression d7ed84c. V0b, V1b added 2026-11-14: T10 before the T4 blend (PP-PR-005, 006).
+# Tuning budget: none proposed; every variant runs at the start calibration. Change before
+# locking if a weight sweep of the QP is wanted (then the same number of sets per variant).
 id: PP-TS-003
 locked: null
-suite: P1               # tuning and test runs of benchmark/suites/P1.yaml, its seeds and scope
+suite: PP-TS-003        # benchmark/suites/PP-TS-003.yaml: its tuning and test runs, seeds and scope
 parts: [tuning, test]
 equal_within:
   PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
   PP-SWR-002: 0.05
 variants:
   V0:
     description: Quintic theo thời lượng (T7 A), T4 trộn, T10 cắt
     calibration: {}
-    cmake: {PP_T7: quintic}
+    cmake: {PP_T7: quintic, PP_T10_BEFORE_T4: 'OFF'}
+  V0b:
+    description: Như V0, T10 cắt path ứng viên trước khi T4 trộn, rồi kiểm lại
+    calibration: {}
+    cmake: {PP_T7: quintic, PP_T10_BEFORE_T4: 'ON'}
   V1:
     description: QP hợp nhất (T7 C), phạt a_y vượt 2,0 m/s²
     calibration: {}
-    cmake: {PP_T7: qp}
+    cmake: {PP_T7: qp, PP_T10_BEFORE_T4: 'OFF'}
+  V1b:
+    description: Như V1, T10 cắt path ứng viên trước khi T4 trộn, rồi kiểm lại
+    calibration: {}
+    cmake: {PP_T7: qp, PP_T10_BEFORE_T4: 'ON'}
   V2:
     description: QP hợp nhất (T7 C), phạt thẳng a_y² (qp_a_comfort = 0)
     calibration: {qp_a_comfort: 0.0}
-    cmake: {PP_T7: qp}
+    cmake: {PP_T7: qp, PP_T10_BEFORE_T4: 'OFF'}

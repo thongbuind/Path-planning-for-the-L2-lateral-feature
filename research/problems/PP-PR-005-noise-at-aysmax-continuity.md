@@ -32,6 +32,8 @@
 
 Đưa ràng buộc liên tục với path cũ và ràng buộc a_y vào cùng một bài toán: QP hợp nhất của PP-TS-003. Không vá riêng T10.
 
+**Lần dò 2026-11-14 (nháp).** Ngoài QP, đặt T10 cắt path ứng viên trước khi T4 trộn (V0b của PP-TS-003) cũng đưa S1 c + F01 a từ 0,095 về 0,047 m và S12 a từ 0,088 về 0,047 m, seed 1. Tổ hợp lồi của hai path khả thi vẫn khả thi, nên T10 không phá liên tục sau khi trộn.
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |

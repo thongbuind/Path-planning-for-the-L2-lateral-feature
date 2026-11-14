@@ -18,6 +18,8 @@
 | ID | Phương án | Cách cài | Ghi chú |
 |---|---|---|---|
 | V0 | Quintic theo thời lượng (T7 A), T4 trộn, T10 cắt | `PP_T7=quintic` | Mốc |
+| V1b | Như V1, cùng thứ tự T10 trước T4 | `PP_T7=qp`, `PP_T10_BEFORE_T4=ON` | Thêm sau lần dò 2026-11-14: thứ tự này cũng gỡ PP-PR-006 |
+| V0b | Như V0, nhưng T10 cắt path ứng viên trước khi T4 trộn, rồi kiểm lại path gửi | `PP_T7=quintic`, `PP_T10_BEFORE_T4=ON` | Đối chứng rẻ cho PP-PR-005: tổ hợp lồi của hai path khả thi vẫn khả thi (Software Detailed Design mục 7), nên T10 không còn phá liên tục sau khi trộn |
 | V1 | QP hợp nhất (T7 C): biến là jerk trên 30 bước; chi phí jerk, lệch tâm, cuối horizon, a_y vượt `qp_a_comfort`, ra ngoài corridor; ràng buộc a_y ≤ `qp_ay_margin`·aysmax, liên tục với path cũ | `PP_T7=qp` | Cắt cua chỉ xuất hiện khi ràng buộc chạm |
 | V2 | Như V1, `qp_a_comfort` = 0: phạt thẳng a_y² | `PP_T7=qp`, calibration | Cùng công thức: σ ≥ trị tuyệt đối của a_y |
 
@@ -35,7 +37,7 @@ Câu hỏi con: bộ giải ADMM tự viết hay OSQP. Chọn ADMM tự viết (
 
 ## 3. Cách đánh giá
 
-Chưa khóa.
+Chưa khóa. Bản nháp 2026-11-14: [plan.yaml](plan.yaml), suite [PP-TS-003](../../../benchmark/suites/PP-TS-003.yaml), chọn từ các nhóm trượt PP-SWR-100 của [20261114-1021-suite-regression-d7ed84c](../../runs/20261114-1021-suite-regression-d7ed84c/report.md) cùng các ca danh định S1, S1b, S2, S3. Bảng dưới là bản trước đó.
 
 | Mục | Nội dung |
 |---|---|
@@ -69,6 +71,20 @@ Chưa khóa.
 | a_y path thấp hơn aysmax khi a_y cần vượt aysmax | Chi phí comfort kéo a_y xuống | Bỏ comfort ở các điểm đó |
 | S3: dời tâm chậm hơn V0 khoảng 1,5 s | Chi phí liên tục giữ path ở chỗ cũ khi offset mục tiêu đổi | Dời path cũ theo phần offset vừa đổi |
 | Còn lại: S1b b, e trượt PP-SWR-100 | Xe bám trễ lúc vào cua, stitching reset | PP-PR-006, chưa sửa |
+
+**Lần dò 2026-11-14 (nháp, chỉ để dò lỗi, không dùng để quyết định).** Seed 1, VP-0; thư viện build từ cây làm việc. PP-SWR-100 [m]:
+
+| Ca | V0 | V0b | V1 | V1b |
+|---|---|---|---|---|
+| S12 a | 0,088 (trượt) | 0,047 | 0,048 | 0,047 |
+| S1 c + F01 a | 0,095 (trượt) | 0,047 | 0,020 | 0,020 |
+| S1b b | 0,047 | 0,048 | 0,065 (trượt) | 0,048 |
+| S1b e | 0,044 | 0,048 | 0,070 (trượt) | 0,048 |
+| S1 a, S1b a | Đạt | Đạt | Đạt | Đạt |
+
+- Đặt T10 trước T4 gỡ cả cơ chế của PP-PR-005 (quintic) lẫn PP-PR-006 (QP).
+- Với T10 trước T4, lệch thường dừng ở 0,047–0,048 m: bước 4 kéo về `cont_margin`·0,05 = 0,045 m, lần T10 kiểm lại thêm 2–3 mm. Còn ít biên tới 0,05 m.
+- B0 nháp của V1, V1b: đạt C1, C2, C3 (C1.layout không kiểm vì bản build nháp không có probe).
 
 ## 6. Đề xuất
 

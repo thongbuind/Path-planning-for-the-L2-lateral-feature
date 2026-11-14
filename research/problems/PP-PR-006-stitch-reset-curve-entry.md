@@ -37,6 +37,8 @@ Phân tích thêm 2026-11-13:
 
 Chỉnh `qp_w_jerk` (3, 10, 30) trên lần chạy nháp: không sửa được S1b e và làm thời gian tính tăng, nên không chọn.
 
+**Lần dò 2026-11-14 (nháp).** Đặt T10 cắt path ứng viên trước khi T4 trộn (`PP_T10_BEFORE_T4`) đưa S1b b, e với T7 C từ 0,065, 0,070 m về 0,048 m, seed 1. Phần lệch còn lại sau khi trộn đến từ T10 chạy sau bước 4, không phải từ bước 2. Hướng A không cần làm riêng; so trong PP-TS-003 (V1b).
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
