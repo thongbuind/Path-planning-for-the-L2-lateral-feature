@@ -7,6 +7,7 @@ import pytest
 import interfaces as I
 from eval import aspects, labels, loader, metrics
 from sim.harness import PlannerCycle
+from sim.world.road import Road, RoadEdgeSpec, RoadLayout, Segment
 
 A, F = I.ActiveFunction, I.InterventionPhase
 
@@ -158,3 +159,39 @@ def test_predicted_or_low_confidence_boundaries_are_not_enough():
     # L2, R2 measured but below conf_inferred (F21 e): not enough
     assert not metrics.lane_usable(with_b(((M, 0.7), (L, 0.0), (L, 0.0), (M, 0.7), (L, 0.0), (L, 0.0))), cal)
     assert metrics.lane_usable(with_b(((M, 0.9), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0))), cal)
+
+
+def test_outer_boundary_requires_a_valid_path_and_disallows_lka():
+    lost = (I.LineStatus.LOST, 0.0)
+    measured = (I.LineStatus.MEASURED, 0.9)
+    boundaries = (measured, lost, lost, lost, lost, lost)
+    cycles = [
+        replace(_fc(0), lane_boundaries=boundaries),
+        replace(_fc(1, valid=False), lane_boundaries=boundaries),
+        replace(_cycle(2, active=A.LKA), lane_boundaries=boundaries),
+        replace(_fc(3, valid=False, inputs={**OK, "imu": False}), lane_boundaries=boundaries),
+    ]
+    road = Road([Segment("straight", 100.0)], 3.5)
+    log = type("Log", (), {"road": road})()
+    criteria = _ids(metrics.boundary_fallback_criteria(log, cycles, {"conf_ego": 0.6, "conf_inferred": 0.8}))
+    assert criteria["PP-SWR-147"].value == 1 and criteria["PP-SWR-147"].first_fail_s == pytest.approx(0.025)
+    assert criteria["PP-SWR-047"].value == 1 and criteria["PP-SWR-047"].first_fail_s == pytest.approx(0.05)
+
+
+@pytest.mark.parametrize("right_offset, fails", [(-1.75, 0), (-5.25, 1)])
+def test_outer_edge_does_not_qualify_for_road_edge_elk_exception(right_offset, fails):
+    lost = (I.LineStatus.LOST, 0.0)
+    measured = (I.LineStatus.MEASURED, 0.9)
+    cycle = _cycle(0, active=A.ELK)
+    requests = cycle.function_requests.message.requests
+    elk = I.FunctionRequest(I.RequestState.REQUEST, I.Side.RIGHT, 0.5, I.ElkReason.ROAD_EDGE,
+                            I.CancelReason.NONE)
+    inputs = replace(cycle.function_requests, message=replace(cycle.function_requests.message,
+                     requests=(*requests[:2], elk)))
+    cycle = replace(cycle, function_requests=inputs, lane_boundaries=(lost,) * 4 + (measured,) * 2)
+    layout = RoadLayout((None,) * 4, tuple(RoadEdgeSpec(d, I.RoadEdgeType.CURB) for d in (1.75, right_offset)))
+    road = Road([Segment("straight", 100.0)], 3.5, layout)
+    log = type("Log", (), {"road": road})()
+    cal = {"conf_ego": 0.6, "conf_inferred": 0.8, "conf_edge": 0.7}
+    c = _ids(metrics.boundary_fallback_criteria(log, [cycle], cal))["PP-SWR-047"]
+    assert c.applicable and c.value == fails

@@ -40,7 +40,7 @@ Nguồn liên quan:
 | V1 | 090 giữ chặt trên trạng thái thật. 032 cho phép muộn tới `T_end_late` sau tick thật (nhóm tự thống nhất; giới hạn trên chọn sao cho tổng thời lượng can thiệp không đổi đáng kể). Planner thêm biên cho sai số ước lượng (ngưỡng trừ một bội phương sai lane model báo) để không báo sớm |
 | Loại | Chấm cả hai trên ước lượng planner gửi: trái quy tắc đo trên chuyển động thật |
 
-Đề xuất V1. PP-PR-020 xử lý cùng study.
+Đề xuất V1. [PP-TS-018](../studies/PP-TS-018-intervention-completion-window/study.md) theo dõi lựa chọn này và PP-PR-020.
 
 ## 4. Xác nhận
 

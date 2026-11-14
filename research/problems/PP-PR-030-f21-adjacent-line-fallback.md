@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân: bước 4 của T2 chưa cài |
+| Trạng thái | Đã cài bước 4 của T2, chờ hồi quy chính thức |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-147; lộ qua PP-SWR-030 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F21 a, b, d trên S1a, mọi profile được chạy, seed 1 |
@@ -39,12 +39,15 @@ Nguồn liên quan:
 
 ## 3. Cách sửa
 
-- Cài bước 4 của T2 theo Software Detailed Design mục 5: tâm làn suy từ L2, R2 (dời một bề rộng làn đã nhớ) khi độ tin ≥ `conf_inferred`; đặt `inferred = true` để PP-SWR-047 chặn LKA, ELK.
+- Cài bước 4 của T2 theo Software Detailed Design mục 5. Học khoảng cách tới tâm làn từ từng biên ngoài khi cả L1 và R1 đủ tin. Khi mất hai vạch, kết hợp các biên ngoài đã có liên hệ với làn bằng trọng số nghịch đảo phương sai. Giữ cờ `inferred` cả khi coast từ tâm suy ra để áp PP-SWR-047.
 - Giữ F21 e dừng như hiện tại (độ tin dưới `conf_inferred`).
 - Đồng thời xem lại `coast_ok` (PP-PR-037): hai chỗ cùng dựa vào biên ngoài làn.
 - Bên chấm thêm tiêu chí 147 theo PP-PR-031 trước khi xác nhận.
+- F21(c) dùng đường có mép phải ở ngoài hành lang ego. F21(d) giữ đường R = 500 m khi sinh từ ca chủ. Hai cấu hình hình học này sửa điểm lệch giữa ca sinh và SQTS.
 
 ## 4. Xác nhận
+
+SIL cục bộ trên bộ F21 đã sinh lại đạt 30/30 lượt. PP-SWR-147 và 047 áp dụng ở 24 lượt F21(a–d), PP-SWR-124 áp dụng ở 6 lượt F21(e). Kết quả chờ ghi trên baseline sạch.
 
 | Run ID | Kết quả |
 |---|---|

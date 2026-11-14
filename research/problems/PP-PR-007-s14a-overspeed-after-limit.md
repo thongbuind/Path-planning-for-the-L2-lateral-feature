@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết B; chờ ghi giới hạn vào Software Requirements Specification |
+| Trạng thái | Đã đưa phương án B vào Software Requirements Specification 1.17 |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-051 |
 | Tái hiện | 20261111-1443-suite-regression-ef8bf4b, `S14-a-VP-*` (speed 36,1 m/s, ACC on), seed 1, 2 |
@@ -14,7 +14,7 @@
 
 ## 2. Nguyên nhân
 
-- Để vào cua với a_y ≤ aysmax cần v ≤ 22,4 m/s. Giảm từ 36,1 m/s ở 2 đến 3 m/s² cần khoảng 200 m; camera chỉ thấy khoảng 80 m.
+- Để vào cua với a_y ≤ aysmax cần v ≤ 22,4 m/s. Giảm từ 36,1 m/s ở 2 đến 3 m/s² cần khoảng 134–201 m; camera chỉ thấy khoảng 80 m.
 - Khối dọc giảm tốc từ 3,5 s. Planner bật cờ giới hạn từ 4,0 s và giữ a_y ở aysmax (đúng PP-SWR-005, 006, 007). Xe trôi ra ngoài 3 m trước khi tốc độ đủ thấp.
 - PP-SWR-051 chỉ chấm ở chu kỳ có a_y cần ≤ aysmax. Các chu kỳ đó tới khi xe đã ở ngoài làn, hệ quả của đoạn vượt giới hạn trước đó.
 
@@ -31,8 +31,8 @@ Quyết định: thongbui, 2026-11-13, chọn B. A che mọi lần xe rời làn
 
 Việc còn lại:
 
-- Ghi giới hạn vào Software Requirements Specification (ODD, hoặc Assumptions and dependencies).
-- Kiểm dải tốc độ theo bán kính của bộ sinh ca S14 bằng một tiêu chuẩn thiết kế đường. Chưa có nguồn, cần chốt.
+- Đã ghi giới hạn vào Software Requirements Specification mục 5. PP-SWR-051 giữ nguyên điều kiện chấm.
+- Đối chiếu dải tốc độ sinh ca S14 với tiêu chuẩn thiết kế đường là câu hỏi riêng về phân bố ca. Ca đã ghi nhận vẫn được giữ để kiểm giới hạn planner và bộ dọc.
 
 ## 4. Xác nhận
 

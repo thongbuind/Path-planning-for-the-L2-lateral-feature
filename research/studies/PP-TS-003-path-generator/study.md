@@ -72,4 +72,8 @@ Chưa khóa.
 
 ## 6. Đề xuất
 
+Giữ quintic làm mốc trong lúc kiểm PP-PR-006. Với mọi phương án T7, chạy B0 trước khi so sánh. Bản QP đã có kiểm tra miền biểu diễn float32 tại T11 cho các đầu dải của `VehicleStateEstimate`.
+
+Bộ P1 trong `plan.yaml` chưa chứa S14 hoặc toàn bộ điều kiện xếp hạng ở mục 3. Chốt bộ giữ lại có S14(e), chuẩn hóa ngân sách calibration giữa V0–V2 và so trên nhiều profile trước khi chọn generator.
+
 ## 7. Quyết định

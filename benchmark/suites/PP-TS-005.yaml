@@ -1,0 +1,45 @@
+# Tuning and test runs of PP-TS-005 (research/studies/PP-TS-005-lane-fit-error). Draft, not
+# locked: waiting for review. S-bends and short reverse curves that a cubic lane model cannot
+# represent are tuned on S1 d (R = 500 m at 90 km/h); the R171 S-bend (S1 f, S14 e) is test only.
+# The last element of a run may set simulator values (camera view range, ACC mode),
+# read by eval.sweep.load_run.
+id: PP-TS-005
+title: Sai số khớp đa thức của lane model
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F01: [PP-SWR-003]
+  F02: []
+  F06: [PP-SWR-125]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, d]
+    - [S1, b]
+    - [S1b, a]
+    - [S1, a, F01, c]
+    - [S1, a, F06, a]
+    - [S1, c, F02, a]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S1, g]
+    - [S1, c]
+    - [S1, e]
+    - [S1b, b]
+    - [S1b, c]
+    - [S14, e, {acc: "on"}]
+    - [S14, e, {acc: "ignore_limits"}]
+    - [S14, a, {acc: "on"}]
+    - [S1, f, {camera_view_m: 40}]
+    - [S1, a, F01, b]
+    - [S1, c, F01, c]
+    - [S1, a, F06, b]
+    - [S1, c, F06, e]
+    - [S1, c, F02, e]

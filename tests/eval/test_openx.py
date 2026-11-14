@@ -328,6 +328,20 @@ def test_lane_faults_run_on_every_host_anchor():
                 assert all(f'-{host}-' in c['id'] for c in cases)
 
 
+def test_f21_preserves_geometry_needed_by_its_fault_anchors():
+    plan = generate.plan("regression")
+    paths = {"c": "../roads/F21c.xodr", "d": "../roads/S1b.xodr"}
+    for anchor, path in paths.items():
+        cases = [c for c in plan["cases"] if c["family"] == "F21" and c["anchor"] == anchor]
+        assert cases and {c["parameters"]["road_file"] for c in cases} == {path}
+        for case in cases:
+            scenario = openx.load_scenario(BENCHMARK / "faults/F21.xosc", case["parameters"])
+            if anchor == "c":
+                assert scenario.road_layout.edges[1].offset_m < -scenario.lane_width / 2
+            else:
+                assert max(s.curvature_end for s in scenario.segments) == pytest.approx(1 / 500)
+
+
 def test_suite_runs_keep_order_and_isolate_errors(monkeypatch):
     monkeypatch.syspath_prepend(str(Path(__file__).parent))  # child processes inherit sys.path
     import _fake_runs

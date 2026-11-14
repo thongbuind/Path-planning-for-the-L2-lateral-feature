@@ -173,6 +173,9 @@ def plan(name):
                 def on_host(params, host_params):
                     # Host geometry; expected outcome the stricter of fault and host (5.3).
                     merged = {**params, **{k: v for k, v in host_params.items() if k != 'host_expected_outcome'}}
+                    # An anchor may need physical geometry that the generic fault hosts lack.
+                    if params['road_file'] != nominal['road_file']:
+                        merged['road_file'] = params['road_file']
                     if 'expected_outcome' in merged:
                         merged['expected_outcome'] = labels.stricter(merged['expected_outcome'],
                                                                      host_params.get('host_expected_outcome'))

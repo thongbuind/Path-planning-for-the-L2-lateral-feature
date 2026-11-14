@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã cài PP-TS-009 V1; xác nhận một phần: chưa có ca xe ngược chiều không xung đột |
+| Trạng thái | Đã cài PP-TS-009 V1; đã kiểm cục bộ ca đối chứng không xung đột |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-088, 089 |
 | Tái hiện | Phân tích hình học S7(a), Euro NCAP LSS 7.2.4.3. Giả sử VP-0 và xe mục tiêu đều rộng 1,90 m. Chưa chạy SIL |
@@ -26,3 +26,5 @@ Kiểm bằng tín hiệu lý tưởng với bài xe ngược chiều trôi ch�
 Xác nhận chính thức [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): S7(a): PP-SWR-088, 089 đạt; PP-SWR-089 đo ở 6 lần chạy.
 
 Đánh giá lại 2026-11-13: chưa đủ điều kiện đóng. Mọi ca S7 trong lần chạy trên đều có xung đột và có can thiệp (PP-SWR-088 đạt, 0,43–1,10 m). Mục 4 còn đòi hành vi với xe không tạo xung đột: chưa có ca nào như vậy trong bộ hồi quy.
+
+Đối chứng cục bộ 2026-11-14: S7(a), VP-0, seed 1, chế độ B. Ca chuẩn phát ELK REQUEST phía trái ở 6,559 s. Khi dời xe ngược chiều thêm 200 m theo trục dọc và giữ cùng chuyển động trôi, không có ELK REQUEST. Cần đưa ca đối chứng vào bộ chạy để lặp lại chính thức.

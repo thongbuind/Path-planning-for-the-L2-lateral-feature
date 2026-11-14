@@ -9,7 +9,8 @@ B2:
   title: Regulatory
   # Standard grids of 5.1 (protocol rows) and the anchors named in the 5.1 table.
   methods: [protocol]
-  anchors: {S1: [f, g], S1b: [a, b, c, f], S14: [e], S5: [a, f], S9: [c]}
+  anchors: {S1: [f, g], S1b: [a, b, c, f], S14: [e], S5: [a, f], S9: [c],
+            S7: [a, b, c, d, e], S8: [a, b, c, d, e]}
   families: [F04, F21]
 B3: {title: Performance limit, difficulty: [L1, L2]}
 B4: {title: Robustness, difficulty: [L3, L4]}

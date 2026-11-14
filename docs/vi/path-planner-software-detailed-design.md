@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.11 |
+| Phiên bản | 1.12 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-14 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -146,7 +146,7 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 
 LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step`, tới `intervention_T_max`, nếu path ban đầu chưa đạt.
 
-- Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ưu tiên ứng viên thoả giới hạn và giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
+- Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ứng viên thoả giới hạn là ứng viên T10 bước 2 không cắt; ứng viên bị cắt chỉ dùng khi không còn ứng viên nào khác. Trong số đó, ưu tiên ứng viên giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
 - Giữ hệ số quintic và mốc bắt đầu trong suốt lần can thiệp. Mỗi chu kỳ lấy mẫu theo thời gian đã qua, dùng reference line hiện tại. Sau thời lượng quintic, mẫu ngang giữ đích và vận tốc ngang bằng 0 cho tới khi T9 kết thúc hoặc hủy.
 - Với ELK mép đường, dựng reference line từ mép nguy hiểm và biên đối diện đủ tin. Khi biên đối diện mất, dùng lại bề rộng đã nhớ nếu mép còn MEASURED và vị trí khớp mép đã gắn với làn sau bù ego-motion. Vạch ngoài làn đo được ở cùng phía loại mép đó khỏi hành lang làn đang chạy (PP-SWR-047).
 
@@ -180,7 +180,7 @@ Mỗi chức năng LKA và ELK giữ riêng pha, mốc nhận REQUEST, side, lý
 | 1 | Kiểm timeout FunctionRequests theo thời gian nhận. Khi quá 75 ms, vô hiệu path ở cả PathStatus và Trajectory (PP-SWR-145) |
 | 2 | Khi state rời REQUEST, xóa pha và cờ chặn của chức năng đó. Khi vừa nhận ELK REQUEST, chặn yêu cầu nếu lốp trước đã qua vạch phía yêu cầu quá 0,3 m (PP-SWR-089) |
 | 3 | Lần can thiệp đang ACTIVE: tính điều kiện kết thúc từ DLC hai phía, v_lat, góc lệch và trị tuyệt đối a_y thêm vào của path đang áp dụng tại t0. Đưa v_y về t0 bằng ngoại suy tuyến tính từ hai VehicleStateEstimate hợp lệ gần nhất. Đặt COMPLETED khi giữ liên tục `T_end_hold`. Giữ pha tới khi state rời REQUEST (PP-SWR-032, 041, 090) |
-| 4 | Chọn ELK > LKA > HWA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện. Không có mốc cắt thời lượng |
+| 4 | Chọn ELK > LKA > HWA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới của LKA, ELK vạch cần vạch làn mình phía `side` đủ tin, không bị T2 loại, trên reference line không coast và không suy ra (PP-SWR-092). Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện. Không có mốc cắt thời lượng |
 | 5 | Khi hoàn tất hoặc hủy, chọn chức năng kế tiếp ngay trong cùng chu kỳ. Nếu không còn ứng viên, báo NONE và giữ path bàn giao hợp lệ khi input cho phép. ELK mép đường vẫn xét hành lang theo biên trực tiếp ở tick nhận OFF. Trộn T4 theo PP-SWR-031, 036, 037 |
 | 6 | Khi path không hợp lệ, báo NONE. Chặn các REQUEST can thiệp đang giữ cho tới khi rời REQUEST rồi yêu cầu lại (PP-SWR-043, 045) |
 
@@ -257,3 +257,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.9 | 2026-11-13 | T1 bước 1 bỏ LongitudinalPlan ngoài dải (PP-SWR-156) |
 | 1.10 | 2026-11-13 | T7: lưới thời lượng quintic của LKA, ELK tới `intervention_T_max` (mục 15), thay cho phần còn lại của 10 s; T9 bước 4 bỏ hủy khi quá 10 s (PP-SWR-083 obsolete, PP-TS-016) |
 | 1.11 | 2026-11-13 | Theo PP-TS-017 V2: T4 bước 2 dùng trạng thái đo trong lúc ghi đè và chu kỳ đầu sau đó; bước 5 bỏ trộn trong lúc ghi đè; T7 nhắm độ lệch hiện tại của xe trong lúc ghi đè, rồi về tâm theo `T_recenter` (PP-SWR-039, 040; PP-PR-032) |
+| 1.12 | 2026-11-14 | T7: ứng viên LKA, ELK thoả giới hạn khi T10 bước 2 không cắt. Lý do: T10 cắt jerk theo từng bước 0,1 s, chặt hơn trung bình 0,5 s; path bị cắt không kết thúc song song với làn và phần xa nhảy giữa các chu kỳ (PP-PR-041). T9 bước 4 trỏ điều kiện bắt đầu LKA, ELK vạch về PP-SWR-092 (PP-PR-038) |

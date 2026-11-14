@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa; nháp đạt, chờ xác nhận chính thức |
+| Trạng thái | Đóng; hồi quy 20261113-2341-suite-regression-1014d20 |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-003 (cùng cơ chế: 115 với ELK, 114 với LKA) |
 | Tái hiện | [20261113-2255-suite-regression-e99cf08](../runs/20261113-2255-suite-regression-e99cf08/report.md): S17 b, VP-2 đến VP-5, seed 1 |
@@ -37,3 +37,5 @@
 
 | Run ID | Kết quả |
 |---|---|
+| [20261113-2339-matrix-PP-PR-032-1014d20](../runs/20261113-2339-matrix-PP-PR-032-1014d20/summary.md) | S17 b: jerk lớn nhất 4,999995 m/s³, PP-SWR-003 hết trượt; các tiêu chí khác như 20261113-2330-matrix-PP-PR-032-e99cf08. Chưa chạy bộ hồi quy với bản sửa |
+| [20261113-2341-suite-regression-1014d20](../runs/20261113-2341-suite-regression-1014d20/report.md) | Hồi quy: không có trượt mới, trong hay ngoài phạm vi, so với 20261113-2255-suite-regression-e99cf08; PP-SWR-003 ở S17 hết trượt (4 lần chạy) |

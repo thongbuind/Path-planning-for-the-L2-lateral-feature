@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.37 |
+| Phiên bản | 1.39 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-14 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -248,7 +248,7 @@ Mỗi bài thử của văn bản ứng với kịch bản nào. Bài thử củ
 | R79 Annex 8, 3.2.2; R171 Annex 4, 4.2.5.1.1.1.2 | a_y lớn nhất | Cua cần > aysmax + 0,3 m/s²; tắt giảm tốc trong cua | a_y trong giới hạn của R79 5.6.2.1.1; jerk ≤ 5 m/s³ | S1b (a, b, c), ACC bỏ qua LateralLimits | |
 | R79 Annex 8, 3.2.5 | Cảnh báo vượt vạch | Cua cần aysmax + 0,1 tới + 0,4 m/s² | Cảnh báo muộn nhất khi lốp trước vượt vạch; vẫn hỗ trợ | S1b (f) | Cảnh báo dựa trên `lateral_limit_reached` |
 | R79 Annex 8, 3.1, 3.2.3, 3.2.4 | Cảnh báo của CSF; lực ghi đè; tay rời vô lăng | — | — | Không | Khối Chức năng ADAS, Lateral Controller, EPS |
-| R79 Annex 8, 3.3.1, 3.3.2 | ESF với xe làn bên | Xe làn bên áp sát; chuyển làn chủ ý | Không rời làn gốc; cảnh báo không muộn hơn lúc can thiệp | S7, S8 | Cảnh báo thuộc khối Chức năng ADAS |
+| R79 Annex 8, 3.3.1, 3.3.2 | ESF với xe làn bên | Xe làn bên áp sát, không chủ ý (3.3.1); chuyển làn chủ ý (3.3.2) | Không rời làn gốc; cảnh báo không muộn hơn lúc can thiệp | S7 (a, b, c, d, e), S8 (a, b, c, d, e) | 3.3.1: S7, S8 (a, b, e). 3.3.2: S8 (c, d). Cảnh báo thuộc khối Chức năng ADAS |
 | R79 Annex 8, 3.3.3 đến 3.3.5 | ESF với vật trên đường; không có vạch; phản ứng sai | — | — | Không | Ngoài chức năng ELK và ngoài ODD của dự án |
 | R171 Annex 4, 4.2.4.1, 4.2.5.1.1.2 | Vị trí trong làn, thử mở rộng | Cua chữ S chuẩn; nhiều độ cong và tốc độ, ít nhất một ca vượt a_y khai báo; vạch, mép đường, một vạch | Không rời làn, chuyển động ổn định | S1 (f), S14 (e), F04, F21 | R171 đạt khi ≥ 90 % bài thử đúng (Annex 3 Appendix 4); dự án đòi mọi bài |
 | R171 5.3.7.1.1.1, 5.3.7.1.3 | Chỉnh tốc độ theo độ cong | — | Có chiến lược, mô tả được | S14 | Software Architectural Design mục 6.2 |
@@ -376,7 +376,7 @@ Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của f
 | F01 | Lane model | Nhiễu c0, c1 | a) ban ngày σ_c0 = 0,03 m, σ_c1 = 0,002; b) × 1,5; c) ban đêm hoặc mưa × 2,5 | PP-SWR-120 |
 | F02 | Lane model | c0 jump, không có cờ | Cả lane model nhảy trong một frame. a) 0,3 m; b) 0,6 m; c) 1,0 m, a–c giữ 1 s rồi về; d) 0,6 m, quay lại sau một frame; e) 0,6 m, giữ | PP-SWR-121 |
 | F03 | Lane model | Nhận nhầm vạch làn bên | a) vạch trái nhảy sang L2 trong một frame; b) như a, kéo dài 0,5 s; c) cả hai vạch nhảy sang làn bên, không có cờ chuyển làn; d) vạch cũ hoặc vết nứt lệch 0,5 m, kéo dài 2 s; e) như a, giữa lúc ELK | PP-SWR-050, 122 (vòng kín) |
-| F04 | Lane model | Mất một vạch | a) trái, mất ngay; b) phải, mất ngay; c) trái, độ tin giảm về 0 trong 2 s; d) phải, độ tin giảm về 0 trong 2 s; e) mất lúc bề rộng làn đang đổi | PP-SWR-050, 123 (a–d, vòng kín) |
+| F04 | Lane model | Mất một vạch | a) trái, mất ngay; b) phải, mất ngay; c) trái, độ tin giảm về 0 trong 2 s; d) phải, độ tin giảm về 0 trong 2 s; e) mất lúc bề rộng làn đang đổi | PP-SWR-050, 092, 123 (a–d, vòng kín) |
 | F05 | Lane model | Mất mọi biên: hai vạch làn mình, vạch làn bên, mép đường | a) dựng lại 0,5 s rồi mất; b) dựng lại 1 s rồi mất; c) mất 0,5 s rồi có lại; d) mất giữa cua R = 500 m | PP-SWR-043, 124 |
 | F06 | Lane model | Độ cong sai | Mọi vạch. a) c2 +0,0005 1/m trên đường thẳng; b) −0,0005 1/m trong cua; c) c3 +4·10⁻⁶ 1/m², cùng sai số độ cong với a tại 40 m; d) như a, kéo dài 2 s; e) như a, ở đoạn vào cua. a, b, c, e kéo dài 1 s | PP-SWR-125 |
 | F07 | IMU | Nhiễu | a) yaw rate σ = 0,07 °/s, a_y σ = 0,004 m/s²; b) 0,14 °/s và 0,008 m/s² | PP-SWR-135 (a, b, vòng kín) |
@@ -461,6 +461,7 @@ Ca chạy trên một anchor khác là một lần chạy của anchor đó, nê
 | Điểm đầu path can thiệp | Tại tick bắt đầu, so vị trí và v_lat tại cầu sau với trạng thái thật trong hệ làn | ≤ 0,1 m và ≤ 0,1 m/s | PP-SWR-080 |
 | Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng tại tick đủ `T_end_hold` | PP-SWR-032, 090 |
 | ELK REQUEST muộn | DLC của lốp trước theo vạch phía yêu cầu tại thời điểm planner nhận REQUEST. Ca bổ sung S8 late bơm yêu cầu theo quỹ đạo danh định và xác nhận điều kiện bằng xe thật trong SIL | Không khởi động ELK nếu DLC < −0,3 m | PP-SWR-089 |
+| Vạch phía yêu cầu không đủ tin | Status và confidence của vạch làn mình phía `side` trong lane model planner nhận, ở chu kỳ planner bắt đầu LKA hoặc ELK vạch | Không bắt đầu khi vạch không là biên làn đủ tin | PP-SWR-092 |
 | Phản ứng với lỗi | Thời điểm `path_valid`, `active_function` đổi | Theo requirement, sai lệch ≤ một chu kỳ | PP-SWR-124, 142 đến 145, 147 |
 | Output và arbitration | Giá trị PathStatus theo sự kiện | Theo requirement | PP-SWR-010 đến 015, 030 đến 047 |
 | Cờ giới hạn lúc đè vạch | Giá trị `lateral_limit_reached` lúc lốp trước bắt đầu đè vạch, khi HWA lái và a_y cần lớn nhất > aysmax | true | PP-SWR-007 |
@@ -479,7 +480,7 @@ Cách chấm bổ sung:
 - PP-SWR-091: ca có trễ EPS thật lớn hơn VehicleConfig, tới 100 ms.
 - PP-SWR-062: ở ca biên ODD (nhãn L1), mọi requirement khác của lần chạy.
 
-Ca được định trước cần can thiệp phải có REQUEST đến planner và path can thiệp của chức năng tương ứng. Thiếu một trong hai thì ca trượt và báo rõ bước thiếu.
+Ca được định trước cần can thiệp phải có REQUEST đến planner và path can thiệp của chức năng tương ứng. Thiếu một trong hai thì ca trượt và báo rõ bước thiếu. Ngoại lệ: suốt khoảng REQUEST, vạch làn mình phía `side` trong lane model planner nhận không là biên làn đủ tin; khi đó không bắt đầu là đúng theo PP-SWR-092.
 
 Khi LKA hoặc ELK bắt đầu và trạng thái thật lệch khỏi path cũ quá 0,1 m hoặc 0,1 m/s, áp PP-SWR-080 tại tick đó theo PP-SWR-031. Ở các chu kỳ có `driver_override = true`, cặp path không chấm PP-SWR-100 đến 102 và 061 (định nghĩa Hai path liên tiếp); PP-SWR-039 vẫn chấm. Từ chu kỳ đầu sau ghi đè lại chấm liên tục. Những cặp path tiếp theo vẫn chấm liên tục.
 
@@ -701,3 +702,5 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.35 | 2026-11-13 | Mục 5: S8b c chuyển thành ca can thiệp, thêm f khe an toàn; 4.8 theo đó (PP-PR-027). Mục 8.1: bỏ chỉ số thời lượng can thiệp và cách chấm PP-SWR-083 (obsolete, PP-TS-016) |
 | 1.36 | 2026-11-13 | Mục 8.2: khoảng cách tới xe ở làn bên chỉ đo lúc hai xe ngang hàng, theo PP-SWR-088 của Software Requirements Specification 1.15 (PP-PR-029) |
 | 1.37 | 2026-11-13 | Mục 8.1: không chấm liên tục trong lúc tài xế ghi đè (Software Requirements Specification 1.16, PP-TS-017) |
+| 1.38 | 2026-11-14 | Mục 5.1: bài ESF với xe làn bên của R79 ghi biến thể theo hai điểm thử; bộ B2 chạy các ca này. Lý do: B2 chưa có ca nào cho bài này (PP-PR-042) |
+| 1.39 | 2026-11-14 | Mục 8.1: cách chấm PP-SWR-092; REQUEST về phía vạch không đủ tin không bắt buộc có path can thiệp (Software Requirements Specification 1.18, PP-PR-038) |

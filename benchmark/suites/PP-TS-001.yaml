@@ -1,0 +1,41 @@
+# Draft comparison of frame consistency. The study keeps the same T7 and calibration.
+id: PP-TS-001
+title: Kiểm bước nhảy của biên làn
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-030, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  S1: [PP-SWR-051, PP-SWR-050]
+  S6b: [PP-SWR-051, PP-SWR-060, PP-SWR-050]
+  F01: [PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  F02: [PP-SWR-051, PP-SWR-050]
+  F03: [PP-SWR-051, PP-SWR-050]
+  F06: [PP-SWR-051, PP-SWR-050, PP-SWR-125]
+  F21: [PP-SWR-047, PP-SWR-051, PP-SWR-124, PP-SWR-147, PP-SWR-148]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, c, F01, c]
+    - [S1, a, F02, a]
+    - [S1, c, F02, e]
+    - [S1, c, F03, c]
+    - [S1, c, F06, a]
+    - [S1, c, F06, e]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S6b, d]
+    - [S1, c, F01, b]
+    - [S1, c, F02, b]
+    - [S1, c, F02, d]
+    - [S1, c, F03, a]
+    - [S1, c, F03, c]
+    - [S1, c, F06, b]
+    - [S1, c, F06, d]
+    - [S1, c, F06, e]
+    - [S1, c, F21, a]
+    - [S1, c, F21, b]
+

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đã sửa nhánh F02. F20, G01 còn mở |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-030; liên quan 043, 121, 143 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F02 a–e, F20 a trên S4a, S5a lúc đang can thiệp; G01 S4c |
@@ -40,10 +40,12 @@ Nguồn liên quan:
 ## 3. Cách sửa
 
 - F20: sửa PP-SWR-030 (hoặc cách chấm): chỉ áp khi planner được phép có path hợp lệ; các chu kỳ mà 043 bắt NONE không tính cho 030.
-- F02: xem log để xác nhận; nếu đúng, `coast_ok` chỉ chặn khi tâm làn thật sự suy từ biên ngoài làn (`inferred`), không chặn chỉ vì có biên ngoài làn.
+- F02: giữ can thiệp đang chạy khi T2 coast trên reference line của làn ego và path cũ còn hợp lệ. Nếu reference line có cờ `inferred`, PP-SWR-047 vẫn chặn can thiệp.
 - Làm cùng PP-PR-030, vì cả hai dựa vào bước 4 của T2.
 
 ## 4. Xác nhận
+
+Hồi quy cục bộ trên bảy lượt F02(a, b, d, e) từng trượt PP-SWR-030, gồm LKA và ELK, đã hết trượt ở cả bảy lượt. Cần hồi quy đầy đủ trên baseline sạch. F20 và G01 vẫn cần phân tích riêng.
 
 | Run ID | Kết quả |
 |---|---|

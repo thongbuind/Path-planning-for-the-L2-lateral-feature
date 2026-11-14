@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; chờ sửa bên chấm |
+| Trạng thái | Đã thêm tiêu chí 147 và 047, chờ hồi quy chính thức |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-147, 047 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): 2.073 lần chạy, không lần nào có tiêu chí 147 hay 047 |
@@ -26,10 +26,13 @@
 | PP-SWR-047 | Số chu kỳ LKA hoặc ELK được chọn khi biên đủ tin chỉ còn ở ngoài làn đang chạy. Trừ ngoại lệ ELK mép đường theo câu của 047 (mép MEASURED, confidence ≥ `conf_edge`) |
 | Chống lặp lại | Một test của bên chấm: mọi PP-SWR có Kiểm chứng là Test (trừ obsolete) phải có ít nhất một tiêu chí hoặc target mang ID đó |
 
-- Ngưỡng `conf_edge`, `conf_inferred` đọc từ calibration như các tiêu chí khác.
+- Ngưỡng `conf_edge`, `conf_inferred` đọc từ calibration. PP-SWR-147 xét khi các input bắt buộc khác còn dùng được. Với PP-SWR-047, nhận dạng mép ngoài hành lang theo hình học thật của kịch bản. Khi chỉ còn một mép trực tiếp, log cũ thiếu bằng chứng về bề rộng nhớ được nên chu kỳ ELK đó chưa được chấm.
+- Phạm vi kiểm lần này là các tiêu chí F21 và ca đối chứng mép trực tiếp. Kiểm đủ mọi requirement Test là việc riêng của ma trận truy vết.
 - Nguồn của yêu cầu truy vết hai chiều giữa requirement và test: Automotive SPICE 3.1, SWE.6 (cần kiểm số BP); quy tắc bên chấm suy từ SRS của dự án.
 
 ## 4. Xác nhận
+
+Test của bên chấm kiểm ba tình huống: mất path khi còn biên ngoài, LKA được chọn khi chỉ còn biên ngoài, và ngoại lệ ELK dựa trên hai mép trực tiếp. SIL cục bộ F21(a–d) kích hoạt cả hai tiêu chí ở 24/24 lượt.
 
 | Run ID | Kết quả |
 |---|---|

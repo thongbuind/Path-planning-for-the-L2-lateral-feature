@@ -69,16 +69,34 @@ def _unit_key(record, cases) -> str:
 
 # ---- 8.3 Flexibility -----------------------------------------------------------------------
 
-def _requirements(run) -> tuple[set[str], set[str]]:
+def requirement_coverage(run, *, failures=None) -> tuple[set[str], set[str]]:
     """(requirements judged in the run's scope, those failed in scope): criteria and case
     issues with a level (performance targets have none)."""
     from eval import conclusion
-    inside, _, _ = conclusion.run_failures(run)
-    failed = {f["requirement"] for f in inside}
+    if failures is None:
+        failures, _, _ = conclusion.run_failures(run)
+    failed = {f["requirement"] for f in failures}
     scope = run.get("scope")
     judged = {c["id"] for c in (run.get("result") or {}).get("criteria", [])
               if c["applicable"] and (scope is None or c["id"] in scope) and conclusion.level_of(c["id"]) is not None}
     return judged | failed, failed
+
+
+def requirements_by_profile(runs):
+    """Unique judged and failed requirements per profile in the supplied runs."""
+    profiles = defaultdict(lambda: (set(), set()))
+    for run in runs:
+        profile = run.get("profile")
+        if not profile or "result" not in run:
+            continue
+        coverage = run.get("_requirement_coverage")
+        if coverage is None:
+            coverage = requirement_coverage(run)
+        judged, failed = profiles[profile]
+        run_judged, run_failed = coverage
+        judged.update(run_judged)
+        failed.update(run_failed)
+    return profiles
 
 
 def flexibility(records, cases) -> list[str]:
@@ -89,7 +107,8 @@ def flexibility(records, cases) -> list[str]:
     profiles = sorted({r["profile"] for r in runs})
     if len(profiles) < 2:
         return ["", "## Flexibility", "", "Chỉ một profile: không có bảng flexibility (mục 8.3)."]
-    per_profile = defaultdict(lambda: {"runs": 0, "judged": set(), "failed": set(), "values": defaultdict(list)})
+    requirements = requirements_by_profile(runs)
+    per_profile = defaultdict(lambda: {"runs": 0, "values": defaultdict(list)})
     units = defaultdict(lambda: defaultdict(dict))  # unit -> indicator -> profile -> value
     # Worst value per profile only over units run on every profile: samples, fault and event
     # cases on fewer profiles would compare different case sets (5.2).
@@ -100,9 +119,6 @@ def flexibility(records, cases) -> list[str]:
     for r in runs:
         row = per_profile[r["profile"]]
         row["runs"] += 1
-        judged, failed = _requirements(r)
-        row["judged"] |= judged
-        row["failed"] |= failed
         unit = _unit_key(r, cases)
         for key, value in _targets(r).items():
             if key.split("|")[0] in FLEX_TARGETS:
@@ -127,22 +143,28 @@ def flexibility(records, cases) -> list[str]:
             worst_profile[key] = (min if key.split("|")[0] in LARGER_IS_BETTER else max)(vals, key=vals.get)
     for p in profiles:
         row = per_profile[p]
-        judged = len(row["judged"])
-        rate = (judged - len(row["failed"])) / judged if judged else float("nan")
+        judged, failed = requirements[p]
+        rate = f"{len(judged - failed) / len(judged):.1%}" if judged else "—"
         cells = []
         for key in indicators:
             v = worst(key, row["values"][key]) if row["values"][key] else None
             text = _fmt(v)
             cells.append(f"**{text}**" if worst_profile.get(key) == p else text)
-        failed = ", ".join(sorted(row["failed"])) or "—"
-        lines.append(f"| {p} | {row['runs']} | {rate:.1%} | {failed} | " + " | ".join(cells) + " |")
+        failed_ids = ", ".join(sorted(failed)) or "—"
+        lines.append(f"| {p} | {row['runs']} | {rate} | {failed_ids} | " + " | ".join(cells) + " |")
     lines += ["", "| Chỉ số | Độ chênh lớn nhất giữa profile | Độ chênh nhỏ nhất | Profile tệ nhất |", "|---|---|---|---|"]
     for key in indicators:
         spreads = [max(v.values()) - min(v.values()) for u in units.values() if len(v := u.get(key, {})) >= 2]
         lines.append(f"| {_label(key)} | {_fmt(max(spreads) if spreads else None)} | "
                      f"{_fmt(min(spreads) if spreads else None)} | {worst_profile.get(key, '—')} |")
-    failing = [p for p in profiles if per_profile[p]["failed"]]
-    lines += ["", "Requirement đạt 100 % trên mọi profile: " + ("có" if not failing else "không (" + ", ".join(failing) + ")")]
+    failing = [p for p in profiles if requirements[p][1]]
+    missing = [p for p in profiles if not requirements[p][0]]
+    status = "có"
+    if failing:
+        status = "không (" + ", ".join(failing) + ")"
+    elif missing:
+        status = "chưa chấm (" + ", ".join(missing) + ")"
+    lines += ["", "Requirement đạt 100 % trên mọi profile: " + status]
     return lines
 
 

@@ -81,6 +81,33 @@ def test_records_are_slimmed(tmp_path):
     assert [f["requirement"] for f in r["_fail"]] == ["PP-SWR-051"]
 
 
+def test_b7_pass_rate_counts_unique_in_scope_requirements(tmp_path):
+    records = [
+        _record("c1", ["B7"], failed=["PP-SWR-051", "PP-SWR-030"]),
+        _record("c2", ["B7"], failed=["PP-SWR-051"]),
+        _record("c3", ["B7"]),
+        _record("c4", ["B4"], failed=["PP-SWR-001"]),
+        _record("c5", ["B7"]),
+    ]
+    records[0]["scope"] = ["PP-SWR-051"]
+    passing = {**records[0]["result"]["criteria"][0], "id": "PP-SWR-001", "passed": True}
+    records[2]["result"]["criteria"].append(passing)
+    records[4]["profile"] = "VP-1"
+    cases = [_case(r["case"], "S1", r["profile"]) for r in records]
+    folder = tmp_path / "s"
+    _suite(folder, records, cases)
+
+    for lang, title, rate in [
+        ("vi", "Tỷ lệ requirement đạt theo mẫu xe", "50,0 %"),
+        ("en", "Requirement pass rate by vehicle profile", "50.0 %"),
+    ]:
+        html = report_html.write(folder, lang=lang).read_text(encoding="utf-8")
+        slide = html.split('<section class="page" id="B7">', 1)[1].split("</section>", 1)[0]
+        assert title in slide
+        assert f'<td>1 / 2</td><td><span class="status bad">{rate}</span></td>' in slide
+        assert "<td>0 / 0</td><td>—</td>" in slide
+
+
 def test_run_full_step_logs_output_and_exit_code(tmp_path):
     log = run_full.Log(tmp_path / "run.log")
     code = run_full.step(log, "thử", [sys.executable, "-c", "print('xin chào'); raise SystemExit(1)"])

@@ -91,7 +91,7 @@
             <ParameterAssignment parameterRef="acc" value="off" />
             <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
             <ParameterAssignment parameterRef="direction" value="1.0" />
-            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/F21c.xodr" />
             <ParameterAssignment parameterRef="scenario_id" value="F21" />
             <ParameterAssignment parameterRef="variant" value="c" />
             <ParameterAssignment parameterRef="description" value="Chỉ còn mép đường phải, 5 s" />
@@ -127,7 +127,7 @@
             <ParameterAssignment parameterRef="acc" value="off" />
             <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
             <ParameterAssignment parameterRef="direction" value="1.0" />
-            <ParameterAssignment parameterRef="road_file" value="../roads/S1a.xodr" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S1b.xodr" />
             <ParameterAssignment parameterRef="scenario_id" value="F21" />
             <ParameterAssignment parameterRef="variant" value="d" />
             <ParameterAssignment parameterRef="description" value="Như a, cua R = 500 m" />

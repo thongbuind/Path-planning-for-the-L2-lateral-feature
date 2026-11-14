@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đã sửa lớp nhận simulator, chờ hồi quy chính thức |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-130 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F16 a (lane model), F16 c (FunctionRequests) trên S1a, S1c |
@@ -17,15 +17,16 @@
 
 ## 2. Nguyên nhân
 
-Chưa phân tích. Giả thuyết: planner cập nhật thời điểm nhận hoặc bộ đếm timeout bằng message `valid = false`, nên mốc hết timeout hoặc mốc hồi phục lệch một chu kỳ so với khi message không tới.
+Lớp nhận SIL ghi đè mẫu hợp lệ đang giữ khi nhận message `valid = false`. Ca song sinh bỏ frame đó và vẫn dùng mẫu hợp lệ trước đến timeout. Cùng sai khác ở F16(b) khi qualifier là FAULT.
 
 ## 3. Cách sửa
 
-- So hai log (ca lỗi và ca tham chiếu) quanh chu kỳ khác đầu tiên.
-- Nếu đúng giả thuyết: T1 bỏ message `valid = false` trước mọi cập nhật thời gian, như chưa nhận (định nghĩa "Hợp lệ" của Interface Control Document).
-- Nếu lệch do cách bên chấm dựng ca tham chiếu: sửa `sim/faults/channel.py`.
+- Bỏ message không hợp lệ ở lớp nhận SIL trước khi nó thay mẫu gần nhất của lane model, FunctionRequests hoặc chassis. Bộ đếm khung CAN vẫn do lớp giải mã quản lý.
+- Ca song sinh vẫn bỏ đúng các frame bị tác động. So toàn bộ output theo PP-SWR-130 như trước.
 
 ## 4. Xác nhận
+
+Trong SIL cục bộ, 24/24 lượt F16 đạt PP-SWR-130. Cả sáu lượt F16(b) có điều kiện chấm PP-SWR-142 đều đạt.
 
 | Run ID | Kết quả |
 |---|---|

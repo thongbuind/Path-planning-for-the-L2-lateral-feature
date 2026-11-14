@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.16 |
+| Phiên bản | 1.18 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-14 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -91,6 +91,8 @@
 | Xe | Mọi xe gia đình rộng ≤ 2,5 m kể cả gương. Thông số xe đọc từ VehicleConfig | QCVN 09:2015/BGTVT 2.1.1.1 b (PP-ASM-016) |
 | Calibration | Một bộ calibration cho mọi xe | nhóm tự thống nhất |
 | Tần số | 40 Hz | mentor |
+
+**Giới hạn quan sát khi vào cua.** Nếu tốc độ khi phát hiện cua đòi hỏi giảm tốc từ trước tầm nhìn của camera, planner vẫn áp PP-SWR-005 đến 007 và xuất giới hạn cho bộ điều khiển dọc. Trong ca S14(a) tại 130 km/h, để vào cua R = 200 m với a_y ≤ 2,5 m/s² cần giảm còn khoảng 80,5 km/h. Với giảm tốc đều 2–3 m/s², cần khoảng 134–201 m, trong khi tầm nhìn danh định là 80 m. PP-SWR-051 vẫn áp ở các chu kỳ đủ điều kiện của requirement (PP-PR-007, phương án B).
 
 ## 6. Assumptions and dependencies {#req-assumptions}
 
@@ -218,6 +220,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-089 | Nếu ELK được yêu cầu khi lốp trước đã sang quá 0,3 m qua vạch phía side, thì planner không được bắt đầu can thiệp ELK đó | Test: S8 | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-090 | Planner không được báo COMPLETED khi điều kiện kết thúc chưa giữ liên tục `T_end_hold` | Test: S4, S5 | Functional | nhóm tự thống nhất |
 | PP-SWR-091 | Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086 | Test, vòng kín: S13 (a, b) | Safety, SG-03 | nhóm tự thống nhất |
+| PP-SWR-092 | Nếu LKA, hoặc ELK với lý do khác mép đường, được yêu cầu về một phía mà vạch làn mình ở phía đó không là biên làn đủ tin trong lane model planner nhận, thì planner không được bắt đầu can thiệp đó | Test: F04 | Safety, SG-01 | EU 2021/646 recital 6, Annex I 3.6.2 (vạch nhìn thấy được); Euro NCAP LSS 7.2.6 |
 
 Không có mốc cắt thời lượng. Một lần LKA hoặc ELK kết thúc khi COMPLETED (PP-SWR-032), khi REQUEST rời (PP-SWR-036, 037), khi tài xế ghi đè, hoặc khi không còn đủ điều kiện tiếp tục (PP-SWR-046, 047). Can thiệp dài hơn 10 s được cảnh báo âm thanh ở khối Chức năng ADAS (ADAS Function Specification mục 10).
 
@@ -344,3 +347,5 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.14 | 2026-11-13 | PP-SWR-083 obsolete và ghi chú mục 8.6 theo PP-TS-016: R79 và EU 2021/646 chỉ đòi cảnh báo khi can thiệp quá 10 s; cắt ở 10 s đi ngược SG-02, SG-03. S8b (c) chuyển thành ca can thiệp ở PP-SWR-082, 085, 111, 113, 115 (PP-PR-027). Ảnh hưởng: Hazard Analysis and Risk Assessment mục 4, Software Architectural Design, Software Detailed Design T7, T9, Software Qualification Test Specification 5, 8.1, Mentor Report |
 | 1.15 | 2026-11-13 | PP-SWR-088 chỉ xét lúc hai xe ngang hàng; thêm S8b (c, d, e) vào cột Kiểm chứng; định nghĩa Ngang hàng dùng cho mọi xe. Lý do: khoảng hở ngang khi xe kia còn ở phía sau không cho biết rủi ro va chạm; S8b (c, d, e) là ELK vì xe ở làn bên (PP-PR-029). Ảnh hưởng: Software Qualification Test Specification 8.2, bên chấm |
 | 1.16 | 2026-11-13 | Định nghĩa Hai path liên tiếp: không tính cặp path trong lúc tài xế ghi đè. Lý do: khi tài xế lái, PP-SWR-039 và 100 không cùng thoả được; R79 5.6.4.3 ưu tiên tài xế (PP-TS-017, PP-PR-032). Ảnh hưởng: PP-SWR-100 đến 102 và các requirement dựa vào chúng; Software Qualification Test Specification 8.1; bên chấm |
+| 1.17 | 2026-11-14 | Mục 5 ghi giới hạn quan sát khi vào cua ở tốc độ cao theo PP-PR-007, phương án B. Giữ phạm vi áp dụng của PP-SWR-051 |
+| 1.18 | 2026-11-14 | Thêm PP-SWR-092: không bắt đầu LKA, ELK vạch về phía có vạch làn mình không đủ tin. Lý do: EU 2021/646 không đòi ELKS khi không có vạch; hệ thống trên xe bán ra không can thiệp về phía không nhận ra vạch; hành vi này trước chỉ có ở Software Detailed Design (PP-PR-038). Ảnh hưởng: Software Qualification Test Specification 5 (F04), 8.1; Software Detailed Design T9; bên chấm |

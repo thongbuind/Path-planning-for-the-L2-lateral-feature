@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Mở; plan nháp chờ duyệt |
 | Mở ngày | 2026-11-11 |
 | Khóa ngày | — |
 | Quyết định ngày | — |
@@ -23,7 +23,16 @@
 
 ## 3. Cách đánh giá
 
-Chưa khóa. Bộ chạy dự kiến: S1 (f), S14 (e), S1b, F01, F06 trên S1a và S1c; tiêu chí loại PP-SWR-051, 100 đến 102.
+Bản nháp ngày 2026-11-14, chưa khóa: [plan.yaml](plan.yaml), suite `benchmark/suites/PP-TS-005.yaml`.
+
+| Mục | Nội dung |
+|---|---|
+| Tiêu chí loại | PP-SWR-051, 100 đến 102 và requirement trong phạm vi của suite |
+| Xếp hạng | Software Qualification Test Specification mục 9 |
+| Bộ chỉnh | Cua chữ S R = 500 m (S1 d), S1 b, S1b a, F01, F06, F02 trên S1; seed 1, 2 |
+| Bộ kiểm | Cua chữ S của R171 (S1 f, S14 e hai chế độ ACC), S1 g, S1 c, S1 e, S1b b, c, S14 a, tầm nhìn 40 m, F01, F06, F02; seed 3, 4 |
+| Ngân sách chỉnh | Như nhau cho mọi phương án; ghi khi V1, V2 đã cài, trước khi khóa |
+| Liên quan khác | V1, V2 sửa T2, T5; cài sau khi PP-PR-030 (bước 4 của T2) đã vào nhánh chính để không sửa chồng |
 
 ## 4. Lần chạy
 

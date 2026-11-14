@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân |
+| Trạng thái | Đã sửa điều kiện xuất path, chờ hồi quy chính thức |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-142 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F12 c, e; F17 a; F16 b |
@@ -36,12 +36,14 @@ Nguồn liên quan:
 
 ## 3. Cách sửa
 
-- T1: IMU, tốc độ và góc lái hợp lệ là điều kiện chung cho mọi path, không chỉ cho can thiệp.
+- IMU, tốc độ và góc lái hợp lệ là điều kiện chung cho mọi path. Khi thiếu input, vẫn xuất đủ thông điệp theo chu kỳ và đặt `path_valid = false`, `active_function = NONE`.
 - Nếu thiết kế muốn HWA chạy tiếp khi mất IMU (ví dụ dùng ego-motion thay yaw rate), thì đó là đổi PP-SWR-142: cần quyết định trước khi sửa code.
 
 Quan sát kèm, chưa rõ có cùng nguyên nhân: F17 b trên S1c (CRC tốc độ sai) trượt 051, DLC −0,87 đến −1,29 m ở 3 lần chạy. Cần log để biết xe rời làn trong lúc path không hợp lệ hay sau khi path hồi phục.
 
 ## 4. Xác nhận
+
+PP-SWR-142 đạt ở 42/42 lượt có điều kiện chấm trong tập F12, F16 và F17 của hồi quy cục bộ. Test qua `pp_step` kiểm mất IMU, góc lái không hợp lệ và phục hồi với mẫu mới.
 
 | Run ID | Kết quả |
 |---|---|
