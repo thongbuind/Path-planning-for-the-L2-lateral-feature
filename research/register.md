@@ -84,3 +84,4 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đã sửa, chờ hồi quy chính thức | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
 | PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đã sửa phía đánh giá, chờ hồi quy chính thức | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
 | PP-PR-054 | F17 b và F21 c trên S1c: xe rời làn ở cua chạm aysmax | Mở | PP-SWR-051 | [report](problems/PP-PR-054-s1c-f17b-f21c-departure.md) |
+| PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đã sửa, chờ hồi quy chính thức | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa F06 c, chờ hồi quy chính thức; F06 d chuyển sang J1 |
+| Trạng thái | Đã sửa F06 c (bản 2, xem mục 3), chờ hồi quy chính thức; F06 d chuyển sang J1 |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-051; PP-SWR-086; PP-TS-001 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): F06 c trên S1a, S1c; F06 d trên S4a, S5a lúc LKA, ELK |
@@ -24,13 +24,14 @@
 
 ## 3. Cách sửa
 
-- T2 (`check_line`): khi đang có ứng viên, frame nhất quán với ứng viên và khớp ứng viên hơn bộ nhớ (độ lệch chuẩn hóa lớn nhất của c0 và hai điểm hình dạng nhỏ hơn) thì tính tiếp cho ứng viên. Thay đổi chỉ được nhận qua R1, và R2 có vị trí cũ để quay về.
-- Frame nhất quán với bộ nhớ và gần bộ nhớ hơn vẫn được nhận ngay (một frame nhiễu không giữ chân frame sau).
-- Unit test: `test_shape_change_cannot_slip_in_while_the_memory_ages`, `test_noisy_frame_does_not_hold_back_the_next_one`.
-- Software Detailed Design 1.16, mục T2.
-- Lần chạy nháp seed 1: F06 c trên S1a, S1c đạt; F06 a trên S1a đạt. Không đổi: S1a, S1b a, S3 a, S12 a, F01 a, F02 b, F06 b, e (đạt); F06 d trên S1a, S1c, S4a lúc LKA, S5a lúc ELK và F03 c trên S1a trượt với cùng giá trị như regression 0776bad.
+- Bản đầu (commit 83dc910): frame khớp ứng viên hơn bộ nhớ thì tính cho ứng viên. Bỏ ở commit sau vì gây PP-PR-055 (loại frame nhất quán khi nhiễu tương quan theo thời gian).
+- Bản hiện tại (Software Detailed Design 1.18): frame nhất quán với bộ nhớ trong lúc có ứng viên vẫn được nhận, nhưng bộ nhớ trước đó được giữ làm vị trí cũ trong `T_confirm`. Hình dạng sai có thể lọt vào ở cuối lỗi; khi lỗi hết, R2 nhận lại hình dạng đúng ngay.
+- Unit test `test_shape_change_cannot_slip_in_while_the_memory_ages`, `test_noisy_frame_does_not_hold_back_the_next_one`, `test_slow_drift_within_the_check_is_taken`.
+- Nháp seed 1 với bản hiện tại: F06 c trên S1a, S1c, F06 a, b, e đạt.
+- F06 d (c2 sai 2 s > `T_confirm`): R1 nhận đúng thiết kế, thuộc J1 (PP-TS-001 mục 8).
 
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-2153-suite-regression-71fb7c1](../runs/20261114-2153-suite-regression-71fb7c1/report.md) | Bản 1: F06 c hết trượt (6 lượt); gây trượt mới S12 c (PP-PR-055) |

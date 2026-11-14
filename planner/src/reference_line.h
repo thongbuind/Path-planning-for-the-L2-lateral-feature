@@ -37,8 +37,8 @@ typedef struct {
  * Memory of one boundary for the consistency check (Software Detailed Design 5).
  * `accepted` is the position in use. A jump starts a `candidate`; it is taken as a real
  * change once the new position has stayed consistent with itself for T_confirm (R1).
- * After a change the old position stays as `previous` for T_confirm; a frame back at it
- * is taken at once (R2).
+ * After a change, or after a frame taken while a candidate was pending, the old position
+ * stays as `previous` for T_confirm; a frame back at it is taken at once (R2).
  */
 typedef struct {
     pp_line_track_t accepted;

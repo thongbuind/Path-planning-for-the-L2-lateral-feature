@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.17 |
+| Phiên bản | 1.18 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -81,7 +81,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Chậm: song song | Hiệu c1 của hai biên làn mình, lọc thông thấp `tau_mem` | Lệch > `parallel_max`; biên bị loại là biên đổi hướng so với lịch sử của chính nó |
 | Chậm: bề rộng | Bề rộng đo so với w_mem | Lệch > `width_dev_max` giữ quá `T_confirm` |
 
-- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Khi đang có ứng viên, frame khớp ứng viên hơn khớp bộ nhớ thì tính tiếp cho ứng viên, dù vẫn nhất quán với bộ nhớ: bộ nhớ chỉ được dời theo ego-motion nên đoạn tầm nhìn chung ngắn dần và phép kiểm hình dạng yếu dần. Sau khi nhận, vị trí cũ được giữ thêm `T_confirm`: biên quay về vị trí cũ thì nhận ngay.
+- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Khi đang có ứng viên mà frame lại nhất quán với bộ nhớ, frame được nhận và bộ nhớ trước đó được giữ làm vị trí cũ như sau một thay đổi: bộ nhớ chỉ được dời theo ego-motion nên đoạn tầm nhìn chung ngắn dần và phép kiểm hình dạng yếu dần. Sau khi nhận, vị trí cũ được giữ thêm `T_confirm`: biên quay về vị trí cũ thì nhận ngay.
 
 **Chấp nhận thay đổi thật của làn**
 
@@ -265,3 +265,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.15 | 2026-11-14 | HWA: T10 bước 2 cắt path ứng viên trước T4 bước 4, rồi kiểm lại path gửi. Lý do: PP-TS-003 chọn V0b (20261114-1934-study-PP-TS-003-272a711); T10 sau T4 phá liên tục ở cua tại aysmax (PP-PR-005, 006). Ảnh hưởng: PP-SWR-100 đến 102, 001; T4, T10 |
 | 1.16 | 2026-11-14 | T2: khi đang có ứng viên, frame khớp ứng viên hơn bộ nhớ thì tính cho ứng viên. Lý do: PP-PR-048; hình dạng sai ngắn hơn `T_confirm` lọt qua bộ nhớ cũ và không để lại vị trí cũ cho R2 (F06 c). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
 | 1.17 | 2026-11-14 | T2 bước 4: vạch làn mình bị loại ở kiểm nhất quán thì bám reference line cũ trước khi suy tâm từ biên ngoài. Lý do: PP-PR-052; một frame nhiễu làm tâm thành suy ra và LKA bị hủy (G01 trên S4c). Ảnh hưởng: PP-SWR-047, 030; T2 |
+| 1.18 | 2026-11-14 | T2: thay quy tắc của 1.16. Frame nhất quán với bộ nhớ trong lúc có ứng viên được nhận, bộ nhớ trước đó giữ làm vị trí cũ cho R2. Lý do: PP-PR-055; quy tắc 1.16 loại cả frame nhất quán khi nhiễu tương quan theo thời gian, ELK bắt đầu trễ 0,8 s (S12 c). Ảnh hưởng: PP-SWR-121, 122, 125, 088; T2 |

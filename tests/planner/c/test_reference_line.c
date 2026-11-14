@@ -322,9 +322,9 @@ static void test_return_after_a_change_is_taken_at_once(void)
 static void test_shape_change_cannot_slip_in_while_the_memory_ages(void)
 {
     /* PP-PR-048: while frames are rejected, the accepted memory is only moved by ego-motion
-     * and the window both frames observe shrinks, so the shape test weakens. A wrong shape
-     * that lasts less than T_confirm must not be taken as consistent with the aged memory,
-     * and the true shape must be taken back at once when the fault ends. */
+     * and the window both frames observe shrinks, so the shape test weakens and a wrong shape
+     * lasting less than T_confirm can be taken. The true shape must be taken back at once
+     * when the fault ends. */
     const pp_motion_t forward = {0.625, 0.0, 0.0};          /* 25 m/s, one cycle */
     pp_reference_memory_t mem;
     pp_reference_line_t ref;
@@ -337,8 +337,10 @@ static void test_shape_change_cannot_slip_in_while_the_memory_ages(void)
         lane.boundary[PP_LINE_L1].poly.c[3] = 1.0e-6;       /* F06 c: wrong c3 on every line */
         lane.boundary[PP_LINE_R1].poly.c[3] = 1.0e-6;
         pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
-        PP_CHECK(ref.line_rejected[0] && ref.line_rejected[1]);
-        PP_CHECK(ref.valid && ref.coasting);
+        PP_CHECK(ref.valid);
+        if (i == 0) {
+            PP_CHECK(ref.line_rejected[0] && ref.line_rejected[1] && ref.coasting);
+        }
     }
     lane = two_lines(3.5, 0.0);                              /* fault ends */
     pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
@@ -362,6 +364,24 @@ static void test_noisy_frame_does_not_hold_back_the_next_one(void)
     lane.boundary[PP_LINE_L1].poly.c[0] += 0.1;             /* within 3 sigma of the memory */
     pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
     PP_CHECK(!ref.line_rejected[0] && !ref.line_rejected[1]);
+}
+
+static void test_slow_drift_within_the_check_is_taken(void)
+{
+    /* PP-PR-055: after one rejected frame, frames within k_jump sigma of the memory are taken,
+     * even when each is closer to the frame before it (noise correlated in time). */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    const double offsets[] = {0.15, 0.12, 0.11, 0.10};       /* 3 sqrt(2) 0.03 = 0.127 */
+    for (size_t i = 0U; i < sizeof(offsets) / sizeof(offsets[0]); i++) {
+        lane = two_lines(3.5, 0.0);
+        lane.boundary[PP_LINE_L1].poly.c[0] += offsets[i];
+        pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+        PP_CHECK(ref.line_rejected[0] == (i == 0U));
+    }
 }
 
 static void test_coast_ends_after_t_coast(void)
@@ -391,6 +411,7 @@ int main(void)
     test_return_after_a_change_is_taken_at_once();
     test_shape_change_cannot_slip_in_while_the_memory_ages();
     test_noisy_frame_does_not_hold_back_the_next_one();
+    test_slow_drift_within_the_check_is_taken();
     test_centre_between_lines();
     test_one_line_uses_remembered_width();
     test_no_trusted_line();

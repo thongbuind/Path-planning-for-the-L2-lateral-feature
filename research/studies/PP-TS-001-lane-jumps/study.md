@@ -73,3 +73,13 @@ Lần chạy [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-st
 - 2026-11-14, người dùng chọn J0 kiểm hình dạng theo [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-study-PP-TS-001-13913da/summary.md).
 - Bản giao luôn kiểm hình dạng; bỏ công tắc build `PP_T2_SHAPE_CHECK` (Software Detailed Design 1.13, T2).
 - F06 d, F03 c, F02 e: cần tham chiếu độc lập, để cho J1 với kế hoạch riêng.
+
+## 8. Ghi chú cho kế hoạch J1 (2026-11-14)
+
+| Ca | Thang chậm (song song, bề rộng) bắt được | Nguồn tham chiếu cần |
+|---|---|---|
+| F03 c, một vạch nhận nhầm | Có: vạch nhầm lệch song song và đổi bề rộng | — |
+| F06 d, c2 sai trên mọi vạch 2 s | Không: các vạch vẫn song song, bề rộng không đổi | Độc lập với camera, ví dụ độ cong từ yaw rate khi xe đang bám làn (T5) |
+| F02 e, cả lane model dời | Không | Xe ở làn bên (J2) |
+
+PP-PR-048 cho thấy F06 d trượt cả ở J0 (PP-SWR-032) và J0 kiểm hình dạng (PP-SWR-086), độc lập với lỗi đã sửa. Kế hoạch J1 chỉ nên nhắm F03; F06 d cần phương án riêng.
