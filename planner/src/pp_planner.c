@@ -701,12 +701,10 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
 #endif
             if (out->path_valid) {
                 const double wheelbase = (double)s->vehicle.wheelbase;
-#ifdef PP_T10_BEFORE_T4
                 /* PP-TS-003: limit the candidate first, so the blend of two feasible paths
                  * is the path sent; the second T10 call below only meets speed changes. */
                 (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
                                            &s->vehicle);                           /* T10 step 2 */
-#endif
                 if (!override_now) {   /* T4 step 5: no blend while the driver overrides */
                     (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
                                           out->points);                            /* T4 steps 4, 5 */

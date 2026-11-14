@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân; chờ PP-TS-003 |
+| Trạng thái | Đã sửa theo PP-TS-003 V0b (T10 trước T4), chờ hồi quy chính thức |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-100 (qua PP-SWR-120) |
 | Tái hiện | Lần chạy nháp `build/suites/smoke-20261111-1425`: F01 a, b, c trên đường chủ S1c, ACC tắt, VP-0, seed 1 |

@@ -32,18 +32,12 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
-# PP-TS-003: T10 limits the HWA candidate before the T4 blend, then checks the sent path again.
-option(PP_T10_BEFORE_T4 "Limit the HWA candidate before the continuity blend" OFF)
-if(PP_T10_BEFORE_T4)
-    list(APPEND PP_T7_DEFINES PP_T10_BEFORE_T4)
-endif()
-
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -DT10_FIRST=${PP_T10_BEFORE_T4}
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()")

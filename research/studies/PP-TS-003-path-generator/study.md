@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã chạy; đề xuất V0b, chờ quyết định |
+| Trạng thái | Đã quyết: V0b |
 | Mở ngày | 2026-11-11 |
 | Khóa ngày | 2026-11-14 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-14 |
 | Liên quan | PP-SWR-001 đến 007, 050 đến 053, 100 đến 102, 151; SQTS mục 9 |
 
 ## 1. Câu hỏi
@@ -112,3 +112,8 @@ Giữ quintic làm mốc trong lúc kiểm PP-PR-006. Với mọi phương án T
 Bộ P1 trong `plan.yaml` chưa chứa S14 hoặc toàn bộ điều kiện xếp hạng ở mục 3. Chốt bộ giữ lại có S14(e), chuẩn hóa ngân sách calibration giữa V0–V2 và so trên nhiều profile trước khi chọn generator.
 
 ## 7. Quyết định
+
+- 2026-11-14, người dùng chọn V0b theo [20261114-1934-study-PP-TS-003-272a711](../../runs/20261114-1934-study-PP-TS-003-272a711/summary.md).
+- Bản giao: quintic, T10 cắt path ứng viên trước T4 bước 4; bỏ công tắc build `PP_T10_BEFORE_T4` (Software Detailed Design 1.15).
+- QP (T7 C) giữ trong mã để nghiên cứu cắt cua (PP-TS-013).
+- Hồi quy: chờ.

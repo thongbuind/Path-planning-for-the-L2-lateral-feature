@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân |
+| Trạng thái | Đã sửa theo PP-TS-003 V0b (T10 trước T4), chờ hồi quy chính thức |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-100 |
 | Tái hiện | Lần chạy nháp: S1b b, S1b e, seed 1, `PP_T7=qp`; quintic cùng cơ chế nhưng dưới ngưỡng |

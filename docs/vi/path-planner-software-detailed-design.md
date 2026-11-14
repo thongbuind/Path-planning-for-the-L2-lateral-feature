@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.14 |
+| Phiên bản | 1.15 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -104,7 +104,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 |---|---|
 | 1 | Đưa path chu kỳ trước về `base_link` tại t0 bằng ego-motion. Path cũ hơn timeout của Trajectory (75 ms) coi như không hợp lệ |
 | 2 | Trạng thái đầu (d, ḋ, d̈) = trạng thái của path cũ tại t0, tính theo reference line mới. Nếu trạng thái đo (T6) lệch quá `stitch_reset` thì dùng trạng thái đo. Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080). Trong khi `driver_override` và ở chu kỳ đầu sau khi về false, dùng trạng thái đo (PP-SWR-039, 040); khi không có FunctionRequests dùng được thì giữ giá trị của message dùng được gần nhất |
-| 3 | T7 sinh path ứng viên từ trạng thái đầu |
+| 3 | T7 sinh path ứng viên từ trạng thái đầu. Với HWA, T10 bước 2 cắt path ứng viên trước bước 4 |
 | 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
 | 5 | Bỏ bước 4 khi PP-SWR-031 cho phép (LKA, ELK bắt đầu lúc xe đã lệch), khi path cũ không hợp lệ, và trong khi `driver_override = true` (PP-TS-017) |
 
@@ -196,6 +196,7 @@ Kết quả khớp bảng arbitration state ở Software Architectural Design m�
 | 3 | `lateral_limit_reached`: bật khi a_y cần lớn nhất trong tầm nhìn > aysmax + `delta_ay`, tắt khi < aysmax − `delta_ay`; điều kiện phải đúng ở các chu kỳ liên tiếp trong `T_flag` / 2 |
 | 4 | LateralLimits: κ_max là trị tuyệt đối lớn nhất của κ(s) trong tầm nhìn; `v_max` = √(giới hạn a_y của chức năng / κ_max); `distance` = s tại κ_max |
 
+- Với HWA, bước 2 chạy hai lần: trên path ứng viên trước T4 bước 4, và trên path gửi sau đó. Tổ hợp lồi của hai path khả thi vẫn khả thi, nên lần sau chỉ gặp phần do tốc độ đổi; T10 không phá liên tục sau khi trộn (PP-TS-003).
 - Bước 2 cắt cả độ cong của điểm 0, giữ vị trí. Jerk cắt theo từng bước 0,1 s, chặt hơn trung bình 0,5 s của requirement. Mỗi giới hạn chừa 10⁻⁶ tương đối để giá trị float32 gửi đi không vượt.
 - Bước 3 và 4 dùng độ cong lớn hơn giữa reference line của camera và của T5: cờ và `v_max` báo trước cho khối dọc, nên lấy phía an toàn. Path vẫn bám độ cong của T5.
 
@@ -261,3 +262,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.12 | 2026-11-14 | T7: ứng viên LKA, ELK thoả giới hạn khi T10 bước 2 không cắt. Lý do: T10 cắt jerk theo từng bước 0,1 s, chặt hơn trung bình 0,5 s; path bị cắt không kết thúc song song với làn và phần xa nhảy giữa các chu kỳ (PP-PR-041). T9 bước 4 trỏ điều kiện bắt đầu LKA, ELK vạch về PP-SWR-092 (PP-PR-038) |
 | 1.13 | 2026-11-14 | T2 kiểm từng frame thêm hình dạng: so hai frame tại 50 % và 75 % đoạn tầm nhìn chung, ngưỡng `k_jump` theo phương sai các hệ số. Lý do: PP-TS-001 chọn J0 kiểm hình dạng (20261114-1857-study-PP-TS-001-13913da); kiểm riêng c0 không thấy độ cong sai (F06). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
 | 1.14 | 2026-11-14 | T1 bước 1: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5 và giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035. Ảnh hưởng: PP-SWR-129, 130 |
+| 1.15 | 2026-11-14 | HWA: T10 bước 2 cắt path ứng viên trước T4 bước 4, rồi kiểm lại path gửi. Lý do: PP-TS-003 chọn V0b (20261114-1934-study-PP-TS-003-272a711); T10 sau T4 phá liên tục ở cua tại aysmax (PP-PR-005, 006). Ảnh hưởng: PP-SWR-100 đến 102, 001; T4, T10 |

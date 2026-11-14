@@ -8,7 +8,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 |---|---|---|---|---|
 | PP-TS-001 | T2 xử lý lane model nhảy: J0, J1, J2, J3 | Đã quyết 2026-11-14 theo 20261114-1857-study-PP-TS-001-13913da; J1 còn mở | J0 kiểm hình dạng | [study](studies/PP-TS-001-lane-jumps/study.md) |
 | PP-TS-002 | Khoảng nới a_y 40 % trong 2 s cho PP-SWR-001 | Chờ quyết định; S1b d đã chạy, vẫn đề xuất A | Đề xuất A (giữ nguyên) | [study](studies/PP-TS-002-ay-grace/study.md) |
-| PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | Đã chạy 20261114-1934-study-PP-TS-003-272a711; đề xuất V0b, chờ quyết định | Giữ quintic làm mốc | [study](studies/PP-TS-003-path-generator/study.md) |
+| PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | Đã quyết 2026-11-14 theo 20261114-1934-study-PP-TS-003-272a711 | V0b: quintic, T10 trước T4 | [study](studies/PP-TS-003-path-generator/study.md) |
 | PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở; plan nháp chờ duyệt; cài sau PP-PR-030 | — | [study](studies/PP-TS-005-lane-fit-error/study.md) |
 | PP-TS-004 | Calibration T2, T5, cờ giới hạn (sweep P1) | Mở, cần chạy lại | — | [study](studies/PP-TS-004-p1-calibration/study.md) |
 | PP-TS-006 | T7 tạo path can thiệp LKA, ELK bằng quintic hay QP | Mở | Tích hợp V1 trước | [study](studies/PP-TS-006-intervention-path/study.md) |
@@ -33,9 +33,9 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-001 | F06: độ cong sai ở xa làm xe ra khỏi làn | Mở, đã tìm nguyên nhân; sửa qua PP-TS-001 | PP-SWR-051, 125 | [report](problems/PP-PR-001-f06-wrong-curvature.md) |
 | PP-PR-002 | S1b e: cờ giới hạn bật muộn | Đóng | PP-SWR-007 | [report](problems/PP-PR-002-s1b-late-flag.md) |
 | PP-PR-003 | S2c, S2d: đưa về giữa khi xe hướng ra ngoài, lốp đè vạch | Mở, đã tìm nguyên nhân: stand-in chưa kiểm điều kiện vào HWA; ngưỡng vào mâu thuẫn với `ay_add_max_hwa` | PP-SWR-051, 052 | [report](problems/PP-PR-003-s2-outward-overshoot.md) |
-| PP-PR-005 | F01 trên S1c: path nhảy giữa hai chu kỳ khi phần xa bị cắt theo aysmax | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 | PP-SWR-100, 120 | [report](problems/PP-PR-005-noise-at-aysmax-continuity.md) |
+| PP-PR-005 | F01 trên S1c: path nhảy giữa hai chu kỳ khi phần xa bị cắt theo aysmax | Đã sửa theo PP-TS-003 V0b, chờ hồi quy chính thức | PP-SWR-100, 120 | [report](problems/PP-PR-005-noise-at-aysmax-continuity.md) |
 | PP-PR-004 | S14e: giữ làn và liên tục path trên cua chữ S | Mở, đã tìm nguyên nhân; sửa qua PP-TS-005 | PP-SWR-051, 100; 006, 007 | [report](problems/PP-PR-004-s14-s-bend.md) |
-| PP-PR-006 | Vào cua vượt aysmax: xe bám trễ, stitching reset làm path nhảy | Mở, đã tìm nguyên nhân | PP-SWR-100 | [report](problems/PP-PR-006-stitch-reset-curve-entry.md) |
+| PP-PR-006 | Vào cua vượt aysmax: xe bám trễ, stitching reset làm path nhảy | Đã sửa theo PP-TS-003 V0b, chờ hồi quy chính thức | PP-SWR-100 | [report](problems/PP-PR-006-stitch-reset-curve-entry.md) |
 | PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Đã ghi giới hạn quan sát theo B trong Software Requirements Specification 1.17 | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
 | PP-PR-008 | S1ba 130 km/h: path T7 A trễ so với a_y cần lúc vào cua | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 | PP-SWR-006 | [report](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md) |
 | PP-PR-009 | F03 c: cả bốn vạch nhảy 3,5 m trong 2 s, xe đi theo sang làn bên | Mở; sửa qua PP-TS-001 | PP-SWR-051, 100 | [report](problems/PP-PR-009-f03c-whole-lane-shift.md) |
