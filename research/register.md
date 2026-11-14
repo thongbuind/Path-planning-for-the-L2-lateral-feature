@@ -6,7 +6,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 
 | ID | Câu hỏi | Trạng thái | Quyết định | Hồ sơ |
 |---|---|---|---|---|
-| PP-TS-001 | T2 xử lý lane model nhảy: J0, J1, J2, J3 | Đã khóa kế hoạch 2026-11-14 (J0 với J0 kiểm hình dạng); chờ lần chạy chính thức | Giữ J0 làm mốc | [study](studies/PP-TS-001-lane-jumps/study.md) |
+| PP-TS-001 | T2 xử lý lane model nhảy: J0, J1, J2, J3 | Đã quyết 2026-11-14 theo 20261114-1857-study-PP-TS-001-13913da; J1 còn mở | J0 kiểm hình dạng | [study](studies/PP-TS-001-lane-jumps/study.md) |
 | PP-TS-002 | Khoảng nới a_y 40 % trong 2 s cho PP-SWR-001 | Chờ quyết định; S1b d đã chạy, vẫn đề xuất A | Đề xuất A (giữ nguyên) | [study](studies/PP-TS-002-ay-grace/study.md) |
 | PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | QP qua B0 sau sửa giới hạn float32. Chờ xử lý PP-PR-006 và khóa bộ so sánh | Giữ quintic làm mốc | [study](studies/PP-TS-003-path-generator/study.md) |
 | PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở; plan nháp chờ duyệt; cài sau PP-PR-030 | — | [study](studies/PP-TS-005-lane-fit-error/study.md) |

@@ -74,9 +74,8 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
     if (!t->valid || !(jump <= limit * sqrt(b->variance[0] + t->variance[0]))) {
         return false;
     }
-#ifdef PP_T2_SHAPE_CHECK
-    /* Compare only points that both frames observe. Keep one sample in the interior
-     * and one farther ahead, away from the end of the cubic fit. */
+    /* Shape check (PP-TS-001). Compare only points that both frames observe. Keep one
+     * sample in the interior and one farther ahead, away from the end of the cubic fit. */
     const double lo = fmax(0.0, fmax(b->view_start, t->view_start));
     const double hi = fmin(b->view_end, t->view_end);
     if (hi > lo) {
@@ -95,7 +94,6 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
             }
         }
     }
-#endif
     return true;
 }
 

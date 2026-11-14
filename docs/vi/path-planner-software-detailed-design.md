@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.12 |
+| Phiên bản | 1.13 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -77,6 +77,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Thang | Kiểm | Không nhất quán khi |
 |---|---|---|
 | Từng frame | Biên mới so với bộ nhớ của biên đó, bộ nhớ dời bằng ego-motion mỗi chu kỳ, tại x = 0 | Lệch c0 > `k_jump`·√(σ_mới² + σ_cũ²) |
+| Từng frame: hình dạng | Như trên, tại 50 % và 75 % đoạn tầm nhìn chung của hai frame | Lệch y(x) > `k_jump`·σ(x), σ(x)² = Σₖ (σ²ₖ,mới + σ²ₖ,cũ)·x²ᵏ trên các hệ số c0–c3 (PP-TS-001) |
 | Chậm: song song | Hiệu c1 của hai biên làn mình, lọc thông thấp `tau_mem` | Lệch > `parallel_max`; biên bị loại là biên đổi hướng so với lịch sử của chính nó |
 | Chậm: bề rộng | Bề rộng đo so với w_mem | Lệch > `width_dev_max` giữ quá `T_confirm` |
 
@@ -258,3 +259,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.10 | 2026-11-13 | T7: lưới thời lượng quintic của LKA, ELK tới `intervention_T_max` (mục 15), thay cho phần còn lại của 10 s; T9 bước 4 bỏ hủy khi quá 10 s (PP-SWR-083 obsolete, PP-TS-016) |
 | 1.11 | 2026-11-13 | Theo PP-TS-017 V2: T4 bước 2 dùng trạng thái đo trong lúc ghi đè và chu kỳ đầu sau đó; bước 5 bỏ trộn trong lúc ghi đè; T7 nhắm độ lệch hiện tại của xe trong lúc ghi đè, rồi về tâm theo `T_recenter` (PP-SWR-039, 040; PP-PR-032) |
 | 1.12 | 2026-11-14 | T7: ứng viên LKA, ELK thoả giới hạn khi T10 bước 2 không cắt. Lý do: T10 cắt jerk theo từng bước 0,1 s, chặt hơn trung bình 0,5 s; path bị cắt không kết thúc song song với làn và phần xa nhảy giữa các chu kỳ (PP-PR-041). T9 bước 4 trỏ điều kiện bắt đầu LKA, ELK vạch về PP-SWR-092 (PP-PR-038) |
+| 1.13 | 2026-11-14 | T2 kiểm từng frame thêm hình dạng: so hai frame tại 50 % và 75 % đoạn tầm nhìn chung, ngưỡng `k_jump` theo phương sai các hệ số. Lý do: PP-TS-001 chọn J0 kiểm hình dạng (20261114-1857-study-PP-TS-001-13913da); kiểm riêng c0 không thấy độ cong sai (F06). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |

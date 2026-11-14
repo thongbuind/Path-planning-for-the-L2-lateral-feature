@@ -220,7 +220,6 @@ static void test_jump_of_one_line_is_rejected(void)
     PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-12);             /* from R1 + w_mem / 2 */
 }
 
-#ifdef PP_T2_SHAPE_CHECK
 static void test_shape_jump_is_rejected_without_a_c0_jump(void)
 {
     pp_reference_memory_t mem;
@@ -235,7 +234,6 @@ static void test_shape_jump_is_rejected_without_a_c0_jump(void)
     PP_CHECK(ref.valid && ref.coasting);
     PP_CHECK_NEAR(ref.centre.c[2], 0.0, 1e-10);
 }
-#endif
 
 static void test_jump_of_both_lines_coasts_then_is_accepted(void)
 {
@@ -314,9 +312,7 @@ static void test_coast_ends_after_t_coast(void)
 int main(void)
 {
     test_jump_of_one_line_is_rejected();
-#ifdef PP_T2_SHAPE_CHECK
     test_shape_jump_is_rejected_without_a_c0_jump();
-#endif
     test_jump_of_both_lines_coasts_then_is_accepted();
     test_coast_ends_after_t_coast();
     test_flickering_jump_is_never_accepted();

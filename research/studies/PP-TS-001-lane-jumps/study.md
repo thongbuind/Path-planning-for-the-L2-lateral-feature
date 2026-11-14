@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa kế hoạch so J0 với J0 kiểm hình dạng; chờ lần chạy chính thức |
+| Trạng thái | Đã quyết: J0 kiểm hình dạng; J1 còn mở |
 | Mở ngày | 2026-11-11 |
 | Khóa ngày | 2026-11-14 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-14 |
 | Liên quan | PP-SWR-121, 122; PP-ADR-006, 007; SOTIF TC-01; F02, F03 |
 
 ## 1. Câu hỏi
@@ -42,14 +42,34 @@ Trước khi khóa (2026-11-14), bộ kiểm thêm F06 a, d trên ca chủ S1a, 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
 | 20261111-1024-matrix-M1-b9e5d4d | J0 | Đăng ký lại. F02e: lốp đè vạch ở 2/4 lần chạy (VP-0, VP-5) |
+| [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-study-PP-TS-001-13913da/summary.md) | J0, J0 kiểm hình dạng | Theo plan khóa 2026-11-14; 42 lượt mỗi phương án |
 
 ## 5. Kết quả
 
-Chưa có lần chạy chính thức. J0 là mốc.
+Lần chạy [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-study-PP-TS-001-13913da/summary.md). Số lượt trượt: bộ chỉnh 12 (J0) và 8 (J0 kiểm hình dạng); bộ kiểm 23 và 14.
+
+| Ca | J0 | J0 kiểm hình dạng |
+|---|---|---|
+| F06 a trên S1a, S1c | Trượt 051; lệch xe 1,02–1,09 m | Đạt; 0,17–0,35 m |
+| F06 b trên S1c | Trượt 051, 100 (101 ở seed 3); 1,83 m | Đạt; 0,85 m |
+| F06 e trên S1c | Trượt 051, 100; 1,75 m | Trượt 100; đạt 051; 0,78 m |
+| F06 d trên S1a, S1c (sai kéo dài 2 s) | Trượt 051 (cả 100 trên S1c); 1,45–1,75 m | Như J0; 1,78–1,82 m |
+| F03 c trên S1c | Trượt 051, 100 | Như J0 |
+| F01 b, c trên S1c | Trượt 100 | Như J0 |
+| S1 a, f; S6b d; F01; F02 a, b, d, e; F03 a; F21 a, b | Đạt | Như J0; PP-SWR-050 lệch nhau < 0,005 m |
+
+- 27/42 lượt mỗi bộ cho kết quả như nhau. Không thấy loại nhầm ở ca sạch, nhiễu ban đêm F01 hay mất vạch F21.
+- F06 d và F03 c còn trượt như dự đoán ở mục 6: sau `T_confirm`, hình học sai được nhận. F06 d với kiểm hình dạng lệch xe lớn hơn J0 0,07–0,33 m.
+- F01 b, c trên S1c trượt 100 ở cả hai phương án; cơ chế ở PP-PR-005, không thuộc T2.
 
 ## 6. Đề xuất
 
-- So J0 với bản kiểm hình dạng trước. Giữ `T_confirm` và `T_coast` giống nhau để đo tác dụng của kiểm tra hình dạng.
-- F03(c) và F02(e) cần tham chiếu độc lập. Khi mọi biên cùng dịch, kiểm hình dạng chỉ thấy bước nhảy ban đầu. Sau khi hình học mới ổn định đủ `T_confirm`, hai cách kiểm vẫn có thể chấp nhận nó.
+- Chọn J0 kiểm hình dạng: hết trượt 051 ở F06 a, b, e, không có trượt mới, không cần thêm calibration parameter.
+- F06 d, F03 c và F02 e cần tham chiếu độc lập (J1, J2). Mở kế hoạch riêng cho J1 sau quyết định này.
+- F06 d xấu hơn J0 0,07–0,33 m: ghi nhận, xét lại khi làm J1.
 
 ## 7. Quyết định
+
+- 2026-11-14, người dùng chọn J0 kiểm hình dạng theo [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-study-PP-TS-001-13913da/summary.md).
+- Bản giao luôn kiểm hình dạng; bỏ công tắc build `PP_T2_SHAPE_CHECK` (Software Detailed Design 1.13, T2).
+- F06 d, F03 c, F02 e: cần tham chiếu độc lập, để cho J1 với kế hoạch riêng.
