@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; người dùng chọn hướng V1 (2026-11-14); kế hoạch nháp chờ chốt `T_end_late` |
+| Trạng thái | Mở; V1 phía requirement đã áp dụng (`T_end_late` = 0,5 s, SRS 1.20); phía planner cần biến thể mới, plan chưa soạn |
 | Mở ngày | 2026-11-14 |
 | Liên quan | PP-PR-018, PP-PR-020, PP-PR-033; PP-TS-012; PP-SWR-032, 090 |
 
@@ -50,3 +50,18 @@ Người dùng chọn hướng V1 ngày 2026-11-14, sau khi xem bảng trên.
 | V1 phía planner | Ngưỡng kết thúc trừ một bội sai số ước lượng (`k_end_margin`·σ) để không báo sớm | Có thêm calibration parameter `k_end_margin` không, và dải quét |
 | Xếp hạng | Số lần báo sớm (phải 0), phân bố độ muộn, thời lượng can thiệp tăng thêm | — |
 | Bộ chạy | S4b, S6, S7, S12, S13 và ca thẳng đối chứng; seed chỉnh 1, 2; seed kiểm 3, 4 | — |
+
+## 7. Áp dụng V1 phía requirement (2026-11-14)
+
+Người dùng chốt `T_end_late` = 0,5 s (nhóm tự thống nhất). SRS 1.20 sửa PP-SWR-032; bên đánh giá chấm COMPLETED trong 0,5 s sau tick điều kiện thật giữ đủ `T_end_hold`. Đây là đổi ngưỡng sau khi đã thấy kết quả, theo hướng người dùng đã chọn ở §5.
+
+Đo nháp seed 1, độ trễ COMPLETED so với tick điều kiện thật:
+
+| Ca | Độ trễ |
+|---|---|
+| S4 a, c; S5 a; S13 a, c | 0 s |
+| F01 a, b, c lúc LKA (S4a) | 0,65 s |
+| F01 c lúc ELK (S5a) | 1,08 s |
+| S12 b | Không báo COMPLETED (13 s) |
+
+Phát hiện: với lane model nhiễu, v_lat và heading của planner lấy từ từng frame dao động quanh ngưỡng (S12 b: σ của v_lat ≈ 0,094 m/s so với `v_lat_end` = 0,1 m/s, chuỗi đạt dài nhất 20 chu kỳ). Nới requirement một mình không đủ. Cần biến thể phía planner cho điều kiện kết thúc (lọc thông thấp v_lat và heading, hoặc kết hợp yaw rate), kiểm cả PP-SWR-090. Bỏ hướng `k_end_margin` của §6: nó làm điều kiện chặt thêm.

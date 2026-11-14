@@ -585,7 +585,8 @@ def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal
     the planner has started them for the current REQUEST, until their phase is COMPLETED
     (PP-SWR-033, 036); a start of them is judged per case. Not counted: the cycle after the
     choice changes (PP-SWR-038), and while an input needed for a path is unusable and for
-    RECOVERY_GRACE_S after (PP-SWR-124, 142, 145)."""
+    RECOVERY_GRACE_S after (PP-SWR-124, 142, 145). Such a loss ends a started LKA or ELK: it
+    counts again only once started for a new REQUEST (PP-SWR-045)."""
     metric = "Chu kỳ mà chức năng đang lái khác chức năng chọn theo PP-SWR-030"
     if expected_outcome not in ("drive", "drive_limited") or not init_ok or not cycles \
             or any(c.inputs_ok is None for c in cycles):
@@ -597,6 +598,8 @@ def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal
         now_s = c.t0_us * 1e-6
         if not (all(c.inputs_ok.get(k, True) for k in INPUTS_FOR_PATH) and lane_usable(c, cal)):
             last_bad_us = c.t0_us
+            # PP-SWR-045: after the input recovers, LKA and ELK start only on a new REQUEST.
+            started = {f: False for f in started}
         message = c.function_requests.message if c.inputs_ok["function_requests"] else None
         requested = [f for f in FUNCTION_PRIORITY
                      if message is not None and message.requests[int(f) - 1].state == RequestState.REQUEST]
@@ -1066,7 +1069,9 @@ def _completion_errors(truth, episode, cal, edge):
             since = cur.t0_us
         if since is not None and cur.t0_us - since >= round(cal["T_end_hold"] * 1e6):
             reached.append(i)
-    completion_late = bool(reached and (not episode.completed or reached[0] != episode.stop))
+    late_us = round(END_LATE_S * 1e6)
+    completion_late = bool(reached and (not episode.completed
+                                        or cycles[episode.stop].t0_us - cycles[reached[0]].t0_us > late_us))
     premature = episode.completed and episode.stop not in reached
     return bool(reached), completion_late, premature
 
@@ -1096,6 +1101,7 @@ FLOAT32_TOL = 1e-3  # [m/s], [m/s^2] float32 transport of the interface
 CURRENT_SPEED_TOL_MPS = 0.2  # PP-SWR-154: "tốc độ hiện tại" against the true speed (nhóm tự thống nhất)
 
 
+END_LATE_S = 0.5  # T_end_late of PP-SWR-032 (nhóm tự thống nhất, PP-TS-018 V1)
 SWITCH_WINDOW_S = 0.5  # judged after a request change, after the one exempt cycle of PP-SWR-038
 OVERRIDE_START_M = 0.05  # PP-SWR-039, 040
 HWA_LOW_SPEED_MPS = 60 / 3.6  # PP-SWR-054
@@ -1457,7 +1463,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
 
     upper("PP-SWR-080", "Lệch vị trí ngang tại điểm đầu [m]", [d for d, _ in starts], ENTRY_D_M)
     upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
-    upper("PP-SWR-032", "Lần chưa báo COMPLETED tại tick đủ điều kiện", [late_completion] if end_judged else [], 0)
+    upper("PP-SWR-032", "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện", [late_completion] if end_judged else [], 0)
     upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
     lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
     lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
