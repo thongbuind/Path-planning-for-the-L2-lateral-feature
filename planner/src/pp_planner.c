@@ -141,36 +141,52 @@ typedef struct {
     const pp_longitudinal_plan_t *longitudinal_plan;
 } pp_usable_inputs_t;
 
+/* The held message is older than the receive timeout, or none is held (ICD 4). */
+static bool timed_out(const bool *present, uint64_t rx_us, uint64_t t0_us, uint64_t timeout_us)
+{
+    return !*present || ((rx_us <= t0_us) && ((t0_us - rx_us) > timeout_us));
+}
+
 /* T1: counter check of the pub/sub inputs (ICD 4); the accepted message is held until replaced. */
 static void hold_inputs(pp_state_t *s, const pp_planner_inputs_t *in)
 {
     pp_held_inputs_t *h = &s->held;
     if (pp_counter_accept(&h->lane_model_check, in->lane_model.present, in->lane_model.rx_us,
                           in->lane_model.message.header.counter,
-                          in->lane_model.message.header.valid, PP_LANE_MODEL_MAX_DELTA_COUNTER)) {
+                          in->lane_model.message.header.valid, PP_LANE_MODEL_MAX_DELTA_COUNTER,
+                          timed_out(&h->lane_model.present, h->lane_model.rx_us, in->t0_us,
+                                    PP_LANE_MODEL_TIMEOUT_US))) {
         h->lane_model = in->lane_model;
     }
     if (pp_counter_accept(&h->object_list_check, in->object_list.present, in->object_list.rx_us,
                           in->object_list.message.header.counter,
-                          in->object_list.message.header.valid, PP_OBJECT_LIST_MAX_DELTA_COUNTER)) {
+                          in->object_list.message.header.valid, PP_OBJECT_LIST_MAX_DELTA_COUNTER,
+                          timed_out(&h->object_list.present, h->object_list.rx_us, in->t0_us,
+                                    PP_OBJECT_LIST_TIMEOUT_US))) {
         h->object_list = in->object_list;
     }
     if (pp_counter_accept(&h->vehicle_state_check, in->vehicle_state.present,
                           in->vehicle_state.rx_us, in->vehicle_state.message.header.counter,
                           in->vehicle_state.message.header.valid,
-                          PP_VEHICLE_STATE_MAX_DELTA_COUNTER)) {
+                          PP_VEHICLE_STATE_MAX_DELTA_COUNTER,
+                          timed_out(&h->vehicle_state.present, h->vehicle_state.rx_us, in->t0_us,
+                                    PP_VEHICLE_STATE_TIMEOUT_US))) {
         h->vehicle_state = in->vehicle_state;
     }
     if (pp_counter_accept(&h->function_requests_check, in->function_requests.present,
                           in->function_requests.rx_us, in->function_requests.message.header.counter,
                           in->function_requests.message.header.valid,
-                          PP_FUNCTION_REQUESTS_MAX_DELTA_COUNTER)) {
+                          PP_FUNCTION_REQUESTS_MAX_DELTA_COUNTER,
+                          timed_out(&h->function_requests.present, h->function_requests.rx_us, in->t0_us,
+                                    PP_FUNCTION_REQUESTS_TIMEOUT_US))) {
         h->function_requests = in->function_requests;
     }
     if (pp_counter_accept(&h->longitudinal_plan_check, in->longitudinal_plan.present,
                           in->longitudinal_plan.rx_us, in->longitudinal_plan.message.header.counter,
                           in->longitudinal_plan.message.header.valid,
-                          PP_LONGITUDINAL_PLAN_MAX_DELTA_COUNTER)) {
+                          PP_LONGITUDINAL_PLAN_MAX_DELTA_COUNTER,
+                          timed_out(&h->longitudinal_plan.present, h->longitudinal_plan.rx_us, in->t0_us,
+                                    PP_LONGITUDINAL_PLAN_TIMEOUT_US))) {
         h->longitudinal_plan = in->longitudinal_plan;
     }
 }

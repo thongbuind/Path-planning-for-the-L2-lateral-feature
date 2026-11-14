@@ -36,10 +36,12 @@ typedef struct {
  * last delivered message is 1 to max_delta (OK, OKSOMELOST). Step 0 (REPEATED: repeated
  * or stuck counter), a larger step (WRONGSEQUENCE) and valid = false keep the held
  * message, as if the message were lost. The counter is resynchronised to every delivered
- * message, so the next message with step 1 is accepted. The first message is accepted
- * when valid.
+ * message, so the next message with step 1 is accepted. The first message, and the
+ * first one after the held message timed out (resync: the input already counts as lost,
+ * as the growing MaxDeltaCounter of E2E Profiles 1, 2), is accepted when valid and its
+ * step is not 0.
  */
 bool pp_counter_accept(pp_counter_check_t *check, bool present, uint64_t rx_us,
-                       uint8_t counter, bool header_valid, uint32_t max_delta);
+                       uint8_t counter, bool header_valid, uint32_t max_delta, bool resync);
 
 #endif /* PP_INPUT_CHECK_H */

@@ -49,3 +49,4 @@ Hồi quy cục bộ trên bảy lượt F02(a, b, d, e) từng trượt PP-SWR-
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md) | G01 S4c: hết trượt 032 ở 10 lượt, nhưng PP-SWR-030 trượt 12 lượt (trước 6): chuyển từ báo COMPLETED muộn sang chức năng đang lái khác chức năng được chọn. Chưa phân tích |

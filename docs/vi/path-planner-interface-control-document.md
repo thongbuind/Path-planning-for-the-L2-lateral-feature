@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.11 |
+| Phiên bản | 1.12 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -94,6 +94,7 @@
 | 2 tới MaxDeltaCounter | OKSOMELOST | Dùng; các message giữa coi như mất |
 | 0 (lặp hoặc đứng yên) | REPEATED | Bỏ, như mất message |
 | Lớn hơn MaxDeltaCounter | WRONGSEQUENCE | Bỏ, như mất message; message sau có bước 1 thì dùng lại |
+| Lớn hơn MaxDeltaCounter, khi message đang giữ đã quá timeout | Đồng bộ lại | Dùng: input đã coi như mất, bỏ thêm chỉ làm chậm hồi phục (như MaxDeltaCounter tăng dần của E2E Profile 1, 2) |
 
 - Message pub/sub có `valid = false` bị bỏ như mất message; counter của nó vẫn được theo dõi.
 
@@ -291,3 +292,4 @@ Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một 
 | 1.9 | 2026-11-12 | Mục 6.1: Trajectory thêm `observed_horizon_s` |
 | 1.10 | 2026-11-13 | Mục 5.7: dải của `v`, `a` trong LongitudinalPlan; ngoài dải planner xử lý như chưa nhận (PP-SWR-156) |
 | 1.11 | 2026-11-14 | Mục 3, 4: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5, MaxDeltaCounter suy từ timeout nhận; bên nhận giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035, nghĩa của counter nhảy chưa rõ. Ảnh hưởng: PP-SWR-129, 130; Software Detailed Design T1; F15 |
+| 1.12 | 2026-11-14 | Mục 4: message đầu tiên sau khi message đang giữ quá timeout được nhận dù bước counter lớn hơn MaxDeltaCounter (bước 0 vẫn bỏ). Lý do: PP-PR-047. Ảnh hưởng: PP-SWR-153; T1 |
