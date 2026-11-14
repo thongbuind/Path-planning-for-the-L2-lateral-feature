@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa F06 c (bản 2, xem mục 3), chờ hồi quy chính thức; F06 d chuyển sang J1 |
+| Trạng thái | Đóng phần F06 c; F06 d chuyển sang J1 (xác nhận 20261114-2252-suite-regression-98a122b) |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-051; PP-SWR-086; PP-TS-001 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): F06 c trên S1a, S1c; F06 d trên S4a, S5a lúc LKA, ELK |
@@ -35,3 +35,4 @@
 | Run ID | Kết quả |
 |---|---|
 | [20261114-2153-suite-regression-71fb7c1](../runs/20261114-2153-suite-regression-71fb7c1/report.md) | Bản 1: F06 c hết trượt (6 lượt); gây trượt mới S12 c (PP-PR-055) |
+| [20261114-2252-suite-regression-98a122b](../runs/20261114-2252-suite-regression-98a122b/report.md) | Bản 2: F06 c trên S1a, S1c đạt (6 lượt); F06 d vẫn trượt (J1) |

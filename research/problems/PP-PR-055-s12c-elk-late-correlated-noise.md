@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ hồi quy chính thức |
+| Trạng thái | Đóng (xác nhận 20261114-2252-suite-regression-98a122b) |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-088, 085, 100 |
 | Tái hiện | [20261114-2153-suite-regression-71fb7c1](../runs/20261114-2153-suite-regression-71fb7c1/report.md): S12 c seed 1, 6 profile; PP-SWR-088 0,18–0,20 m (0776bad: 0,90 m) |
@@ -28,3 +28,4 @@
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-2252-suite-regression-98a122b](../runs/20261114-2252-suite-regression-98a122b/report.md) | S12 c hết trượt PP-SWR-088, 085, 100 (10 lượt); không có trượt mới so với 71fb7c1 |

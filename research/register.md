@@ -76,12 +76,12 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-044 | F02 e lúc LKA: LKA tiếp tục trên lane model nhảy, DLC phía đối diện −0,10 m | Mở | PP-SWR-085; 121, 030 | [report](problems/PP-PR-044-lka-continues-on-jumped-lane.md) |
 | PP-PR-045 | F21 c, d: đường của anchor thay hình học của ca chủ S1c | Mở | Độ phủ F21; PP-SWR-147, 148, 051 | [report](problems/PP-PR-045-f21-anchor-road-replaces-host.md) |
 | PP-PR-046 | F17 b trên S1c: CRC tốc độ sai, xe ra khỏi làn (DLC −0,87 đến −1,29 m) | Mở | PP-SWR-051; 142 | [report](problems/PP-PR-046-f17b-speed-crc-leaves-lane.md) |
-| PP-PR-047 | S14 d: message LongitudinalPlan đầu tiên sau khi mất bị bỏ theo kiểm counter | Đã sửa trong cây làm việc, chờ hồi quy chính thức | PP-SWR-153; 129, 130 | [report](problems/PP-PR-047-longitudinal-plan-first-after-loss.md) |
-| PP-PR-048 | F06 c và F06 d lúc LKA, ELK trượt sau khi bật kiểm hình dạng | Đã sửa F06 c, chờ hồi quy chính thức; F06 d sang J1 | PP-SWR-051, 086; PP-TS-001 | [report](problems/PP-PR-048-shape-check-wrong-curvature-after-fault.md) |
+| PP-PR-047 | S14 d: message LongitudinalPlan đầu tiên sau khi mất bị bỏ theo kiểm counter | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-153; 129, 130 | [report](problems/PP-PR-047-longitudinal-plan-first-after-loss.md) |
+| PP-PR-048 | F06 c và F06 d lúc LKA, ELK trượt sau khi bật kiểm hình dạng | Đóng phần F06 c; F06 d chuyển sang J1 (20261114-2252-suite-regression-98a122b) | PP-SWR-051, 086; PP-TS-001 | [report](problems/PP-PR-048-shape-check-wrong-curvature-after-fault.md) |
 | PP-PR-049 | F08: bias yaw rate làm xe rời làn trên cua | Đã khoanh vùng; cần đổi requirement (đề xuất study biên a_y R79) | PP-SWR-136; 051, 100 | [report](problems/PP-PR-049-yaw-rate-bias-lane-departure.md) |
 | PP-PR-050 | S14 c: độ cong đầu xa của path đổi trong một chu kỳ | Mở | PP-SWR-100 | [report](problems/PP-PR-050-s14c-far-curvature-step.md) |
 | PP-PR-051 | S1b a, VP-0: cờ giới hạn chưa bật khi lốp đè vạch | Mở | PP-SWR-007 | [report](problems/PP-PR-051-s1ba-flag-late-vp0.md) |
-| PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đã sửa, chờ hồi quy chính thức | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
-| PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đã sửa phía đánh giá, chờ hồi quy chính thức | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
+| PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
+| PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
 | PP-PR-054 | F17 b và F21 c trên S1c: xe rời làn ở cua chạm aysmax | Mở | PP-SWR-051 | [report](problems/PP-PR-054-s1c-f17b-f21c-departure.md) |
-| PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đã sửa, chờ hồi quy chính thức | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |
+| PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |

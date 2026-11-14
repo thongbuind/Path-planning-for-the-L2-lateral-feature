@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa trong cây làm việc, chờ hồi quy chính thức |
+| Trạng thái | Đóng (xác nhận 20261114-2252-suite-regression-98a122b) |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-153; PP-SWR-129, 130 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): S14 d, mọi profile, seed 1 |
@@ -26,3 +26,4 @@
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-2252-suite-regression-98a122b](../runs/20261114-2252-suite-regression-98a122b/report.md) | S14 d hết trượt PP-SWR-153 (6 lượt); F15 b, c đạt PP-SWR-130 |

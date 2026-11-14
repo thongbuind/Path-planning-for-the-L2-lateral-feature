@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa phía đánh giá, chờ hồi quy chính thức |
+| Trạng thái | Đóng (xác nhận 20261114-2252-suite-regression-98a122b) |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-030, 045 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): F20 a trên S4a lúc LKA, S5a lúc ELK, 4 lượt, 214–418 chu kỳ |
@@ -25,3 +25,4 @@ Lỗi của bên đánh giá: `over_refusal` coi LKA, ELK đã bắt đầu là 
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-2252-suite-regression-98a122b](../runs/20261114-2252-suite-regression-98a122b/report.md) | F20 a lúc LKA, ELK hết trượt PP-SWR-030 (4 lượt) |
