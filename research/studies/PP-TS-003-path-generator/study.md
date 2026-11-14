@@ -2,9 +2,9 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; đã cài V1, V2; plan chờ khóa; PP-PR-006 mở |
+| Trạng thái | Đã chạy; đề xuất V0b, chờ quyết định |
 | Mở ngày | 2026-11-11 |
-| Khóa ngày | — |
+| Khóa ngày | 2026-11-14 |
 | Quyết định ngày | — |
 | Liên quan | PP-SWR-001 đến 007, 050 đến 053, 100 đến 102, 151; SQTS mục 9 |
 
@@ -51,6 +51,7 @@ Chưa khóa. Bản nháp 2026-11-14: [plan.yaml](plan.yaml), suite [PP-TS-003](.
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
 | 20261111-1024-matrix-M1-b9e5d4d | V0 | Đăng ký lại; mốc |
+| [20261114-1934-study-PP-TS-003-272a711](../../runs/20261114-1934-study-PP-TS-003-272a711/summary.md) | V0, V0b, V1, V1b, V2 | Theo plan khóa 2026-11-14; 48 lượt mỗi phương án |
 
 ## 5. Kết quả
 
@@ -86,7 +87,25 @@ Chưa khóa. Bản nháp 2026-11-14: [plan.yaml](plan.yaml), suite [PP-TS-003](.
 - Với T10 trước T4, lệch thường dừng ở 0,047–0,048 m: bước 4 kéo về `cont_margin`·0,05 = 0,045 m, lần T10 kiểm lại thêm 2–3 mm. Còn ít biên tới 0,05 m.
 - B0 nháp của V1, V1b: đạt C1, C2, C3 (C1.layout không kiểm vì bản build nháp không có probe).
 
+**Lần chạy chính thức** [20261114-1934-study-PP-TS-003-272a711](../../runs/20261114-1934-study-PP-TS-003-272a711/summary.md). Số lượt trượt (chỉnh / kiểm): V0 7 / 14; **V0b 3 / 6**; V1 6 / 10; V1b 4 / 8; V2 14 / 24.
+
+| Ca | V0 | V0b | V1 | V1b | V2 |
+|---|---|---|---|---|---|
+| S1 c + F01 a, b, c | 100 (c: cả 051) | Đạt | Đạt | Đạt | 051 |
+| S12 a, d | 100 | Đạt | Đạt | Đạt | a: 051 |
+| S1 c + F06 e | 100 | Đạt | Đạt | Đạt | 051 |
+| S1b b, e | Đạt | Đạt | 100 | Đạt | 100 (b: 005–007) |
+| S14 e, ACC on | 051, 100 | 051, 100 | 100, 102 | 100, 102 | 100, 101 |
+| S14 e, ACC bỏ qua giới hạn | 100–102 | 100–102 | 051, 100–102 | 051, 100–102 | 051, 100–102 |
+| S1 a, c, f; S1b a, c; S2; S3; S14 a, c; F02 b; F06 b | Đạt | Đạt | Đạt | Đạt | V2 trượt ở S1 c, S1b a, c, S14 c, F06 b |
+
+- Lệch tâm làn xấu nhất ở bộ kiểm (PP-SWR-050): V0 0,89 m; V0b 0,45 m; V1, V1b 0,60 m; V2 1,48 m.
+- V0b chỉ còn trượt ở S14 e: sai số khớp đa thức của lane model trên cua chữ S (PP-PR-004, PP-TS-005), không thuộc T7.
+- V1 và V1b thời gian đưa về giữa ngắn hơn (PP-SWR-053 2,2 so với 3,1 s), nhưng ở S14 e trượt thêm 051.
+
 ## 6. Đề xuất
+
+- 2026-11-14 theo lần chạy chính thức: chọn V0b (quintic, T10 trước T4). Ít trượt nhất, lệch tâm làn nhỏ nhất, không thêm calibration parameter. QP giữ làm hướng nghiên cứu cho cắt cua (PP-TS-013).
 
 Giữ quintic làm mốc trong lúc kiểm PP-PR-006. Với mọi phương án T7, chạy B0 trước khi so sánh. Bản QP đã có kiểm tra miền biểu diễn float32 tại T11 cho các đầu dải của `VehicleStateEstimate`.
 
