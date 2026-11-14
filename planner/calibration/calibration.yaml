@@ -1,0 +1,72 @@
+# Calibration parameters of the path planner (PP-ADR-012: one set for every vehicle).
+# Values: Software Architectural Design section 11 (start values).
+# Limits: Software Requirements Specification section 7 and the requirement named in `source`.
+# Units as in the documents; gen_calibration.py converts deg -> rad and ms -> s.
+# Limit keys: min, max (inclusive), gt, lt (exclusive), gt_param (greater than another parameter).
+# A limit that is only "within the limits of PP-SWR-xxx" has no number here; the requirement checks it.
+#
+# Algorithm-level parameters (Software Detailed Design section 15) are added with their units.
+
+parameters:
+  conf_ego:         {value: 0.6, unit: "-", min: 0, max: 1, source: "Software Requirements Specification 7"}
+  conf_edge:        {value: 0.7, unit: "-", min: 0, max: 1, source: "Software Requirements Specification 7; PP-SWR-047"}
+  conf_inferred:    {value: 0.8, unit: "-", gt_param: conf_ego, source: "Software Requirements Specification 7"}
+  T_coast:          {value: 1.0, unit: s, min: 0, max: 1, source: "Software Requirements Specification 7; PP-SWR-124"}
+  free_space_min:   {value: 0.1, unit: m, min: 0, source: "Software Requirements Specification 7; PP-SWR-051, 063"}
+  delta_ay:         {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-007, 008"}
+  epsilon_ay:       {value: 0.2, unit: m/s^2, min: 0, max: 2.5, source: "Software Requirements Specification 7; R79 5.6.2.2.3"}
+  T_flag:           {value: 0.2, unit: s, gt: 0, source: "Software Requirements Specification 7; PP-SWR-007, 008"}
+  v_lat_end:        {value: 0.1, unit: m/s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
+  heading_end:      {value: 0.5, unit: deg, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
+  ay_add_end:       {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
+  T_end_hold:       {value: 0.5, unit: s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
+  T_lka:            {value: 3.0, unit: s, gt: 0, source: "Limits of PP-SWR-110, 112, 114"}
+  T_elk:            {value: 2.0, unit: s, gt: 0, source: "Limits of PP-SWR-111, 113, 115"}
+  intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
+  intervention_T_max: {value: 10.0, unit: s, gt_param: intervention_T_step, source: "Software Detailed Design 15; T7 A (PP-TS-016)"}
+  dlc_target_lka:   {value: 0.5, unit: m, min: 0, source: "PP-SWR-084"}
+  T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}
+  ay_add_max_hwa:   {value: 0.5, unit: m/s^2, max: 2.5, source: "PP-SWR-001"}
+  jerk_target_hwa:  {value: 2.5, unit: m/s^3, max: 5, source: "PP-SWR-003"}
+  ref_rate:         {value: 0.1, unit: m/s, min: 0, source: "PP-SWR-120"}
+  stitch_reset:     {value: 0.2, unit: m, min: 0, source: "PP-SWR-100"}
+  k_jump:           {value: 3, unit: sigma, min: 0, source: "PP-SWR-121, 122"}
+  T_confirm:        {value: 1.0, unit: s, min: 0, source: "PP-SWR-060, 061"}
+  offset_max:       {value: 0.3, unit: m, min: 0, source: "PP-SWR-055"}
+  gap_truck_min:    {value: 1.5, unit: m, gt: 0, source: "PP-SWR-055, 056"}
+  dlc_offset_min:   {value: 0.3, unit: m, min: 0, source: "PP-SWR-051"}
+  ttc_offset_start: {value: 3.0, unit: s, min: 0, source: "PP-SWR-058"}
+  t_offset_hold:    {value: 1.0, unit: s, min: 0, source: "Software Architectural Design 11"}
+  t_budget:         {value: 5, unit: ms, lt: 25, source: "Planner cycle 25 ms"}
+  # Software Detailed Design 15. No limit in Software Requirements Specification 7;
+  # gt 0 only keeps the algorithm defined (division by the value).
+  tau_mem:          {value: 2.0, unit: s, gt: 0, source: "Software Detailed Design 15; T2"}
+  sigma_mem0:       {value: 0.05, unit: m, min: 0.03, max: 0.1, source: "Software Detailed Design 15; T2"}
+  q_mem:            {value: 0.001, unit: m^2/s, min: 0.0002, max: 0.005, source: "Software Detailed Design 15; T2"}
+  q_kappa:          {value: 1.0e-9, unit: 1/m^3, min: 0, source: "Software Detailed Design 15; T5"}
+  sigma_r:          {value: 0.002, unit: rad/s, gt: 0, source: "Software Detailed Design 15; T5"}
+  # Floor of the camera curvature sigma: a lane model may report c2, c3 variance 0.
+  sigma_kappa_min:  {value: 1.0e-4, unit: 1/m, gt: 0, source: "nhóm tự thống nhất; T5"}
+  T_hwa:            {value: 3.0, unit: s, gt: 0, source: "Software Detailed Design 15; T7"}
+  T_max:            {value: 5.0, unit: s, gt_param: T_hwa, source: "Software Detailed Design 15; T7"}
+  # max 1: above it the blended path can exceed PP-SWR-100 to 102.
+  # HWA recentering ends within this lateral offset; same 0.1 m as target PP-SWR-053.
+  recenter_done:    {value: 0.1, unit: m, gt: 0, source: "nhóm tự thống nhất; PP-SWR-053; T7"}
+  cont_margin:      {value: 0.9, unit: "-", gt: 0, max: 1, source: "Software Detailed Design 15; T4"}
+  # T7 technique C, unified QP (Software Detailed Design 10, 15; PP-TS-003). Weights are
+  # dimensionless; start values from the prototype in PP-TS-003.
+  qp_w_jerk:          {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_dev:           {value: 0.3, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_T_ramp:          {value: 1.0, unit: s, gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_term_d:        {value: 10.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_term_v:        {value: 10.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_comfort:       {value: 5.0, unit: "-", min: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_corridor:      {value: 500.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  qp_w_cont:          {value: 200.0, unit: "-", min: 0, source: "PP-SWR-100; T7 C"}
+  # 0 turns the comfort term into a plain a_y^2 penalty (PP-TS-003 V2).
+  qp_a_comfort:       {value: 2.0, unit: m/s^2, min: 0, max: 2.5, source: "PP-SWR-001; T7 C"}
+  # Hard a_y limit of the QP as a share of aysmax; T10 still checks the exact path.
+  qp_ay_margin:       {value: 1.0, unit: "-", gt: 0, max: 1, source: "PP-SWR-001; T7 C"}
+  qp_corridor_margin: {value: 0.3, unit: m, min: 0, source: "PP-SWR-051; T7 C"}
+  qp_iters:           {value: 150, unit: "-", min: 1, source: "PP-SWR-015; T7 C"}
+  qp_rho0:            {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}

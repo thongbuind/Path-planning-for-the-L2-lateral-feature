@@ -1,5 +1,5 @@
 # Q2 Unreported delay of the filtered yaw rate (Software Qualification Test Specification
-# 6.1). The planner is not told about the delay. Judged with the scope of P1.
+# 6.1). The planner is not told about the delay. Judged with the scope of benchmark/suites/scope.yaml.
 id: Q2
 title: Quét trễ yaw rate không báo
 profiles: [VP-0]
@@ -9,4 +9,4 @@ blocks:
     runs: [[S1, a], [S1, c], [S1, f]]
     sim_sweep:
       yaw_filter_delay_ms: [0, 25, 50, 100]
-scope_from: P1
+scope_from: scope

@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from eval import conclusion, severity
+from eval import conclusion, presentation, severity
 from eval.report_strings import translate, conformance_detail, conformance_title
 from eval.metrics import COMPUTE_BINS_MS
 from interfaces.planner_io import PLANNER_PERIOD_US
@@ -105,7 +105,7 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang ≤ 0,05 m", "PP-
              "PP-SWR-088": "Khoảng cách tới xe làn bên ≥ 0,3 m", "PP-SWR-143": "Path không hợp lệ khi ego-motion hỏng",
              "PP-SWR-124": "Xử lý mất lane model đúng hạn", "PP-SWR-063": "Báo làn quá hẹp",
              "EXECUTION_FAULT": "Planner dừng hoặc ra NaN",
-             "PP-SWR-061": "Path liền mạch khi lane model sang làn", "PP-SWR-083": "LKA, ELK kết thúc trong ≤ 10 s",
+             "PP-SWR-061": "Path liền mạch khi lane model sang làn",
              "PP-SWR-090": "Không báo COMPLETED quá sớm", "PP-SWR-110": "a_y path LKA ≤ 3,0 m/s²",
              "PP-SWR-111": "a_y path ELK ≤ 4,0 m/s²", "PP-SWR-112": "a_y thêm vào LKA ≤ 1,5 m/s²",
              "PP-SWR-113": "a_y thêm vào ELK ≤ 3,0 m/s²", "PP-SWR-114": "Jerk path LKA ≤ 5 m/s³",
@@ -544,14 +544,17 @@ INFO_KEPT = ("vehicle_offset_max_m", "compute_hist", "no_impact", "compute_time_
 
 
 def _slim(r: dict) -> dict:
-    """Only what the slides read: failures (computed once), NCAP row criterion, targets, a few
-    info values. A full run is about 180 MB of JSON; whole records would not fit an 8 GB machine."""
+    """Keep the criteria summaries, targets and info that the slides read.
+
+    A full run is about 180 MB of JSON; whole records would not fit an 8 GB machine.
+    """
     if "_fail" not in r:
         inside, outside, _ = conclusion.run_failures(r)
         r["_fail"] = [{"requirement": f["requirement"], "level": f["level"]} for f in inside]
         r["_oos"] = sorted({f["requirement"] for f in outside})
     result = r.get("result")
     if result is not None:
+        r["_requirement_coverage"] = presentation.requirement_coverage(r, failures=r["_fail"])
         r["_behavior"] = [c for c in result.get("criteria", []) if c.get("id") in BEHAVIOR_IDS]
         r["_crit"] = [(c["id"], c.get("metric", ""), m.group(1), float(m.group(2)), float(c["value"]))
                       for c in result.get("criteria", [])
@@ -1343,6 +1346,7 @@ class Report:
     def b7_slide(self):
         recs = self.by_aspect.get('B7', [])
         profiles = sorted({r.get('profile') for r in recs if r.get('profile')})
+        requirements = presentation.requirements_by_profile(recs)
         signatures = [Counter(profile_signature(r) for r in recs if r['profile'] == p) for p in profiles]
         same = len(profiles) > 1 and all(x == signatures[0] for x in signatures[1:])
         comparability = (self.tr("Cùng tập tham số tình huống và seed giữa các mẫu xe.") if same else
@@ -1350,16 +1354,23 @@ class Report:
         rows, offsets = [], []
         for p in profiles:
             rs = [r for r in recs if r['profile'] == p]
-            n_ok = sum(not run_levels(r)[0] for r in rs)
+            judged, failed = requirements[p]
+            passed = len(judged - failed)
+            rate = "—"
+            if judged:
+                status = "bad" if failed else "good"
+                rate = f'<span class="status {status}">{limit_percent(passed / len(judged), lang=self.lang)}</span>'
             vals = [info(r, 'vehicle_offset_max_m') for r in rs]
             vals = [v for v in vals if isinstance(v, (float,int)) and math.isfinite(v)]
             offsets.append(max(vals) if vals else None)
-            rows.append([f'<b>{E(p)}</b> · {E(self.tr(PROFILE_NAMES.get(p, p)))}', f'{n_ok} / {len(rs)}',
-                         f'<span class="status {"good" if n_ok == len(rs) else "bad"}">{vn(100*n_ok/len(rs),1, lang=self.lang)} %</span>'])
+            rows.append([f'<b>{E(p)}</b> · {E(self.tr(PROFILE_NAMES.get(p, p)))}',
+                         f'{passed} / {len(judged)}', rate])
         chart = offset_chart(profiles, offsets, lang=self.lang)
         self.page('B7 · Flexibility', self.tr("Cùng một bản build và calibration trên các mẫu xe"),
                   'grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:auto 1fr auto',
-                  self.suite_head('B7') + [card(self.tr("Tỷ lệ đạt theo mẫu xe"), table([self.tr("Mẫu xe"), self.tr("Đạt / đã chạy"), self.tr("Tỷ lệ")], rows), comparability, style='grid-column:span 2'),
+                  self.suite_head('B7') + [card(self.tr("Tỷ lệ requirement đạt theo mẫu xe"),
+                                               table([self.tr("Mẫu xe"), self.tr("Đạt / đã chấm"), self.tr("Tỷ lệ")], rows),
+                                               comparability, style='grid-column:span 2'),
                   card(self.tr("Lệch ngang lớn nhất của xe [m]"), chart, self.tr("Trị tuyệt đối khoảng cách từ tâm cầu sau tới đường tham chiếu thật. Màu nhấn chỉ nhận diện cực đại."), style='grid-column:span 2'),
                   card(self.tr("Requirement trượt"), self.failure_summary(recs), self.tr("Số lần chạy trong phạm vi; ID mở tên đầy đủ."), style='grid-column:1/-1')])
 

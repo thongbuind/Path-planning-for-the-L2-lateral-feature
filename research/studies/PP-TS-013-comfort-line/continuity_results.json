@@ -1,0 +1,501 @@
+{
+  "study": "PP-TS-013",
+  "method": "research prototype with exact reference geometry",
+  "profile": "VP-0",
+  "replan_step_m": 1.0,
+  "srs_limits": [
+    0.05,
+    0.005,
+    0.0003
+  ],
+  "limiter_targets": [
+    0.045000000000000005,
+    0.0045000000000000005,
+    0.00027
+  ],
+  "observed_plan_thresholds_mps2": {
+    "ay_max": 2.5,
+    "ay_support_min": 2.3
+  },
+  "runs": [
+    {
+      "road": "Rf",
+      "view_m": 80.0,
+      "centre": {
+        "ay_peak": 2.6226695186196975,
+        "ay_rms": 1.1126165217547481,
+        "jerk_peak": 1.227979945562857,
+        "jerk_rms": 0.622805367652795,
+        "swr_peak": 10.585103364043569,
+        "swr_rms": 4.167353410478726,
+        "sw_travel": 38.23801325879732,
+        "sw_peak": 17.33691585719589,
+        "reversals": 2,
+        "clear_min": 0.6809293919086552,
+        "track_err_max": 0.09693186422794553
+      },
+      "variants": {
+        "R-cam": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.12296276542476942,
+            "heading_max": 0.0033545968123330078,
+            "curvature_max": 0.00020234442968522354,
+            "cycles": 348,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.4938739251501967,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 2.1923768136045028,
+            "ay_rms": 1.0467622526508236,
+            "jerk_peak": 1.0890399273259233,
+            "jerk_rms": 0.47808635349250406,
+            "swr_peak": 8.482454249069926,
+            "swr_rms": 3.109259267678092,
+            "sw_travel": 31.086800050984113,
+            "sw_peak": 14.177764899592852,
+            "reversals": 1,
+            "clear_min": 0.45614608022168607,
+            "track_err_max": 0.07315757704723765
+          }
+        },
+        "R-limited": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.2948961090224987,
+          "continuity": {
+            "max": 0.045000000000000005,
+            "heading_max": 0.001263271700121617,
+            "curvature_max": 9.374691344279164e-05,
+            "cycles": 348,
+            "limited_cycles": 3
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.4938739251501967,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 2.215773825165077,
+            "ay_rms": 1.0470526299558889,
+            "jerk_peak": 1.0894178629910545,
+            "jerk_rms": 0.4786126605566732,
+            "swr_peak": 8.150805618059787,
+            "swr_rms": 3.111703512982059,
+            "sw_travel": 31.41501045949075,
+            "sw_peak": 14.329773056855515,
+            "reversals": 1,
+            "clear_min": 0.4602628591509116,
+            "track_err_max": 0.07322527451835222
+          }
+        }
+      }
+    },
+    {
+      "road": "S1f",
+      "view_m": 80.0,
+      "centre": {
+        "ay_peak": 1.8393850420051634,
+        "ay_rms": 0.5915568799099963,
+        "jerk_peak": 1.8133731874558638,
+        "jerk_rms": 0.6827530115303913,
+        "swr_peak": 13.262042814372176,
+        "swr_rms": 4.685207128279139,
+        "sw_travel": 44.008883307288066,
+        "sw_peak": 12.694883266529345,
+        "reversals": 3,
+        "clear_min": 0.6654373723725422,
+        "track_err_max": 0.12083144465529469
+      },
+      "variants": {
+        "R-cam": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.28119661398173795,
+          "continuity": {
+            "max": 0.12877508761863052,
+            "heading_max": 0.002944251599640263,
+            "curvature_max": 0.000178340262622887,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 1.158331350878429,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 0.9360832691327202,
+            "ay_rms": 0.43986267577079635,
+            "jerk_peak": 0.8071658043991724,
+            "jerk_rms": 0.3352268640780728,
+            "swr_peak": 5.274260820842258,
+            "swr_rms": 2.1961717825014886,
+            "sw_travel": 26.327109885192563,
+            "sw_peak": 6.150440616448382,
+            "reversals": 2,
+            "clear_min": 0.5127888485684632,
+            "track_err_max": 0.0637566267744036
+          }
+        },
+        "R-limited": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.27795964597788514,
+          "continuity": {
+            "max": 0.045000000000000005,
+            "heading_max": 0.0013812914902206338,
+            "curvature_max": 0.00010501328985313042,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 1.158423383221834,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 0.9375819655342522,
+            "ay_rms": 0.44002451051755315,
+            "jerk_peak": 0.8241146988082406,
+            "jerk_rms": 0.33617437292705277,
+            "swr_peak": 5.421452613489852,
+            "swr_rms": 2.2021903828847154,
+            "sw_travel": 26.26743628100946,
+            "sw_peak": 6.156487933182704,
+            "reversals": 2,
+            "clear_min": 0.5092342381182524,
+            "track_err_max": 0.06440262465682352
+          }
+        },
+        "R-limited-blocked-left": {
+          "corridor_m": [
+            -0.3,
+            0.0
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.0,
+          "continuity": {
+            "max": 0.045000000000000005,
+            "heading_max": 0.0018079315128432956,
+            "curvature_max": 0.00013945720634114884,
+            "cycles": 401,
+            "limited_cycles": 5
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 1.2979578146161663,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 1.251248206146805,
+            "ay_rms": 0.4931636339934667,
+            "jerk_peak": 1.20037538472097,
+            "jerk_rms": 0.44829256146772417,
+            "swr_peak": 7.923895912180212,
+            "swr_rms": 2.950839309595499,
+            "sw_travel": 31.182125031098053,
+            "sw_peak": 8.216860587065042,
+            "reversals": 3,
+            "clear_min": 0.5457282735369642,
+            "track_err_max": 0.08457277334117465
+          }
+        },
+        "R-limited-blocked-right": {
+          "corridor_m": [
+            0.0,
+            0.3
+          ],
+          "d_min_m": 0.0,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.044748445866852476,
+            "heading_max": 0.0016091801173681863,
+            "curvature_max": 9.869359183090031e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 1.2582184952467061,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 1.1735225855812277,
+            "ay_rms": 0.4955122576303852,
+            "jerk_peak": 0.985477326548584,
+            "jerk_rms": 0.41700848448541694,
+            "swr_peak": 6.496901217155848,
+            "swr_rms": 2.7338298913590413,
+            "sw_travel": 30.352819685871737,
+            "sw_peak": 7.688392590589777,
+            "reversals": 2,
+            "clear_min": 0.4600121126499214,
+            "track_err_max": 0.07463918359198142
+          }
+        }
+      }
+    },
+    {
+      "road": "S14e",
+      "view_m": 80.0,
+      "centre": {
+        "ay_peak": 4.010556222924062,
+        "ay_rms": 1.3697378368078499,
+        "jerk_peak": 5.597792810544216,
+        "jerk_rms": 2.1987198154191363,
+        "swr_peak": 30.127600304410528,
+        "swr_rms": 10.267670194199544,
+        "sw_travel": 73.01968322308215,
+        "sw_peak": 19.10360484780638,
+        "reversals": 4,
+        "clear_min": 0.43721336720933424,
+        "track_err_max": 0.33352162339935165
+      },
+      "variants": {
+        "R-cam": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.10883523266120265,
+            "heading_max": 0.0025026818628254427,
+            "curvature_max": 0.0001655854679026545,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.728590851513764,
+            "support_margin_mps2": -0.9264811541391231
+          },
+          "vehicle": {
+            "ay_peak": 1.9993303137632465,
+            "ay_rms": 0.9795026675892539,
+            "jerk_peak": 2.817547639215402,
+            "jerk_rms": 1.1224245879097468,
+            "swr_peak": 13.22925885537849,
+            "swr_rms": 4.990956262785714,
+            "sw_travel": 41.46553208786923,
+            "sw_peak": 8.930413148820474,
+            "reversals": 3,
+            "clear_min": 0.5031332004758121,
+            "track_err_max": 0.19534142243951538
+          }
+        },
+        "R-limited": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.045000000000000005,
+            "heading_max": 0.0012615620557149996,
+            "curvature_max": 0.00012773971298994622,
+            "cycles": 401,
+            "limited_cycles": 6
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.7286192541847,
+            "support_margin_mps2": -0.9260675682498762
+          },
+          "vehicle": {
+            "ay_peak": 1.9970762248943321,
+            "ay_rms": 0.9794840707264149,
+            "jerk_peak": 2.843270699139982,
+            "jerk_rms": 1.1235898798237534,
+            "swr_peak": 13.323699817638095,
+            "swr_rms": 4.99587876434843,
+            "sw_travel": 41.39109885325412,
+            "sw_peak": 8.945668427948762,
+            "reversals": 3,
+            "clear_min": 0.5002825232135508,
+            "track_err_max": 0.19622836215162287
+          }
+        }
+      }
+    },
+    {
+      "road": "S1c",
+      "view_m": 80.0,
+      "centre": {
+        "ay_peak": 2.5504961755406717,
+        "ay_rms": 2.2561587701533496,
+        "jerk_peak": 0.7368213694520453,
+        "jerk_rms": 0.33407621227889045,
+        "swr_peak": 5.97025464851012,
+        "swr_rms": 2.2037178569495937,
+        "sw_travel": 17.525415128653794,
+        "sw_peak": 16.655110956078687,
+        "reversals": 0,
+        "clear_min": 0.7181455770588581,
+        "track_err_max": 0.05352024854457024
+      },
+      "variants": {
+        "R-cam": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.1702422257575746,
+          "d_max_m": 0.04232945679931651,
+          "continuity": {
+            "max": 0.0024579462782608474,
+            "heading_max": 0.00011100016872811307,
+            "curvature_max": 1.4055235312701497e-05,
+            "cycles": 351,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.502494326392948,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 2.5097409642067796,
+            "ay_rms": 2.2521574645123814,
+            "jerk_peak": 0.663138428217368,
+            "jerk_rms": 0.2981185806169668,
+            "swr_peak": 4.296105947110451,
+            "swr_rms": 1.9054571275059635,
+            "sw_travel": 14.895424493905676,
+            "sw_peak": 16.185708233894175,
+            "reversals": 0,
+            "clear_min": 0.6121720981587033,
+            "track_err_max": 0.046523179887195815
+          }
+        },
+        "R-limited": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.1702422257575746,
+          "d_max_m": 0.04232945679931651,
+          "continuity": {
+            "max": 0.0024579462782608474,
+            "heading_max": 0.00011100016872811307,
+            "curvature_max": 1.4055235312701497e-05,
+            "cycles": 351,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 2.502494326392948,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 2.5097409642067796,
+            "ay_rms": 2.2521574645123814,
+            "jerk_peak": 0.663138428217368,
+            "jerk_rms": 0.2981185806169668,
+            "swr_peak": 4.296105947110451,
+            "swr_rms": 1.9054571275059635,
+            "sw_travel": 14.895424493905676,
+            "sw_peak": 16.185708233894175,
+            "reversals": 0,
+            "clear_min": 0.6121720981587033,
+            "track_err_max": 0.046523179887195815
+          }
+        }
+      }
+    },
+    {
+      "road": "S1f",
+      "view_m": 150.0,
+      "centre": {
+        "ay_peak": 1.8393850420051634,
+        "ay_rms": 0.5915568799099963,
+        "jerk_peak": 1.8133731874558638,
+        "jerk_rms": 0.6827530115303913,
+        "swr_peak": 13.262042814372176,
+        "swr_rms": 4.685207128279139,
+        "sw_travel": 44.008883307288066,
+        "sw_peak": 12.694883266529345,
+        "reversals": 3,
+        "clear_min": 0.6654373723725422,
+        "track_err_max": 0.12083144465529469
+      },
+      "variants": {
+        "R-cam": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.03192727835577358,
+            "heading_max": 0.0008051552223751549,
+            "curvature_max": 6.983113897002471e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 0.851076562538621,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 0.8929272083598331,
+            "ay_rms": 0.41986318957213387,
+            "jerk_peak": 0.7537254886624039,
+            "jerk_rms": 0.30842373705515375,
+            "swr_peak": 4.923237103856992,
+            "swr_rms": 2.0118378837798514,
+            "sw_travel": 23.66820146048898,
+            "sw_peak": 5.815003972062564,
+            "reversals": 2,
+            "clear_min": 0.4756405108374193,
+            "track_err_max": 0.05563896499258206
+          }
+        },
+        "R-limited": {
+          "corridor_m": [
+            -0.3,
+            0.3
+          ],
+          "d_min_m": -0.3,
+          "d_max_m": 0.3,
+          "continuity": {
+            "max": 0.03220379285966499,
+            "heading_max": 0.0008125001273872751,
+            "curvature_max": 7.040534773062743e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "observed_plan": {
+            "ay_peak_mps2": 0.8511764940965588,
+            "support_margin_mps2": null
+          },
+          "vehicle": {
+            "ay_peak": 0.8931210853684474,
+            "ay_rms": 0.41984617998327955,
+            "jerk_peak": 0.7535361272695953,
+            "jerk_rms": 0.3083368565553193,
+            "swr_peak": 4.921993640324068,
+            "swr_rms": 2.0111731404620956,
+            "sw_travel": 23.66934721793934,
+            "sw_peak": 5.816276097192045,
+            "reversals": 2,
+            "clear_min": 0.4755895189375152,
+            "track_err_max": 0.055585029345010535
+          }
+        }
+      }
+    }
+  ]
+}

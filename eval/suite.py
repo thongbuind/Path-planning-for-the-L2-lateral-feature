@@ -47,10 +47,8 @@ def verify_manifest(path):
     return manifest, cases
 
 
-import yaml  # noqa: E402
-
 # Scope rule of every run: benchmark/suites/scope.yaml (Software Qualification Test Specification 8.1).
-SCOPE = yaml.safe_load((openx.ROOT / 'benchmark' / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))
+SCOPE = matrix.SCOPE
 
 
 def rerun_command(path, seed, planner) -> str:
@@ -68,13 +66,7 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
     from eval import differential
     result.criteria.extend(differential.criteria(scenario, log, planner, seed))
     family = case['family']
-    anchor = case['anchor'] or 'a'
-    if 'scope_keys' in case:  # host scenario plus injected faults: union of their scopes
-        scope = set().union(*(matrix.scope(SCOPE, k) for k in case['scope_keys']))
-    else:
-        spec = ['S1', 'a', family, anchor] if family.startswith('F') else [family, anchor]
-        scope = matrix.scope(SCOPE, spec)
-    scope |= labels.scope_extra(labels.of(scenario))
+    scope = matrix.case_scope(case) | labels.scope_extra(labels.of(scenario))
     failed = dict.fromkeys(c.id for c in result.criteria if c.applicable and not c.passed)
     case_labels = labels.of(scenario)
     record = {'case': case['id'], 'seed': seed, 'profile': scenario.profile, 'labels': case_labels,
@@ -128,7 +120,7 @@ def aspect_table(records, b0):
     lines = ['', '## Bộ theo khía cạnh', '', '| Bộ | Khía cạnh | Lần chạy | Kết luận | BLOCKER | MAJOR | MINOR |',
              '|---|---|---|---|---|---|---|']
     if b0 is not None:
-        verdict = 'Bị chặn' if b0['blocked'] else 'Đạt C1, C2' + ('; Tích hợp được' if b0['integrable'] else '')
+        verdict = conclusion.BLOCKED if b0['blocked'] else 'Đạt C1, C2' + ('; Tích hợp được' if b0['integrable'] else '')
         lines.append(f'| B0 | Conformance | — | {verdict} | — | — | — |')
     for aspect, rule in aspects.definitions().items():
         subset = [r for r in records if aspect in r.get('aspects', [])]

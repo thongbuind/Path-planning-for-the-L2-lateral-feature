@@ -1,0 +1,49 @@
+{
+ "run_id": "20261111-1024-matrix-M1-b9e5d4d",
+ "kind": "matrix",
+ "target": "M1",
+ "started": null,
+ "command": [
+  "matrix.py",
+  "M1",
+  "--jobs",
+  "2"
+ ],
+ "git": {
+  "commit": "b9e5d4dc27a830dcfca8c8af1e902a619ccdff24",
+  "short": "b9e5d4d",
+  "branch": "sil-baseline",
+  "dirty": false,
+  "changed": []
+ },
+ "libraries": [
+  {
+   "path": "build/planner/libpp_planner.dylib",
+   "sha256": "a9c723075a6a87bf0c1eb91b9cbf130a0b064e85cb02cef56884d50e64e30bae",
+   "pp_version": null,
+   "build": {}
+  }
+ ],
+ "inputs": {
+  "benchmark/faults/F01.yaml": "65153714ee244b7c5e3d83933ec5747e85295a0d6e12dfa89802ddd8448c8860",
+  "benchmark/faults/F02.yaml": "9298aaf19fc79e8e7d513e12e0b78e342081a982bb5bd8962bae23601353fcf7",
+  "benchmark/faults/F04.yaml": "8136825411d880869bdafc542dba424b0f035367576f6ef1a904c3abffba85a2",
+  "benchmark/faults/F06.yaml": "a9d076828ea4d1dd27b759730863e2a5c0267d1fdcbeb372de21595982beb051",
+  "benchmark/scenarios/S1.yaml": "ab264f91aad04d08bf621eb957fdef8965dda54262cc1c100da70d5c88d9c81b",
+  "benchmark/scenarios/S14.yaml": "642d4820c160b30839b0e0d2fa0aac4cacfd64814e4be571f26e6f32d6a16090",
+  "benchmark/scenarios/S1b.yaml": "79c286b5bc6d25dc709796d5acfcc7742755a1942d8094e6ea259cab16b8fb75",
+  "benchmark/scenarios/S2.yaml": "227e51dc6143e2a5f4933b388ed4919420a72888cdaa04c4bb76827fa4902b73",
+  "benchmark/suites/M1.yaml": "5d299c7aead107f57d1515532f9533e1412f923808fd832216c8d3c3f459fa42",
+  "benchmark/suites/P1.yaml": "6eaf1bd8f80de6545fda9b887db5a867b8a9facf753586cfa28fb208c9a29e61",
+  "planner/calibration/calibration.yaml": "804d3632d85e8db485e08b966badc65b8cacc2cc9d9c831a8286a051e1cf2776"
+ },
+ "environment": {
+  "python": "3.13.11",
+  "numpy": "2.5.2",
+  "platform": "macOS-26.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64"
+ },
+ "jobs": 2,
+ "finished": "2026-11-11T10:24:00+07:00",
+ "retro": "Đăng ký lại sau khi chạy. M1 chạy xong lúc 10:24 trước khi có commit; mọi file trong planner/, interfaces/, adapters/, sim/, eval/, benchmark/ không sửa sau lúc đó (kiểm theo thời điểm sửa file), và commit b9e5d4d chứa đúng các file này. Thư viện chưa có pp_version()."
+}

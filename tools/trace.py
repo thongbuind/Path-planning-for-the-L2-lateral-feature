@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Truy vết giữa yêu cầu của planner và kịch bản, lỗi bơm vào của benchmark.
 
-Nguồn duy nhất của truy vết là cột Kiểm chứng trong docs/vi/yeu-cau-path-planner.md.
-Cột Yêu cầu trong ba bảng của docs/vi/benchmark-evaluation.md (danh mục kịch bản,
+Nguồn duy nhất của truy vết là cột Kiểm chứng trong docs/vi/path-planner-software-requirements-specification.md.
+Cột Yêu cầu trong ba bảng của docs/vi/path-planner-software-qualification-test-specification.md (danh mục kịch bản,
 danh mục lỗi, quét độ trễ) được sinh từ cột đó. Mã không truy về yêu cầu nào của
-planner thì ghi ở bảng "Mã | Lý do" (benchmark mục 4.3) để không bị báo mồ côi.
+planner thì ghi ở bảng "Mã | Lý do" (Test Specification mục 6.3) để không bị báo mồ côi.
+Ngoài ra kiểm: ID giả định, quyết định không trùng và nơi nhắc tới phải có thật; không còn
+tham chiếu việc mở OI; calibration parameter mà SRS giới hạn phải có trong bảng calibration;
+bảng đầu tài liệu khớp Revision history.
 
 Chạy từ thư mục G1:
     python3 tools/trace.py            kiểm tra, in ma trận và các mục mồ côi
@@ -23,8 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs" / "vi"
-REQ_DOC = DOCS / "yeu-cau-path-planner.md"
-BENCH_DOC = DOCS / "benchmark-evaluation.md"
+REQ_DOC = DOCS / "path-planner-software-requirements-specification.md"
+BENCH_DOC = DOCS / "path-planner-software-qualification-test-specification.md"
 
 METHODS = ("Test", "Analysis", "Inspection", "Demonstration")
 KEYWORDS = {"mọi kịch bản": "all_scenarios", "mọi lỗi": "all_faults", "chưa có kịch bản": "none"}
@@ -129,7 +132,6 @@ def load_requirements(errors):
     for _, header, rows in tables(lines):
         if header[:3] != ["ID", "Yêu cầu", "Kiểm chứng"]:
             continue
-        status_col = header.index("Trạng thái") if "Trạng thái" in header else None
         for _, cells in rows:
             m = REQ_ROW_ID.fullmatch(cells[0])
             if not m:
@@ -138,8 +140,8 @@ def load_requirements(errors):
             rid = m.group(1)
             if rid in reqs:
                 errors.append(f"PP-SWR-{rid} bị trùng")
-            status = cells[status_col] if status_col is not None else ""
-            reqs[rid] = {"verify": cells[2], "status": status}
+            obsolete = "obsolete" in cells[1].lower() or "obsolete" in (c.strip().lower() for c in cells[3:])
+            reqs[rid] = {"verify": cells[2], "status": "obsolete" if obsolete else ""}
     return reqs
 
 
@@ -156,6 +158,101 @@ def load_bench_codes(lines):
         elif header == ["Mã", "Lý do"]:
             found["miễn"] = (idx, header, rows)
     return found
+
+
+ASM_ID = re.compile(r"PP-ASM-(\d{3})")
+OI_ID = re.compile(r"\bOI-(\d{3})")
+ADR_ID = re.compile(r"PP-ADR-(\d{3})")
+CAL_NAME = re.compile(r"`([a-zA-Z_][a-zA-Z0-9_]*)`")
+
+
+def check_registers(errors):
+    """Giả định (PP-ASM) và quyết định (PP-ADR): ID duy nhất, nơi nhắc tới phải có thật.
+
+    Bộ tài liệu kỹ thuật không còn việc mở: mọi tham chiếu OI-nnn là lỗi. Trả về số đếm để in tóm tắt.
+    """
+    defined = {"PP-ASM": {}, "PP-ADR": {}}
+    docs = sorted(DOCS.glob("*.md"))
+    for doc in docs:
+        lines = doc.read_text(encoding="utf-8").split("\n")
+        for _, header, rows in tables(lines):
+            if header[:2] != ["ID", "Giả định"]:
+                continue
+            if doc != REQ_DOC:
+                errors.append(f"{doc.name}: giả định chỉ được định nghĩa ở {REQ_DOC.name}")
+            for _, cells in rows:
+                m = ASM_ID.fullmatch(cells[0])
+                if not m:
+                    errors.append(f"{doc.name}: ID giả định không hợp lệ: {cells[0]!r}")
+                    continue
+                if m.group(1) in defined["PP-ASM"]:
+                    errors.append(f"PP-ASM-{m.group(1)} bị trùng")
+                defined["PP-ASM"][m.group(1)] = doc.name
+        # Quyết định thiết kế: mỗi quyết định là một tiêu đề "### PP-ADR-nnn …".
+        for line in lines:
+            m = re.match(r"#{2,4} PP-ADR-(\d{3})\b", line)
+            if m:
+                if m.group(1) in defined["PP-ADR"]:
+                    errors.append(f"PP-ADR-{m.group(1)} bị trùng")
+                defined["PP-ADR"][m.group(1)] = doc.name
+    for doc in docs:
+        text = doc.read_text(encoding="utf-8")
+        for kind, pattern in (("PP-ASM", ASM_ID), ("PP-ADR", ADR_ID)):
+            missing = sorted(set(pattern.findall(text)) - set(defined[kind]))
+            if missing:
+                errors.append(f"{doc.name} nhắc ID không có: " + ", ".join(f"{kind}-{n}" for n in missing))
+        stale = sorted(set(OI_ID.findall(text)))
+        if stale:
+            errors.append(f"{doc.name} còn nhắc việc mở đã bỏ: " + ", ".join(f"OI-{n}" for n in stale))
+    return {"giả định": len(defined["PP-ASM"]), "quyết định": len(defined["PP-ADR"])}
+
+
+def check_calibration(errors, warnings):
+    """Calibration parameter: SRS ghi giới hạn; tài liệu thiết kế ghi giá trị khởi đầu và dải quét.
+
+    Mỗi tham số SRS giới hạn phải có một dòng trong một bảng calibration; mỗi dòng bảng calibration
+    phải có giá trị khởi đầu. Trả về số tham số trong các bảng calibration.
+    """
+    listed, limited = set(), set()
+    for doc in sorted(DOCS.glob("*.md")):
+        for _, header, rows in tables(doc.read_text(encoding="utf-8").split("\n")):
+            if header[:3] == ["Tham số", "Đơn vị", "Khởi đầu"]:
+                for _, cells in rows:
+                    names = CAL_NAME.findall(cells[0])
+                    if not names:
+                        errors.append(f"{doc.name}: dòng calibration không có tên tham số: {cells[0]!r}")
+                    if len(cells) < 3 or not cells[2].strip():
+                        errors.append(f"{doc.name}: {cells[0]} thiếu giá trị khởi đầu")
+                    listed.update(names)
+            elif doc == REQ_DOC and header[:3] == ["Tham số", "Ý nghĩa", "Giới hạn"]:
+                for _, cells in rows:
+                    limited.update(CAL_NAME.findall(cells[0]))
+    missing = sorted(limited - listed)
+    if missing:
+        errors.append("SRS giới hạn tham số không có trong bảng calibration nào: " + ", ".join(missing))
+    return len(listed)
+
+
+def check_doc_control(warnings):
+    """Mỗi tài liệu có bảng đầu (phiên bản, ngày cập nhật) khớp với dòng cuối của Lịch sử thay đổi."""
+    for doc in sorted(DOCS.glob("*.md")):
+        lines = doc.read_text(encoding="utf-8").split("\n")
+        found = tables(lines)
+        head = next((dict((c[0], c[1]) for _, c in rows if len(c) > 1)
+                     for idx, header, rows in found if header == ["Mục", "Nội dung"] and idx < 15), None)
+        start = next((i for i, l in enumerate(lines) if l.startswith(("## Lịch sử thay đổi", "## Revision history"))), None)
+        history = [rows for idx, header, rows in found if start is not None and idx > start
+                   and header[:2] == ["Phiên bản", "Ngày"]]
+        if not head or "Phiên bản" not in head:
+            warnings.append(f"{doc.name}: thiếu bảng đầu tài liệu (Phiên bản, Trạng thái, Cập nhật)")
+            continue
+        if not history or not history[0]:
+            warnings.append(f"{doc.name}: thiếu mục Revision history")
+            continue
+        last = history[0][-1][1]
+        if last[0] != head["Phiên bản"] or last[1] != head.get("Cập nhật"):
+            warnings.append(f"{doc.name}: bảng đầu ghi phiên bản {head['Phiên bản']}, ngày {head.get('Cập nhật')}; "
+                            f"dòng cuối của Lịch sử thay đổi ghi {last[0]}, {last[1]}")
 
 
 def fmt_ids(entries):
@@ -235,6 +332,10 @@ def main():
     if traced_exempt:
         warnings.append("Mã nằm trong bảng miễn nhưng có yêu cầu trỏ tới: " + ", ".join(traced_exempt))
 
+    counts = check_registers(errors)
+    counts["calibration parameter"] = check_calibration(errors, warnings)
+    check_doc_control(warnings)
+
     # Sinh cột Yêu cầu của benchmark.
     stale = []
     new_lines = list(bench_lines)
@@ -252,7 +353,8 @@ def main():
 
     if not args.quiet:
         print(f"Yêu cầu: {len(reqs)}. Mã ở benchmark: "
-              + ", ".join(f"{len(v)} {k}" for k, v in codes.items()) + ".\n")
+              + ", ".join(f"{len(v)} {k}" for k, v in codes.items()) + ". "
+              + ", ".join(f"{k.capitalize()}: {v}" for k, v in counts.items()) + ".\n")
         print("Ma trận (mã → yêu cầu):")
         for name, lst in codes.items():
             for c in lst:

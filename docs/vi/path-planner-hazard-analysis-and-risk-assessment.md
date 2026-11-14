@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-HARA` |
-| Phiên bản | 1.2 |
+| Phiên bản | 1.3 |
 | Trạng thái | Chờ confirmation review |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-11 |
+| Cập nhật | 2026-11-13 |
 
 ## 1. Purpose and scope {#safety-scope}
 
@@ -52,8 +52,8 @@
 | Chức năng | a_y tổng | a_y thêm vào | Jerk | Thời lượng một lần can thiệp |
 |---|---|---|---|---|
 | HWA | ≤ 2,5 m/s² (R79 cho tới 3 m/s²) | ≤ 0,5 m/s² (giá trị khởi đầu) | ≤ 5 m/s³ (R79) | Liên tục |
-| LKA | ≤ 3,0 m/s² | ≤ 1,5 m/s² | ≤ 5 m/s³ | ≤ 10 s (R79) |
-| ELK | ≤ 4,0 m/s² | ≤ 3,0 m/s² | ≤ 10 m/s³ | ≤ 10 s (R79) |
+| LKA | ≤ 3,0 m/s² | ≤ 1,5 m/s² | ≤ 5 m/s³ | Tới khi kết thúc; quá 10 s cảnh báo âm thanh (R79 5.1.6.1.2.1) |
+| ELK | ≤ 4,0 m/s² | ≤ 3,0 m/s² | ≤ 10 m/s³ | Tới khi kết thúc; quá 10 s cảnh báo âm thanh (R79 5.1.6.1.2.1) |
 
 Tài xế ghi đè được bất cứ lúc nào: khối Chức năng ADAS hủy can thiệp khi mô-men tài xế ≥ 3,0 Nm giữ 0,1 s, dưới 3,5 Nm của Euro NCAP và xa dưới 50 N (khoảng 9,5 Nm) của R79.
 
@@ -199,3 +199,4 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | 1.0 | 2026-11-10 | Viết lại thành HARA gửi phòng an toàn. Item definition tự đọc được; thêm operational situation, S, E, C, ASIL, safe state, FTTI đề xuất; tách HE-08 cho ELK; thêm TC-13; thêm safety mechanism và open points |
 | 1.1 | 2026-11-10 | Thêm cách tính E theo tần suất; ghi nguồn FTTI của SG-04, SG-05; safe state của SG-01 không thả mô-men đột ngột; tách open points, thêm câu hỏi về S của HE-03, HE-06; sửa lập luận ASIL của HE-05 |
 | 1.2 | 2026-11-11 | TC-07 theo cách dời tâm mới (PP-ADR-008) |
+| 1.3 | 2026-11-13 | Mục 4: bỏ giới hạn thời lượng 10 s của LKA, ELK; R79 5.1.6.1.2.1 chỉ đòi cảnh báo âm thanh khi quá 10 s. Cắt ở 10 s đi ngược SG-02, SG-03 (PP-TS-016) |

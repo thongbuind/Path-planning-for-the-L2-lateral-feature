@@ -1,0 +1,13 @@
+id: PP-TS-001
+locked: null
+suite: PP-TS-001
+parts: [tuning, test]
+variants:
+  J0:
+    description: Kiểm độ lệch c0 giữa hai frame
+    calibration: {}
+    cmake: {PP_T7: quintic, PP_T2_SHAPE_CHECK: 'OFF'}
+  J0-shape:
+    description: Thêm kiểm tại 50% và 75% đoạn quan sát chung sau bù ego-motion
+    calibration: {}
+    cmake: {PP_T7: quintic, PP_T2_SHAPE_CHECK: 'ON'}

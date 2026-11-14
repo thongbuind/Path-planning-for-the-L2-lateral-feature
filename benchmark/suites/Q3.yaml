@@ -1,5 +1,5 @@
 # Q3 FunctionRequests delay to the planner (Software Qualification Test Specification 6.1),
-# on LKA and ELK interventions and an HWA start. Judged with the scope of P1.
+# on LKA and ELK interventions and an HWA start. Judged with the scope of benchmark/suites/scope.yaml.
 id: Q3
 title: Quét trễ FunctionRequests
 profiles: [VP-0]
@@ -9,4 +9,4 @@ blocks:
     runs: [[S4, a], [S5, a], [S2, b]]
     sim_sweep:
       function_requests_latency_ms: [20, 40, 60]
-scope_from: P1
+scope_from: scope

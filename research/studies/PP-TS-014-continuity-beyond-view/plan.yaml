@@ -1,0 +1,37 @@
+# Evaluation plan of PP-TS-014 (research/README.md, step 2). Locked 2026-11-12; tuning budget
+# revised the same day before any recorded run (study.md section 2).
+id: PP-TS-014
+locked: 2026-11-12
+suite: PP-TS-014        # benchmark/suites/PP-TS-014.yaml: its tuning and test runs, seeds and scope
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+# Tuning budget: cont_margin at three levels of its sweep range (Software Architectural
+# Design 11) for both variants; the level is chosen on the tuning part, the variants are
+# compared on the test part.
+variants:
+  V0-m7:
+    description: Bản hiện tại, cont_margin 0,7
+    calibration: {cont_margin: 0.7}
+    cmake: {PP_T4_BLEND: single, PP_T2_BEYOND: arc}
+  V0-m8:
+    description: Bản hiện tại, cont_margin 0,8
+    calibration: {cont_margin: 0.8}
+    cmake: {PP_T4_BLEND: single, PP_T2_BEYOND: arc}
+  V0-m9:
+    description: Bản hiện tại, cont_margin 0,9
+    calibration: {cont_margin: 0.9}
+    cmake: {PP_T4_BLEND: single, PP_T2_BEYOND: arc}
+  V1-m7:
+    description: T4 một λ cho từng điểm, cont_margin 0,7
+    calibration: {cont_margin: 0.7}
+    cmake: {PP_T4_BLEND: per_time, PP_T2_BEYOND: arc}
+  V1-m8:
+    description: T4 một λ cho từng điểm, cont_margin 0,8
+    calibration: {cont_margin: 0.8}
+    cmake: {PP_T4_BLEND: per_time, PP_T2_BEYOND: arc}
+  V1-m9:
+    description: T4 một λ cho từng điểm, cont_margin 0,9
+    calibration: {cont_margin: 0.9}
+    cmake: {PP_T4_BLEND: per_time, PP_T2_BEYOND: arc}

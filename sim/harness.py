@@ -106,11 +106,11 @@ class PlannerCycle:
     path_status: PathStatus | None
     lateral_limits: LateralLimits | None
     compute_ns: int  # Wall clock of planner.step, adapter included
-    # Lane model given to the planner: capture stamp and the range end of L1, R1 the camera
+    # Lane model given to the planner: capture stamp and the range end of the boundaries the camera
     # really observed [m], before faults (Software Requirements Specification 4)
     lane_view: tuple[int, float] | None = None
     function_requests: Received[FunctionRequests] | None = None
-    lane_view_reported: float | None = None  # Range end of L1, R1 as the lane model sent it [m]
+    lane_view_reported: float | None = None  # Range end of the reported boundaries [m]
     # Whether each input given to the planner was usable at t0 by the receiving checks of the
     # Interface Control Document 4 (received, valid, within timeout and maximum age); the lane
     # model also needs one line or road edge not LOST. For the scoring of PP-SWR-030.
@@ -135,6 +135,11 @@ def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int |
     if age < -FUTURE_STAMP_TOLERANCE_US or max_age_us is not None and age > max_age_us:
         return None
     return rx.message
+
+
+def _receive_valid(message, _rx_us):
+    """An invalid input frame has the same effect on the receive buffer as a lost frame."""
+    return message if message.header.valid else None
 
 
 def plan_in_range(plan: LongitudinalPlan) -> bool:
@@ -214,8 +219,11 @@ class RunLog:
     events: dict[str, list[int]] = field(default_factory=dict)
 
 
-def _ego_view_end(lane: LaneModel) -> float | None:
+def _lane_view_end(lane: LaneModel) -> float | None:
     ends = [line.view_range_end for line in lane.lines[1:3] if line.status != LineStatus.LOST]
+    if not ends:
+        ends = [b.view_range_end for b in (*lane.lines[::3], *lane.road_edges)
+                if b.status == LineStatus.MEASURED]
     return min(ends) if ends else None
 
 
@@ -318,6 +326,11 @@ class Harness:
         camera_us = round(scenario.camera_latency_ms * 1000)  # Software Qualification Test Specification 4.5, Q1
         jitter_us = round(scenario.camera_jitter_ms * 1000)
         receive = self._can_rx.decode if self.can else restamp
+
+        def receive_chassis(frame, rx_us):
+            message = receive(frame, rx_us)
+            return _receive_valid(message, rx_us) if message is not None else None
+
         self._injectors: dict[str, ChannelFaultInjector] = {}
 
         def faults(name: str):
@@ -329,15 +342,16 @@ class Harness:
 
         self.ch = {
             "lane_model": Channel("lane_model", latency_us=camera_us, jitter_us=jitter_us,
-                                  rng=self.rngs["latency"], faults=faults("lane_model")),
+                                  rng=self.rngs["latency"], on_deliver=_receive_valid, faults=faults("lane_model")),
             "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
                                    rng=self.rngs["latency"], faults=faults("object_list")),
-            "imu": Channel("imu", on_deliver=receive, faults=faults("imu")),
-            "steering": Channel("steering", on_deliver=receive, faults=faults("steering")),
-            "speed": Channel("speed", on_deliver=receive, faults=faults("speed")),
+            "imu": Channel("imu", on_deliver=receive_chassis, faults=faults("imu")),
+            "steering": Channel("steering", on_deliver=receive_chassis, faults=faults("steering")),
+            "speed": Channel("speed", on_deliver=receive_chassis, faults=faults("speed")),
             "vehicle_state": Channel("vehicle_state", faults=faults("vehicle_state")),
             "function_requests": Channel("function_requests",
                                          latency_us=round(scenario.function_requests_latency_ms * 1000),
+                                         on_deliver=_receive_valid,
                                          faults=faults("function_requests")),
             "longitudinal_plan": Channel("longitudinal_plan", faults=faults("longitudinal_plan")),
             "open_trajectory": Channel("open_trajectory"),
@@ -494,7 +508,7 @@ class Harness:
         if self.camera.lane_index != before:
             self.log.lane_index_changes.append((now_us, self.camera.lane_index))
         sent = self._camera_stamp(self.lane_faults.apply(msg))
-        self._observed_view[sent.header.stamp_us] = _ego_view_end(msg)
+        self._observed_view[sent.header.stamp_us] = _lane_view_end(msg)
         for stamp in [t for t in self._observed_view if t < sent.header.stamp_us - 1_000_000]:
             del self._observed_view[stamp]
         self.ch["lane_model"].publish(sent, now_us)
@@ -711,7 +725,7 @@ class Harness:
         reported = None
         if lane is not None:
             stamp = lane.message.header.stamp_us
-            reported = _ego_view_end(lane.message)
+            reported = _lane_view_end(lane.message)
             observed = self._observed_view.get(stamp, reported)
             if reported is not None and observed is not None:
                 lane_view = (stamp, min(observed, reported))
@@ -791,3 +805,4 @@ class Harness:
         if self.can:
             self.log.can_stats = {"dropped": dict(self._can_rx.dropped), "lost": dict(self._can_rx.lost)}
         return self.log
+

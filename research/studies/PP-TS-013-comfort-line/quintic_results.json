@@ -1,0 +1,1362 @@
+{
+  "study": "PP-TS-013",
+  "kind": "research-only paired SIL",
+  "git": {
+    "commit": "d6f7920d33fa01f6930a43853f7da38e79a7d8f5",
+    "short": "d6f7920",
+    "branch": "sil-baseline",
+    "dirty": true,
+    "changed": [
+      " M benchmark/suites/full.json",
+      " M benchmark/suites/regression.json",
+      " M benchmark/suites/smoke.json",
+      " M eval/departure.py",
+      " M eval/generate.py",
+      " M eval/labels.py",
+      " M eval/loader.py",
+      " M eval/metrics.py",
+      " M eval/openx.py",
+      " M eval/runner.py",
+      " M eval/suite.py",
+      " M eval/sweep.py",
+      " M sim/faults/channel.py",
+      " M sim/faults/ego_motion.py",
+      " M sim/faults/lane.py",
+      " M sim/faults/sensor.py",
+      " M sim/harness.py",
+      " M sim/scenario.py",
+      " M sim/sensors/lane_camera.py",
+      " M sim/stand_ins/acc.py",
+      " M sim/stand_ins/driver.py",
+      " M sim/world/traffic.py",
+      " M tests/eval/test_labels.py",
+      " M tests/sim/stand_ins/test_acc.py",
+      "?? benchmark/combinations/",
+      "?? sim/faults/trigger.py",
+      "?? tests/sim/test_framework_extensions.py"
+    ]
+  },
+  "camera_latency_ms": 100.0,
+  "camera_view_m": 80.0,
+  "libraries": {
+    "quintic": {
+      "pp_version": "pp_planner 0.2.0 commit d6f7920d33fa-dirty calibration 1b9b7d6367e8 t7 quintic",
+      "sha256": "6b0a3418ffe0cc649768e2362308d0a3b8c7bcba2b680059a3fd4ee855d2d05d"
+    },
+    "waypoint": {
+      "pp_version": "pp_planner 0.2.0 commit d6f7920d33fa-dirty calibration 1b9b7d6367e8 t7 quintic",
+      "sha256": "2e066a91ccadd35714620f7579196bf0b4def23b1a4e9fd2b372a981c5fe3fbe"
+    }
+  },
+  "hook_sha256": "bf42cfe2b65d50cad76dbd5dee0cff7f4ff90318e9425e0fa651cd2becfd307d",
+  "runs": [
+    {
+      "case": "S1f_F01a",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": false,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5893232552235421,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.5683253150200471,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04731072480365558,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004490418636428739,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00025688949837765354,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.1100542489439249,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4164508343724733,
+        "vehicle_peak_jerk_mps3": 1.3983002145933796,
+        "vehicle_max_offset_m": 0.2189115971412864,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 0,
+        "p99_step_ms": 0.49166725999999983,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5893232552235421,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.5683253150200471,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04731072480365558,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004490418636428739,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00025688949837765354,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.1100542489439249,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4164508343724733,
+        "vehicle_peak_jerk_mps3": 1.3983002145933796,
+        "vehicle_max_offset_m": 0.2189115971412864,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 0,
+        "p99_step_ms": 0.45357058999999994,
+        "selection_cycles": {
+          "hwa": 1159,
+          "eligible": 0,
+          "applied": 0
+        }
+      }
+    },
+    {
+      "case": "S1f",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.61051070306545,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.569326050230302,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04734030205442103,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004490456208071869,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.0002700000409267757,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.11012046597898006,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.439419618358916,
+        "vehicle_peak_jerk_mps3": 1.4074871612355737,
+        "vehicle_max_offset_m": 0.19879477254636838,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.55131533,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5901575403762183,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 2.37049973293324,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.0470041154508862,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004493376367103785,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00027000013776234597,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.22861207835376263,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4122347030622528,
+        "vehicle_peak_jerk_mps3": 1.6160881113777952,
+        "vehicle_max_offset_m": 0.21298612414369825,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.77638042,
+        "selection_cycles": {
+          "hwa": 1159,
+          "eligible": 1112,
+          "applied": 136
+        }
+      }
+    },
+    {
+      "case": "S1f_F01a",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5893232552235421,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.5683253150200471,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04731072480365558,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004490418636428739,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00025688949837765354,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.1100542489439249,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4164508343724733,
+        "vehicle_peak_jerk_mps3": 1.3983002145933796,
+        "vehicle_max_offset_m": 0.2189115971412864,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.5152315799999996,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5766382534396197,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 2.231770158687141,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.047196562834194024,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004495891123950102,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.0002700002019136883,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.2155868016416207,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4184678143012943,
+        "vehicle_peak_jerk_mps3": 1.6409648534051102,
+        "vehicle_max_offset_m": 0.22685497241589703,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.7802248299999999,
+        "selection_cycles": {
+          "hwa": 1159,
+          "eligible": 1096,
+          "applied": 118
+        }
+      }
+    },
+    {
+      "case": "S1f_F01a",
+      "profile": "VP-0",
+      "seed": 2,
+      "acc": "off",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.6488371408786289,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.5823169815121219,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.047339038083045404,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004498946765867373,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.0002700000863670262,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.11104069417342544,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4465528064546695,
+        "vehicle_peak_jerk_mps3": 1.390152146116758,
+        "vehicle_max_offset_m": 0.16183959181699875,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1195,
+        "p99_step_ms": 0.52046675,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.6213721007986028,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 2.5627477225498296,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04709264229973369,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.004495981619609513,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.0002700001754183093,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.23594113808940165,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.4431060817006363,
+        "vehicle_peak_jerk_mps3": 1.648788516330853,
+        "vehicle_max_offset_m": 0.18065470974975859,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1195,
+        "p99_step_ms": 0.7937040799999999,
+        "selection_cycles": {
+          "hwa": 1160,
+          "eligible": 1130,
+          "applied": 151
+        }
+      }
+    },
+    {
+      "case": "S1f_F01c",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5455381502843542,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.5790983161423355,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.04731940176345603,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.0044968832932008596,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00027000001583659967,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.11079101823270321,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.3670700555681863,
+        "vehicle_peak_jerk_mps3": 1.376719606571557,
+        "vehicle_max_offset_m": 0.2617669319818313,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.50596175,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.5282610668473029,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.499997499398887,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 2.1696304611396044,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.047083269364951344,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.00450018732111479,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00027000018941370505,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011599468067288399,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.20365038653835654,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 1.3745880733134033,
+        "vehicle_peak_jerk_mps3": 1.4620099349907982,
+        "vehicle_max_offset_m": 0.2759134525667817,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1196,
+        "p99_step_ms": 0.76684551,
+        "selection_cycles": {
+          "hwa": 1159,
+          "eligible": 1098,
+          "applied": 102
+        }
+      }
+    },
+    {
+      "case": "S1a_F01a",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.7693164341372034,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 0.7422817725455388,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 0.2749416307779029,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.045733289731878485,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.0014745619024867374,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 4.8840623669473135e-05,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.003444173838943243,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.024766044225543737,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 0.6677080621245949,
+        "vehicle_peak_jerk_mps3": 0.2422068462334093,
+        "vehicle_max_offset_m": 0.027632521615085726,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1116,
+        "p99_step_ms": 0.48436549999999967,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.7736069782447856,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 0.7357355207204819,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 0.3152490535285324,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.045782909003628476,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.0016939285851607089,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 0.00013556785465114983,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.00341379945166409,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.05633927648887038,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 0.6681928068530401,
+        "vehicle_peak_jerk_mps3": 0.24219458057110604,
+        "vehicle_max_offset_m": 0.026908368835867984,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 1116,
+        "p99_step_ms": 0.7723654799999999,
+        "selection_cycles": {
+          "hwa": 1079,
+          "eligible": 1039,
+          "applied": 11
+        }
+      }
+    },
+    {
+      "case": "S14e",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "on",
+      "publish_object_list_on_empty_road": true,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": -0.022178394966741344,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.1438803500740382,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.4999975694493908,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.822195430383364,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-005": {
+            "value": 0.0,
+            "limit": "= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-006": {
+            "value": -1.5690851662176697,
+            "limit": ">= 0",
+            "passed": false,
+            "first_fail_s": 6.683
+          },
+          "PP-SWR-100": {
+            "value": 0.057133638603147185,
+            "limit": "<= 0.05",
+            "passed": false,
+            "first_fail_s": 3.5829999999999997
+          },
+          "PP-SWR-101": {
+            "value": 0.005258898409577384,
+            "limit": "<= 0.005",
+            "passed": false,
+            "first_fail_s": 7.008
+          },
+          "PP-SWR-102": {
+            "value": 0.0002957510852831778,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011404311284422874,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.11247536167502403,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [
+          "PP-SWR-006",
+          "PP-SWR-100",
+          "PP-SWR-101"
+        ],
+        "vehicle_peak_ay_mps2": 1.5435635153170377,
+        "vehicle_peak_jerk_mps3": 1.7874879559623191,
+        "vehicle_max_offset_m": 0.6401661675314914,
+        "speed_min_mps": 27.611191530051542,
+        "object_list_usable_cycles": 876,
+        "p99_step_ms": 0.6588117500000119,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": -0.022178394966741344,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.1438803500740382,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 2.4999975694493908,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 1.822195430383364,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-005": {
+            "value": 0.0,
+            "limit": "= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-006": {
+            "value": -1.5690851662176697,
+            "limit": ">= 0",
+            "passed": false,
+            "first_fail_s": 6.683
+          },
+          "PP-SWR-100": {
+            "value": 0.057133638603147185,
+            "limit": "<= 0.05",
+            "passed": false,
+            "first_fail_s": 3.5829999999999997
+          },
+          "PP-SWR-101": {
+            "value": 0.005258898409577384,
+            "limit": "<= 0.005",
+            "passed": false,
+            "first_fail_s": 7.008
+          },
+          "PP-SWR-102": {
+            "value": 0.0002957510852831778,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.011404311284422874,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.11247536167502403,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [
+          "PP-SWR-006",
+          "PP-SWR-100",
+          "PP-SWR-101"
+        ],
+        "vehicle_peak_ay_mps2": 1.5435635153170377,
+        "vehicle_peak_jerk_mps3": 1.7874879559623191,
+        "vehicle_max_offset_m": 0.6401661675314914,
+        "speed_min_mps": 27.611191530051542,
+        "object_list_usable_cycles": 876,
+        "p99_step_ms": 0.51629825,
+        "selection_cycles": {
+          "hwa": 839,
+          "eligible": 0,
+          "applied": 0
+        }
+      }
+    },
+    {
+      "case": "S3a",
+      "profile": "VP-0",
+      "seed": 1,
+      "acc": "off",
+      "publish_object_list_on_empty_road": false,
+      "quintic": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.550510032128037,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 0.06765520538465353,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 0.09519054628981394,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-055": {
+            "value": 0.10666316022618184,
+            "limit": "> 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-056": {
+            "value": -0.10666316022618184,
+            "limit": "<= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-058": {
+            "value": 0.10666316022618184,
+            "limit": "> 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.005790622321539727,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.00013328712982785262,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 7.739019977915191e-06,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.0003139201726298779,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.009564616993884556,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 0.10257739134153494,
+        "vehicle_peak_jerk_mps3": 0.13751720124468483,
+        "vehicle_max_offset_m": 0.2507440355134221,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 834,
+        "p99_step_ms": 0.48642999,
+        "selection_cycles": null
+      },
+      "waypoint": {
+        "criteria": {
+          "PP-SWR-010": {
+            "value": 1.0,
+            "limit": "= 1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-018": {
+            "value": 0.0,
+            "limit": "<= 0.1",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-051": {
+            "value": 0.550510032128037,
+            "limit": ">= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-001": {
+            "value": 0.06765520538465353,
+            "limit": "<= 2.5",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-003": {
+            "value": 0.09519054628981394,
+            "limit": "<= 5.0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-055": {
+            "value": 0.10666316022618184,
+            "limit": "> 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-056": {
+            "value": -0.10666316022618184,
+            "limit": "<= 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-058": {
+            "value": 0.10666316022618184,
+            "limit": "> 0",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-100": {
+            "value": 0.005790622321539727,
+            "limit": "<= 0.05",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-101": {
+            "value": 0.00013328712982785262,
+            "limit": "<= 0.005",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-102": {
+            "value": 7.739019977915191e-06,
+            "limit": "<= 0.0003",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-116": {
+            "value": 0.0003139201726298779,
+            "limit": "<= 0.610",
+            "passed": true,
+            "first_fail_s": null
+          },
+          "PP-SWR-117": {
+            "value": 0.009564616993884556,
+            "limit": "<= 6.0",
+            "passed": true,
+            "first_fail_s": null
+          }
+        },
+        "failed": [],
+        "vehicle_peak_ay_mps2": 0.10257739134153494,
+        "vehicle_peak_jerk_mps3": 0.13751720124468483,
+        "vehicle_max_offset_m": 0.2507440355134221,
+        "speed_min_mps": 25.0,
+        "object_list_usable_cycles": 834,
+        "p99_step_ms": 0.6359556199999999,
+        "selection_cycles": {
+          "hwa": 799,
+          "eligible": 6,
+          "applied": 0
+        }
+      }
+    }
+  ]
+}

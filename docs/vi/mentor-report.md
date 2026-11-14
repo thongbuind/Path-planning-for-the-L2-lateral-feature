@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-MR` |
-| Phiên bản | 1.3 |
+| Phiên bản | 1.4 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review |   |
@@ -44,7 +44,7 @@ Kỹ thuật lập path chọn bằng benchmark trong ba ứng viên: quintic th
 
 | Văn bản | Nội dung tuân thủ |
 |---|---|
-| UN R79 | HWA là ACSF B1: a_y ≤ 2,5 m/s² (giới hạn 3), jerk ≤ 5 m/s³, không đè vạch dưới aysmax, không thả lái đột ngột; LKA, ELK là CSF, ESF: can thiệp ≤ 10 s, cảnh báo; ghi đè ≤ 50 N |
+| UN R79 | HWA là ACSF B1: a_y ≤ 2,5 m/s² (giới hạn 3), jerk ≤ 5 m/s³, không đè vạch dưới aysmax, không thả lái đột ngột; LKA, ELK là CSF, ESF: cảnh báo âm thanh khi can thiệp quá 10 s, không cắt can thiệp; ghi đè ≤ 50 N |
 | EU 2021/646 (ELKS) | ELK 70–130 km/h, mặc định bật; DTLE theo ELKS |
 | Euro NCAP LSS, Safety Assist | DTLE ≥ −0,3 m (vạch), ≥ −0,1 m (mép đường); khoảng cách tới xe làn bên ≥ 0,3 m; ghi đè 3,0 Nm (≤ 3,5 Nm) |
 | Đề bài | Lệch giữa hai path liên tiếp ≤ 0,05 m, 0,005 rad, 0,0003 1/m, trong tầm nhìn lane model báo; phần ngoài báo bằng `observed_horizon_s` |
@@ -93,3 +93,4 @@ Giới hạn quyền lái của LKA (a_y ≤ 3,0, thêm vào ≤ 1,5 m/s²) và 
 | 1.1 | 2026-11-11 | Dời tâm theo PP-ADR-008 mới |
 | 1.2 | 2026-11-12 | Liên tục giữa hai path chỉ xét phần trong tầm nhìn; Trajectory thêm `observed_horizon_s` |
 | 1.3 | 2026-11-13 | Thêm PP-ADR-013 đến 015; cập nhật số requirement, lỗi, quét; thêm cỡ bộ chạy và cách kết luận |
+| 1.4 | 2026-11-13 | Dòng UN R79: LKA, ELK không cắt ở 10 s, chỉ cảnh báo (PP-TS-016) |

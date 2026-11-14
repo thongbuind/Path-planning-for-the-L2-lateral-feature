@@ -45,9 +45,8 @@ def parse_moment(text: str) -> tuple[str, float]:
 def run_scope(spec: list, faults: list) -> set[str]:
     """Scope of the host plus that of every fault on it (Software Qualification Test
     Specification 8.1)."""
-    from eval.suite import SCOPE
     keys = [spec] + [spec + list(f) for f in faults]
-    return set().union(*(matrix.scope(SCOPE, k) for k in keys))
+    return set().union(*(matrix.scope(matrix.SCOPE, k) for k in keys))
 
 
 def main() -> None:
@@ -103,7 +102,6 @@ def main() -> None:
             parser.error("--adas-mode applies to scenarios configured for the stand-in")
         scenario = replace(scenario, adas_mode=args.adas_mode, name=f"{scenario.name}_adas-{args.adas_mode}")
         manifest["adas_mode"] = args.adas_mode
-    from eval.suite import SCOPE
     from sim.logging import run_log
     log = run(scenario, args.seed, planner)
     result = metrics.evaluate(log)

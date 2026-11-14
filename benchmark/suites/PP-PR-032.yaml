@@ -1,0 +1,13 @@
+# PP-PR-032 (research/problems/PP-PR-032-driver-override-path-start.md): the cases where the
+# driver overrides HWA, each with the ACC mode of its scenario, on every vehicle profile,
+# one seed. Judged with the scope of benchmark/suites/scope.yaml.
+id: PP-PR-032
+title: Path bắt đầu tại xe khi tài xế ghi đè
+profiles: [VP-0, VP-1, VP-2, VP-3, VP-4, VP-5]
+seeds: [1]
+blocks:
+  - acc: ["off"]
+    runs: [[S17, a], [S17, b], [S17, c], [S17, d], [S17, e], [S16, d]]
+  - acc: ["on"]
+    runs: [[S9, c]]
+scope_from: scope

@@ -1,0 +1,774 @@
+{
+  "study": "PP-TS-013",
+  "method": "research sensitivity experiment, execution on the exact reference",
+  "view_m": 80.0,
+  "ay_max_mps2": 2.5,
+  "ay_support_min_mps2": 2.3,
+  "continuity_targets": [
+    0.045000000000000005,
+    0.0045000000000000005,
+    0.00027
+  ],
+  "camera": {
+    "period_s": 0.05,
+    "delay_s": 0.1,
+    "sample_noise_m": 0.03,
+    "seed": 1
+  },
+  "constant_arc_free_head": {
+    "radius_m": 200.0,
+    "speed_mps": 25.0,
+    "grid_points": 75,
+    "corridor_half_width_m": 0.3,
+    "min_required_relaxation_mps2": 0.08027832143624516
+  },
+  "runs": [
+    {
+      "road": "S1f",
+      "speed_kmh": 90.0,
+      "preview": "exact",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.1584233832218345,
+            "path_jerk_half_second_mps3": 1.001288289552905,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0013812914902206208,
+            "curvature_max": 0.00010501328985313042,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 0.9375819655342522,
+            "ay_rms": 0.44002451051755315,
+            "jerk_peak": 0.8241146988082406,
+            "jerk_rms": 0.33617437292705277,
+            "swr_peak": 5.421452613489852,
+            "swr_rms": 2.2021903828847154,
+            "sw_travel": 26.26743628100946,
+            "sw_peak": 6.156487933182704,
+            "reversals": 2,
+            "clear_min": 0.5092342381182524,
+            "track_err_max": 0.06440262465682352
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.1584233832218345,
+            "path_jerk_half_second_mps3": 1.001288289552905,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 0,
+            "accepted": 0,
+            "infeasible": 0,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.0,
+            "worst_relaxation_station_m": null
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0013812914902206208,
+            "curvature_max": 0.00010501328985313042,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 0.9375819655342522,
+            "ay_rms": 0.44002451051755315,
+            "jerk_peak": 0.8241146988082406,
+            "jerk_rms": 0.33617437292705277,
+            "swr_peak": 5.421452613489852,
+            "swr_rms": 2.2021903828847154,
+            "sw_travel": 26.26743628100946,
+            "sw_peak": 6.156487933182704,
+            "reversals": 2,
+            "clear_min": 0.5092342381182524,
+            "track_err_max": 0.06440262465682352
+          }
+        }
+      }
+    },
+    {
+      "road": "S14e",
+      "speed_kmh": 129.9996,
+      "preview": "exact",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 7,
+            "support_violations": 59,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 2.7286192541847147,
+            "path_jerk_half_second_mps3": 2.8545688977879724,
+            "support_margin_mps2": -0.9260675682498725,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.001261562055714982,
+            "curvature_max": 0.00012773971298994793,
+            "cycles": 401,
+            "limited_cycles": 6
+          },
+          "vehicle": {
+            "ay_peak": 1.9970762248943321,
+            "ay_rms": 0.9794840707264149,
+            "jerk_peak": 2.843270699139982,
+            "jerk_rms": 1.1235898798237534,
+            "swr_peak": 13.323699817638095,
+            "swr_rms": 4.99587876434843,
+            "sw_travel": 41.39109885325412,
+            "sw_peak": 8.945668427948762,
+            "reversals": 3,
+            "clear_min": 0.5002825232135508,
+            "track_err_max": 0.19622836215162287
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 2,
+            "support_violations": 59,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 2.7755399679852513,
+            "path_jerk_half_second_mps3": 2.8552972275905986,
+            "support_margin_mps2": -0.9260934972392969,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 66,
+            "accepted": 5,
+            "infeasible": 61,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 1,
+            "max_required_relaxation_mps2": 0.924359775767561,
+            "worst_relaxation_station_m": 219.0
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.001261562055714982,
+            "curvature_max": 0.0002195717478584262,
+            "cycles": 401,
+            "limited_cycles": 6
+          },
+          "vehicle": {
+            "ay_peak": 1.99684671507465,
+            "ay_rms": 0.9794861939437014,
+            "jerk_peak": 2.842901940445082,
+            "jerk_rms": 1.1235706799900842,
+            "swr_peak": 13.322566500005966,
+            "swr_rms": 4.995767362268041,
+            "sw_travel": 41.392390924213565,
+            "sw_peak": 8.945315736773416,
+            "reversals": 3,
+            "clear_min": 0.5003441811381664,
+            "track_err_max": 0.1962142786412307
+          }
+        }
+      }
+    },
+    {
+      "road": "S1be",
+      "speed_kmh": 90.0,
+      "preview": "exact",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 311,
+            "cap_violations": 282,
+            "support_violations": 0,
+            "support_windows": 237,
+            "path_ay_peak_mps2": 3.1308309096777127,
+            "path_jerk_half_second_mps3": 1.1394067687184726,
+            "support_margin_mps2": 0.10323736582605747,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.008405240557471216,
+            "heading_max": 0.0003065396956402691,
+            "curvature_max": 3.569844806021729e-05,
+            "cycles": 311,
+            "limited_cycles": 0
+          },
+          "vehicle": {
+            "ay_peak": 3.1532870831056075,
+            "ay_rms": 2.6307340615670354,
+            "jerk_peak": 1.1706641832078735,
+            "jerk_rms": 0.4822018803532958,
+            "swr_peak": 7.626195660280022,
+            "swr_rms": 3.1294162574568265,
+            "sw_travel": 22.883278900746507,
+            "sw_peak": 20.388720481592838,
+            "reversals": 0,
+            "clear_min": 0.4718187404533405,
+            "track_err_max": 0.08290086856622143
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 311,
+            "cap_violations": 279,
+            "support_violations": 0,
+            "support_windows": 237,
+            "path_ay_peak_mps2": 3.1308301233923137,
+            "path_jerk_half_second_mps3": 1.1661850083419167,
+            "support_margin_mps2": 0.10324723358090893,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 282,
+            "accepted": 3,
+            "infeasible": 279,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.6303599257387048,
+            "worst_relaxation_station_m": 224.0
+          },
+          "continuity": {
+            "max": 0.008405240557471216,
+            "heading_max": 0.0003065396956402691,
+            "curvature_max": 0.0002609172314573972,
+            "cycles": 311,
+            "limited_cycles": 0
+          },
+          "vehicle": {
+            "ay_peak": 3.153273656052881,
+            "ay_rms": 2.630734608133529,
+            "jerk_peak": 1.1706656872441223,
+            "jerk_rms": 0.4822037680335659,
+            "swr_peak": 7.626193323140917,
+            "swr_rms": 3.1294525152157506,
+            "sw_travel": 22.883020958004266,
+            "sw_peak": 20.388622989168603,
+            "reversals": 0,
+            "clear_min": 0.4718203976517586,
+            "track_err_max": 0.08290336597018817
+          }
+        }
+      }
+    },
+    {
+      "road": "S14e-110",
+      "speed_kmh": 110.0,
+      "preview": "exact",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.985884611008627,
+            "path_jerk_half_second_mps3": 1.7846429770427517,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0014772335697513968,
+            "curvature_max": 0.00012008669958758602,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 1.4116375870077764,
+            "ay_rms": 0.6720215279144892,
+            "jerk_peak": 1.6215325725708805,
+            "jerk_rms": 0.6361164069641796,
+            "swr_peak": 9.197621988373072,
+            "swr_rms": 3.327365242542336,
+            "sw_travel": 32.345706270804314,
+            "sw_peak": 7.4170950944488165,
+            "reversals": 3,
+            "clear_min": 0.5005640653134529,
+            "track_err_max": 0.11554948839618327
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.985884611008627,
+            "path_jerk_half_second_mps3": 1.7846429770427517,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 0,
+            "accepted": 0,
+            "infeasible": 0,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.0,
+            "worst_relaxation_station_m": null
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0014772335697513968,
+            "curvature_max": 0.00012008669958758602,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 1.4116375870077764,
+            "ay_rms": 0.6720215279144892,
+            "jerk_peak": 1.6215325725708805,
+            "jerk_rms": 0.6361164069641796,
+            "swr_peak": 9.197621988373072,
+            "swr_rms": 3.327365242542336,
+            "sw_travel": 32.345706270804314,
+            "sw_peak": 7.4170950944488165,
+            "reversals": 3,
+            "clear_min": 0.5005640653134529,
+            "track_err_max": 0.11554948839618327
+          }
+        }
+      }
+    },
+    {
+      "road": "S1f",
+      "speed_kmh": 90.0,
+      "preview": "delayed-exact",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.2964793798393037,
+            "path_jerk_half_second_mps3": 1.0066052614193453,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0013690264095962273,
+            "curvature_max": 0.00011633202277697831,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 0.9607198682583816,
+            "ay_rms": 0.44622455875780875,
+            "jerk_peak": 0.9463304193445007,
+            "jerk_rms": 0.3499593169421459,
+            "swr_peak": 6.23039128345898,
+            "swr_rms": 2.3004354981566246,
+            "sw_travel": 26.60161625964659,
+            "sw_peak": 6.306058644176194,
+            "reversals": 2,
+            "clear_min": 0.5188732082954097,
+            "track_err_max": 0.06938468705243389
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.2964793798393037,
+            "path_jerk_half_second_mps3": 1.0066052614193453,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 0.0,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 0,
+            "accepted": 0,
+            "infeasible": 0,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.0,
+            "worst_relaxation_station_m": null
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0013690264095962273,
+            "curvature_max": 0.00011633202277697831,
+            "cycles": 401,
+            "limited_cycles": 8
+          },
+          "vehicle": {
+            "ay_peak": 0.9607198682583816,
+            "ay_rms": 0.44622455875780875,
+            "jerk_peak": 0.9463304193445007,
+            "jerk_rms": 0.3499593169421459,
+            "swr_peak": 6.23039128345898,
+            "swr_rms": 2.3004354981566246,
+            "sw_travel": 26.60161625964659,
+            "sw_peak": 6.306058644176194,
+            "reversals": 2,
+            "clear_min": 0.5188732082954097,
+            "track_err_max": 0.06938468705243389
+          }
+        }
+      }
+    },
+    {
+      "road": "S1f",
+      "speed_kmh": 90.0,
+      "preview": "cubic-clean",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.7608542756771826,
+            "path_jerk_half_second_mps3": 1.7071175146371118,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 1.5844464629100257,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.02889269945870307,
+            "heading_max": 0.0007777422831718311,
+            "curvature_max": 7.125116315451208e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "vehicle": {
+            "ay_peak": 1.8812764196789002,
+            "ay_rms": 0.6081091398795454,
+            "jerk_peak": 1.7817630796738004,
+            "jerk_rms": 0.694522203239394,
+            "swr_peak": 14.112665242049482,
+            "swr_rms": 4.762498283842422,
+            "sw_travel": 44.38705905513953,
+            "sw_peak": 12.961897474467241,
+            "reversals": 3,
+            "clear_min": 0.5756908300459886,
+            "track_err_max": 0.12366888649706932
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.7608542756771826,
+            "path_jerk_half_second_mps3": 1.7071175146371118,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 1.5844464629100257,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 0,
+            "accepted": 0,
+            "infeasible": 0,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.0,
+            "worst_relaxation_station_m": null
+          },
+          "continuity": {
+            "max": 0.02889269945870307,
+            "heading_max": 0.0007777422831718311,
+            "curvature_max": 7.125116315451208e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "vehicle": {
+            "ay_peak": 1.8812764196789002,
+            "ay_rms": 0.6081091398795454,
+            "jerk_peak": 1.7817630796738004,
+            "jerk_rms": 0.694522203239394,
+            "swr_peak": 14.112665242049482,
+            "swr_rms": 4.762498283842422,
+            "sw_travel": 44.38705905513953,
+            "sw_peak": 12.961897474467241,
+            "reversals": 3,
+            "clear_min": 0.5756908300459886,
+            "track_err_max": 0.12366888649706932
+          }
+        }
+      }
+    },
+    {
+      "road": "S1f",
+      "speed_kmh": 90.0,
+      "preview": "cubic",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.764083598538412,
+            "path_jerk_half_second_mps3": 1.7123132976050197,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 1.642856939936104,
+            "preview_missed_support_windows": 0
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.045,
+            "heading_max": 0.001050885587800511,
+            "curvature_max": 8.178086134327299e-05,
+            "cycles": 401,
+            "limited_cycles": 2
+          },
+          "vehicle": {
+            "ay_peak": 1.8801006645941243,
+            "ay_rms": 0.6078710553826787,
+            "jerk_peak": 1.7834175895255961,
+            "jerk_rms": 0.6948135207504604,
+            "swr_peak": 14.1152629024059,
+            "swr_rms": 4.764792608842857,
+            "sw_travel": 44.56629568189045,
+            "sw_peak": 12.952138687483405,
+            "reversals": 3,
+            "clear_min": 0.5750384472289668,
+            "track_err_max": 0.12353113662856512
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 0,
+            "support_violations": 0,
+            "support_windows": 0,
+            "path_ay_peak_mps2": 1.764083598538412,
+            "path_jerk_half_second_mps3": 1.7123132976050197,
+            "support_margin_mps2": null,
+            "preview_max_near_ay_error_mps2": 1.642856939936104,
+            "preview_missed_support_windows": 0
+          },
+          "correction": {
+            "attempted": 0,
+            "accepted": 0,
+            "infeasible": 0,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 0.0,
+            "worst_relaxation_station_m": null
+          },
+          "continuity": {
+            "max": 0.045,
+            "heading_max": 0.001050885587800511,
+            "curvature_max": 8.178086134327299e-05,
+            "cycles": 401,
+            "limited_cycles": 2
+          },
+          "vehicle": {
+            "ay_peak": 1.8801006645941243,
+            "ay_rms": 0.6078710553826787,
+            "jerk_peak": 1.7834175895255961,
+            "jerk_rms": 0.6948135207504604,
+            "swr_peak": 14.1152629024059,
+            "swr_rms": 4.764792608842857,
+            "sw_travel": 44.56629568189045,
+            "sw_peak": 12.952138687483405,
+            "reversals": 3,
+            "clear_min": 0.5750384472289668,
+            "track_err_max": 0.12353113662856512
+          }
+        }
+      }
+    },
+    {
+      "road": "S14e",
+      "speed_kmh": 129.9996,
+      "preview": "cubic-clean",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 95,
+            "support_violations": 0,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 3.6389073418650177,
+            "path_jerk_half_second_mps3": 5.073781300403715,
+            "support_margin_mps2": 0.0743305725769341,
+            "preview_max_near_ay_error_mps2": 3.0818099019525107,
+            "preview_missed_support_windows": 59
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.042368375195199315,
+            "heading_max": 0.0009829519623268598,
+            "curvature_max": 8.17446006958907e-05,
+            "cycles": 401,
+            "limited_cycles": 0
+          },
+          "vehicle": {
+            "ay_peak": 4.027680187644601,
+            "ay_rms": 1.3807345955264256,
+            "jerk_peak": 5.539194919776382,
+            "jerk_rms": 2.195166820342352,
+            "swr_peak": 30.207746614831766,
+            "swr_rms": 10.251008588367336,
+            "sw_travel": 72.27279092578044,
+            "sw_peak": 19.19821939416905,
+            "reversals": 4,
+            "clear_min": 0.36991029810659487,
+            "track_err_max": 0.33573812118695506
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 95,
+            "support_violations": 0,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 3.7977375688252084,
+            "path_jerk_half_second_mps3": 5.174483566201349,
+            "support_margin_mps2": 0.08723740034341265,
+            "preview_max_near_ay_error_mps2": 3.0818099019525107,
+            "preview_missed_support_windows": 59
+          },
+          "correction": {
+            "attempted": 88,
+            "accepted": 2,
+            "infeasible": 86,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 0,
+            "max_required_relaxation_mps2": 3.583133960814483,
+            "worst_relaxation_station_m": 197.0
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0014638956631251726,
+            "curvature_max": 0.0002699933183298683,
+            "cycles": 401,
+            "limited_cycles": 12
+          },
+          "vehicle": {
+            "ay_peak": 4.023192726817384,
+            "ay_rms": 1.3796748451615974,
+            "jerk_peak": 5.547891099510637,
+            "jerk_rms": 2.1963721640915708,
+            "swr_peak": 30.33063883652265,
+            "swr_rms": 10.255756729763496,
+            "sw_travel": 72.30430606721292,
+            "sw_peak": 19.17386134929266,
+            "reversals": 4,
+            "clear_min": 0.3820855485603194,
+            "track_err_max": 0.33589265111993866
+          }
+        }
+      }
+    },
+    {
+      "road": "S14e",
+      "speed_kmh": 129.9996,
+      "preview": "cubic",
+      "variants": {
+        "R-limited": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 95,
+            "support_violations": 0,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 3.6350909999273946,
+            "path_jerk_half_second_mps3": 5.066639502527078,
+            "support_margin_mps2": 0.07602278154977826,
+            "preview_max_near_ay_error_mps2": 3.123517734340563,
+            "preview_missed_support_windows": 59
+          },
+          "correction": null,
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.001066488422982563,
+            "curvature_max": 9.010585814094279e-05,
+            "cycles": 401,
+            "limited_cycles": 2
+          },
+          "vehicle": {
+            "ay_peak": 4.024597485358145,
+            "ay_rms": 1.378875261558122,
+            "jerk_peak": 5.537078484230839,
+            "jerk_rms": 2.1946284724459093,
+            "swr_peak": 30.182421031089678,
+            "swr_rms": 10.24725675238553,
+            "sw_travel": 72.20072582331633,
+            "sw_peak": 19.17594005403512,
+            "reversals": 4,
+            "clear_min": 0.3712156631046036,
+            "track_err_max": 0.3354982913189377
+          }
+        },
+        "R-ay": {
+          "path": {
+            "windows": 401,
+            "cap_violations": 95,
+            "support_violations": 0,
+            "support_windows": 59,
+            "path_ay_peak_mps2": 3.6350909999273946,
+            "path_jerk_half_second_mps3": 5.066639502527078,
+            "support_margin_mps2": 0.07618447148500351,
+            "preview_max_near_ay_error_mps2": 3.123517734340563,
+            "preview_missed_support_windows": 59
+          },
+          "correction": {
+            "attempted": 89,
+            "accepted": 2,
+            "infeasible": 87,
+            "qp_fallbacks": 0,
+            "qp_feasible_iterates": 2,
+            "max_required_relaxation_mps2": 1.9109863957537907,
+            "worst_relaxation_station_m": 178.0
+          },
+          "continuity": {
+            "max": 0.04500000000000001,
+            "heading_max": 0.0010922729227626944,
+            "curvature_max": 0.0002699848483753624,
+            "cycles": 401,
+            "limited_cycles": 4
+          },
+          "vehicle": {
+            "ay_peak": 4.0243584532509855,
+            "ay_rms": 1.3788251703132521,
+            "jerk_peak": 5.53651386214948,
+            "jerk_rms": 2.194579847240167,
+            "swr_peak": 30.18676025377469,
+            "swr_rms": 10.246910568592774,
+            "sw_travel": 72.20212689402814,
+            "sw_peak": 19.17481130892218,
+            "reversals": 4,
+            "clear_min": 0.3715670047770278,
+            "track_err_max": 0.33549095880801355
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,587 @@
+[
+ {
+  "run": [
+   "S4",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S4a",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.884334,
+   "PP-SWR-087": 0.10588049672034505,
+   "PP-SWR-081": 3.275
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.001746480056277644,
+   "PP-SWR-102": 0.00015090385347657593,
+   "PP-SWR-116": 0.0032047089189291,
+   "PP-SWR-117": 0.1409342367500824,
+   "PP-SWR-080": 1.0048622007957642e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 3.2929999999999997,
+   "PP-SWR-084": 0.5358474778728712,
+   "PP-SWR-085": 0.8880252918974645,
+   "PP-SWR-086": 0.10588049672034505,
+   "PP-SWR-110": 0.4420303273946047,
+   "PP-SWR-112": 0.4420303273946047,
+   "PP-SWR-114": 0.8298909132029852
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S5",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S5a",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 37.925166,
+   "PP-SWR-082": 2.4499999999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.0017457505680700258,
+   "PP-SWR-102": 0.00017464080816385888,
+   "PP-SWR-116": 0.006569304503500462,
+   "PP-SWR-117": 0.4194468847386674,
+   "PP-SWR-080": 1.004869846674139e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 2.468,
+   "PP-SWR-085": 0.8731942157072996,
+   "PP-SWR-086": 0.04156460647842353,
+   "PP-SWR-111": 0.9061239659786224,
+   "PP-SWR-113": 0.9061239659786224,
+   "PP-SWR-115": 1.9609837792813778
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S2b",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 1.613
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.044966263915977085,
+   "PP-SWR-101": 0.0018308525263859288,
+   "PP-SWR-102": 0.0002446668549719548,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.4826306739375781,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7283179424602608,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S4",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 20.0
+  },
+  "name": "S4a [function_requests_latency_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.9864579999999998,
+   "PP-SWR-087": 0.10152148867558397,
+   "PP-SWR-081": 3.3
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.0017473536399461587,
+   "PP-SWR-102": 0.00015119723835018263,
+   "PP-SWR-116": 0.0032279237639158964,
+   "PP-SWR-117": 0.14202605983273836,
+   "PP-SWR-080": 1.0048579500432364e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 3.324,
+   "PP-SWR-084": 0.5340052093129319,
+   "PP-SWR-085": 0.8875813900667298,
+   "PP-SWR-086": 0.10152148867558397,
+   "PP-SWR-110": 0.4452324006706476,
+   "PP-SWR-112": 0.4452324006706476,
+   "PP-SWR-114": 0.8360741530090532
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S5",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 20.0
+  },
+  "name": "S5a [function_requests_latency_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.2003749999999997,
+   "PP-SWR-082": 2.4499999999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.0017461866599739473,
+   "PP-SWR-102": 0.0001763360373010839,
+   "PP-SWR-116": 0.006621526554226875,
+   "PP-SWR-117": 0.4229390649739796,
+   "PP-SWR-080": 1.0048694899456034e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 2.4739999999999998,
+   "PP-SWR-085": 0.8729136450014767,
+   "PP-SWR-086": 0.03918067902309619,
+   "PP-SWR-111": 0.9133273735642433,
+   "PP-SWR-113": 0.9133273735642433,
+   "PP-SWR-115": 1.9785248674452305
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 20.0
+  },
+  "name": "S2b [function_requests_latency_ms=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 37.791
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.044966263915977085,
+   "PP-SWR-101": 0.0018308525263859288,
+   "PP-SWR-102": 0.0002446668549719548,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.4826306739375781,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7283179424602608,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S4",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 40.0
+  },
+  "name": "S4a [function_requests_latency_ms=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.843708,
+   "PP-SWR-087": 0.10152148867558397,
+   "PP-SWR-081": 3.3
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.0017473536399461587,
+   "PP-SWR-102": 0.00015119723835018263,
+   "PP-SWR-116": 0.0032279237639158964,
+   "PP-SWR-117": 0.14202605983273836,
+   "PP-SWR-080": 1.0048579500432364e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 3.304,
+   "PP-SWR-084": 0.5340052093129319,
+   "PP-SWR-085": 0.8875813900667298,
+   "PP-SWR-086": 0.10152148867558397,
+   "PP-SWR-110": 0.4452324006706476,
+   "PP-SWR-112": 0.4452324006706476,
+   "PP-SWR-114": 0.8360741530090532
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S5",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 40.0
+  },
+  "name": "S5a [function_requests_latency_ms=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.9243329999999998,
+   "PP-SWR-082": 2.4499999999999997
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.045106103293553364,
+   "PP-SWR-101": 0.0017461866599739473,
+   "PP-SWR-102": 0.0001763360373010839,
+   "PP-SWR-116": 0.006621526554226875,
+   "PP-SWR-117": 0.4229390649739796,
+   "PP-SWR-080": 1.0048694899456034e-05,
+   "PP-SWR-032": 0.0,
+   "PP-SWR-090": 0.0,
+   "PP-SWR-083": 2.4539999999999997,
+   "PP-SWR-085": 0.8729136450014767,
+   "PP-SWR-086": 0.03918067902309619,
+   "PP-SWR-111": 0.9133273735642433,
+   "PP-SWR-113": 0.9133273735642433,
+   "PP-SWR-115": 1.9785248674452305
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 40.0
+  },
+  "name": "S2b [function_requests_latency_ms=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4,
+   "PP-SWR-053": 3.283,
+   "PP-SWR-002": 0.1880781383079011,
+   "PP-SWR-016": 98.176875
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4506119786681222,
+   "PP-SWR-001": 0.1880781383079011,
+   "PP-SWR-003": 0.34271211916347966,
+   "PP-SWR-052": 1.0,
+   "PP-SWR-100": 0.044966263915977085,
+   "PP-SWR-101": 0.0018308525263859288,
+   "PP-SWR-102": 0.0002446668549719548,
+   "PP-SWR-116": 0.0008726823143661022,
+   "PP-SWR-117": 0.03568395986803807
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.4,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.39912737967813583,
+   "ay_vehicle_r79_max": 0.4826306739375781,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7283179424602608,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S4",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 60.0
+  },
+  "name": "S4a [function_requests_latency_ms=60]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.445584
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-048": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S5",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 60.0
+  },
+  "name": "S5a [function_requests_latency_ms=60]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.436208
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-048": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 20.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ },
+ {
+  "run": [
+   "S2",
+   "b"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "function_requests_latency_ms": 60.0
+  },
+  "name": "S2b [function_requests_latency_ms=60]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0,
+   "PP-SWR-053": NaN,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.641875
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-048": 1.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-100": 0.0,
+   "PP-SWR-101": 0.0,
+   "PP-SWR-102": 0.0,
+   "PP-SWR-116": 0.0,
+   "PP-SWR-117": 0.0
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0,
+   "ay_need_at_car_max": 0.0,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": null,
+   "ay_vehicle_r79_max": null,
+   "ay_vehicle_r79_over_sustained_s": null,
+   "jerk_vehicle_r79_max": null,
+   "ay_vehicle_r79_within_limits": null
+  }
+ }
+]

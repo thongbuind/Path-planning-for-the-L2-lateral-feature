@@ -1,0 +1,12 @@
+# PP-TS-002 reopen condition (research/studies/PP-TS-002-ay-grace, section 6): S1b d (curve
+# right after a crest, camera sees 40 m) with the stand-in ACC reading and ignoring
+# LateralLimits, on every vehicle profile, two seeds; same layout as the S1b block of M1.
+# Judged with the scope of benchmark/suites/scope.yaml.
+id: PP-TS-002
+title: Cua thấy muộn sau đỉnh dốc (S1b d)
+profiles: [VP-0, VP-1, VP-2, VP-3, VP-4, VP-5]
+seeds: [1, 2]
+blocks:
+  - acc: ["ignore_limits", "on"]
+    runs: [[S1b, d]]
+scope_from: scope

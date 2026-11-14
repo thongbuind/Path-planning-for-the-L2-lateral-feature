@@ -46,7 +46,6 @@ INTERVENTION_FUNCTIONS = (ActiveFunction.LKA, ActiveFunction.ELK)
 INTERVENTION_LIMITS = {ActiveFunction.LKA: (3.0, 1.5, 5.0),
                        ActiveFunction.ELK: (4.0, 3.0, 10.0)}  # PP-SWR-110 to 115
 ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
-MAX_INTERVENTION_S = 10.0  # PP-SWR-083
 MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
 EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
 EPS_DELAY_MAX_S = 0.1  # PP-SWR-091
@@ -524,6 +523,61 @@ def lane_usable(c, cal: dict | None = None) -> bool:
                for i, (status, conf) in enumerate(c.lane_boundaries))
 
 
+def boundary_fallback_criteria(log: RunLog, cycles, cal: dict[str, float]) -> list[Criterion]:
+    """PP-SWR-147 and 047 from the received lane model and the true road-edge association."""
+    active = {
+        "PP-SWR-147": ("Chu kỳ mất path khi còn biên khác đủ tin", []),
+        "PP-SWR-047": ("Chu kỳ LKA hoặc ELK được chọn khi chỉ còn biên ngoài", []),
+    }
+    bad = {rid: [] for rid in active}
+    conf_ego = cal.get("conf_ego", 0.0)
+    conf_inferred = cal.get("conf_inferred", 0.0)
+    conf_edge = cal.get("conf_edge")
+    # In the simulator a road-edge channel is sourced from the corresponding physical edge.
+    # A directly measured edge is eligible for the exception only if it bounds the ego lane.
+    direct_edge = tuple(edge is not None and abs(edge.offset_m) <= log.road.lane_width / 2 + 1e-6
+                        for edge in log.road.layout.edges)
+    for c in cycles:
+        if c.inputs_ok is None or not c.inputs_ok.get("lane_model") or c.lane_boundaries is None:
+            continue
+        boundaries = c.lane_boundaries
+        if any(boundaries[i][0] == LineStatus.MEASURED and boundaries[i][1] >= conf_ego for i in EGO_LINES):
+            continue
+        if not any(status == LineStatus.MEASURED and confidence >= conf_inferred
+                   for i, (status, confidence) in enumerate(boundaries) if i not in EGO_LINES):
+            continue
+        if all(c.inputs_ok.get(name, True) for name in INPUTS_FOR_PATH):
+            active["PP-SWR-147"][1].append(c)
+            if not _valid(c):
+                bad["PP-SWR-147"].append(c)
+        status = c.path_status
+        if status is None or not status.header.valid:
+            continue
+        function = status.active_function
+        if function == ActiveFunction.ELK and any(direct_edge):
+            rx = c.function_requests
+            if not _usable_requests(c) or conf_edge is None:
+                continue  # The ELK reason or eligibility cannot be determined.
+            req = rx.message.requests[int(ActiveFunction.ELK) - 1]
+            if req.elk_reason == ElkReason.ROAD_EDGE and req.side in (Side.LEFT, Side.RIGHT):
+                side = 0 if req.side == Side.LEFT else 1
+                edge_state, confidence = boundaries[4 + side]
+                if direct_edge[side] and edge_state == LineStatus.MEASURED and confidence >= conf_edge:
+                    # With only one edge, the planner's association with remembered width is
+                    # unavailable from the interface. An observed opposite direct edge resolves it.
+                    other_side = 1 - side
+                    other_state, other_confidence = boundaries[4 + other_side]
+                    if direct_edge[other_side] and other_state == LineStatus.MEASURED and other_confidence >= conf_edge:
+                        active["PP-SWR-047"][1].append(c)
+                    continue
+        active["PP-SWR-047"][1].append(c)
+        if function in INTERVENTION_FUNCTIONS:
+            bad["PP-SWR-047"].append(c)
+    return [Criterion(rid, metric, float(len(bad[rid])), "= 0", not bad[rid], applicable=bool(judged),
+                      first_fail_s=bad[rid][0].t0_us * 1e-6 if bad[rid] else None)
+            for rid, (metric, judged) in active.items()]
+
+
 def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal: dict | None = None) -> Criterion:
     """PP-SWR-030 in cases labelled drive or drive_limited (Software Qualification Test
     Specification 5.3): at each cycle the function that drives (NONE when path_valid is false)
@@ -862,6 +916,18 @@ def _path_at(cycle, t_us, truth):
     return projected.d, v_lat, ay_add
 
 
+def _overriding(cycles) -> set[int]:
+    """Cycles with driver_override = true, as for PP-SWR-039: read from usable
+    FunctionRequests, the last usable value held in between."""
+    out, now = set(), False
+    for i, c in enumerate(cycles):
+        if (c.inputs_ok or {}).get("function_requests") and c.function_requests is not None:
+            now = bool(c.function_requests.message.driver_override)
+        if now:
+            out.add(i)
+    return out
+
+
 def _entry_errors(cycle, t_us, truth):
     if not _finite_outputs(cycle):
         return np.inf, np.inf  # execution fault (8.4); nothing to project
@@ -940,7 +1006,8 @@ def _end_condition(truth, prev, cur, side, edge, cal):
 
 
 def _target_geometry(truth, episodes):
-    """Ground-truth lateral gap while ELK drives and rectangle contact over the encounter."""
+    """Ground-truth lateral gap while ELK drives and the target is abreast (PP-SWR-088), and
+    rectangle contact over the encounter."""
     log = truth.log
     if not log.scenario.traffic:
         return None, None
@@ -969,7 +1036,11 @@ def _target_geometry(truth, episodes):
             tx, ty = cos(target.heading), sin(target.heading)
             dx, dy = target.x - x, target.y - y
             half_w, half_l = target.width / 2, target.length / 2
-            if target_active[i]:
+            # PP-SWR-088: only while the two cars are abreast (Ngang hàng, Software Requirements
+            # Specification): the target's length overlaps the car body along the road.
+            abreast = (target_active[i] and target.s + half_l >= p.s - widths[1]
+                       and target.s - half_l <= p.s + widths[1])
+            if abreast:
                 span = half_w * abs(nx * ty - ny * tx) + half_l * abs(nx * tx + ny * ty)
                 min_gap = min(min_gap, abs(nx * dx + ny * dy) - ego_span - span)
             if contact or hypot(dx, dy) > hypot(*widths) + hypot(half_l, half_w):
@@ -1137,9 +1208,12 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
     lane_changes = [stamp for stamp, _ in getattr(log, "lane_index_changes", [])]
     cont = [0.0, 0.0, 0.0]
     n_061 = 0
-    for prev, c in zip(cycles, cycles[1:]):
+    override_cycles = _overriding(cycles)
+    for i, (prev, c) in enumerate(zip(cycles, cycles[1:]), start=1):
         if not (_valid(prev) and _valid(c)) or c.path_status.active_function != prev.path_status.active_function:
             continue
+        if i in override_cycles:
+            continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017)
         stamp = c.lane_view[0] if c.lane_view is not None else None
         if stamp is None or not any(ch <= stamp <= ch + LANE_CHANGE_WINDOW_S * 1e6 for ch in lane_changes):
             continue
@@ -1250,6 +1324,43 @@ def adas_requests(log: RunLog) -> dict | None:
     return out
 
 
+def _side_line_trusted(c, side, cal) -> bool:
+    """The ego-lane line on `side` in the lane model the planner received at this cycle is a
+    "biên làn đủ tin" (Software Requirements Specification 4): MEASURED, confidence >= conf_ego."""
+    if c.inputs_ok is not None and not c.inputs_ok.get("lane_model", True):
+        return False
+    if c.lane_boundaries is None:
+        return True  # log without boundary detail
+    status, confidence = c.lane_boundaries[EGO_LINES[0] if side == Side.LEFT else EGO_LINES[1]]
+    return status == LineStatus.MEASURED and confidence >= cal.get("conf_ego", 0.0)
+
+
+def _line_request(function, r) -> bool:
+    """LKA, or ELK for a reason other than the road edge (PP-SWR-092)."""
+    return function == ActiveFunction.LKA or r.message.elk_reason != ElkReason.ROAD_EDGE
+
+
+def _refused_unseen_line(cycles, function, r, cal) -> bool:
+    """PP-SWR-092: through the whole REQUEST the line on its side was not trusted, so not
+    starting is the required reaction (Software Qualification Test Specification 8.1)."""
+    return (_line_request(function, r) and r.message.side in (Side.LEFT, Side.RIGHT)
+            and not any(_side_line_trusted(cycles[i], r.message.side, cal) for i in range(r.start, r.stop)))
+
+
+def _unseen_line_criterion(cycles, episodes, requests, cal) -> Criterion:
+    """PP-SWR-092: LKA or ELK line interventions started while the line on their side was not
+    trusted in the received lane model. Judged when such a request reached the planner."""
+    judged = any(_line_request(f, r) and r.message.side in (Side.LEFT, Side.RIGHT)
+                 and not all(_side_line_trusted(cycles[i], r.message.side, cal) for i in range(r.start, r.stop))
+                 for f in INTERVENTION_FUNCTIONS for r in requests[f])
+    bad = [e for e in episodes if e.request is not None and _line_request(e.function, e.request)
+           and e.request.message.side in (Side.LEFT, Side.RIGHT)
+           and not _side_line_trusted(cycles[e.start], e.request.message.side, cal)]
+    return Criterion("PP-SWR-092", "Lần LKA, ELK vạch bắt đầu khi vạch phía side không đủ tin",
+                     float(len(bad)), "= 0", not bad, applicable=judged,
+                     first_fail_s=cycles[bad[0].start].t0_us * 1e-6 if bad else None)
+
+
 def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_times):
     log, cycles = truth.log, truth.log.cycles
     expected = log.scenario.notes.get("expect_intervention")
@@ -1274,6 +1385,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
             side = "" if desired is None else f" (phía {'trái' if desired == 'left' else 'phải'})"
             issue(ISSUE_NOT_JUDGED, f"{expected}: thiếu REQUEST đến planner{side}")
         elif (any(not any(e.request is r and e.function == function for e in episodes)
+                  and not _refused_unseen_line(cycles, function, r, cal)
                   for r in expected_requests)
               or any(_phase(c, function) == InterventionPhase.ACTIVE and not _valid(c) for c in cycles)):
             issue(ISSUE_REQUIREMENT, f"{expected}: có REQUEST nhưng thiếu path can thiệp hợp lệ", "PP-SWR-030")
@@ -1285,9 +1397,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
             issue(ISSUE_NOT_JUDGED, "PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
 
     starts = []
-    durations = []
-    timed_functions = set()
-    censored_functions = set()
     opposite_dlcs, completed_dlcs = [], []
     dtle_mark, dtle_edge, dtle_lka = [], [], []
     times_to_complete = {f: [] for f in INTERVENTION_FUNCTIONS}
@@ -1310,12 +1419,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         edge = req.elk_reason == ElkReason.ROAD_EDGE
         lka = function == ActiveFunction.LKA
         starts.append(_entry_errors(cycles[episode.start], start_us, truth))
-        elapsed_s = (stop_us - episode.request.rx_us) * 1e-6
-        if end_seen or elapsed_s >= MAX_INTERVENTION_S:
-            durations.append(elapsed_s if end_seen else float("inf"))
-            timed_functions.add(function.name)
-        else:
-            censored_functions.add(function.name)
+        elapsed_s = (stop_us - episode.request.rx_us) * 1e-6  # information; no duration limit (PP-TS-016)
         handover_us = _handover_end_us(truth, stop_us, next_us)
         opposite_dlcs.append(_min_dlc(truth, start_us, handover_us, _opposite(req.side)))
         dtle = _min_dlc(truth, start_us, stop_us, req.side, edge=edge)
@@ -1341,9 +1445,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
                         "observed_duration_s": elapsed_s,
                         "end_handover_us": handover_us, "dtle_m": dtle})
 
-    if expected in censored_functions and expected not in timed_functions:
-        issue(ISSUE_NOT_JUDGED, f"{expected}: ca kết thúc trước khi đủ cửa sổ chấm thời lượng")
-
     def lower(requirement, metric, values, limit):
         value = float(min(values, default=float("nan")))
         result.criteria.append(Criterion(requirement, metric, value, f">= {limit}",
@@ -1358,7 +1459,6 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
     upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
     upper("PP-SWR-032", "Lần chưa báo COMPLETED tại tick đủ điều kiện", [late_completion] if end_judged else [], 0)
     upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
-    upper("PP-SWR-083", "Thời lượng từ REQUEST tới COMPLETED hoặc hủy [s]", durations, MAX_INTERVENTION_S)
     lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
     lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
     lower("PP-SWR-086", "DTLE vạch nhỏ nhất [m]", dtle_mark, MARK_DTLE_MIN_M)
@@ -1369,6 +1469,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         lower("PP-SWR-091", "DTLE vạch khi EPS chậm tới 100 ms [m]", dtle_mark, MARK_DTLE_MIN_M)
         lower("PP-SWR-091", "DTLE mép khi EPS chậm tới 100 ms [m]", dtle_edge, EDGE_DTLE_MIN_M)
     upper("PP-SWR-089", "Số ELK REQUEST muộn đã khởi động", [accepted] if late_dlcs else [], 0)
+    result.criteria.append(_unseen_line_criterion(cycles, episodes, requests, cal))
     gap, no_impact = _target_geometry(truth, episodes)
     lower("PP-SWR-088", "Khoảng cách ngang nhỏ nhất tới xe mục tiêu [m]",
           [] if gap is None else [gap], OTHER_CAR_GAP_MIN_M)
@@ -1660,12 +1761,15 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     # PP-SWR-100 to 102: consecutive valid paths.
     cont = [0.0, 0.0, 0.0]
     intervention_starts = {e.start for e in episodes}
+    override_cycles = _overriding(cycles)
     for i in range(1, len(cycles)):
         if valid[i - 1] and valid[i] and finite[i - 1] and finite[i]:
             if i in intervention_starts:
                 d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
                 if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
                     continue  # PP-SWR-031: exception only at the first tick
+            if i in override_cycles:
+                continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017): not judged while the driver overrides
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
                 if value > (CONTINUITY_LATERAL_M, CONTINUITY_HEADING_RAD, CONTINUITY_CURVATURE)[j]:
@@ -1921,6 +2025,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     criteria.append(over_refusal(cycles, log.scenario.notes.get("expected_outcome"),
                                  log.init_result == 0, cal))
     criteria.extend(fault_reaction_criteria(cycles, cal.get("T_coast", 1.0), cal))
+    criteria.extend(boundary_fallback_criteria(log, cycles, cal))
     result = Result(log.scenario.name, log.seed, criteria, targets, info)
     result.info["compute_hist"] = compute_hist
     result.criteria.extend(longitudinal_criteria(log, cycles))

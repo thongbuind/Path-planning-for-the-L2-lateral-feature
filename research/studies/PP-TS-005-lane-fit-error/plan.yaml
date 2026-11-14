@@ -1,0 +1,23 @@
+# Evaluation plan of PP-TS-005 (research/README.md, step 2). Not locked: waiting for review.
+# V1, V2 are not implemented yet; their build switch and tuning parameters are filled in when
+# they are, before the plan is locked (same tuning budget for every variant).
+id: PP-TS-005
+locked: null
+suite: PP-TS-005        # benchmark/suites/PP-TS-005.yaml
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+variants:
+  V0:
+    description: Bản hiện tại, T5 tin camera như nhau trên cả tầm nhìn
+    calibration: {}
+    cmake: {PP_T2_FIT: camera}
+  V1:
+    description: T5 tăng phương sai đo ở hai đầu cửa sổ khớp; điểm gần xe lấy từ lần quan sát trước
+    calibration: {}
+    cmake: {PP_T2_FIT: window}
+  V2:
+    description: Bộ nhớ điểm vạch dời theo ego-motion, khớp lại reference line từ bộ nhớ và lần đo mới
+    calibration: {}
+    cmake: {PP_T2_FIT: memory}

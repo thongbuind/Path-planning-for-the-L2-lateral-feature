@@ -1,0 +1,180 @@
+{
+ "checks": [
+  {
+   "id": "C1.symbols",
+   "status": "pass",
+   "detail": "",
+   "level": "C1",
+   "title": "Có đủ pp_state_size, pp_init, pp_step, pp_version",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C1.layout",
+   "status": "not_checked",
+   "detail": "Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema",
+   "level": "C1",
+   "title": "Build từ pp_types.h cùng phiên bản schema; layout struct khớp header sinh ra",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C1.state_size",
+   "status": "pass",
+   "detail": "37168 byte",
+   "level": "C1",
+   "title": "pp_state_size trả cùng một số > 0",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C1.alignment",
+   "status": "pass",
+   "detail": "trạng thái tại địa chỉ ≡ 8 (mod 16), 40 chu kỳ",
+   "level": "C1",
+   "title": "Chạy được với vùng nhớ trạng thái căn theo PP_STATE_ALIGNMENT",
+   "source": "interfaces/c/pp_planner.h"
+  },
+  {
+   "id": "C2.init_ok",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "pp_init trả OK với VehicleConfig hợp lệ (VP-0)",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C2.init_missing",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "VehicleConfig thiếu: pp_init không trả OK, không chu kỳ nào gửi Trajectory",
+   "source": "PP-SWR-146"
+  },
+  {
+   "id": "C2.init_out_of_limits",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "VehicleConfig ngoài giới hạn: pp_init không trả OK, không chu kỳ nào gửi Trajectory",
+   "source": "Interface Control Document 5.8 (bề rộng ≤ 2,5 m)"
+  },
+  {
+   "id": "C2.outputs_every_cycle",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "Trajectory, PathStatus, LateralLimits gửi mỗi chu kỳ",
+   "source": "PP-SWR-010, 150"
+  },
+  {
+   "id": "C2.filled",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "pp_step điền mọi trường của output mỗi chu kỳ",
+   "source": "interfaces/c/pp_planner.h"
+  },
+  {
+   "id": "C2.counter",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "header.counter tăng 1 mỗi message, quay vòng 0–255",
+   "source": "PP-SWR-014"
+  },
+  {
+   "id": "C2.stamp",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "header.stamp_us của output là t0 của chu kỳ",
+   "source": "Interface Control Document 4, 6"
+  },
+  {
+   "id": "C2.enum",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "Enum trong tập giá trị, bool là 0 hoặc 1",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C2.trajectory_format",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "31 điểm, bước 0,1 s, phủ 0–3 s, frame_id BASE_LINK, rear_wheel_angle 0",
+   "source": "PP-SWR-011; Interface Control Document 6.1"
+  },
+  {
+   "id": "C2.finite",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "Không có NaN hoặc vô cực trong output đã gửi",
+   "source": "Software Qualification Test Specification 11"
+  },
+  {
+   "id": "C2.robust",
+   "status": "pass",
+   "detail": "",
+   "level": "C2",
+   "title": "Input chưa nhận, valid = false, giá trị ở hai đầu dải không làm planner dừng",
+   "source": "Interface Control Document 4, 5"
+  },
+  {
+   "id": "C2.version",
+   "status": "pass",
+   "detail": "pp_planner 0.2.0 commit 5afcaf564f23 calibration 06a80cfe5088 t7 quintic",
+   "level": "C2",
+   "title": "pp_version trả cùng một chuỗi có phiên bản, commit, mã bộ calibration",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C3.deterministic",
+   "status": "pass",
+   "detail": "400 chu kỳ, hai instance",
+   "level": "C3",
+   "title": "Cùng chuỗi input cho cùng output từng bit",
+   "source": "PP-ADR-013"
+  },
+  {
+   "id": "C3.interleaved",
+   "status": "pass",
+   "detail": "400 chu kỳ",
+   "level": "C3",
+   "title": "Hai instance chạy xen kẽ cho cùng output như khi chạy riêng",
+   "source": "PP-ADR-013"
+  },
+  {
+   "id": "C3.memory",
+   "status": "pass",
+   "detail": "",
+   "level": "C3",
+   "title": "Không ghi ra ngoài vùng nhớ trạng thái (byte canh hai đầu)",
+   "source": "Interface Control Document 4"
+  },
+  {
+   "id": "C3.symbols",
+   "status": "pass",
+   "detail": "",
+   "level": "C3",
+   "title": "Bảng symbol không có cấp phát động, đọc file, đọc đồng hồ hệ thống",
+   "source": "Interface Control Document 4; PP-ADR-013"
+  },
+  {
+   "id": "info.vehicle_config",
+   "status": "info",
+   "detail": "Từ chối mọi giá trị đã thử",
+   "level": "info"
+  }
+ ],
+ "levels": {
+  "C1": "pass",
+  "C2": "pass",
+  "C3": "pass"
+ },
+ "blocked": false,
+ "integrable": true,
+ "not_checked": [
+  "C1.layout"
+ ]
+}

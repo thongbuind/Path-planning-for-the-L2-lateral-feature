@@ -1,0 +1,2388 @@
+[
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S1a",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.014981058307605113,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 7.607208
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7894832831821004,
+   "PP-SWR-001": 0.7372353138634935,
+   "PP-SWR-003": 0.17899597878567874,
+   "PP-SWR-100": 0.004647577091001785,
+   "PP-SWR-101": 0.0002509899008660277,
+   "PP-SWR-102": 1.4434936559161297e-05,
+   "PP-SWR-116": 0.0034207585267722607,
+   "PP-SWR-117": 0.012508087093010545
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.009011117754782744,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6399246162902363,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18555859080529802,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S1c",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.3768141936585245,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.362291
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4803276431630359,
+   "PP-SWR-001": 2.4999977904371917,
+   "PP-SWR-003": 0.7001800986472517,
+   "PP-SWR-100": 0.020361938351052426,
+   "PP-SWR-101": 0.0009572438190281751,
+   "PP-SWR-102": 6.656018796454401e-05,
+   "PP-SWR-116": 0.011599469929933548,
+   "PP-SWR-117": 0.048905471339821815
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.35162185462695,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.545473866855923,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7112753157467389,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S1f",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.289167332881286,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 99.42866599999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.61051070306545,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 1.569326050230302,
+   "PP-SWR-100": 0.04734030205442103,
+   "PP-SWR-101": 0.004490456208071869,
+   "PP-SWR-102": 0.0002700000409267757,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.11012046597898006
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.19879477254636838,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.439419618358916,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.4074871612355737,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S1a [camera_view_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.039219681986590725,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.610584
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03625625289032225,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7645528568618216,
+   "PP-SWR-001": 0.6564152135979384,
+   "PP-SWR-003": 0.12915428669657558,
+   "PP-SWR-100": 0.0006604618787382893,
+   "PP-SWR-101": 5.135463615246749e-05,
+   "PP-SWR-102": 2.009366326690982e-05,
+   "PP-SWR-116": 0.0030457573011517525,
+   "PP-SWR-117": 0.013875734293833375
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.04431492083750508,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6511632919415495,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18938183504133568,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S1c [camera_view_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.2850722634910686,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.865834
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03959093721737417,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5525074548654321,
+   "PP-SWR-001": 2.4999977904371917,
+   "PP-SWR-003": 0.5151808727532625,
+   "PP-SWR-100": 0.0025778206907875437,
+   "PP-SWR-101": 0.00020527247232227097,
+   "PP-SWR-102": 8.033419874071794e-05,
+   "PP-SWR-116": 0.011599470861256123,
+   "PP-SWR-117": 0.05545655731111765
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.2820943230952801,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5887234241928274,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7574730161010296,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S1f [camera_view_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.12701180473096435,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 40.316125
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03847395117008956,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6114777093488137,
+   "PP-SWR-001": 1.8427951727062464,
+   "PP-SWR-003": 1.1433270992711186,
+   "PP-SWR-100": 0.04662092685697629,
+   "PP-SWR-101": 0.0012050176663400691,
+   "PP-SWR-102": 0.00023436284671322373,
+   "PP-SWR-116": 0.008550361730158329,
+   "PP-SWR-117": 0.13893902068957686
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.217564421600831,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.9227953533831816,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.925623727311172,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S1a [camera_view_m=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.012221831251209372,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 111.69441599999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03999998092646695,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7892715960952776,
+   "PP-SWR-001": 0.6524283526232466,
+   "PP-SWR-003": 0.15787609299877658,
+   "PP-SWR-100": 0.0008651147884638024,
+   "PP-SWR-101": 9.234286650894319e-05,
+   "PP-SWR-102": 1.5086874373676569e-05,
+   "PP-SWR-116": 0.003027258673682809,
+   "PP-SWR-117": 0.01134485355578363
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.011190989632164507,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6387848598722177,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.1854961634991547,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S1c [camera_view_m=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.2906442921364352,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.508917
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03999998092646695,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5589844185923323,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.6307321018539369,
+   "PP-SWR-100": 0.0031106014208113334,
+   "PP-SWR-101": 0.0003693669246085385,
+   "PP-SWR-102": 6.034715916276959e-05,
+   "PP-SWR-116": 0.011599471792578697,
+   "PP-SWR-117": 0.04546253476291895
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.27399293752868126,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5481747065693385,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7421003202411828,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S1f [camera_view_m=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.11992073214829643,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 131.56175
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03999998092646695,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6948401160551483,
+   "PP-SWR-001": 1.9517584587447345,
+   "PP-SWR-003": 1.555210183141753,
+   "PP-SWR-100": 0.005872155335855471,
+   "PP-SWR-101": 0.0009808159788731174,
+   "PP-SWR-102": 0.00014399265489202452,
+   "PP-SWR-116": 0.00905591156333685,
+   "PP-SWR-117": 0.10929408017545938
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.10927549488228325,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.6793225646765613,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.6696333769434195,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S1a [camera_view_m=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.016776387177826025,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.78825
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0400000655650683,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7895183990144294,
+   "PP-SWR-001": 0.6882780871819705,
+   "PP-SWR-003": 0.1773259646142833,
+   "PP-SWR-100": 0.001946930162748155,
+   "PP-SWR-101": 0.00015514414022010925,
+   "PP-SWR-102": 1.5695717852629314e-05,
+   "PP-SWR-116": 0.0031935996375977993,
+   "PP-SWR-117": 0.012580049224197865
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.0081332404114045,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6431038025428718,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.19035276368075482,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S1c [camera_view_m=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.4429377106928184,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.3835
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0400000655650683,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.41564033563877856,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.7053803710732609,
+   "PP-SWR-100": 0.0052867945020274145,
+   "PP-SWR-101": 0.0006018029208609832,
+   "PP-SWR-102": 6.276759189956216e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.049966759979724884
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.41606965742473423,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5415436491699235,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7622013352198396,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S1f [camera_view_m=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.28379576158667635,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.425458
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0400000655650683,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5529403776724207,
+   "PP-SWR-001": 2.329073613509536,
+   "PP-SWR-003": 1.7378554912284017,
+   "PP-SWR-100": 0.04504951912576858,
+   "PP-SWR-101": 0.0031667182050991727,
+   "PP-SWR-102": 0.00020869215599522793,
+   "PP-SWR-116": 0.01080648135393858,
+   "PP-SWR-117": 0.12498870491981506
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.2651088043434898,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.464158549345787,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.3743264927503447,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S1a [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.010731707141041583,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 3.9906249999999996
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7868438465667431,
+   "PP-SWR-001": 0.6343842687783763,
+   "PP-SWR-003": 0.1754749973770231,
+   "PP-SWR-100": 0.006034359677311696,
+   "PP-SWR-101": 0.00013577277317233793,
+   "PP-SWR-102": 3.505562977426546e-06,
+   "PP-SWR-116": 0.002943534404039383,
+   "PP-SWR-117": 0.012288428843021393
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.018957905402908284,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.628098060854438,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.17385592826225854,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S1c [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.23926367599627787,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.6749999999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.6123734123720799,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.7077153713908046,
+   "PP-SWR-100": 0.02680843718710369,
+   "PP-SWR-101": 0.0007912056675198897,
+   "PP-SWR-102": 4.8522834974088684e-05,
+   "PP-SWR-116": 0.011599470861256123,
+   "PP-SWR-117": 0.05057863891124725
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.22037388869389646,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.5215808546397014,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7036366458959811,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S1f [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.2929207420104698,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.00033803743804128317,
+   "PP-SWR-016": 2.435084
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5565694400872601,
+   "PP-SWR-001": 1.1348885163897648,
+   "PP-SWR-003": 0.9286534987040795,
+   "PP-SWR-100": 0.04593351223608064,
+   "PP-SWR-101": 0.002790057623619724,
+   "PP-SWR-102": 0.00013130679374548577,
+   "PP-SWR-116": 0.005265834275633097,
+   "PP-SWR-117": 0.06521744289784692
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.23790233305242495,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.082562930306264,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.1546871067166804,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S1a [camera_view_start_m=5]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.014145977061119414,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.9598749999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.78934220851219,
+   "PP-SWR-001": 0.7305561302928254,
+   "PP-SWR-003": 0.1773710027919151,
+   "PP-SWR-100": 0.004645909707504095,
+   "PP-SWR-101": 0.00024193733174060483,
+   "PP-SWR-102": 1.37952377560552e-05,
+   "PP-SWR-116": 0.0033897676039487123,
+   "PP-SWR-117": 0.012392853386700153
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.009956539944333955,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6392844105262553,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18545042892705765,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S1c [camera_view_start_m=5]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.32427129667964644,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.7827089999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5301339950827901,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.7079288479872048,
+   "PP-SWR-100": 0.013881987568182182,
+   "PP-SWR-101": 0.0009186291875824537,
+   "PP-SWR-102": 5.500778328246367e-05,
+   "PP-SWR-116": 0.011599470861256123,
+   "PP-SWR-117": 0.04947851411998272
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.30220556406362425,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.544980732548677,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7418980328965841,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S1f [camera_view_start_m=5]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.355117322062192,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.0379169999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5507390194607358,
+   "PP-SWR-001": 2.485373115632683,
+   "PP-SWR-003": 1.603846249054186,
+   "PP-SWR-100": 0.04738272946050051,
+   "PP-SWR-101": 0.0044999449852594076,
+   "PP-SWR-102": 0.00027000002466787696,
+   "PP-SWR-116": 0.011531620286405087,
+   "PP-SWR-117": 0.11262623593211174
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.25595963075353184,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.420499039294703,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.3880396617176884,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "a"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S1a [camera_view_start_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.01484055198756401,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 114.64266599999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.789054973580825,
+   "PP-SWR-001": 0.7236011879285797,
+   "PP-SWR-003": 0.17808706616051495,
+   "PP-SWR-100": 0.005315768611200934,
+   "PP-SWR-101": 0.00023520691158784857,
+   "PP-SWR-102": 1.392739422894146e-05,
+   "PP-SWR-116": 0.0033574968110769987,
+   "PP-SWR-117": 0.012444925960153341
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.010609885554794954,
+   "ay_need_at_car_max": 0.625,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 0.6411886841829246,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.18991139786901062,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "c"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S1c [camera_view_start_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.28124968441381043,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.6699579999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.5707064554980987,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.7107706915121526,
+   "PP-SWR-100": 0.021216857512381244,
+   "PP-SWR-101": 0.0008782866776630982,
+   "PP-SWR-102": 5.594514411978767e-05,
+   "PP-SWR-116": 0.011599471792578697,
+   "PP-SWR-117": 0.04968554712831974
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.2619806936170401,
+   "ay_need_at_car_max": 2.5,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.553336549678385,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7597182925180177,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S1",
+   "f"
+  ],
+  "acc": "off",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S1f [camera_view_start_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.38941606145613844,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 140.346792
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.520513345455456,
+   "PP-SWR-001": 2.481706324033439,
+   "PP-SWR-003": 1.6110912838485092,
+   "PP-SWR-100": 0.04734421264229566,
+   "PP-SWR-101": 0.00450079640308898,
+   "PP-SWR-102": 0.000262996715639628,
+   "PP-SWR-116": 0.01151460874825716,
+   "PP-SWR-117": 0.11311270063742995
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.2850363264290542,
+   "ay_need_at_car_max": 1.6711229946524062,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.425490869608152,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.421694334941912,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S14a",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 2.432999999999999,
+   "PP-SWR-050": 6.8627043597829935,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.097209
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7945980495552551,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.8741009514778852,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.12748254095204192,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.018305762508445962,
+   "PP-SWR-101": 0.0012039118849176411,
+   "PP-SWR-102": 7.57811691476692e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.06100740283727646
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.006194862005740403,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6047926156264762,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.8886610740391079,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S14a",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.0642615509117752,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.448917
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7543352357686361,
+   "PP-SWR-001": 2.1160115953653778,
+   "PP-SWR-003": 0.8271035477056936,
+   "PP-SWR-100": 0.017866303540015303,
+   "PP-SWR-101": 0.002560725045517298,
+   "PP-SWR-102": 7.57811691476692e-05,
+   "PP-SWR-116": 0.015258556231856346,
+   "PP-SWR-117": 0.058710831217467785
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.02494581325661756,
+   "ay_need_at_car_max": 2.0034442039600946,
+   "speed_min_mps": 19.972768995750126,
+   "decel_max_mps2": 2.602271217060803,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.058122268794083,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7268669521924567,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S14e",
+  "failed": [
+   "PP-SWR-100",
+   "PP-SWR-101",
+   "PP-SWR-102"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": 1.888,
+   "PP-SWR-050": 0.8855378417051482,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 7.655374999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.02769234350281735,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.3830991927755829,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 3.2068252409636417,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.5028817910745595,
+   "PP-SWR-100": 0.06702569662127655,
+   "PP-SWR-101": 0.005531198892217315,
+   "PP-SWR-102": 0.00030972022228612753,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.11309656547382474
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.43845079396720127,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.8925250411445502,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 2.3859782932857163,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "name": "S14e",
+  "failed": [
+   "PP-SWR-051",
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": 0.6080000000000005,
+   "PP-SWR-050": 0.835938792964143,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.210833
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.037668056236266345,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -0.1198763881943441,
+   "PP-SWR-001": 2.4999975813421176,
+   "PP-SWR-003": 1.7888507189424343,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.5934554231676743,
+   "PP-SWR-100": 0.056407833962222306,
+   "PP-SWR-101": 0.004502342977562801,
+   "PP-SWR-102": 0.00024256279696694511,
+   "PP-SWR-116": 0.011120995506644249,
+   "PP-SWR-117": 0.11166608892381191
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.6015889429937996,
+   "ay_need_at_car_max": 2.6125307906973,
+   "speed_min_mps": 28.327304429528336,
+   "decel_max_mps2": 2.976423471729106,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.562526434120641,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.902970562911481,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S14a [camera_view_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": -0.24200000000000088,
+   "PP-SWR-050": 6.444861857471747,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.329708
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0395665432772917,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.638684880816224,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.6432799273170531,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.17314397711306828,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.0025342775302525855,
+   "PP-SWR-101": 0.00029264712662824266,
+   "PP-SWR-102": 0.00010039558585218065,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.06928620859980583
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.18973176977586215,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.7379319349932434,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9468000363725112,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S14a [camera_view_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-008": 0.875,
+   "PP-SWR-064": -0.5719999999999992,
+   "PP-SWR-050": 0.3985225343560074,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 104.30274999999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.04920533542302685,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4770613492645708,
+   "PP-SWR-001": 2.499997636269258,
+   "PP-SWR-003": 0.6546609735226356,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.1696450819367361,
+   "PP-SWR-100": 0.003285176036069944,
+   "PP-SWR-101": 0.0006904503206257573,
+   "PP-SWR-102": 0.00020461413011436946,
+   "PP-SWR-116": 0.016474472358822823,
+   "PP-SWR-117": 0.0940707977861166
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.35007284208525824,
+   "ay_need_at_car_max": 2.8498056376589376,
+   "speed_min_mps": 20.45053206895885,
+   "decel_max_mps2": 2.6737973951576066,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6972687651949854,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9468000363725112,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S14e [camera_view_m=10]",
+  "failed": [
+   "PP-SWR-051"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.20000000000000018,
+   "PP-SWR-064": -0.1120000000000001,
+   "PP-SWR-050": 1.443695087810044,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.69525
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.027692314956989983,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -0.28641726093816344,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 2.021799201003145,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.0023633569962617784,
+   "PP-SWR-100": 0.04912328407415864,
+   "PP-SWR-101": 0.0027996712303690607,
+   "PP-SWR-102": 0.0002700000476104172,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.16679289255989715
+  },
+  "info": {
+   "vehicle_offset_max_m": 1.0959615948489891,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 3.148863438728908,
+   "ay_vehicle_r79_over_sustained_s": 0.5399999999999405,
+   "jerk_vehicle_r79_max": 4.552074368599776,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 10.0
+  },
+  "name": "S14e [camera_view_m=10]",
+  "failed": [
+   "PP-SWR-051"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.20000000000000018,
+   "PP-SWR-064": -0.1120000000000001,
+   "PP-SWR-050": 1.4427917385081,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.507625
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.027692314956989983,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -0.2639710759011611,
+   "PP-SWR-001": 2.499997646580552,
+   "PP-SWR-003": 2.021799201003145,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.04720230671240566,
+   "PP-SWR-100": 0.04909914437379688,
+   "PP-SWR-101": 0.0027996712303690607,
+   "PP-SWR-102": 0.0002700000475453668,
+   "PP-SWR-116": 0.008551137521862984,
+   "PP-SWR-117": 0.17989762709476054
+  },
+  "info": {
+   "vehicle_offset_max_m": 1.0728476845135215,
+   "ay_need_at_car_max": 3.484914277652596,
+   "speed_min_mps": 34.07663797806995,
+   "decel_max_mps2": 1.810834024865926,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 3.152839660022346,
+   "ay_vehicle_r79_over_sustained_s": 0.5439999999999401,
+   "jerk_vehicle_r79_max": 4.566428410480755,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S14a [camera_view_m=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 0.13299999999999912,
+   "PP-SWR-050": 6.562603446184475,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.565
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03999998092646695,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7690579884766295,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.7878828910179436,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.15869101490825432,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.0024097755437226726,
+   "PP-SWR-101": 0.0004617083304938596,
+   "PP-SWR-102": 7.543384618060331e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.05689056124538183
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.055662859136651,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6206447587159696,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9277131425962357,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S14a [camera_view_m=20]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": -Infinity,
+   "PP-SWR-050": 0.061385542085426875,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.274125
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.047131673169399146,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7237985297579754,
+   "PP-SWR-001": 2.4999975480916277,
+   "PP-SWR-003": 0.7878828910179436,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.10754403392583489,
+   "PP-SWR-100": 0.003934033443289208,
+   "PP-SWR-101": 0.0004617083304938596,
+   "PP-SWR-102": 7.928221104239186e-05,
+   "PP-SWR-116": 0.015169658698141575,
+   "PP-SWR-117": 0.05689056124538183
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.055663473477815285,
+   "ay_need_at_car_max": 2.5943716004561295,
+   "speed_min_mps": 20.58594610727541,
+   "decel_max_mps2": 2.7022349209602226,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.60375018442555,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9277131425962357,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S14e [camera_view_m=20]",
+  "failed": [
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.125,
+   "PP-SWR-064": 0.08800000000000008,
+   "PP-SWR-050": 0.8289940838069992,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 95.31079199999999
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.02715127994778732,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.3050140936349919,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 3.7393325919449003,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.11730191183697736,
+   "PP-SWR-100": 0.06517025376033964,
+   "PP-SWR-101": 0.0020377755170675194,
+   "PP-SWR-102": 0.00026999998961891713,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.15035932883620262
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.5012773070589326,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 3.1033428539106445,
+   "ay_vehicle_r79_over_sustained_s": 0.5199999999999427,
+   "jerk_vehicle_r79_max": 4.36055387559554,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 20.0
+  },
+  "name": "S14e [camera_view_m=20]",
+  "failed": [
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.125,
+   "PP-SWR-064": 0.08800000000000008,
+   "PP-SWR-050": 0.7241982305356904,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 76.392625
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.02884258723878136,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4070066994671584,
+   "PP-SWR-001": 2.499997646580552,
+   "PP-SWR-003": 3.7245249563476626,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.1982558261068097,
+   "PP-SWR-100": 0.06508949469114145,
+   "PP-SWR-101": 0.002036735829987091,
+   "PP-SWR-102": 0.00026999998961891713,
+   "PP-SWR-116": 0.008753124624490738,
+   "PP-SWR-117": 0.15001591527834535
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.39723919926744666,
+   "ay_need_at_car_max": 3.4668233043101777,
+   "speed_min_mps": 33.46198797369782,
+   "decel_max_mps2": 2.1176088097405454,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 3.113052307795085,
+   "ay_vehicle_r79_over_sustained_s": 0.5259999999999421,
+   "jerk_vehicle_r79_max": 4.3838297343253085,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S14a [camera_view_m=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 0.9079999999999995,
+   "PP-SWR-050": 6.748149501051675,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.664917
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0400000655650683,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.769459810381995,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.8788335253484547,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.15450733928009885,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.0061030677016263215,
+   "PP-SWR-101": 0.0007522519719866949,
+   "PP-SWR-102": 7.844827034778035e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.062213209457695484
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.02459762785123233,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6049704713368933,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9533488262409228,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S14a [camera_view_m=40]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.08445445319887301,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.1771249999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.04718170750653683,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7323787880192121,
+   "PP-SWR-001": 2.3546151808727642,
+   "PP-SWR-003": 0.8788335253484547,
+   "PP-SWR-100": 0.008957865315677755,
+   "PP-SWR-101": 0.0008020935037644783,
+   "PP-SWR-102": 7.844827034778035e-05,
+   "PP-SWR-116": 0.0158784631639719,
+   "PP-SWR-117": 0.062213209457695484
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.04594443448495143,
+   "ay_need_at_car_max": 2.160190487765053,
+   "speed_min_mps": 20.155860572692127,
+   "decel_max_mps2": 2.7784164637338904,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.141677958568892,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9481036046053828,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S14e [camera_view_m=40]",
+  "failed": [
+   "PP-SWR-051",
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.125,
+   "PP-SWR-064": 0.6879999999999997,
+   "PP-SWR-050": 0.6244994072186301,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.924834
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.027692343327263114,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -0.6978972954767255,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 3.7520997135725325,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.5199039786303181,
+   "PP-SWR-100": 0.05552431675798376,
+   "PP-SWR-101": 0.004710712936519812,
+   "PP-SWR-102": 0.0002961205881267669,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.13143550604581833
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.23041699268082355,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.835480344724176,
+   "ay_vehicle_r79_over_sustained_s": 0.1879999999999793,
+   "jerk_vehicle_r79_max": 3.9115629843290316,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 40.0
+  },
+  "name": "S14e [camera_view_m=40]",
+  "failed": [
+   "PP-SWR-051",
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.125,
+   "PP-SWR-064": 0.6180000000000003,
+   "PP-SWR-050": 0.6630185204292982,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.6106669999999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.030807610595272594,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -0.372850375517777,
+   "PP-SWR-001": 2.4999976219808993,
+   "PP-SWR-003": 3.3255462183370184,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -0.6226963097195426,
+   "PP-SWR-100": 0.05953861231520805,
+   "PP-SWR-101": 0.004457942339468612,
+   "PP-SWR-102": 0.0002930553365789339,
+   "PP-SWR-116": 0.010058685205876827,
+   "PP-SWR-117": 0.12246135156601667
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.23066804535923988,
+   "ay_need_at_car_max": 3.2399199394086797,
+   "speed_min_mps": 30.86334718691222,
+   "decel_max_mps2": 2.892784974264373,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6761431945040863,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 3.827586925066581,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S14a [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 2.5329999999999995,
+   "PP-SWR-050": 6.753617546757159,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0003990869146264231,
+   "PP-SWR-016": 1.087083
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7366567543722118,
+   "PP-SWR-001": 2.4999980814754963,
+   "PP-SWR-003": 0.8922742563299835,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.15201605139300245,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.02894840670941886,
+   "PP-SWR-101": 0.0010309242277508623,
+   "PP-SWR-102": 6.961699227810543e-05,
+   "PP-SWR-116": 0.011599471792578697,
+   "PP-SWR-117": 0.06233446765691042
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.066404231304637,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6372503992393197,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.8668860709469896,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S14a [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.06641852602176253,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0003990869146264231,
+   "PP-SWR-016": 133.64554099999998
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7040921112483916,
+   "PP-SWR-001": 2.1626720980879317,
+   "PP-SWR-003": 0.5924944752922601,
+   "PP-SWR-100": 0.02720814852255925,
+   "PP-SWR-101": 0.0022291057925469815,
+   "PP-SWR-102": 7.829736726697352e-05,
+   "PP-SWR-116": 0.01521369256079197,
+   "PP-SWR-117": 0.05523415748029947
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.07399421722383275,
+   "ay_need_at_car_max": 2.066048005928063,
+   "speed_min_mps": 18.35919589099832,
+   "decel_max_mps2": 2.9766410396483423,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.0750351859900067,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.5848581064143563,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S14e [camera_view_m=126]",
+  "failed": [
+   "PP-SWR-051",
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": 2.888,
+   "PP-SWR-050": 0.598623769442098,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.2846965882641221,
+   "PP-SWR-016": 1.884042
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": -3.7333604096475828,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 2.6019873890890826,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.7061477385481998,
+   "PP-SWR-100": 0.05908504115153351,
+   "PP-SWR-101": 0.0032876233192880022,
+   "PP-SWR-102": 0.00014596572931517766,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.08975558448582888
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.3339453517261207,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.012678116846457,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 2.494057226459822,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_m": 126.0
+  },
+  "name": "S14e [camera_view_m=126]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-008": 0.7000000000000002,
+   "PP-SWR-050": 0.5147564105293753,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.2846965882641221,
+   "PP-SWR-016": 1.942416
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.405254517015198,
+   "PP-SWR-001": 2.024628810100435,
+   "PP-SWR-003": 1.341887165857473,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-100": 0.04664303422980142,
+   "PP-SWR-101": 0.004505720197432783,
+   "PP-SWR-102": 0.00021740529114146505,
+   "PP-SWR-116": 0.006425098981708288,
+   "PP-SWR-117": 0.08308854885399342
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.3999000063186526,
+   "ay_need_at_car_max": 2.4424661302939343,
+   "speed_min_mps": 30.20430168899266,
+   "decel_max_mps2": 2.7414107056173975,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.5815559918401283,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.5281737720025719,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S14a [camera_view_start_m=5]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 2.432999999999999,
+   "PP-SWR-050": 6.902725684945356,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.81975
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7827691430043666,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.8844594412948936,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.13024507653899509,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.017263916990037327,
+   "PP-SWR-101": 0.001159184714714545,
+   "PP-SWR-102": 6.880088559192503e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.06181744392961264
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.01438276752132042,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.6017768366730656,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.9281620211329348,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S14a [camera_view_start_m=5]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.06938748228265333,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 2.291292
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7517724396211019,
+   "PP-SWR-001": 2.1111745577658168,
+   "PP-SWR-003": 0.846278570218179,
+   "PP-SWR-100": 0.017263916990037327,
+   "PP-SWR-101": 0.0024662528715384546,
+   "PP-SWR-102": 6.880088559192503e-05,
+   "PP-SWR-116": 0.015181510709226131,
+   "PP-SWR-117": 0.060204206965863705
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.02758885012304175,
+   "ay_need_at_car_max": 2.0084617297486247,
+   "speed_min_mps": 19.996999702884672,
+   "decel_max_mps2": 2.605673701978617,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.0590186279276748,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.7558775421025029,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S14e [camera_view_start_m=5]",
+  "failed": [
+   "PP-SWR-100",
+   "PP-SWR-102"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": 1.9879999999999995,
+   "PP-SWR-050": 0.8359433555775595,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 123.634833
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.027015651964845233,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.4479001791822921,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 3.296477453401852,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.5922369930912,
+   "PP-SWR-100": 0.06340165479172326,
+   "PP-SWR-101": 0.004129761100361229,
+   "PP-SWR-102": 0.00032633126208719333,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.11639459989964962
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.3558294148480177,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.9431540684106692,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 2.3597676583305938,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 5.0
+  },
+  "name": "S14e [camera_view_start_m=5]",
+  "failed": [
+   "PP-SWR-100",
+   "PP-SWR-101",
+   "PP-SWR-102"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.04999999999999982,
+   "PP-SWR-064": 0.7279999999999998,
+   "PP-SWR-050": 0.8091226679676897,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 3.278292
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0380833648271679,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.17349037531983758,
+   "PP-SWR-001": 2.499997586314234,
+   "PP-SWR-003": 1.7625118809290483,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.661325734309699,
+   "PP-SWR-100": 0.05631779644124836,
+   "PP-SWR-101": 0.005059505494486416,
+   "PP-SWR-102": 0.00030170319882315386,
+   "PP-SWR-116": 0.011089017614722252,
+   "PP-SWR-117": 0.11560837738215923
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.6111962041570017,
+   "ay_need_at_car_max": 2.566441662543745,
+   "speed_min_mps": 27.92454315697658,
+   "decel_max_mps2": 2.991111567975935,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.5686030838228522,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.8292813548195495,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S14a [camera_view_start_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-064": 2.4579999999999993,
+   "PP-SWR-050": 6.952205499828568,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.810541
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.747587416010435,
+   "PP-SWR-001": 2.499997499398887,
+   "PP-SWR-003": 0.915529381018132,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": 0.13029775447212177,
+   "PP-SWR-007": 0.0,
+   "PP-SWR-100": 0.04626414260199799,
+   "PP-SWR-101": 0.001354418390626222,
+   "PP-SWR-102": 9.315609284973837e-05,
+   "PP-SWR-116": 0.011599468067288399,
+   "PP-SWR-117": 0.0640722457319498
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.04899648534299715,
+   "ay_need_at_car_max": 3.125,
+   "speed_min_mps": 25.0,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.592802373674907,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.0017857306266758,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "a"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S14a [camera_view_start_m=10]",
+  "failed": [],
+  "failed_out_of_scope": [],
+  "targets": {
+   "PP-SWR-050": 0.08506269394620945,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.0,
+   "PP-SWR-016": 1.772416
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.0,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.7442021420118736,
+   "PP-SWR-001": 2.108331622726973,
+   "PP-SWR-003": 0.893274009591126,
+   "PP-SWR-100": 0.04626414260199799,
+   "PP-SWR-101": 0.00228427813215637,
+   "PP-SWR-102": 9.315609284973837e-05,
+   "PP-SWR-116": 0.015108216553926468,
+   "PP-SWR-117": 0.0632426468655467
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.05191153249316267,
+   "ay_need_at_car_max": 2.015407016503184,
+   "speed_min_mps": 20.031785861890274,
+   "decel_max_mps2": 2.578411565327343,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 2.0636282032126267,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 0.806524954557904,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "ignore_limits",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S14e [camera_view_start_m=10]",
+  "failed": [
+   "PP-SWR-100",
+   "PP-SWR-101",
+   "PP-SWR-102"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.0,
+   "PP-SWR-064": 2.088,
+   "PP-SWR-050": 0.935410456369148,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 1.815083
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.02714628995243773,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.37773230458877793,
+   "PP-SWR-001": 2.4999975170639357,
+   "PP-SWR-003": 3.169532785491301,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.7268868536735726,
+   "PP-SWR-100": 0.06360933747875339,
+   "PP-SWR-101": 0.005408646024984254,
+   "PP-SWR-102": 0.00031847622116701465,
+   "PP-SWR-116": 0.005559701006859541,
+   "PP-SWR-117": 0.11207624338567257
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.46393221959655184,
+   "ay_need_at_car_max": 3.486664025879711,
+   "speed_min_mps": 36.11111111111111,
+   "decel_max_mps2": -0.0,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.714568860068392,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.9347617803227917,
+   "ay_vehicle_r79_within_limits": true
+  }
+ },
+ {
+  "run": [
+   "S14",
+   "e"
+  ],
+  "acc": "on",
+  "profile": "VP-0",
+  "seed": 1,
+  "sim": {
+   "camera_view_start_m": 10.0
+  },
+  "name": "S14e [camera_view_start_m=10]",
+  "failed": [
+   "PP-SWR-100"
+  ],
+  "failed_out_of_scope": [
+   "PP-SWR-006"
+  ],
+  "targets": {
+   "PP-SWR-008": 0.9749999999999996,
+   "PP-SWR-064": 0.8679999999999994,
+   "PP-SWR-050": 0.8907855796451415,
+   "PP-SWR-053": 0.008,
+   "PP-SWR-002": 0.3092955935779995,
+   "PP-SWR-016": 4.258833
+  },
+  "criteria": {
+   "PP-SWR-010": 1.0,
+   "PP-SWR-018": 0.03605502366909219,
+   "PP-SWR-150": 1.0,
+   "PP-SWR-009": 1.0,
+   "PP-SWR-051": 0.05869501454358761,
+   "PP-SWR-001": 2.4999975930651757,
+   "PP-SWR-003": 1.6525549236386048,
+   "PP-SWR-005": 0.0,
+   "PP-SWR-006": -1.6644164079637696,
+   "PP-SWR-100": 0.057221353988718554,
+   "PP-SWR-101": 0.004495558987526405,
+   "PP-SWR-102": 0.0002699999729240518,
+   "PP-SWR-116": 0.010968579910695553,
+   "PP-SWR-117": 0.11032219044864178
+  },
+  "info": {
+   "vehicle_offset_max_m": 0.7306644219590568,
+   "ay_need_at_car_max": 2.516650542943962,
+   "speed_min_mps": 27.981379246490295,
+   "decel_max_mps2": 2.9889403663467817,
+   "offset_at_hwa_start_m": 0.0,
+   "ay_vehicle_r79_max": 1.4642870531590524,
+   "ay_vehicle_r79_over_sustained_s": 0.0,
+   "jerk_vehicle_r79_max": 1.5241923245174476,
+   "ay_vehicle_r79_within_limits": true
+  }
+ }
+]
