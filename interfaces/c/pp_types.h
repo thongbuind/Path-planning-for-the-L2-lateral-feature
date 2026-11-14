@@ -35,6 +35,7 @@ typedef uint8_t pp_direction_t;
 /* ---- inputs.function_requests (Interface Control Document 5.6) ---- */
 #define PP_FUNCTIONS (3U) /* requests[3]: HWA, LKA, ELK */
 #define PP_FUNCTION_REQUESTS_TIMEOUT_US (75000ULL)
+#define PP_FUNCTION_REQUESTS_MAX_DELTA_COUNTER (4U) /* Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms) */
 #define PP_FUNCTION_REQUESTS_MAX_AGE_US (45000ULL)
 typedef uint8_t pp_request_state_t;
 #define PP_REQUEST_STATE_OFF ((pp_request_state_t)0U)
@@ -61,6 +62,7 @@ typedef uint8_t pp_cancel_reason_t;
 #define PP_LANE_LINES (4U) /* lines[4]: L2, L1, R1, R2 */
 #define PP_ROAD_EDGES (2U) /* road_edges[2]: left, right */
 #define PP_LANE_MODEL_TIMEOUT_US (150000ULL)
+#define PP_LANE_MODEL_MAX_DELTA_COUNTER (3U) /* Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms) */
 #define PP_LANE_MODEL_MAX_AGE_US (250000ULL)
 typedef uint8_t pp_line_type_t;
 #define PP_LINE_TYPE_DASHED ((pp_line_type_t)0U)
@@ -85,6 +87,7 @@ typedef uint8_t pp_lane_width_source_t;
 /* ---- inputs.longitudinal_plan (Interface Control Document 5.7) ---- */
 #define PP_LONGITUDINAL_PLAN_POINTS (31U) /* Same 0.1 s grid as Trajectory */
 #define PP_LONGITUDINAL_PLAN_TIMEOUT_US (75000ULL)
+#define PP_LONGITUDINAL_PLAN_MAX_DELTA_COUNTER (4U) /* Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms) */
 #define PP_LONGITUDINAL_PLAN_MAX_AGE_US (45000ULL)
 #define PP_LONGITUDINAL_PLAN_V_MAX_MPS (182.04F) /* Range of v is 0 to this; speed range of ESC_Speed (5.3), 655.35 km/h */
 #define PP_LONGITUDINAL_PLAN_A_MAX_MPS2 (32.767F) /* Range of a is -this to this; range of AccelX of IMU_Data (5.3) */
@@ -97,6 +100,7 @@ typedef uint8_t pp_longitudinal_mode_t;
 /* ---- inputs.object_list (Interface Control Document 5.2) ---- */
 #define PP_MAX_OBJECTS (32U)
 #define PP_OBJECT_LIST_TIMEOUT_US (150000ULL)
+#define PP_OBJECT_LIST_MAX_DELTA_COUNTER (3U) /* Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms) */
 #define PP_OBJECT_LIST_MAX_AGE_US (250000ULL)
 
 /* ---- inputs.vehicle_config (Interface Control Document 5.8) ---- */
@@ -104,6 +108,7 @@ typedef uint8_t pp_longitudinal_mode_t;
 
 /* ---- inputs.vehicle_state (Interface Control Document 5.4) ---- */
 #define PP_VEHICLE_STATE_TIMEOUT_US (60000ULL)
+#define PP_VEHICLE_STATE_MAX_DELTA_COUNTER (4U) /* Largest accepted counter step (ICD 4, E2E): floor((60 + 25) / 20 ms) */
 #define PP_VEHICLE_STATE_MAX_AGE_US (30000ULL)
 
 /* ---- outputs.path_status (Interface Control Document 6.2) ---- */

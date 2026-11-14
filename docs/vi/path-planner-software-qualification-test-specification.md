@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.39 |
+| Phiên bản | 1.40 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -387,7 +387,7 @@ Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của f
 | F12 | Thời gian | Ngừng gửi | Từng input ngừng gửi quá timeout, rồi gửi lại (hồi phục) | PP-SWR-043 (Lane Model), 044 (Lane Model, hồi phục), 045 (Lane Model, hồi phục), 046 (v_y, trong S5), 124 (Lane Model), 140 (Perception, trong S3), 141 (Perception, trong S5), 142 (IMU, tốc độ, góc lái), 144 (v_y), 145 (FunctionRequests) |
 | F13 | Thời gian | Camera chậm hơn planner | 20 Hz so với 40 Hz, luôn có | PP-SWR-128 |
 | F14 | Thời gian | Mất đồng bộ đồng hồ | a) trôi ±20 ppm; b) ±100 ppm; c) mất gPTP 10 s | PP-SWR-137 (a, b, c, vòng kín) |
-| F15 | Toàn vẹn | Counter lặp, nhảy, đứng yên | Trên từng kênh | PP-SWR-129 (lặp), 130 (nhảy, đứng yên) |
+| F15 | Toàn vẹn | Counter lặp, nhảy, đứng yên. Nhảy: bên gửi bỏ qua `count` giá trị, các message sau giữ độ lệch | Trên từng kênh. g) lane model nhảy 2, bước 3 trong giới hạn | PP-SWR-129 (lặp, nhảy trong giới hạn), 130 (nhảy quá giới hạn, đứng yên) |
 | F16 | Toàn vẹn | Cờ không hợp lệ | `valid = false`, qualifier FAULT | PP-SWR-130 |
 | F17 | Toàn vẹn | CRC sai | Khung CAN | PP-SWR-130, 142 |
 | F18 | Toàn vẹn | Làm tròn CAN | Theo factor của DBC, luôn có | PP-SWR-139 (vòng kín) |
@@ -704,3 +704,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.37 | 2026-11-13 | Mục 8.1: không chấm liên tục trong lúc tài xế ghi đè (Software Requirements Specification 1.16, PP-TS-017) |
 | 1.38 | 2026-11-14 | Mục 5.1: bài ESF với xe làn bên của R79 ghi biến thể theo hai điểm thử; bộ B2 chạy các ca này. Lý do: B2 chưa có ca nào cho bài này (PP-PR-042) |
 | 1.39 | 2026-11-14 | Mục 8.1: cách chấm PP-SWR-092; REQUEST về phía vạch không đủ tin không bắt buộc có path can thiệp (Software Requirements Specification 1.18, PP-PR-038) |
+| 1.40 | 2026-11-14 | F15: counter nhảy giữ độ lệch cho các message sau; thêm g (nhảy trong giới hạn); ca tham chiếu theo MaxDeltaCounter (PP-PR-035) |

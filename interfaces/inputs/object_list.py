@@ -13,6 +13,7 @@ from interfaces.conventions import Header
 
 MAX_OBJECTS = 32
 OBJECT_LIST_TIMEOUT_US = 150000
+OBJECT_LIST_MAX_DELTA_COUNTER = 3  # Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms)
 OBJECT_LIST_MAX_AGE_US = 250000
 
 

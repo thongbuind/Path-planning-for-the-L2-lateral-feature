@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, chờ chốt tiêu chí |
+| Trạng thái | Mở; người dùng chọn hướng V1 (2026-11-14); kế hoạch nháp chờ chốt `T_end_late` |
 | Mở ngày | 2026-11-14 |
 | Liên quan | PP-PR-018, PP-PR-020, PP-PR-033; PP-TS-012; PP-SWR-032, 090 |
 
@@ -26,3 +26,27 @@ Planner cần báo COMPLETED sau khi xe đã ổn định theo ground truth. Sai
 ## 4. Đề xuất
 
 Chốt tiêu chí trực tiếp trên chuyển động thật trước khi đổi code hay SRS. Sau đó so V0 và V1 cùng baseline T2, T7 và cùng calibration. PP-TS-012 tiếp tục theo dõi riêng chất lượng ngoại suy.
+
+## 5. Quy định đã tra (2026-11-14)
+
+| Văn bản | Mục | Nội dung liên quan |
+|---|---|---|
+| UN R79 | 2.3.4.2; 5.1.6.1.1; 5.1.6.1.2.1 | CSF can thiệp trong thời gian giới hạn; cảnh báo hình ít nhất 1 s hoặc suốt can thiệp; can thiệp quá 10 s (M1, N1) thì có cảnh báo âm thanh tới hết can thiệp |
+| EU 2021/646 | Annex I Part 2, 3.6.4.1, 3.6.4.1.1 | Như R79: cảnh báo hình suốt can thiệp; quá 10 s thì cảnh báo âm thanh |
+| Euro NCAP LSS v4.3 | 7.4.6 | Bài thử LKA, ELK mép đường kết thúc 2 s sau khi xe đạt lệch ngang lớn nhất và quay về làn; đây là cửa sổ đo, không phải yêu cầu cho hệ thống |
+| Euro NCAP SA v10.4.1 | 4.3.2, 4.3.3 | Chỉ chấm DTLE và không va chạm |
+| ISO 11270 | — | Trả phí, chưa đọc được |
+
+Không văn bản nào quy định thời điểm kết thúc can thiệp hay dung sai tick báo COMPLETED. Ngưỡng duy nhất có nguồn liên quan tới độ dài can thiệp là mốc 10 s của cảnh báo âm thanh.
+
+Người dùng chọn hướng V1 ngày 2026-11-14, sau khi xem bảng trên.
+
+## 6. Kế hoạch nháp cho V1 (chưa khóa)
+
+| Mục | Đề xuất | Cần chốt |
+|---|---|---|
+| Tiêu chí loại | PP-SWR-090 trên trạng thái thật: không báo COMPLETED trước khi điều kiện thật giữ đủ `T_end_hold`. DTLE (PP-SWR-085 đến 087) | — |
+| PP-SWR-032 mới | Báo COMPLETED không muộn hơn `T_end_late` sau tick điều kiện thật giữ đủ | Giá trị `T_end_late` (nhóm tự thống nhất), chọn trước khi chạy; can thiệp dài nhất cộng `T_end_late` phải còn dưới 10 s |
+| V1 phía planner | Ngưỡng kết thúc trừ một bội sai số ước lượng (`k_end_margin`·σ) để không báo sớm | Có thêm calibration parameter `k_end_margin` không, và dải quét |
+| Xếp hạng | Số lần báo sớm (phải 0), phân bố độ muộn, thời lượng can thiệp tăng thêm | — |
+| Bộ chạy | S4b, S6, S7, S12, S13 và ca thẳng đối chứng; seed chỉnh 1, 2; seed kiểm 3, 4 | — |

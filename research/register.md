@@ -23,7 +23,8 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-015 | Phạm vi chấm của ca có ca chủ (lỗi trên ca chủ, ca ghép, S12, S13, S14) | Đóng; hồi quy 20261113-1851-matrix-M1-5afcaf5 | V1 | [study](studies/PP-TS-015-scope-of-hosted-cases/study.md) |
 | PP-TS-016 | Chức năng đang lái sau giới hạn 10 s của PP-SWR-083 (mâu thuẫn với 030) | Đã quyết; đã đưa vào; hồi quy 20261113-1803-suite-regression-3c31309 có trượt 030 chưa phân tích | V4 (theo R79, EU 2021/646) | [study](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 | PP-TS-017 | Path HWA trong lúc tài xế ghi đè: V0–V4 | Đóng; hồi quy 20261113-2255-suite-regression-e99cf08 | V2b, không chấm liên tục khi ghi đè | [study](studies/PP-TS-017-path-during-driver-override/study.md) |
-| PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | Mở, chờ chốt tiêu chí | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
+| PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | Hướng V1 (người dùng chọn 2026-11-14); kế hoạch nháp chờ chốt `T_end_late` | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
+| PP-TS-019 | Phạm vi và ngưỡng của PP-SWR-100 đến 102 (đoạn gần hay toàn tầm nhìn) | Mở; plan chưa soạn | — | [study](studies/PP-TS-019-continuity-scope/study.md) |
 
 ## Problem reports
 
@@ -63,7 +64,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-032 | Khi tài xế ghi đè, path HWA không bắt đầu tại xe (S17, S9 c, S16 d) | Đóng; xác nhận ở 20261113-2255-suite-regression-e99cf08 | PP-SWR-039, 040 | [report](problems/PP-PR-032-driver-override-path-start.md) |
 | PP-PR-033 | PP-SWR-032 và 090 đòi tick COMPLETED trùng với trạng thái thật | Chờ chốt tiêu chí trong PP-TS-018 | PP-SWR-032, 090 | [report](problems/PP-PR-033-completion-tick-vs-truth.md) |
 | PP-PR-034 | Path HWA vẫn hợp lệ khi IMU hoặc góc lái mất, không hợp lệ | Đóng; xác nhận ở 20261114-1021-suite-regression-d7ed84c | PP-SWR-142 | [report](problems/PP-PR-034-hwa-valid-without-imu-steering.md) |
-| PP-PR-035 | Counter của lane model: planner không kiểm; nghĩa của counter nhảy chưa rõ | Mở; cần quyết định về requirement | PP-SWR-130 | [report](problems/PP-PR-035-lane-model-counter.md) |
+| PP-PR-035 | Counter của lane model: planner không kiểm; nghĩa của counter nhảy chưa rõ | Đã sửa theo AUTOSAR E2E (ICD 1.11, SRS 1.19), chờ hồi quy chính thức | PP-SWR-129, 130 | [report](problems/PP-PR-035-lane-model-counter.md) |
 | PP-PR-036 | F16 a, c: message valid = false lệch 1–2 chu kỳ so với mất message | Mở; không xác nhận ở 20261114-1021-suite-regression-d7ed84c: harness bỏ khung valid = false, F16 không kiểm planner. Chờ trả harness về và sửa ở planner | PP-SWR-130 | [report](problems/PP-PR-036-invalid-flag-one-cycle.md) |
 | PP-PR-037 | Can thiệp bị bỏ giữa chừng khi có lỗi input (F02, F20, G01) | Đã sửa nhánh F02. F20, G01 còn mở | PP-SWR-030, 043, 121, 143 | [report](problems/PP-PR-037-intervention-dropped-during-faults.md) |
 | PP-PR-038 | ELK có REQUEST nhưng planner không có path can thiệp (F04, S16) | F04 đóng (PP-SWR-092), xác nhận ở 20261114-1021-suite-regression-d7ed84c. S16 còn mở | PP-SWR-030, 047, 092 | [report](problems/PP-PR-038-elk-request-without-path.md) |

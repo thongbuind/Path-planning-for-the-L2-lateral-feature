@@ -15,6 +15,7 @@ from interfaces.conventions import Header, Side
 LANE_LINES = 4  # lines[4]: L2, L1, R1, R2
 ROAD_EDGES = 2  # road_edges[2]: left, right
 LANE_MODEL_TIMEOUT_US = 150000
+LANE_MODEL_MAX_DELTA_COUNTER = 3  # Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms)
 LANE_MODEL_MAX_AGE_US = 250000
 
 

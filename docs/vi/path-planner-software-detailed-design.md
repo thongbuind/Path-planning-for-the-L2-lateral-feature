@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.13 |
+| Phiên bản | 1.14 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -53,7 +53,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 
 | Bước | Việc |
 |---|---|
-| 1 | Input check: bỏ message có CRC sai hoặc counter lặp; ghi nhận mất khi counter nhảy; `valid = false` coi như chưa nhận. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134). LongitudinalPlan có một điểm `v` hoặc `a` ngoài dải của Interface Control Document 5.7, kể cả NaN và vô cực: bỏ cả message, T11 dùng tốc độ hiện tại và gia tốc 0 (PP-SWR-154, 156) |
+| 1 | Input check: khung CAN do lớp nhận kiểm (bỏ CRC sai, counter lặp; ghi nhận mất khi counter nhảy). Message pub/sub: kiểm counter theo Interface Control Document mục 4; message được nhận thay message đang giữ, message bị bỏ hoặc có `valid = false` thì giữ message cũ như mất message. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134). LongitudinalPlan có một điểm `v` hoặc `a` ngoài dải của Interface Control Document 5.7, kể cả NaN và vô cực: bỏ cả message, T11 dùng tốc độ hiện tại và gia tốc 0 (PP-SWR-154, 156) |
 | 2 | Lấy LaneModel mới nhất, stamp t_c. Truy vấn ego-motion (t_c, t0). Không hợp lệ: `path_valid = false` (PP-SWR-143) |
 | 3 | Với mỗi vạch và mép đường: lấy mẫu y(x) mỗi 1 m trong tầm nhìn; đổi mẫu sang `base_link` tại t0 bằng p_mới = R(−Δψ)·(p_cũ − [Δx, Δy]); khớp lại đa thức bậc 3 bằng bình phương tối thiểu; dời tầm nhìn đi Δx |
 | 4 | Giữa hai frame camera, lặp bước 2–3 với frame mới nhất; không giữ đa thức đã dời từ chu kỳ trước (PP-SWR-128) |
@@ -260,3 +260,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.11 | 2026-11-13 | Theo PP-TS-017 V2: T4 bước 2 dùng trạng thái đo trong lúc ghi đè và chu kỳ đầu sau đó; bước 5 bỏ trộn trong lúc ghi đè; T7 nhắm độ lệch hiện tại của xe trong lúc ghi đè, rồi về tâm theo `T_recenter` (PP-SWR-039, 040; PP-PR-032) |
 | 1.12 | 2026-11-14 | T7: ứng viên LKA, ELK thoả giới hạn khi T10 bước 2 không cắt. Lý do: T10 cắt jerk theo từng bước 0,1 s, chặt hơn trung bình 0,5 s; path bị cắt không kết thúc song song với làn và phần xa nhảy giữa các chu kỳ (PP-PR-041). T9 bước 4 trỏ điều kiện bắt đầu LKA, ELK vạch về PP-SWR-092 (PP-PR-038) |
 | 1.13 | 2026-11-14 | T2 kiểm từng frame thêm hình dạng: so hai frame tại 50 % và 75 % đoạn tầm nhìn chung, ngưỡng `k_jump` theo phương sai các hệ số. Lý do: PP-TS-001 chọn J0 kiểm hình dạng (20261114-1857-study-PP-TS-001-13913da); kiểm riêng c0 không thấy độ cong sai (F06). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
+| 1.14 | 2026-11-14 | T1 bước 1: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5 và giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035. Ảnh hưởng: PP-SWR-129, 130 |

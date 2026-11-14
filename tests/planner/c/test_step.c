@@ -14,6 +14,37 @@
 
 static uint64_t memory[8192];   /* 64 KB; the state is about 37 KB with the T7 C workspace */
 
+/* A new delivery of a pub/sub input carries the next counter, as on the real interface
+ * (Interface Control Document 4); the tests only refresh rx_us. */
+static uint64_t delivered_rx[5];
+static bool delivered[5];
+
+static void next_counter(unsigned i, bool present, uint64_t rx_us, uint8_t *counter)
+{
+    if (present && (!delivered[i] || (rx_us != delivered_rx[i]))) {
+        if (delivered[i]) {
+            *counter = (uint8_t)(*counter + 1U);
+        }
+        delivered[i] = true;
+        delivered_rx[i] = rx_us;
+    }
+}
+
+static void step(pp_planner_inputs_t *in, pp_ego_motion_fn motion, pp_planner_outputs_t *out)
+{
+    next_counter(0U, in->lane_model.present, in->lane_model.rx_us,
+                 &in->lane_model.message.header.counter);
+    next_counter(1U, in->object_list.present, in->object_list.rx_us,
+                 &in->object_list.message.header.counter);
+    next_counter(2U, in->vehicle_state.present, in->vehicle_state.rx_us,
+                 &in->vehicle_state.message.header.counter);
+    next_counter(3U, in->function_requests.present, in->function_requests.rx_us,
+                 &in->function_requests.message.header.counter);
+    next_counter(4U, in->longitudinal_plan.present, in->longitudinal_plan.rx_us,
+                 &in->longitudinal_plan.message.header.counter);
+    pp_step(memory, in, motion, NULL, out);
+}
+
 static const pp_vehicle_config_t VP0 = {2.9F, 1.45F, 1.9F, 15.0F, 0.61F, 6.0F, 0.05F};
 
 /* Straight motion at 25 m/s. */
@@ -84,8 +115,8 @@ static void test_hwa_path_from_car_to_centre(void)
     pp_planner_outputs_t out;
     PP_CHECK(pp_state_size() <= sizeof(memory));
     PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
-    const pp_planner_inputs_t in = inputs();
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    pp_planner_inputs_t in = inputs();
+    step(&in, ego_motion, &out);
 
     PP_CHECK(out.trajectory_sent);
     PP_CHECK(out.trajectory.header.valid);
@@ -116,7 +147,7 @@ static void test_hwa_path_from_car_to_centre(void)
     pp_planner_inputs_t next = in;
     next.t0_us += PP_PLANNER_PERIOD_US;
     pp_planner_outputs_t out2;
-    pp_step(memory, &next, ego_motion, NULL, &out2);
+    step(&next, ego_motion, &out2);
     PP_CHECK(out2.trajectory.header.counter == (uint8_t)(out.trajectory.header.counter + 1U));
 }
 
@@ -126,7 +157,7 @@ static void test_no_lane_model_means_no_path(void)
     PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
     pp_planner_inputs_t in = inputs();
     in.lane_model.present = false;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.trajectory_sent);                          /* every cycle (PP-SWR-010) */
     PP_CHECK(!out.trajectory.header.valid);
     PP_CHECK(!out.path_status.path_valid);
@@ -139,7 +170,7 @@ static void test_stale_lane_model(void)
     PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
     pp_planner_inputs_t in = inputs();
     in.lane_model.message.header.stamp_us = T0 - 260000U;   /* older than 250 ms (PP-SWR-131) */
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(!out.path_status.path_valid);
 }
 
@@ -149,7 +180,7 @@ static void test_hwa_not_requested(void)
     PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
     pp_planner_inputs_t in = inputs();
     in.function_requests.message.requests[0].state = PP_REQUEST_STATE_STANDBY;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.path_valid);                   /* PP-SWR-042 */
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
 }
@@ -186,13 +217,13 @@ static void test_chassis_fault_invalidates_hwa_and_fresh_inputs_restore_it(void)
     pp_planner_inputs_t in = inputs();
     pp_planner_outputs_t out;
     PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
 
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     in.imu.present = false;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(!out.path_status.path_valid);
     PP_CHECK(!out.trajectory.header.valid && !out.lateral_limits.header.valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
@@ -200,13 +231,13 @@ static void test_chassis_fault_invalidates_hwa_and_fresh_inputs_restore_it(void)
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     in.steering.message.header.valid = false;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(!out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
 
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
 }
@@ -220,21 +251,21 @@ static void test_function_requests_timeout_and_recovery(void)
     fresh_requests(&in);
     for (uint64_t t = T0; t <= T0 + PP_FUNCTION_REQUESTS_TIMEOUT_US; t += PP_PLANNER_PERIOD_US) {
         fresh_chassis(&in, t);
-        pp_step(memory, &in, ego_motion, NULL, &out);
+        step(&in, ego_motion, &out);
         PP_CHECK(out.trajectory.header.valid && out.path_status.path_valid);
         const pp_active_function_t expected = (t - T0 <= PP_FUNCTION_REQUESTS_MAX_AGE_US)
                                               ? PP_ACTIVE_FUNCTION_HWA : PP_ACTIVE_FUNCTION_NONE;
         PP_CHECK(out.path_status.active_function == expected);
     }
     fresh_chassis(&in, T0 + PP_FUNCTION_REQUESTS_TIMEOUT_US + PP_PLANNER_PERIOD_US);
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status_sent && out.path_status.header.valid && out.trajectory_sent);
     PP_CHECK(!out.trajectory.header.valid && !out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
     PP_CHECK(!out.lateral_limits.header.valid);
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.trajectory.header.valid && out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
     PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 0.1);
@@ -254,7 +285,7 @@ static void test_interventions_can_switch_and_cancel_in_one_cycle(void)
     r[1].tlc = 0.8F;
     r[2] = r[1];
     r[2].elk_reason = PP_ELK_REASON_SOLID_LINE;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.trajectory.header.valid && out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_ELK);
     PP_CHECK(out.path_status.elk_phase == PP_INTERVENTION_PHASE_ACTIVE);
@@ -265,7 +296,7 @@ static void test_interventions_can_switch_and_cancel_in_one_cycle(void)
     fresh_chassis(&in, T0 + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     r[2].state = PP_REQUEST_STATE_STANDBY;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
     PP_CHECK(out.path_status.elk_phase == PP_INTERVENTION_PHASE_NONE);
     PP_CHECK(out.path_status.lka_phase == PP_INTERVENTION_PHASE_ACTIVE);
@@ -273,14 +304,14 @@ static void test_interventions_can_switch_and_cancel_in_one_cycle(void)
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     in.vehicle_state.present = false;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.path_valid && out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
 
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     r[0].state = PP_REQUEST_STATE_STANDBY;
     r[1].state = PP_REQUEST_STATE_STANDBY;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.path_valid && out.trajectory.header.valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
     PP_CHECK(out.path_status.lka_phase == PP_INTERVENTION_PHASE_NONE);
@@ -298,7 +329,7 @@ static void test_active_lka_can_coast_on_last_ego_reference(void)
     lka->state = PP_REQUEST_STATE_REQUEST;
     lka->side = PP_SIDE_RIGHT;
     lka->tlc = 0.8F;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
 
     /* The two ego lines jump while a previously unseen outer line is measured.
@@ -308,7 +339,7 @@ static void test_active_lka_can_coast_on_last_ego_reference(void)
     in.lane_model.message.lines[1].c0 += 0.7F;
     in.lane_model.message.lines[2].c0 += 0.7F;
     set_line(&in.lane_model.message.lines[0], 5.55F);
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
 }
@@ -337,14 +368,14 @@ static void test_elk_road_edge_keeps_path_on_cancellation_tick(void)
     requests[2].elk_reason = PP_ELK_REASON_ROAD_EDGE;
     requests[2].tlc = 0.6F;
     in.vehicle_state.message.lateral_velocity = -0.2F;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_ELK);
     PP_CHECK(out.path_status.path_valid);
 
     fresh_chassis(&in, T0 + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     requests[2] = (pp_function_request_t){0};
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
     PP_CHECK(out.path_status.elk_phase == PP_INTERVENTION_PHASE_NONE);
     PP_CHECK(out.path_status.path_valid && out.trajectory.header.valid); /* PP-SWR-037 */
@@ -397,7 +428,7 @@ static void test_longitudinal_plan_range(void)
         pp_planner_inputs_t in = inputs();
         set_plan(&in, cases[c].v, cases[c].a);
         pp_planner_outputs_t out;
-        pp_step(memory, &in, ego_motion, NULL, &out);
+        step(&in, ego_motion, &out);
         PP_CHECK(out.trajectory_sent);
         PP_CHECK(out.path_status.path_valid);
         PP_CHECK(trajectory_finite(&out.trajectory));
@@ -411,7 +442,7 @@ static void test_longitudinal_plan_range(void)
     set_plan(&in, 20.0F, 0.0F);
     in.longitudinal_plan.message.points[30].v = FLT_MAX;
     pp_planner_outputs_t out;
-    pp_step(memory, &in, ego_motion, NULL, &out);
+    step(&in, ego_motion, &out);
     PP_CHECK_NEAR(out.trajectory.points[10].longitudinal_velocity_mps, 25.0, 1e-3);
 }
 
@@ -452,14 +483,14 @@ static void test_driver_override_path_starts_at_car(void)
     /* Without override the start is stitched to the old path, which the car leaves. */
     for (; k < 10U; k++) {
         drift_inputs(&in, k, false);
-        pp_step(memory, &in, drifting_motion, NULL, &out);
+        step(&in, drifting_motion, &out);
         PP_CHECK(out.path_status.path_valid);
     }
     PP_CHECK(fabs((double)out.trajectory.points[0].pose.y) > 0.05);
     /* PP-SWR-039: while the driver overrides, point 0 is the car. */
     for (; k < 14U; k++) {
         drift_inputs(&in, k, true);
-        pp_step(memory, &in, drifting_motion, NULL, &out);
+        step(&in, drifting_motion, &out);
         PP_CHECK(out.path_status.path_valid);
         PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
         PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 0.01);
@@ -468,7 +499,7 @@ static void test_driver_override_path_starts_at_car(void)
     }
     /* PP-SWR-040: the first HWA path after the override starts at the car. */
     drift_inputs(&in, k, false);
-    pp_step(memory, &in, drifting_motion, NULL, &out);
+    step(&in, drifting_motion, &out);
     PP_CHECK(out.path_status.path_valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
     PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 0.01);
@@ -477,7 +508,7 @@ static void test_driver_override_path_starts_at_car(void)
         drift_inputs(&in, k, false);
         in.lane_model.message.lines[1].c0 = 0.3F + 1.75F - (float)(DRIFT_MPS * 0.35);
         in.lane_model.message.lines[2].c0 = 0.3F - 1.75F - (float)(DRIFT_MPS * 0.35);
-        pp_step(memory, &in, ego_motion, NULL, &out);
+        step(&in, ego_motion, &out);
         PP_CHECK(out.path_status.path_valid);
     }
     PP_CHECK(out.trajectory.points[30].pose.y > 0.05F);

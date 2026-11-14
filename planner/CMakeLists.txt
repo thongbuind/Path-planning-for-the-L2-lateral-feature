@@ -83,7 +83,7 @@ if(PP_BUILD_TESTS)
     set(PP_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/planner/c)
     foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output
                  test_stitching test_feasibility test_step test_version test_qp test_offset
-                 test_arbitration test_intervention)
+                 test_arbitration test_intervention test_input_check)
         add_executable(${name} ${PP_TEST_DIR}/${name}.c src/pp_planner.c ${PP_UNIT_SOURCES}
                        ${PP_GENERATED_DIR}/pp_calibration.c)
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
