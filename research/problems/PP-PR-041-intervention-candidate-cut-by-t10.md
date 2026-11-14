@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã sửa trong cây làm việc; chờ xác nhận |
+| Trạng thái | Đóng; xác nhận ở 20261114-1021-suite-regression-d7ed84c |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-100; liên quan 085, 088, 115 |
 | Tái hiện | [20261113-2341-suite-regression-1014d20](../runs/20261113-2341-suite-regression-1014d20/report.md): S7-ncap-oncoming-left-2 VP-1, VP-5, seed 1. Cùng hiện tượng ở S7 a VP-1, VP-5 (bộ khác, không thuộc B2) |
@@ -40,3 +40,4 @@ Lần chạy nháp ngày 2026-11-14 (`build/pr041-b2`, bộ B2 của manifest re
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | S7-ncap-oncoming-left-2 (VP-1, VP-5), S7 a hết trượt 100; S8b c hết trượt 100. Không trượt mới do bản sửa này: trượt mới F02 e lúc LKA (085) có trước bản sửa và nặng hơn khi bỏ bản sửa (PP-PR-044) |

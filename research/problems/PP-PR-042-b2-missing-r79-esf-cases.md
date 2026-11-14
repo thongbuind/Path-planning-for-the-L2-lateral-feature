@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã sửa bên chấm trong cây làm việc; chờ xác nhận |
+| Trạng thái | Đóng; xác nhận ở 20261114-1021-suite-regression-d7ed84c |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | Không có requirement nào trượt; độ phủ của B2 (Software Qualification Test Specification 5.1, 5.3) |
 | Tái hiện | Lần chạy nháp `build/benchmark/20261114-0018-full-1014d20`, trang B2: "ESF với xe làn bên, chưa có lần chạy". Cùng tình trạng ở [20261113-2341-suite-regression-1014d20](../runs/20261113-2341-suite-regression-1014d20/report.md) |
@@ -33,3 +33,4 @@ Lần chạy nháp ngày 2026-11-14 (`build/pr041-b2`): bài ESF với xe làn b
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | B2 có 594 lần chạy; bài ESF với xe làn bên có 60 lần chạy (S7, S8 neo), đạt 60 |

@@ -24,6 +24,8 @@ Lớp nhận SIL ghi đè mẫu hợp lệ đang giữ khi nhận message `valid
 - Bỏ message không hợp lệ ở lớp nhận SIL trước khi nó thay mẫu gần nhất của lane model, FunctionRequests hoặc chassis. Bộ đếm khung CAN vẫn do lớp giải mã quản lý.
 - Ca song sinh vẫn bỏ đúng các frame bị tác động. So toàn bộ output theo PP-SWR-130 như trước.
 
+**Xem lại cách sửa (2026-11-14).** Interface Control Document 5.3: lớp nhận chỉ bỏ khung khi CRC sai hoặc counter lặp; khung có qualifier FAULT tới planner với `valid = false`, và PP-SWR-130 đòi planner xử lý như mất message. Bỏ khung `valid = false` ở `sim/harness.py` làm planner không còn nhận cờ này, nên F16 đạt mà không kiểm planner. Đề xuất: trả harness về như cũ, sửa ở planner (giữ mẫu hợp lệ cuối tới timeout).
+
 ## 4. Xác nhận
 
 Trong SIL cục bộ, 24/24 lượt F16 đạt PP-SWR-130. Cả sáu lượt F16(b) có điều kiện chấm PP-SWR-142 đều đạt.

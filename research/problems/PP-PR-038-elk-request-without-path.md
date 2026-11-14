@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa cho F04 (PP-SWR-092, bên chấm); chờ xác nhận. S16 còn mở |
+| Trạng thái | F04: đóng, xác nhận ở 20261114-1021-suite-regression-d7ed84c. S16 còn mở |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | Kết quả mong đợi của ca; liên quan PP-SWR-030, 047 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F04 a, c trên S5a lúc ELK đang lái (4), S16 (2) |
@@ -62,3 +62,4 @@ Quyết định ngày 2026-11-14 (người dùng): theo văn bản và hệ th�
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | F04 a, c trên S5a lúc ELK đang lái: 4 lần hết trượt; PP-SWR-092 đạt. S16 d vẫn trượt "có REQUEST nhưng thiếu path" (2 lần) |
