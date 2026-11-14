@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa theo PP-TS-003 V0b (T10 trước T4), chờ hồi quy chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261114-1952-suite-regression-0776bad |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-100 (qua PP-SWR-120) |
 | Tái hiện | Lần chạy nháp `build/suites/smoke-20261111-1425`: F01 a, b, c trên đường chủ S1c, ACC tắt, VP-0, seed 1 |
@@ -39,3 +39,4 @@
 | Run ID | Kết quả |
 |---|---|
 | 20261111-1443-suite-regression-ef8bf4b | Tái hiện trên mốc V0: F01 a, b, c trên S1c trượt PP-SWR-100 ở 84 lần chạy, cả 6 profile |
+| [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md) | F01 a, b, c trên S1c, S12 a, G01 S1c hết trượt PP-SWR-100 (trước: 54 lần chạy) |

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa (theo AUTOSAR E2E, người dùng chọn 2026-11-14), chờ hồi quy chính thức |
+| Trạng thái | Đóng phần F15; xác nhận ở 20261114-1952-suite-regression-0776bad |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-130 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F15 b, c trên S1a, S1c |
@@ -61,3 +61,4 @@ Chốt nghĩa trước, rồi sửa bên chấm và planner. Đề xuất theo c
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md) | F15 b, c trên S1a, S1c đạt PP-SWR-130 (trước: 12 lần trượt); F15 g đạt 129. Trượt mới có thể liên quan: S14 d, PP-SWR-153 một chu kỳ khi LongitudinalPlan quay lại sau khi mất; cần phân tích |
