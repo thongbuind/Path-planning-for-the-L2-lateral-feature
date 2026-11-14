@@ -2,9 +2,9 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở. Đã cài phương án kiểm hình dạng, chờ khóa kế hoạch so sánh |
+| Trạng thái | Đã khóa kế hoạch so J0 với J0 kiểm hình dạng; chờ lần chạy chính thức |
 | Mở ngày | 2026-11-11 |
-| Khóa ngày | — |
+| Khóa ngày | 2026-11-14 |
 | Quyết định ngày | — |
 | Liên quan | PP-SWR-121, 122; PP-ADR-006, 007; SOTIF TC-01; F02, F03 |
 
@@ -32,6 +32,10 @@ F03 đã có trong simulator. [Kế hoạch](plan.yaml) và [bộ chạy](../../
 | Tiêu chí loại | PP-SWR-100 đến 102, 121, 122, 051 |
 | Xếp hạng | Lệch xe (PP-SWR-050); độ liên tục; tỉ lệ thời gian HWA còn lái; số lần loại nhầm khi nhiễu ban đêm |
 | Bộ chạy | F01, F02, F03, F06, F21, S1 và S6b |
+| Ngân sách chỉnh | Không có: J0 kiểm hình dạng không thêm calibration parameter |
+| Mức chênh coi như ngang nhau | PP-SWR-050: 0,005 m; PP-SWR-051: 0,01 m |
+
+Trước khi khóa (2026-11-14), bộ kiểm thêm F06 a, d trên ca chủ S1a, vì [20261114-1021-suite-regression-d7ed84c](../../runs/20261114-1021-suite-regression-d7ed84c/report.md) còn trượt PP-SWR-051 ở F06 trên S1a.
 
 ## 4. Lần chạy
 

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa lớp nhận simulator, chờ hồi quy chính thức |
+| Trạng thái | Mở; chưa xác nhận được: harness bỏ khung valid = false, F16 không kiểm planner. Chờ trả harness về và sửa ở planner |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-130 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F16 a (lane model), F16 c (FunctionRequests) trên S1a, S1c |
@@ -32,3 +32,4 @@ Trong SIL cục bộ, 24/24 lượt F16 đạt PP-SWR-130. Cả sáu lượt F16
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | Không xác nhận. F16 a, b, c đạt 130 ở 24/24 lượt, nhưng `_receive_valid` trong `sim/harness.py` vẫn bỏ khung `valid = false` trước khi tới planner, nên kết quả đạt không kiểm hành vi của planner |
