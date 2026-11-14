@@ -10,11 +10,11 @@
 #define PP_FOOT_MAX_M (5.0)           /* Foot stays near the origin */
 #define PP_STRAIGHT_KAPPA (1.0e-9)    /* Below this the arc continuation is a line */
 
-/* Software Requirements Specification 4, "Biên làn đủ tin", for L1 and R1. */
-static bool ego_line_trusted(const pp_boundary_t *b, const pp_calibration_t *cal)
+/* Software Requirements Specification 4, "Biên làn đủ tin". */
+static bool line_trusted(const pp_boundary_t *b, double confidence)
 {
     return b->present && (b->status == PP_LINE_STATUS_MEASURED)
-        && (b->confidence >= (double)cal->conf_ego);
+        && (b->confidence >= confidence);
 }
 
 void pp_reference_memory_reset(pp_reference_memory_t *mem)
@@ -59,7 +59,7 @@ static void set_track(pp_line_track_t *t, const pp_boundary_t *b, double age_s)
 {
     t->valid = true;
     t->poly = b->poly;
-    t->var_c0 = b->variance[0];
+    (void)memcpy(t->variance, b->variance, sizeof(t->variance));
     t->view_start = b->view_start;
     t->view_end = b->view_end;
     t->age_s = age_s;
@@ -70,12 +70,38 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
                        const pp_calibration_t *cal)
 {
     const double jump = fabs(b->poly.c[0] - t->poly.c[0]);
-    return t->valid && (jump <= ((double)cal->k_jump * sqrt(b->variance[0] + t->var_c0)));
+    const double limit = (double)cal->k_jump;
+    if (!t->valid || !(jump <= limit * sqrt(b->variance[0] + t->variance[0]))) {
+        return false;
+    }
+#ifdef PP_T2_SHAPE_CHECK
+    /* Compare only points that both frames observe. Keep one sample in the interior
+     * and one farther ahead, away from the end of the cubic fit. */
+    const double lo = fmax(0.0, fmax(b->view_start, t->view_start));
+    const double hi = fmin(b->view_end, t->view_end);
+    if (hi > lo) {
+        const double fractions[] = {0.5, 0.75};
+        for (size_t i = 0U; i < sizeof(fractions) / sizeof(fractions[0]); i++) {
+            const double x = lo + fractions[i] * (hi - lo);
+            double variance = 0.0;
+            double power = 1.0;
+            for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
+                variance += power * (b->variance[k] + t->variance[k]);
+                power *= x * x;
+            }
+            const double delta = pp_cubic_value(&b->poly, x) - pp_cubic_value(&t->poly, x);
+            if (!(fabs(delta) <= limit * sqrt(variance) + 1.0e-6)) {
+                return false;
+            }
+        }
+    }
+#endif
+    return true;
 }
 
 /* Step 1: SRS 4 condition and the consistency check against the memory, with R1 and R2. */
 static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
-                       const pp_calibration_t *cal, double dt, bool *rejected)
+                       const pp_calibration_t *cal, double confidence, double dt, bool *rejected)
 {
     const double confirm = (double)cal->T_confirm - 1.0e-9;
     bool trusted = false;
@@ -85,7 +111,7 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
         m->previous.age_s += dt;
         m->previous.valid = m->previous.age_s <= confirm;
     }
-    if (!ego_line_trusted(b, cal)) {
+    if (!line_trusted(b, confidence)) {
         m->absent_s += dt;
         if (m->absent_s > confirm) {
             m->accepted.valid = false;     /* too old to compare with */
@@ -128,6 +154,75 @@ static void move_memory(pp_boundary_memory_t *m, const pp_motion_t *motion)
     move_track(&m->previous, motion);
 }
 
+static const uint32_t OUTER_INDICES[PP_OUTER_BOUNDARIES] = {
+    PP_LINE_L2, PP_LINE_R2, PP_EDGE_LEFT, PP_EDGE_RIGHT,
+};
+
+static void update_outer(pp_reference_memory_t *mem, const pp_lane_at_t0_t *lane,
+                         const pp_motion_t *motion, const pp_calibration_t *cal, double dt,
+                         const pp_reference_line_t *measured, bool trusted[PP_OUTER_BOUNDARIES])
+{
+    if (lane->lane_change != PP_SIDE_NONE || motion == NULL) {
+        (void)memset(mem->outer, 0, sizeof(mem->outer));
+    }
+    const double alpha = dt / ((double)cal->tau_mem + dt);
+    for (uint32_t i = 0U; i < PP_OUTER_BOUNDARIES; i++) {
+        pp_outer_boundary_memory_t *m = &mem->outer[i];
+        const pp_boundary_t *b = &lane->boundary[OUTER_INDICES[i]];
+        move_memory(&m->track, motion);
+        bool rejected;
+        trusted[i] = check_line(&m->track, b, cal, (double)cal->conf_inferred, dt, &rejected);
+        m->offset_variance += (double)cal->q_mem * dt;
+        if (trusted[i] && (measured != NULL)) {
+            const double offset = b->poly.c[0] - measured->centre.c[0];
+            m->offset = m->offset_valid ? m->offset + alpha * (offset - m->offset) : offset;
+            m->offset_valid = true;
+            m->offset_variance = (double)cal->sigma_mem0 * (double)cal->sigma_mem0;
+        }
+    }
+}
+
+/* Step 4: combine independently inferred centres using their inverse offset variances. */
+static void infer_centre(const pp_reference_memory_t *mem, const pp_lane_at_t0_t *lane,
+                         const bool trusted[PP_OUTER_BOUNDARIES], pp_reference_line_t *out)
+{
+    pp_cubic_t centre = {{0.0}};
+    double lo = -INFINITY;
+    double hi = INFINITY;
+    double total = 0.0;
+    double var_c2 = 0.0;
+    double var_c3 = 0.0;
+    for (uint32_t i = 0U; i < PP_OUTER_BOUNDARIES; i++) {
+        const pp_outer_boundary_memory_t *m = &mem->outer[i];
+        const pp_boundary_t *b = &lane->boundary[OUTER_INDICES[i]];
+        if (!trusted[i] || !m->offset_valid) {
+            continue;
+        }
+        const double weight = 1.0 / (b->variance[0] + m->offset_variance);
+        centre.c[0] += weight * (b->poly.c[0] - m->offset);
+        for (uint32_t k = 1U; k < PP_CUBIC_TERMS; k++) {
+            centre.c[k] += weight * b->poly.c[k];
+        }
+        total += weight;
+        lo = fmax(lo, b->view_start);
+        hi = fmin(hi, b->view_end);
+        var_c2 += weight * weight * b->variance[2];
+        var_c3 += weight * weight * b->variance[3];
+    }
+    if (total > 0.0 && hi > lo) {
+        for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
+            out->centre.c[k] = centre.c[k] / total;
+        }
+        out->width = mem->width;
+        out->view_start = lo;
+        out->view_end = hi;
+        out->var_c2 = var_c2 / (total * total);
+        out->var_c3 = var_c3 / (total * total);
+        out->inferred = true;
+        out->valid = true;
+    }
+}
+
 /* Step 5: last reference line moved by ego-motion, for up to T_coast. */
 static void coast(pp_reference_memory_t *mem, const pp_motion_t *motion,
                   const pp_calibration_t *cal, double dt, pp_reference_line_t *out)
@@ -150,6 +245,7 @@ static void coast(pp_reference_memory_t *mem, const pp_motion_t *motion,
             out->view_start = start;
             out->view_end = end;
             out->coasting = true;
+            out->inferred = mem->ref_inferred;
             out->valid = true;
         }
     }
@@ -168,8 +264,11 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
     (void)memset(out, 0, sizeof(*out));
     move_memory(&mem->line[0], cycle_motion);
     move_memory(&mem->line[1], cycle_motion);
-    const bool left_ok = check_line(&mem->line[0], left, cal, dt, &out->line_rejected[0]);
-    const bool right_ok = check_line(&mem->line[1], right, cal, dt, &out->line_rejected[1]);
+    const bool left_ok = check_line(&mem->line[0], left, cal, (double)cal->conf_ego, dt,
+                                    &out->line_rejected[0]);
+    const bool right_ok = check_line(&mem->line[1], right, cal, (double)cal->conf_ego, dt,
+                                     &out->line_rejected[1]);
+    const pp_reference_line_t *measured_ref = NULL;
 
     if (left_ok && right_ok) {
         /* Step 2: centre between L1 and R1; width measured across the lane at x = 0. */
@@ -185,6 +284,9 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
         out->var_c2 = 0.25 * (left->variance[2] + right->variance[2]);
         out->var_c3 = 0.25 * (left->variance[3] + right->variance[3]);
         out->valid = true;
+        if (measured >= PP_LANE_WIDTH_MIN_M && measured <= PP_LANE_WIDTH_MAX_M) {
+            measured_ref = out;
+        }
     } else if ((left_ok || right_ok) && mem->width_valid) {
         /* Step 3: one ego-lane line, centre half the remembered width inside it. */
         const pp_boundary_t *line = left_ok ? left : right;
@@ -197,13 +299,20 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
         out->var_c2 = line->variance[2];
         out->var_c3 = line->variance[3];
         out->valid = true;
-    } else {
-        /* Step 4 not implemented yet; step 5: coast. */
+    }
+
+    bool outer_trusted[PP_OUTER_BOUNDARIES];
+    update_outer(mem, lane, cycle_motion, cal, dt, measured_ref, outer_trusted);
+    if (!left_ok && !right_ok && mem->width_valid) {
+        infer_centre(mem, lane, outer_trusted, out);
+    }
+    if (!out->valid) {
         coast(mem, cycle_motion, cal, dt, out);
     }
 
     if (out->valid && !out->coasting) {
         mem->ref_valid = true;
+        mem->ref_inferred = out->inferred;
         mem->ref_centre = out->centre;
         mem->ref_width = out->width;
         mem->ref_view_start = out->view_start;

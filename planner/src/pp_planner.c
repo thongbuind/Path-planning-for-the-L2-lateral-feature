@@ -306,10 +306,10 @@ static bool generate_hwa(const pp_state_t *s, const pp_reference_line_t *ref,
     for (uint32_t i = 0U; (i < PP_T_MAX_STEPS) && !done; i++) {
         pp_lateral_path_t lateral;
         pp_path_check_t check;
-        ok = pp_generate_quintic(start, d_target, duration, &lateral);
+        ok = pp_generate_quintic(start, d_target, duration, &lateral)
+             && pp_output_points(ref, &lateral, speed, wheelbase, points, samples);
         done = !ok;
         if (ok) {
-            pp_output_points(ref, &lateral, speed, wheelbase, points, samples);
             pp_feasibility_check(points, samples, &check);
             const bool targets_met = (check.ay_add_max <= (double)cal->ay_add_max_hwa)
                                      && (check.jerk_max <= (double)cal->jerk_target_hwa);
@@ -360,9 +360,10 @@ static bool generate_hwa_qp(pp_state_t *s, const pp_reference_line_t *ref,
             pb.has_old[k] = isfinite(pb.d_old[k]);
         }
     }
-    const bool ok = pp_generate_qp(&s->qp, cal, &pb, &lateral);
-    if (ok) {
-        pp_output_points(ref, &lateral, speed, (double)s->vehicle.wheelbase, points, samples);
+    const bool ok = pp_generate_qp(&s->qp, cal, &pb, &lateral)
+                    && pp_output_points(ref, &lateral, speed, (double)s->vehicle.wheelbase, points, samples);
+    if (!ok) {
+        pp_qp_reset(&s->qp);
     }
     return ok;
 }
@@ -447,18 +448,6 @@ static float observed_horizon(const pp_trajectory_point_t points[PP_TRAJECTORY_P
     return (float)horizon;
 }
 
-static bool outside_boundary(const pp_lane_at_t0_t *lane, double confidence)
-{
-    static const uint32_t indices[] = {PP_LINE_L2, PP_LINE_R2, PP_EDGE_LEFT, PP_EDGE_RIGHT};
-    for (size_t i = 0U; i < sizeof(indices) / sizeof(indices[0]); i++) {
-        const pp_boundary_t *b = &lane->boundary[indices[i]];
-        if (b->present && (b->status == PP_LINE_STATUS_MEASURED) && (b->confidence >= confidence)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static void finish_intervention_path(pp_state_t *s, const pp_speed_profile_t *speed,
                                      const pp_function_limits_t *limits, const pp_old_path_t *old,
                                      bool blend, pp_cycle_result_t *out)
@@ -495,8 +484,11 @@ static void plan_intervention(pp_state_t *s, const pp_arbitration_input_t *arb,
     }
     pp_lateral_path_t path;
     pp_intervention_sample(&s->intervention_path, arb->t0_us, &path);
-    pp_output_points(ref, &path, speed, s->vehicle.wheelbase, out->points, &out->samples);
-    finish_intervention_path(s, speed, limits, old, blend, out);
+    if (pp_output_points(ref, &path, speed, s->vehicle.wheelbase, out->points, &out->samples)) {
+        finish_intervention_path(s, speed, limits, old, blend, out);
+    } else {
+        pp_arbitration_invalidate(&s->arbitration, &out->arbitration);
+    }
 }
 
 static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *in,
@@ -514,9 +506,10 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
     const bool moved = cycle_motion(s, t0_us, ego_motion, context, &since_last);
     pp_stitch_move_old(&s->prev_path, t0_us, ego_motion, context, &old);         /* T4 step 1 */
 
-    /* Speed is required (PP-SWR-142); without it the memories cannot be moved. */
+    /* PP-SWR-142: all three chassis signals must be usable to publish a path. */
     const bool forward = (in->speed != NULL)
                          && (in->speed->direction == PP_DIRECTION_FORWARD);
+    const bool chassis_valid = forward && (in->imu != NULL) && (in->steering != NULL);
     if (!forward) {
         pp_reference_memory_reset(&s->ref_mem);
         pp_curvature_reset(&s->curv);
@@ -571,16 +564,15 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
         }
         const pp_reference_line_t *refs[PP_INTERVENTIONS] = {&camera_ref, &camera_ref};
         const pp_reference_line_t *idle_edge = edges[0].valid ? &edges[0] : &edges[1];
-        const bool chassis_valid = (in->imu != NULL) && (in->steering != NULL);
         const bool state_valid = in->vehicle_state != NULL;
         const bool intervention_requested = arb.requests != NULL
             && ((arb.requests->requests[PP_FUNCTION_LKA].state == PP_REQUEST_STATE_REQUEST)
                 || (arb.requests->requests[PP_FUNCTION_ELK].state == PP_REQUEST_STATE_REQUEST));
         const double end_v_y = pp_intervention_vy_at_t0(&s->end_velocity,
                                   intervention_requested ? in->vehicle_state : NULL, t0_us);
-        const bool coast_ok = old.valid && !outside_boundary(&lane, s->cal->conf_inferred);
         arb.hwa_available = out->ref.valid;
-        arb.path_available = !in->requests_timed_out && (arb.hwa_available || idle_edge->valid);
+        arb.path_available = chassis_valid && !in->requests_timed_out
+                             && (arb.hwa_available || idle_edge->valid);
         if (arb.requests != NULL) {
             for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
                 const pp_function_request_t *req = &arb.requests->requests[i + 1U];
@@ -596,7 +588,7 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
                 arb.can_start[i] = chassis_valid && state_valid && has_side && (edge ? refs[i]->valid
                     : pp_intervention_line_trusted(&lane, &camera_ref, side, &s->vehicle, s->cal));
                 arb.can_continue[i] = chassis_valid && has_side && refs[i]->valid && !refs[i]->inferred
-                                      && (!refs[i]->coasting || coast_ok);       /* PP-SWR-046 */
+                                      && (!refs[i]->coasting || old.valid);      /* PP-SWR-046, 047 */
                 if (arb.can_continue[i] && state_valid && (prior->phase == PP_INTERVENTION_PHASE_ACTIVE)) {
                     const pp_lateral_state_t ego = measure_lateral(refs[i], v, end_v_y, yaw_rate);
                     arb.can_finish[i] = pp_intervention_settled(refs[i], &ego, &old, v, end_v_y, yaw_rate,
@@ -627,9 +619,12 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
             pp_lateral_path_t path;
             pp_speed_profile(in->longitudinal_plan, t0_us, v, &speed);
             const pp_lateral_state_t ego = measure_lateral(idle_edge, v, v_y, yaw_rate);
-            (void)pp_generate_quintic(&ego, ego.d, s->cal->T_lka, &path);
-            pp_output_points(idle_edge, &path, &speed, s->vehicle.wheelbase, out->points, &out->samples);
-            finish_intervention_path(s, &speed, &PP_HWA_LIMITS, &old, true, out);
+            if (pp_generate_quintic(&ego, ego.d, s->cal->T_lka, &path)
+                && pp_output_points(idle_edge, &path, &speed, s->vehicle.wheelbase, out->points, &out->samples)) {
+                finish_intervention_path(s, &speed, &PP_HWA_LIMITS, &old, true, out);
+            } else {
+                pp_arbitration_invalidate(&s->arbitration, &out->arbitration);
+            }
             return;
         }
         if (out->ref.valid) {

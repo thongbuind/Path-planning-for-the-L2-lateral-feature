@@ -12,6 +12,7 @@
 #define PP_ENTRY_V_LAT (0.1)      /* PP-SWR-031, 080 */
 #define PP_ELK_LATE_M (0.3)       /* PP-SWR-089 */
 #define PP_MARK_DTLE_ALLOW_M (0.3) /* PP-SWR-086 */
+#define PP_CUT_PENALTY (1.0e3)    /* [m] ranks a candidate T10 would cut after every uncut one */
 
 static const uint32_t EGO_LINES[PP_ROAD_EDGES] = {PP_LINE_L1, PP_LINE_R1};
 static const uint32_t OUTER_LINES[PP_ROAD_EDGES] = {PP_LINE_L2, PP_LINE_R2};
@@ -211,13 +212,21 @@ static double candidate_score(const pp_quintic_t *profile, const pp_reference_li
     pp_ref_samples_t refs;
     pp_path_check_t check;
     sample_profile(profile, 0.0, &lateral);
-    pp_output_points(ref, &lateral, speed, vehicle->wheelbase, points, &refs);
+    if (!pp_output_points(ref, &lateral, speed, vehicle->wheelbase, points, &refs)) {
+        return INFINITY;
+    }
     pp_feasibility_check(points, &refs, &check);
     const double authority = fmax(check.ay_max / limits->ay_max,
         fmax(check.ay_add_max / limits->ay_add_max, check.jerk_max / limits->jerk_max));
     if (authority > 1.0) {
         return INFINITY;
     }
+    /* Within the limits means T10 step 2 leaves the path as it is: T10 cuts jerk per
+     * 0.1 s step and the steering wheel rate, stricter than the 0.5 s mean above. A cut
+     * candidate no longer ends parallel to the lane (PP-PR-041), so it is only a fallback. */
+    pp_trajectory_point_t limited[PP_TRAJECTORY_POINTS];
+    (void)memcpy(limited, points, sizeof(limited));
+    const double cut = pp_feasibility_limit(limited, &refs, limits, vehicle) ? PP_CUT_PENALTY : 0.0;
     const double half = 0.5 * (ref->width - (double)vehicle->vehicle_width);
     double intrusion = 0.0;
     for (uint32_t i = 0U; i < PP_TRAJECTORY_POINTS; i++) {
@@ -229,7 +238,7 @@ static double candidate_score(const pp_quintic_t *profile, const pp_reference_li
         intrusion = fmax(intrusion, fmax((sign * front_d) - crossing_d - allowed_crossing,
                                         (-sign * front_d) - half));
     }
-    return intrusion;
+    return cut + intrusion;
 }
 
 void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_request_t *req,

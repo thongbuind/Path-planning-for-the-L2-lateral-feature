@@ -41,6 +41,8 @@ parameters:
   # Software Detailed Design 15. No limit in Software Requirements Specification 7;
   # gt 0 only keeps the algorithm defined (division by the value).
   tau_mem:          {value: 2.0, unit: s, gt: 0, source: "Software Detailed Design 15; T2"}
+  sigma_mem0:       {value: 0.05, unit: m, min: 0.03, max: 0.1, source: "Software Detailed Design 15; T2"}
+  q_mem:            {value: 0.001, unit: m^2/s, min: 0.0002, max: 0.005, source: "Software Detailed Design 15; T2"}
   q_kappa:          {value: 1.0e-9, unit: 1/m^3, min: 0, source: "Software Detailed Design 15; T5"}
   sigma_r:          {value: 0.002, unit: rad/s, gt: 0, source: "Software Detailed Design 15; T5"}
   # Floor of the camera curvature sigma: a lane model may report c2, c3 variance 0.

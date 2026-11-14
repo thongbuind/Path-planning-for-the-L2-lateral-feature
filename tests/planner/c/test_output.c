@@ -1,5 +1,6 @@
 /* Unit tests of T6 Lateral state and T11 Output (lateral_state.c, output.c). */
 
+#include <float.h>
 #include <string.h>
 
 #include "lateral_state.h"
@@ -59,7 +60,7 @@ static void test_points_on_straight_centre(void)
     pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
     (void)memset(&path, 0, sizeof(path));
     pp_speed_profile(NULL, 0U, 20.0, &sp);
-    pp_output_points(&ref, &path, &sp, 2.9, pts, NULL);
+    PP_CHECK(pp_output_points(&ref, &path, &sp, 2.9, pts, NULL));
     PP_CHECK_NEAR(pts[0].pose.x, 0.0, 1e-6);
     PP_CHECK_NEAR(pts[10].pose.x, 20.0, 1e-4);
     PP_CHECK_NEAR(pts[10].pose.y, 0.0, 1e-6);
@@ -83,12 +84,23 @@ static void test_points_follow_curve_with_offset(void)
         path.d[k] = 0.2;
     }
     pp_speed_profile(NULL, 0U, 25.0, &sp);
-    pp_output_points(&ref, &path, &sp, 2.9, pts, NULL);
+    PP_CHECK(pp_output_points(&ref, &path, &sp, 2.9, pts, NULL));
     PP_CHECK_NEAR(pts[0].pose.y, 0.2, 1e-6);
     /* Curvature of a parallel at offset d inside a left curve: 1 / (R - d). */
     PP_CHECK_NEAR(pts[20].curvature, 1.0 / (radius - 0.2), 1e-6);
     PP_CHECK_NEAR(pts[20].heading_rate_rps, 25.0 / (radius - 0.2), 1e-5);
     PP_CHECK_NEAR(pts[20].front_wheel_angle_rad, atan(2.9 / (radius - 0.2)), 1e-6);
+}
+
+static void test_output_rejects_position_outside_float32(void)
+{
+    const pp_reference_line_t ref = straight(0.0);
+    pp_lateral_path_t path = {0};
+    pp_speed_profile_t speed;
+    pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
+    pp_speed_profile(NULL, 0U, 20.0, &speed);
+    path.d[10] = 2.0 * (double)FLT_MAX;
+    PP_CHECK(!pp_output_points(&ref, &path, &speed, 2.9, points, NULL));
 }
 
 int main(void)
@@ -97,5 +109,6 @@ int main(void)
     test_speed_profile_constant_and_shifted();
     test_points_on_straight_centre();
     test_points_follow_curve_with_offset();
+    test_output_rejects_position_outside_float32();
     return PP_TEST_RESULT();
 }

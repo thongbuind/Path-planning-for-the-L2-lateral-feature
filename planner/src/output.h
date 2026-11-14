@@ -22,9 +22,10 @@ void pp_speed_profile(const pp_longitudinal_plan_t *plan, uint64_t t0_us, double
 
 /*
  * (s, d) to (x, y, yaw, kappa) in base_link at t0 (Werling et al. 2010). `samples`
- * (may be NULL) receives the reference line under each point.
+ * (may be NULL) receives the reference line under each point. False if a point cannot
+ * be represented by finite float32 interface values.
  */
-void pp_output_points(const pp_reference_line_t *ref, const pp_lateral_path_t *path,
+bool pp_output_points(const pp_reference_line_t *ref, const pp_lateral_path_t *path,
                       const pp_speed_profile_t *speed, double wheelbase,
                       pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                       pp_ref_samples_t *samples);

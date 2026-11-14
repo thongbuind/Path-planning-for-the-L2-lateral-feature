@@ -64,6 +64,13 @@ static pp_planner_inputs_t inputs(void)
     in.speed.message.speed_mps = 25.0F;
     in.speed.message.direction = PP_DIRECTION_FORWARD;
 
+    in.imu.present = true;
+    in.imu.rx_us = T0;
+    in.imu.message.header = (pp_basic_header_t){T0, 0U, true};
+    in.steering.present = true;
+    in.steering.rx_us = T0;
+    in.steering.message.header = (pp_basic_header_t){T0, 0U, true};
+
     in.function_requests.present = true;
     in.function_requests.rx_us = T0 - 1000U;
     in.function_requests.message.header.stamp_us = T0 - 2000U;
@@ -174,6 +181,36 @@ static void fresh_requests(pp_planner_inputs_t *in)
     in->function_requests.message.header.stamp_us = in->t0_us;
 }
 
+static void test_chassis_fault_invalidates_hwa_and_fresh_inputs_restore_it(void)
+{
+    pp_planner_inputs_t in = inputs();
+    pp_planner_outputs_t out;
+    PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
+
+    fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
+    fresh_requests(&in);
+    in.imu.present = false;
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(!out.path_status.path_valid);
+    PP_CHECK(!out.trajectory.header.valid && !out.lateral_limits.header.valid);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
+
+    fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
+    fresh_requests(&in);
+    in.steering.message.header.valid = false;
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(!out.path_status.path_valid);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
+
+    fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
+    fresh_requests(&in);
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(out.path_status.path_valid);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_HWA);
+}
+
 static void test_function_requests_timeout_and_recovery(void)
 {
     pp_planner_outputs_t out;
@@ -247,6 +284,33 @@ static void test_interventions_can_switch_and_cancel_in_one_cycle(void)
     PP_CHECK(out.path_status.path_valid && out.trajectory.header.valid);
     PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_NONE);
     PP_CHECK(out.path_status.lka_phase == PP_INTERVENTION_PHASE_NONE);
+}
+
+static void test_active_lka_can_coast_on_last_ego_reference(void)
+{
+    pp_planner_inputs_t in = inputs();
+    pp_planner_outputs_t out;
+    PP_CHECK(pp_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
+    fresh_chassis(&in, T0);
+    fresh_requests(&in);
+    in.vehicle_state.message.lateral_velocity = -0.2F;
+    pp_function_request_t *lka = &in.function_requests.message.requests[1];
+    lka->state = PP_REQUEST_STATE_REQUEST;
+    lka->side = PP_SIDE_RIGHT;
+    lka->tlc = 0.8F;
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
+
+    /* The two ego lines jump while a previously unseen outer line is measured.
+     * T2 can only coast on the ego reference during the confirmation window. */
+    fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
+    fresh_requests(&in);
+    in.lane_model.message.lines[1].c0 += 0.7F;
+    in.lane_model.message.lines[2].c0 += 0.7F;
+    set_line(&in.lane_model.message.lines[0], 5.55F);
+    pp_step(memory, &in, ego_motion, NULL, &out);
+    PP_CHECK(out.path_status.path_valid);
+    PP_CHECK(out.path_status.active_function == PP_ACTIVE_FUNCTION_LKA);
 }
 
 static void test_elk_road_edge_keeps_path_on_cancellation_tick(void)
@@ -427,7 +491,9 @@ int main(void)
     test_stale_lane_model();
     test_hwa_not_requested();
     test_function_requests_timeout_and_recovery();
+    test_chassis_fault_invalidates_hwa_and_fresh_inputs_restore_it();
     test_interventions_can_switch_and_cancel_in_one_cycle();
+    test_active_lka_can_coast_on_last_ego_reference();
     test_elk_road_edge_keeps_path_on_cancellation_tick();
     test_longitudinal_plan_range();
     return PP_TEST_RESULT();

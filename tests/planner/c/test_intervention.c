@@ -65,6 +65,29 @@ static void test_profile_advances_from_original_start_time(void)
     PP_CHECK_NEAR(lateral.d_dot[0], 0.0, 1.0e-8);
 }
 
+/* PP-PR-041: the chosen candidate passes T10 step 2 uncut, so it ends parallel to the lane. */
+static void test_chosen_candidate_is_not_cut_by_t10(void)
+{
+    const pp_reference_line_t ref = {.valid = true, .width = 3.85, .view_end = 100.0};
+    const pp_function_limits_t limits = {PP_AY_MAX_ELK, PP_JERK_MAX_ELK, PP_AY_ADD_MAX_ELK};
+    const pp_intervention_request_t request = {.received_us = 1000000U, .side = PP_SIDE_LEFT};
+    const double v_lat[] = {0.2, 0.4, 0.6};
+    for (uint32_t i = 0U; i < (sizeof(v_lat) / sizeof(v_lat[0])); i++) {
+        const pp_lateral_state_t start = {.d = 0.69, .d_dot = v_lat[i]};
+        pp_speed_profile_t speed;
+        pp_speed_profile(NULL, request.received_us, 20.0, &speed);
+        pp_intervention_path_t path;
+        pp_intervention_begin(&path, &request, 0.5, request.received_us, &ref, &start, &speed,
+                              &limits, &VP0, &pp_calibration, true);
+        pp_lateral_path_t lateral;
+        pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
+        pp_ref_samples_t samples;
+        pp_intervention_sample(&path, request.received_us, &lateral);
+        PP_CHECK(pp_output_points(&ref, &lateral, &speed, VP0.wheelbase, points, &samples));
+        PP_CHECK(!pp_feasibility_limit(points, &samples, &limits, &VP0));
+    }
+}
+
 static void test_aligns_vehicle_state_with_completion_tick(void)
 {
     pp_lateral_velocity_history_t history = {0};
@@ -85,6 +108,7 @@ int main(void)
 {
     test_measured_edge_needs_association_with_ego_lane();
     test_profile_advances_from_original_start_time();
+    test_chosen_candidate_is_not_cut_by_t10();
     test_aligns_vehicle_state_with_completion_tick();
     return PP_TEST_RESULT();
 }

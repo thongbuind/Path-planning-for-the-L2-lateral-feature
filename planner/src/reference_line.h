@@ -2,12 +2,12 @@
  * T2 Reference line (Software Detailed Design section 5) and arc-length access to it.
  *
  * Implemented: trusted-boundary check of Software Requirements Specification 4; the
- * frame-to-frame consistency check of L1 and R1 against their memory moved by
+ * frame-to-frame consistency check against boundary memory moved by
  * ego-motion (k_jump), with a change accepted once the new position has been stable for
  * T_confirm and a quick return to the old position after a change; steps 2, 3,
- * 6; step 5 as coasting on the last reference line moved by ego-motion for up to
- * T_coast. Not yet: the slow checks (parallel, width), step 4 (centre inferred from
- * adjacent lines and road edges), the lane change, narrowing and widening rules.
+ * 4 and 6; step 5 as coasting on the last reference line moved by ego-motion for up to
+ * T_coast. Not yet: the slow checks (parallel, width), the lane change, narrowing and
+ * widening rules.
  */
 
 #ifndef PP_REFERENCE_LINE_H
@@ -27,14 +27,14 @@
 typedef struct {
     bool valid;
     pp_cubic_t poly;
-    double var_c0;                /* [m^2] */
+    double variance[PP_CUBIC_TERMS];
     double view_start;
     double view_end;
     double age_s;                 /* [s] candidate: stable for this long; previous: kept for this long */
 } pp_line_track_t;
 
 /*
- * Memory of one ego-lane line for the consistency check (Software Detailed Design 5).
+ * Memory of one boundary for the consistency check (Software Detailed Design 5).
  * `accepted` is the position in use. A jump starts a `candidate`; it is taken as a real
  * change once the new position has stayed consistent with itself for T_confirm (R1).
  * After a change the old position stays as `previous` for T_confirm; a frame back at it
@@ -47,12 +47,23 @@ typedef struct {
     double absent_s;              /* [s] not trusted by SRS 4 for this long */
 } pp_boundary_memory_t;
 
+#define PP_OUTER_BOUNDARIES (PP_BOUNDARIES - 2U)
+
+typedef struct {
+    pp_boundary_memory_t track;
+    bool offset_valid;
+    double offset;                /* [m] lateral separation from the centre at x = 0 */
+    double offset_variance;       /* [m^2] */
+} pp_outer_boundary_memory_t;
+
 /* Kept across cycles. */
 typedef struct {
     bool width_valid;
     double width;                 /* w_mem [m] */
     pp_boundary_memory_t line[2]; /* L1, R1 */
+    pp_outer_boundary_memory_t outer[PP_OUTER_BOUNDARIES];
     bool ref_valid;               /* Last reference line, for coasting (step 5) */
+    bool ref_inferred;            /* Coast preserves the last centre's eligibility */
     pp_cubic_t ref_centre;
     double ref_width;
     double ref_view_start;

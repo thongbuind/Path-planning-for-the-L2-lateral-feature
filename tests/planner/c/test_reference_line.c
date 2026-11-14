@@ -147,6 +147,65 @@ static void test_walk_curve(void)
 
 static const pp_motion_t STILL = {0.0, 0.0, 0.0};
 
+static void test_inferred_centre_uses_remembered_offsets(void)
+{
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.3);
+    lane.boundary[PP_LINE_L2] = line_at(5.4, 0.0, 0.0);
+    lane.boundary[PP_EDGE_RIGHT] = line_at(-6.4, 0.0, 0.0);
+    lane.boundary[PP_EDGE_RIGHT].view_end = 55.0;
+    const pp_motion_t drift = {.dy = 0.2};
+    pp_reference_line_update(&mem, &lane, NULL, &pp_calibration, 1.9, DT, &ref);
+
+    lane.boundary[PP_LINE_L1].present = false;
+    lane.boundary[PP_LINE_R1].present = false;
+    lane.boundary[PP_LINE_L2].poly.c[0] -= 0.2;
+    lane.boundary[PP_EDGE_RIGHT].poly.c[0] -= 0.2;
+    pp_reference_line_update(&mem, &lane, &drift, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && ref.inferred && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[0], 0.1, 1e-9);
+    PP_CHECK_NEAR(ref.width, 3.5, 1e-12);
+    PP_CHECK_NEAR(ref.view_end, 55.0, 1e-12);
+
+    lane.boundary[PP_LINE_L2].confidence = (double)pp_calibration.conf_inferred - 0.01;
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && ref.inferred && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[0], 0.1, 1e-9);
+
+    lane.boundary[PP_EDGE_RIGHT].present = false;
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && ref.inferred && ref.coasting);
+    const int coast = (int)lround((double)pp_calibration.T_coast / DT);
+    for (int i = 0; i < coast; i++) {
+        pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    }
+    PP_CHECK(!ref.valid);
+}
+
+static void test_inference_needs_a_known_boundary()
+{
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, NULL, &pp_calibration, 1.9, DT, &ref);
+    pp_lane_empty(&lane);
+    lane.boundary[PP_LINE_L2] = line_at(5.25, 0.0, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && ref.coasting && !ref.inferred);
+
+    lane = two_lines(3.5, 0.0);
+    lane.boundary[PP_LINE_L2] = line_at(5.25, 0.0, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    lane.boundary[PP_LINE_L1].present = false;
+    lane.boundary[PP_LINE_R1].present = false;
+    lane.lane_change = PP_SIDE_LEFT;
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.valid && ref.coasting && !ref.inferred);
+}
+
 static void test_jump_of_one_line_is_rejected(void)
 {
     pp_reference_memory_t mem;
@@ -160,6 +219,23 @@ static void test_jump_of_one_line_is_rejected(void)
     PP_CHECK(ref.valid && !ref.coasting);
     PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-12);             /* from R1 + w_mem / 2 */
 }
+
+#ifdef PP_T2_SHAPE_CHECK
+static void test_shape_jump_is_rejected_without_a_c0_jump(void)
+{
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    lane.boundary[PP_LINE_L1].poly.c[2] += 0.0005;
+    lane.boundary[PP_LINE_R1].poly.c[2] += 0.0005;
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.line_rejected[0] && ref.line_rejected[1]);
+    PP_CHECK(ref.valid && ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[2], 0.0, 1e-10);
+}
+#endif
 
 static void test_jump_of_both_lines_coasts_then_is_accepted(void)
 {
@@ -238,6 +314,9 @@ static void test_coast_ends_after_t_coast(void)
 int main(void)
 {
     test_jump_of_one_line_is_rejected();
+#ifdef PP_T2_SHAPE_CHECK
+    test_shape_jump_is_rejected_without_a_c0_jump();
+#endif
     test_jump_of_both_lines_coasts_then_is_accepted();
     test_coast_ends_after_t_coast();
     test_flickering_jump_is_never_accepted();
@@ -245,6 +324,8 @@ int main(void)
     test_centre_between_lines();
     test_one_line_uses_remembered_width();
     test_no_trusted_line();
+    test_inferred_centre_uses_remembered_offsets();
+    test_inference_needs_a_known_boundary();
     test_width_memory_filters_and_rejects();
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();
