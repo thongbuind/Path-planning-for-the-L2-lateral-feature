@@ -1144,7 +1144,7 @@ class Report:
             test_title = TEST_TITLE.get(t["name"], t["name"]) if self.lang == "vi" else t["name"]
             chips = "".join(f'<span style="font-size:6.5pt;font-weight:650;color:{INK2};background:{NEUTRAL_BG};border-radius:3px;padding:0 1.4mm;margin-left:1.2mm">{E(d)}</span>'
                             for d in t["docs"])
-            rows.append(f'<div style="display:grid;grid-template-columns:5mm 1fr auto;gap:0 2.4mm;padding:.4mm 0;border-bottom:1px solid {GRID};align-items:start">'
+            rows.append(f'<div style="display:grid;grid-template-columns:5mm 1fr auto;gap:0 2.4mm;line-height:1.22;border-bottom:1px solid {GRID};align-items:start">'
                         f'<span class="{cls}" style="margin-top:.5mm">{mark}</span>'
                         f'<div style="min-width:0"><div><b style="font-size:9.5pt">{E(test_title)}</b>{chips}</div>'
                         f'<div style="font-size:7pt;color:{INK3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{E(t["source"])}</div>'
