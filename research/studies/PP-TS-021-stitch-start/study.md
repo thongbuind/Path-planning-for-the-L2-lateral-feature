@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Đang chạy |
 | Mở ngày | 2026-11-16 |
 | Khóa ngày | 2026-11-16 |
 | Quyết định ngày | — |
@@ -38,6 +38,8 @@ Cơ chế, đọc từ code T4 (`pp_stitch_start`, `pp_stitch_blend`):
 | V2 | `stitch_reset` 0 m: luôn bắt đầu từ trạng thái đo | `calibration: {stitch_reset: 0.0}` | Ngoài dải quét (0,1–0,4), trong giới hạn của SRS (≥ 0). Bước 4 vẫn trộn |
 | V3 | Bước 4 trộn theo từng đoạn 0–1 s, 1–2 s, sau 2 s; mỗi đoạn tới `cont_margin` · ngưỡng của đoạn đó (SRS 1.22) | `cmake: {PP_T4_BLEND: segments}` | V4 của PP-TS-019. Đoạn gần có λ riêng, không bị phần xa chặn |
 | V4 | V2 và V3 | `calibration: {stitch_reset: 0.0}`, `cmake: {PP_T4_BLEND: segments}` | |
+| V5 | `stitch_reset` 0,025 m | `calibration: {stitch_reset: 0.025}` | Thêm 2026-11-16 sau lần chạy 20261116-1702. Ngoài dải quét |
+| V6 | `stitch_reset` 0,05 m | `calibration: {stitch_reset: 0.05}` | Như V5. Bằng ngưỡng 0–1 s của PP-SWR-100. Ngoài dải quét |
 | Không xét | Bắt đầu từ trạng thái đo khi path chạm trần a_y | — | Dựa vào cờ `lateral_limit_reached`; cờ bật cả ở S1c (PP-TS-020 V2) |
 | Không xét | Bỏ bước 4 ở chu kỳ reset | — | Bước nhảy tới `stitch_reset` trong một chu kỳ, trượt PP-SWR-100 ở 0–1 s khi `stitch_reset` > 0,05 m |
 
@@ -46,7 +48,7 @@ Cơ chế, đọc từ code T4 (`pp_stitch_start`, `pp_stitch_blend`):
 
 ## 3. Cách đánh giá (khóa trong plan.yaml)
 
-Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-021](../../../benchmark/suites/PP-TS-021.yaml).
+Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-021](../../../benchmark/suites/PP-TS-021.yaml). Mở lại và khóa lại cùng ngày sau lần chạy 20261116-1702: thêm V5, V6; suite, seed và tiêu chí không đổi; mọi phương án chạy lại.
 
 | Mục | Nội dung |
 |---|---|
@@ -77,10 +79,61 @@ Cài V3 (`PP_T4_BLEND=segments`, `pp_stitch_blend`):
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261116-1702-study-PP-TS-021-f51044d](../../runs/20261116-1702-study-PP-TS-021-f51044d/summary.md) | V0 đến V4 | Theo plan khóa 2026-11-16. Chạy trong git worktree sạch ở f51044d, vì `web/` có thay đổi ngoài study; bản ghi chép về thư mục chính |
 
 ## 5. Kết quả
 
+Số lượt trượt (chỉnh / kiểm): V0 4 / 5; V1 6 / 6; V2 4 / 2; V3 4 / 6; V4 4 / 4.
+
+| Ca (2 seed mỗi ô) | V0 | V1 | V2 | V3 | V4 |
+|---|---|---|---|---|---|
+| S1b a, ACC bỏ qua LateralLimits | R79 | R79, 100 | Đạt | R79 | Đạt |
+| S1b b, ACC bỏ qua LateralLimits | R79 | R79 | R79 | R79 | R79 |
+| S1b c, ACC bỏ qua LateralLimits | Đạt | Đạt | Đạt | Đạt | Đạt |
+| S2 b (đưa về giữa từ 0,4 m) | Đạt | Đạt | 100 | Đạt | 100 |
+| S14 e, ACC đọc LateralLimits | 051 (1 seed) | 051 (1 seed) | Đạt | 051, 100 | Đạt |
+| S1c + F06 e | Đạt | Đạt | Đạt | Đạt | 051 |
+| Mọi ca còn lại | Đạt | Đạt | Đạt | Đạt | Đạt |
+
+a_y xe trừ a_y path, trung bình 2 s lớn nhất [m/s²] (`PP-TS-021/ay-vehicle-over-path`):
+
+| Ca | V0 | V1 | V2 | V3 | V4 |
+|---|---|---|---|---|---|
+| S1b a | 0,50 | 0,40 | 0,16 | 0,50 | 0,16 |
+| S1b b | 1,02 | 1,11 | 1,13 | 1,16 | 1,41 |
+| S1b c | 0,52 | 0,40 | 0,11 | 0,54 | 0,11 |
+| S1b e (ACC đọc LateralLimits) | 0,14 | 0,11 | 0,03 | 0,14 | 0,03 |
+
+Lệch ngang của path so với tâm làn thật (PP-SWR-050), lớn nhất theo seed, các ca khác nhau hơn 0,05 m:
+
+| Ca | V0 | V1 | V2 | V3 | V4 |
+|---|---|---|---|---|---|
+| S1 c | 0,33 | 0,33 | 0,15 | 0,33 | 0,15 |
+| S1 c + F01 b | 0,37 | 0,37 | 0,15 | 0,39 | 0,15 |
+| S1 c + F01 c | 0,50 | 0,48 | 0,28 | 0,53 | 0,30 |
+| S1 c + F01 c, VP-5 | 0,45 | 0,44 | 0,31 | 0,49 | 0,29 |
+| S1 c + F02 b | 0,33 | 0,33 | 0,15 | 0,33 | 0,15 |
+| S12 a | 0,50 | 0,48 | 0,30 | 0,53 | 0,31 |
+| S1 f (cua chữ S, R171) | 0,28 | 0,26 | 0,82 | 0,26 | 0,83 |
+| S1 g | 0,05 | 0,05 | 0,12 | 0,05 | 0,12 |
+
+- Bắt đầu từ trạng thái đo (V2) gỡ phần xe đuổi path ở S1b a, c, e: a_y xe trừ path còn 0,03–0,16 m/s². S1b a đạt R79.
+- V2 cũng giảm lệch tâm làn ở cả họ S1c (cua chạm aysmax) khoảng 0,2 m. Đây là cùng hiện tượng trôi mà PP-TS-020 nhắm tới bằng `ay_margin_hwa`.
+- Giá phải trả của V2: trạng thái đo lấy từ lane model nên mang theo sai số của nó. S1 f (cua chữ S, sai số khớp đa thức, PP-PR-004) lệch 0,82 m; S2 b trượt PP-SWR-100 khi đưa về giữa.
+- S1b b trượt R79 ở mọi phương án; a_y xe vượt path 1,0–1,4 m/s² kể cả khi path bắt đầu từ xe. Cơ chế khác với S1b a, c; còn mở trong PP-PR-056.
+- Trộn theo đoạn (V3, V4) không giúp ở ca nào; V3 thêm trượt ở S14 e, V4 thêm trượt ở F06 e. Loại V3, V4.
+- V1 (0,1 m) không đủ: vẫn trượt R79 ở S1b a và thêm trượt PP-SWR-100.
+
 ## 6. Đề xuất
+
+2026-11-16, chờ người dùng:
+
+- Chưa chọn. V2 đi đúng hướng nhưng trượt PP-SWR-100 ở S2 b và làm S1 f xấu đi nhiều.
+- Loại V1, V3, V4. Phần T4 của PP-TS-019 kết thúc: trộn một λ (V0 của PP-TS-019, tức V3 ở đó) giữ nguyên.
+- Phương án mới cần thêm (mở lại khóa, chạy lại): `stitch_reset` giữa 0 và 0,1 m (ví dụ 0,025 và 0,05 m, quanh ngưỡng 0,05 m của PP-SWR-100 ở đoạn 0–1 s), để giữ lọc nhiễu của path cũ mà vẫn không để xe đứng xa path.
+- S1b b: mở problem report riêng hoặc tiếp tục ở PP-PR-056.
+- PP-TS-020 chạy lại sau khi chọn, vì S1c có thể không còn cần `ay_margin_hwa`.
+- 2026-11-16: người dùng đồng ý thêm V5, V6 và chạy lại.
 
 ## 7. Quyết định
 

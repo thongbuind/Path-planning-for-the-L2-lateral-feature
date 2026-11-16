@@ -34,7 +34,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | V1 phía requirement đã áp dụng (SRS 1.20); phía planner cần plan mới | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
 | PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; phần T4 chuyển sang PP-TS-021 | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
 | PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1607-study-PP-TS-020-d1d50de: V2 loại; chờ PP-TS-021 trước khi chọn V1a hay V1b | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
-| PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã khóa 2026-11-16 | — | [study](studies/PP-TS-021-stitch-start/study.md) |
+| PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đang chạy; 20261116-1702-study-PP-TS-021-f51044d: loại V1, V3, V4; V2 đúng hướng nhưng trượt S2 b, xấu S1 f | — | [study](studies/PP-TS-021-stitch-start/study.md) |
 
 ## Problem reports
 

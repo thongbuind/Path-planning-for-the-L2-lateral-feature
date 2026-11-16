@@ -37,3 +37,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261115-1126-suite-full-7495822 | suite | full | 7495822 | calibration d532993b1b2f | Không đạt; {"executed": 3958, "failed": 298, "errors": 0} | |
 | 20261116-1548-study-PP-TS-020-04ae8c5 | study | PP-TS-020 | 04ae8c5 | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76 | Đứng đầu ở test: V1b | |
 | 20261116-1607-study-PP-TS-020-d1d50de | study | PP-TS-020 | d1d50de | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76, 1f38dc9fe751 | Đứng đầu ở test: V1b | |
+| 20261116-1702-study-PP-TS-021-f51044d | study | PP-TS-021 | f51044d | calibration 710fc9d888e0, 447a7c5019ae, 8dda0f75cc6d, 710fc9d888e0, 8dda0f75cc6d | Đứng đầu ở test: V2 | |

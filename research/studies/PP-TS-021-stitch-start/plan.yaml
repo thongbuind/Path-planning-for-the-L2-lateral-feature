@@ -1,5 +1,7 @@
 # Evaluation plan of PP-TS-021 (research/README.md, step 2). Points of study.md section 3
-# agreed 2026-11-16; PP_T4_BLEND built (step 3). Locked 2026-11-16.
+# agreed 2026-11-16; PP_T4_BLEND built (step 3). Locked 2026-11-16. Reopened and locked
+# again the same day after run 20261116-1702: V5, V6 added (stitch_reset between 0 and 0.1 m);
+# every variant runs again (research/README.md). Suite, seeds and criteria unchanged.
 # ay_margin_hwa stays 0 (PP-TS-020, point 3).
 # Tuning budget: none; every variant at the start calibration except the values it changes.
 id: PP-TS-021
@@ -30,3 +32,11 @@ variants:
     description: stitch_reset 0 m và trộn theo từng đoạn
     calibration: {stitch_reset: 0.0}
     cmake: {PP_T4_BLEND: segments}
+  V5:
+    description: stitch_reset 0,025 m
+    calibration: {stitch_reset: 0.025}
+    cmake: {}
+  V6:
+    description: stitch_reset 0,05 m
+    calibration: {stitch_reset: 0.05}
+    cmake: {}
