@@ -32,8 +32,9 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-016 | Chức năng đang lái sau giới hạn 10 s của PP-SWR-083 (mâu thuẫn với 030) | Đã quyết; đã đưa vào; hồi quy 20261113-1803-suite-regression-3c31309 có trượt 030 chưa phân tích | V4 (theo R79, EU 2021/646) | [study](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 | PP-TS-017 | Path HWA trong lúc tài xế ghi đè: V0–V4 | Đóng; hồi quy 20261113-2255-suite-regression-e99cf08 | V2b, không chấm liên tục khi ghi đè | [study](studies/PP-TS-017-path-during-driver-override/study.md) |
 | PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | V1 phía requirement đã áp dụng (SRS 1.20); phía planner cần plan mới | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
-| PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; T4 chưa có plan | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
-| PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1548-study-PP-TS-020-04ae8c5: không phương án nào đạt hết | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
+| PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; phần T4 chuyển sang PP-TS-021 | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
+| PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1607-study-PP-TS-020-d1d50de: V2 loại; chờ PP-TS-021 trước khi chọn V1a hay V1b | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
+| PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã khóa 2026-11-16 | — | [study](studies/PP-TS-021-stitch-start/study.md) |
 
 ## Problem reports
 
@@ -93,5 +94,5 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
 | PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
 | PP-PR-054 | F17 b và F21 c trên S1c: xe rời làn ở cua chạm aysmax | Mở | PP-SWR-051 | [report](problems/PP-PR-054-s1c-f17b-f21c-departure.md) |
-| PP-PR-056 | S1b b: a_y của xe vượt aysmax + 0,3 tới cuối ca ở mọi trần path; ca quá ngắn để chấm 2 s của R79 | Mở | R79 5.6.2.1.1; PP-TS-020 | [report](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md) |
+| PP-PR-056 | S1b b: a_y của xe vượt aysmax + 0,3 tới cuối ca ở mọi trần path; ca quá ngắn để chấm 2 s của R79 | Mở, đã tìm nguyên nhân chính: T4 giữ điểm đầu path trên path cũ, controller kéo thêm 0,5–0,8 m/s². Bản hiện tại trượt R79 Annex 8, 3.2.2 ở S1b a, b. Sửa qua PP-TS-021 | R79 5.6.2.1.1; PP-TS-020 | [report](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md) |
 | PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |

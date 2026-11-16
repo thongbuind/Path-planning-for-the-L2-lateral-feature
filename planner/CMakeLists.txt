@@ -38,6 +38,16 @@ if(PP_AY_MARGIN_GATE)
     list(APPEND PP_T7_DEFINES PP_AY_MARGIN_GATE)
 endif()
 
+# PP-TS-021: T4 step 4 blends with one lambda for the whole path (single) or one per time
+# band of PP-SWR-100 to 102 (segments, V3).
+set(PP_T4_BLEND "single" CACHE STRING "T4 step 4 blend: single or segments")
+set_property(CACHE PP_T4_BLEND PROPERTY STRINGS single segments)
+if(PP_T4_BLEND STREQUAL "segments")
+    list(APPEND PP_T7_DEFINES PP_T4_BLEND_SEGMENTS)
+elseif(NOT PP_T4_BLEND STREQUAL "single")
+    message(FATAL_ERROR "PP_T4_BLEND must be single or segments, got ${PP_T4_BLEND}")
+endif()
+
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL

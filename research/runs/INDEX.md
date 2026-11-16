@@ -36,3 +36,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261114-2252-suite-regression-98a122b | suite | regression | 98a122b | calibration d532993b1b2f | Không đạt; {"executed": 2079, "failed": 115, "errors": 0} || Xác nhận PP-PR-055 (S12 c hết trượt) và đóng 047, 048 (F06 c), 052, 053. Không có trượt mới. Còn lại: 051 47, 032 44, 100 30, 102 12, 101 7 |
 | 20261115-1126-suite-full-7495822 | suite | full | 7495822 | calibration d532993b1b2f | Không đạt; {"executed": 3958, "failed": 298, "errors": 0} | |
 | 20261116-1548-study-PP-TS-020-04ae8c5 | study | PP-TS-020 | 04ae8c5 | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76 | Đứng đầu ở test: V1b | |
+| 20261116-1607-study-PP-TS-020-d1d50de | study | PP-TS-020 | d1d50de | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76, 1f38dc9fe751 | Đứng đầu ở test: V1b | |

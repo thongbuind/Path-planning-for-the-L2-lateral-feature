@@ -148,7 +148,11 @@ static void test_blend_limits_the_jump(void)
     const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
     PP_CHECK_NEAR(lambda, margin * PP_CONT_LATERAL_M / 0.5, 1e-6);
     PP_CHECK_NEAR(cand.points[10].pose.y, margin * PP_CONT_LATERAL_M, 1e-6);
+#ifdef PP_T4_BLEND_SEGMENTS
+    PP_CHECK_NEAR(cand.points[30].pose.y, margin * 0.2, 1e-6);   /* band after 2 s: 0.2 m */
+#else
     PP_CHECK(cand.points[30].pose.y <= PP_CONT_LATERAL_M);
+#endif
 
     /* Candidate equal to the old path: unchanged. */
     pp_previous_path_t same = straight_path(0.0, 0.0);
@@ -171,8 +175,41 @@ static void test_blend_ignores_change_beyond_view(void)
     PP_CHECK(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, whole.points) < 1.0);
 }
 
+#ifdef PP_T4_BLEND_SEGMENTS
+/* PP-TS-021 V3: a large change after 2 s no longer holds back the first 2 s, and every
+ * point stays within the limit of its own band of PP-SWR-100 (SRS 1.22). */
+static void test_blend_by_band(void)
+{
+    pp_previous_path_t prev = straight_path(0.0, 0.0);
+    pp_old_path_t old;
+    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
+    pp_previous_path_t cand = straight_path(0.04, 0.0);
+    for (unsigned k = 21U; k < PP_TRAJECTORY_POINTS; k++) {
+        cand.points[k].pose.y = 0.5F;
+    }
+    const double margin = (double)pp_calibration.cont_margin;
+    const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
+    const double far = margin * 0.2 / 0.5;                          /* lambda of the band after 2 s */
+    PP_CHECK_NEAR(lambda, far, 1e-6);
+    /* Knots 1, 1, far, far at 0, 1, 2, 3 s: the first second follows the candidate, the
+     * second one goes down to `far` without a step. One lambda would give `0.045 / 0.5`. */
+    PP_CHECK_NEAR(cand.points[0].pose.y, 0.04, 1e-6);
+    PP_CHECK_NEAR(cand.points[10].pose.y, 0.04, 1e-6);
+    PP_CHECK_NEAR(cand.points[15].pose.y, 0.04 * (1.0 + (0.5 * (far - 1.0))), 1e-6);
+    PP_CHECK_NEAR(cand.points[20].pose.y, 0.04 * far, 1e-6);
+    PP_CHECK_NEAR(cand.points[30].pose.y, 0.5 * far, 1e-6);
+    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        const double limit = (k <= 10U) ? 0.05 : ((k <= 20U) ? 0.1 : 0.2);
+        PP_CHECK(fabs((double)cand.points[k].pose.y) <= (margin * limit) + 1e-6);
+    }
+}
+#endif
+
 int main(void)
 {
+#ifdef PP_T4_BLEND_SEGMENTS
+    test_blend_by_band();
+#endif
     test_move_old();
     test_sample_on_curve_stays_on_the_arc();
     test_old_path_not_usable();

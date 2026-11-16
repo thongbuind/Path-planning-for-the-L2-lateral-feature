@@ -161,8 +161,10 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
         scenario = load_run(run)
         scope = scope_of(suite, run)
         for seed in part["seeds"]:
-            result = metrics.evaluate(Harness(scenario, SilPlanner, seed).run(), req_cal)
+            log = Harness(scenario, SilPlanner, seed).run()
+            result = metrics.evaluate(log, req_cal)
             result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
+            result.targets.extend(proposed.targets(log, suite.get("proposed_targets", [])))
             failed = [c.id for c in result.criteria
                       if c.id in scope and c.applicable and not c.passed]
             values = {t.id: t.value for t in result.targets if t.id in scope}

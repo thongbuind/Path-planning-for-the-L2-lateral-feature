@@ -1,0 +1,32 @@
+# Evaluation plan of PP-TS-021 (research/README.md, step 2). Points of study.md section 3
+# agreed 2026-11-16; PP_T4_BLEND built (step 3). Locked 2026-11-16.
+# ay_margin_hwa stays 0 (PP-TS-020, point 3).
+# Tuning budget: none; every variant at the start calibration except the values it changes.
+id: PP-TS-021
+locked: 2026-11-16
+suite: PP-TS-021        # benchmark/suites/PP-TS-021.yaml: its tuning and test runs, seeds and scope
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+variants:
+  V0:
+    description: stitch_reset 0,2 m; T4 bước 4 một λ cho cả path (bản hiện tại)
+    calibration: {}
+    cmake: {}
+  V1:
+    description: stitch_reset 0,1 m
+    calibration: {stitch_reset: 0.1}
+    cmake: {}
+  V2:
+    description: stitch_reset 0 m, luôn bắt đầu từ trạng thái đo
+    calibration: {stitch_reset: 0.0}
+    cmake: {}
+  V3:
+    description: T4 bước 4 trộn theo từng đoạn 0–1 s, 1–2 s, sau 2 s
+    calibration: {}
+    cmake: {PP_T4_BLEND: segments}
+  V4:
+    description: stitch_reset 0 m và trộn theo từng đoạn
+    calibration: {stitch_reset: 0.0}
+    cmake: {PP_T4_BLEND: segments}

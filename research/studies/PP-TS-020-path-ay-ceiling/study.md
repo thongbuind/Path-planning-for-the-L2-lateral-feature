@@ -91,7 +91,8 @@ Ca chọn từ nhóm trượt PP-SWR-051 trên S1c của lần chạy full, cùn
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
-| [20261116-1548-study-PP-TS-020-04ae8c5](../../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md) | V0, V1a, V1b, V1c | Theo plan khóa 2026-11-16 |
+| [20261116-1548-study-PP-TS-020-04ae8c5](../../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md) | V0, V1a, V1b, V1c | Theo plan khóa 2026-11-16. S1b quá ngắn để chấm R79 (PP-PR-056); thay bằng lần dưới |
+| [20261116-1607-study-PP-TS-020-d1d50de](../../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md) | V0, V1a, V1b, V1c, V2 | Khóa lại: S1b a, b 17 s, c 15 s; thêm V2 |
 
 ## 5. Kết quả
 
@@ -127,9 +128,34 @@ Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0
 - Margin cộng thẳng vào a_y của xe (mỗi 0,1 m/s² thêm 0,1), không giúp gì ở ca này: DLC nhỏ nhất 0,80 m ở mọi phương án.
 - Thời gian trên 2,8 m/s² bị cắt ở cuối log ở cả ba phương án. V0 và V1a "đạt" phần thời lượng của R79 vì ca ngắn, không phải vì hành vi.
 
+**Lần chạy chính thức sau khi khóa lại** [20261116-1607-study-PP-TS-020-d1d50de](../../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md). Số lượt trượt (chỉnh / kiểm): V0 6 / 12; V1a 2 / 12; V1b 2 / 8; V1c 2 / 8; V2 6 / 16.
+
+| Ca (2 seed mỗi ô) | V0 | V1a | V1b | V1c | V2 |
+|---|---|---|---|---|---|
+| S1b a, b, ACC bỏ qua LateralLimits | R79 | R79 | R79 | R79 | R79 |
+| S1b c, ACC bỏ qua LateralLimits | Đạt | R79 | R79 | R79 | Đạt |
+| S1c + F08 a, VP-0 và VP-5 | 051 | Đạt | Đạt | Đạt | 051 |
+| S1c + F06 e, VP-5 | 051 | Đạt | Đạt | Đạt | 051 |
+| S1c + F08 b, VP-0 và VP-5 | 051 | 051 | Đạt | Đạt | 051 |
+| S1c + F17 b, VP-0 và VP-5 (đối chứng) | 051 | 051 | 051 | 051 | 051, 100 |
+| Mọi ca còn lại | Đạt | Đạt | Đạt | Đạt | Đạt |
+
+- S1b a, b trượt R79 ở mọi phương án, kể cả V0 với path ở aysmax. a_y của xe vượt aysmax + 0,3 quá 2 s không do trần của path: đây là trượt của bản hiện tại, trước bị ca ngắn che (PP-PR-056). Ở hai ca này tiêu chí R79 không phân biệt được các phương án.
+- S1b c (110 km/h, cua cần 3,1 m/s²): V0, V2 đạt, V1a đến V1c trượt. Margin đẩy a_y của xe qua giới hạn ở ca này.
+- V2 giống V0 ở mọi ca S1c: cờ giới hạn bật ở S1c, nên margin bị tắt đúng ở ca cần nó. V2 còn thêm trượt PP-SWR-100 ở F17 b, do trần đổi bậc khi cờ đổi. Loại V2.
+- Ở S1c, V1b và V1c như nhau và tốt nhất: gỡ F08 a, F08 b, F06 e. Lệch tâm làn xấu nhất (PP-SWR-050): V0, V2 0,50 / 0,45 m; V1 0,12–0,13 / 0,28 m.
+
 ## 6. Đề xuất
 
-2026-11-16, chờ người dùng:
+2026-11-16, sau lần chạy 20261116-1607, chờ người dùng:
+
+- 2026-11-16: chờ [PP-TS-021](../PP-TS-021-stitch-start/study.md) (T4), rồi chạy lại study này trên bản đã sửa T4.
+- Chưa chọn. Bản hiện tại trượt bài R79 Annex 8, 3.2.2 ở S1b a, b; chưa sửa thì chưa chấm được margin về phía R79. Ưu tiên PP-PR-056: tách phần do Lateral Controller chạy thử và phần do T4 nối path cũ khi xe lệch dưới `stitch_reset`.
+- V2 loại: cờ bật ở S1c, và trần đổi bậc làm trượt PP-SWR-100.
+- Giữa V1a và V1b: V1b giữ làn tốt hơn (F08 b); cả hai trượt S1b c. Chọn sau khi PP-PR-056 có nguyên nhân, vì cách sửa đó đổi phần a_y xe vượt path.
+- Chưa rõ vì sao cờ giới hạn bật ở S1c (cua cần đúng aysmax, ngưỡng bật aysmax + `delta_ay`). Có thể do T10 bước 3 lấy độ cong lớn hơn của camera và T5. Cần chẩn đoán; có thể là problem report riêng.
+
+Đề xuất trước đó (2026-11-16, sau lần chạy 20261116-1548), đã làm:
 
 - Chưa chọn phương án nào. Kết quả R79 ở S1b chưa đủ tin để loại hay giữ phương án (PP-PR-056).
 - Bước 1, bên chấm: kéo dài cung của S1b để đo trọn 2 s của R79, ghi lý do ở SQTS. Đây là sửa kịch bản sau khi thấy kết quả, nên mở lại khóa.
