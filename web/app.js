@@ -719,7 +719,7 @@
       if (c.kind === "doc") { renderDocCard(c, ++reportNumber); return; }
       if (c.kind === "diagram") { renderDiagramCard(c); return; }
       var b = el("a", "card" + (c.group ? " " + c.group : ""));
-      b.href = reportHref(c.research.doc, c.research.section);
+      b.href = c.presentation || reportHref(c.research.doc, c.research.section);
       b.dataset.id = c.id;
       b.dataset.region = c.region || (c.group === "sim" ? "simulation" : "vehicle");
       if (c.group !== "sim") {
@@ -735,7 +735,7 @@
 
       b.appendChild(el("span", "card-title", tr(c.title)));
       b.appendChild(el("span", "card-summary", tr(c.summary)));
-      var cta = el("span", "card-cta", tr("Đọc trong tài liệu"));
+      var cta = el("span", "card-cta", tr(c.presentation ? "Xem minh họa" : "Đọc trong tài liệu"));
       cta.insertAdjacentHTML("beforeend", ICON_ARROW);
       b.appendChild(cta);
       world.appendChild(b);

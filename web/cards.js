@@ -106,6 +106,7 @@ window.SPEC_CARDS = [
     "x": -266,
     "y": -173,
     "title": "Path Planner",
+    "presentation": "path-planner/index.html",
     "summary": "Tạo đường mục tiêu cho HWA, LKA và ELK.",
     "research": {
       "doc": "path-planner-software-architectural-design",

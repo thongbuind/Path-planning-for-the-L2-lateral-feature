@@ -29,7 +29,7 @@ try {
     filter: source => !source.endsWith(".py") && !source.endsWith("README.md") && !source.endsWith("tools") && !source.includes("__pycache__")
   });
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
-  for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html"]) {
+  for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html", "path-planner/index.html"]) {
     const html = fs.readFileSync(path.join(site, file), "utf8")
       .replace("<html ", "<html data-static ")
       .replace('<meta name="github-repository" content="">', '<meta name="github-repository" content="' + repository + '">');

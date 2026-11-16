@@ -92,6 +92,7 @@ window.SPEC_EN = {
   "Chưa lưu…": "Unsaved…",
   "Dữ liệu {from} gửi tới {to}: {label}": "Data from {from} to {to}: {label}",
   "Đọc trong tài liệu": "Read in the document",
+  "Xem minh họa": "View illustration",
   "Đang xem bản gốc tiếng Việt · chỉ đọc": "Viewing the Vietnamese source · read-only",
   "Chưa có bản dịch EN": "English translation unavailable",
   "Đang tải sơ đồ…": "Loading diagram…",
