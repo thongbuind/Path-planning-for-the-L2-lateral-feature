@@ -15,6 +15,13 @@
 /* Cut slightly inside each limit so the float32 value sent never exceeds it. */
 #define PP_LIMIT_SCALE (1.0 - 1.0e-6)
 
+pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal)
+{
+    const pp_function_limits_t limits = {PP_AYSMAX + (double)cal->ay_margin_hwa,
+                                         PP_JERK_MAX_HWA, 0.0};       /* PP-SWR-001, 003 */
+    return limits;
+}
+
 void pp_feasibility_check(const pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                           const pp_ref_samples_t *ref, pp_path_check_t *out)
 {

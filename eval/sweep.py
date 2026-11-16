@@ -68,13 +68,17 @@ def one_at_a_time(suite: dict) -> list[CalSet]:
 # PP-TS-014): camera view range (Q4) and delays (Q1 to Q3).
 SIM_KEYS = ("camera_view_m", "camera_view_start_m", "camera_latency_ms", "camera_jitter_ms",
             "yaw_filter_delay_ms", "function_requests_latency_ms")
-RUN_SIM_KEYS = SIM_KEYS + ("acc",)
+# Run values that are not numbers: ACC mode, and the vehicle profile (PP-TS-020).
+RUN_TEXT_KEYS = ("acc", "profile")
+RUN_SIM_KEYS = SIM_KEYS + RUN_TEXT_KEYS
 
 
 def check_sim(scenario) -> None:
     """Simulator values within what the models support."""
     from eval import openx
-    ok = (10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
+    from sim.vehicle.profiles import PROFILES
+    ok = (scenario.profile in PROFILES
+          and 10.0 <= scenario.camera_view_m <= openx.CAMERA_VIEW_MAX_M
           and 0.0 <= scenario.camera_view_start_m < scenario.camera_view_m
           and 0.0 <= scenario.camera_latency_ms <= 1000.0
           and 0.0 <= scenario.camera_jitter_ms <= scenario.camera_latency_ms + 50.0
@@ -107,7 +111,8 @@ def load_run(run: list):
     if len(spec) > 2:
         scenario = loader.with_fault(scenario, spec[2], spec[3])
     if sim:
-        scenario = replace(scenario, **{k: (v if k == "acc" else float(v)) for k, v in sim.items()},
+        scenario = replace(scenario, **{k: (str(v) if k in RUN_TEXT_KEYS else float(v))
+                                        for k, v in sim.items()},
                            name=scenario.name + " [" + ", ".join(f"{k}={v}" for k, v in sim.items()) + "]")
         check_sim(scenario)
     return scenario
@@ -145,7 +150,7 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
     os.environ["PP_PLANNER_LIB"] = str(lib)
     # Imported after the library is chosen.
     from adapters.sil.sil_planner import SilPlanner
-    from eval import metrics
+    from eval import metrics, proposed
     from sim.harness import Harness
 
     params = yaml.safe_load((folder / "calibration.yaml").read_text(encoding="utf-8"))["parameters"]
@@ -157,6 +162,7 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
         scope = scope_of(suite, run)
         for seed in part["seeds"]:
             result = metrics.evaluate(Harness(scenario, SilPlanner, seed).run(), req_cal)
+            result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
             failed = [c.id for c in result.criteria
                       if c.id in scope and c.applicable and not c.passed]
             values = {t.id: t.value for t in result.targets if t.id in scope}

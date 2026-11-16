@@ -719,13 +719,14 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
                 const double wheelbase = (double)s->vehicle.wheelbase;
                 /* PP-TS-003: limit the candidate first, so the blend of two feasible paths
                  * is the path sent; the second T10 call below only meets speed changes. */
-                (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
+                const pp_function_limits_t path_limits = pp_hwa_path_limits(s->cal); /* PP-TS-020 */
+                (void)pp_feasibility_limit(out->points, &out->samples, &path_limits,
                                            &s->vehicle);                           /* T10 step 2 */
                 if (!override_now) {   /* T4 step 5: no blend while the driver overrides */
                     (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
                                           out->points);                            /* T4 steps 4, 5 */
                 }
-                (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
+                (void)pp_feasibility_limit(out->points, &out->samples, &path_limits,
                                            &s->vehicle);                           /* T10 step 2 */
                 /* T10 steps 3, 4 on the larger of camera and fused curvature (safe side). */
                 pp_curve_limit_t camera_curve;

@@ -27,6 +27,8 @@ parameters:
   dlc_target_lka:   {value: 0.5, unit: m, min: 0, source: "PP-SWR-084"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}
   ay_add_max_hwa:   {value: 0.5, unit: m/s^2, max: 2.5, source: "PP-SWR-001"}
+  # Ceiling of the HWA path a_y above aysmax (PP-TS-020); 0 keeps the ceiling at aysmax.
+  ay_margin_hwa:    {value: 0.0, unit: m/s^2, min: 0, max: 0.3, source: "R79 5.6.2.1.1 (+0.3 m/s^2); PP-TS-020"}
   jerk_target_hwa:  {value: 2.5, unit: m/s^3, max: 5, source: "PP-SWR-003"}
   ref_rate:         {value: 0.1, unit: m/s, min: 0, source: "PP-SWR-120"}
   stitch_reset:     {value: 0.2, unit: m, min: 0, source: "PP-SWR-100"}

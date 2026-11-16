@@ -1,0 +1,63 @@
+# Tuning and test runs of PP-TS-020 (research/studies/PP-TS-020-path-ay-ceiling). Locked
+# 2026-11-16 with the plan. Chosen from the PP-SWR-051 failure groups on S1 c of the full
+# run 20261115-1126-suite-full-7495822 (curve at aysmax with yaw-rate bias F08, rain S12 a,
+# lane-model noise F01 c, wrong curvature F06 e) plus the cases the path limit must keep
+# (S1 a, f, g; S1b; S2; S14 a). F17 b on S1 c is a control: the draft build of PP-PR-049
+# did not change it (PP-PR-054). G01 is a combination case and is not run by eval.study; it
+# is confirmed in the regression run of step 8 (study.md section 3, point 4).
+# The last element of a run may set simulator values (ACC mode, vehicle profile), read by
+# eval.sweep.load_run. Runs at aysmax on S1 c also run on VP-5, the worst profile for
+# PP-SWR-051 in the full run (point 3).
+# S1b with ACC ignoring LateralLimits is the test of R79 Annex 8, 3.2.2.
+# Points 1, 2: PP-SWR-001 as it stands is left out of the scope; the proposed text and the
+# R79 vehicle a_y are judged instead (eval/proposed.py).
+id: PP-TS-020
+title: Trần a_y của path HWA
+
+proposed: [PP-TS-020/PP-SWR-001, PP-TS-020/R79-5.6.2.1.1]
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117,
+           PP-TS-020/PP-SWR-001, PP-TS-020/R79-5.6.2.1.1]
+  S1: [PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-003, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S12: [PP-SWR-051, PP-SWR-050]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F01: [PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  F06: [PP-SWR-051, PP-SWR-125]
+  F08: [PP-SWR-051, PP-SWR-136]
+  F17: [PP-SWR-051]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, c]
+    - [S1, c, {profile: VP-5}]
+    - [S1, g]
+    - [S1b, a, {acc: "ignore_limits"}]
+    - [S1b, f, {acc: "ignore_limits"}]
+    - [S2, b]
+    - [S12, a]
+    - [S12, a, {profile: VP-5}]
+    - [S1, c, F08, a]
+    - [S1, c, F08, a, {profile: VP-5}]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S1b, b, {acc: "ignore_limits"}]
+    - [S1b, c, {acc: "ignore_limits"}]
+    - [S1b, e, {acc: "on"}]
+    - [S2, a]
+    - [S14, a, {acc: "on"}]
+    - [S1, c, F08, b]
+    - [S1, c, F08, b, {profile: VP-5}]
+    - [S1, c, F01, c]
+    - [S1, c, F01, c, {profile: VP-5}]
+    - [S1, c, F06, e]
+    - [S1, c, F06, e, {profile: VP-5}]
+    - [S1, c, F17, b]
+    - [S1, c, F17, b, {profile: VP-5}]

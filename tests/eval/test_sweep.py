@@ -72,6 +72,27 @@ def test_suite_run_with_simulator_values():
             assert sweep.scope_of(suite, run)
 
 
+def test_suite_run_with_vehicle_profile():
+    import pytest
+    from eval import sweep
+    scenario = sweep.load_run(["S1", "c", {"profile": "VP-5"}])
+    assert scenario.profile == "VP-5" and "profile=VP-5" in scenario.name
+    assert sweep.load_run(["S1", "c"]).profile == "VP-0"
+    with pytest.raises(ValueError):
+        sweep.load_run(["S1", "c", {"profile": "VP-99"}])
+
+
+def test_pp_ts_020_suite_loads_and_names_its_proposed_criteria():
+    from eval import proposed, sweep
+    suite = sweep.load_suite("PP-TS-020")
+    assert set(suite["proposed"]) <= set(proposed.CRITERIA)
+    assert set(suite["proposed"]) <= set(suite["scope"]["always"])
+    assert "PP-SWR-001" not in {i for ids in suite["scope"].values() for i in ids}
+    for part in ("tuning", "test"):
+        names = [sweep.load_run(run).name for run in suite[part]["runs"]]
+        assert len(names) == len(set(names))                # every run is told apart
+
+
 def test_matrix_block_sim_is_held_for_every_level():
     from eval import matrix
     block = {"sim": {"camera_jitter_ms": 20}, "sim_sweep": {"camera_latency_ms": [0, 100, 200]}}

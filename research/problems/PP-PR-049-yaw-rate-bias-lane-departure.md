@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khoanh vùng; cần đổi requirement (đề xuất trade study) |
+| Trạng thái | Đã khoanh vùng; sửa qua PP-TS-020 |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-136; PP-SWR-051, 100 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): F08 b, c trên S1c; F08 c trên S1a |
@@ -24,7 +24,7 @@
 ## 3. Cách sửa
 
 - Không sửa được trong phạm vi PP-SWR-001 hiện tại. Đề xuất trade study: biên a_y vượt aysmax theo R79 5.6.2.1.1 (liên tục ≤ 0,3 m/s², ngắn hạn ≤ 40 % trong 2 s), chỉ dùng để giữ xe trong làn; ảnh hưởng PP-SWR-001, 005, 006, cờ giới hạn.
-- Người dùng quyết định mở study.
+- 2026-11-16: người dùng đồng ý mở [PP-TS-020](../studies/PP-TS-020-path-ay-ceiling/study.md).
 
 ## 4. Xác nhận
 
