@@ -74,9 +74,8 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
     if (!t->valid || !(jump <= limit * sqrt(b->variance[0] + t->variance[0]))) {
         return false;
     }
-#ifdef PP_T2_SHAPE_CHECK
-    /* Compare only points that both frames observe. Keep one sample in the interior
-     * and one farther ahead, away from the end of the cubic fit. */
+    /* Shape check (PP-TS-001). Compare only points that both frames observe. Keep one
+     * sample in the interior and one farther ahead, away from the end of the cubic fit. */
     const double lo = fmax(0.0, fmax(b->view_start, t->view_start));
     const double hi = fmin(b->view_end, t->view_end);
     if (hi > lo) {
@@ -95,7 +94,6 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
             }
         }
     }
-#endif
     return true;
 }
 
@@ -120,6 +118,13 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
     } else {
         m->absent_s = 0.0;
         if (!m->accepted.valid || consistent(b, &m->accepted, cal)) {
+            if (m->candidate.valid && !m->previous.valid) {
+                /* PP-PR-048: while a change is pending, the memory is only moved by ego-motion
+                 * and the shape test weakens as the shared window shrinks. A frame it now takes
+                 * may be the change itself: keep the memory from before as a way back (R2). */
+                m->previous = m->accepted;
+                m->previous.age_s = 0.0;
+            }
             set_track(&m->accepted, b, 0.0);
             m->candidate.valid = false;
             trusted = true;
@@ -303,11 +308,18 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
 
     bool outer_trusted[PP_OUTER_BOUNDARIES];
     update_outer(mem, lane, cycle_motion, cal, dt, measured_ref, outer_trusted);
-    if (!left_ok && !right_ok && mem->width_valid) {
+    /* An ego-lane line rejected by the consistency check is a suspected glitch, not a lost
+     * line: coast on the last direct reference line first, infer only after (PP-PR-052). */
+    const bool suspected = out->line_rejected[0] || out->line_rejected[1];
+    const bool may_infer = !left_ok && !right_ok && mem->width_valid;
+    if (may_infer && !suspected) {
         infer_centre(mem, lane, outer_trusted, out);
     }
     if (!out->valid) {
         coast(mem, cycle_motion, cal, dt, out);
+    }
+    if (!out->valid && may_infer && suspected) {
+        infer_centre(mem, lane, outer_trusted, out);
     }
 
     if (out->valid && !out->coasting) {

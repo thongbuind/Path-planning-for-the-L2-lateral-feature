@@ -21,6 +21,7 @@ các file tài liệu `.md`. Mở thẳng `index.html` thì bản đồ vẫn xe
 - Nút góc phải: phóng to, thu nhỏ, đưa tất cả thẻ vào khung. Khi bản đồ đang được focus: phím `+`, `-`, `0` và các phím mũi tên.
 - Bấm thẻ phần mềm, giả lập hoặc nhãn đường nối để mở mục tương ứng trong tài liệu.
 - Bấm **Tài liệu kỹ thuật** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Trang chủ** đưa về bản đồ tại `home/`.
+- Bấm vùng **Benchmark** để xem báo cáo SIL mới nhất ở `benchmark/`. Nút **Toàn màn hình** mở chế độ toàn màn hình của trình duyệt.
 
 ## Chuẩn bị bản tĩnh cho GitHub Pages
 
@@ -31,6 +32,8 @@ node spec-web/build-static.cjs
 ```
 
 Lệnh tạo lại `spec-web/dist/` với `index.html`, trang báo cáo, tài nguyên, bản Markdown tiếng Việt và các bản dịch hiện có. Người đọc có thể lưu nháp nhận xét trên trình duyệt.
+
+`benchmark/run.json` chọn lần chạy trong `research/runs/` được đưa lên web. Khi cập nhật, lưu `conformance.json` cùng lần chạy và tạo hai bản dashboard bằng `python -m eval.report_html research/runs/<run-id> --lang vi` và `python -m eval.report_html research/runs/<run-id> --lang en`. Đổi ID trong `benchmark/run.json` sau khi kiểm tra cả hai bản.
 
 Để xem thử, chạy `python3 -m http.server 8772 --directory spec-web/dist` rồi mở [bản tĩnh cục bộ](http://127.0.0.1:8772/).
 

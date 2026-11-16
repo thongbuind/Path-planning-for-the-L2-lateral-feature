@@ -3,6 +3,7 @@ icd: "5.2"
 constants:
   MAX_OBJECTS: {type: uint, value: 32}
   OBJECT_LIST_TIMEOUT_US: {type: uint64, value: 150000}
+  OBJECT_LIST_MAX_DELTA_COUNTER: {type: uint, value: 3, doc: "Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms)"}
   OBJECT_LIST_MAX_AGE_US: {type: uint64, value: 250000}
 structs:
   Object:

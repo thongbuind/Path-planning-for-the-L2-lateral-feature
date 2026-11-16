@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân |
+| Trạng thái | Đóng; xác nhận ở 20261114-1952-suite-regression-0776bad |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-100 |
 | Tái hiện | Lần chạy nháp: S1b b, S1b e, seed 1, `PP_T7=qp`; quintic cùng cơ chế nhưng dưới ngưỡng |
@@ -37,9 +37,12 @@ Phân tích thêm 2026-11-13:
 
 Chỉnh `qp_w_jerk` (3, 10, 30) trên lần chạy nháp: không sửa được S1b e và làm thời gian tính tăng, nên không chọn.
 
+**Lần dò 2026-11-14 (nháp).** Đặt T10 cắt path ứng viên trước khi T4 trộn (`PP_T10_BEFORE_T4`) đưa S1b b, e với T7 C từ 0,065, 0,070 m về 0,048 m, seed 1. Phần lệch còn lại sau khi trộn đến từ T10 chạy sau bước 4, không phải từ bước 2. Hướng A không cần làm riêng; so trong PP-TS-003 (V1b).
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
 
 Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md) (T7 quintic): PP-SWR-100 sát ngưỡng 0,050–0,056 m ở S7 a và ncap-oncoming (3), S8b c VP-1 (1), S17 b VP-4 (1), S1b a (1). Chưa xác định có cùng cơ chế stitching reset không.
+| [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md) | S1b b, e đạt với bản giao V0b (quintic, T10 trước T4); bản QP không còn trong bản giao |

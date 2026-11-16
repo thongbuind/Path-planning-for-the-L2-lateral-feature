@@ -1,0 +1,10 @@
+{
+  "planned": 2079,
+  "executed": 2079,
+  "failed": 115,
+  "failed_out_of_scope": 95,
+  "errors": 0,
+  "execution_faults": 0,
+  "partial": false,
+  "verdict": "Không đạt"
+}

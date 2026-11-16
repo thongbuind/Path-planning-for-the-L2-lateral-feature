@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã thêm tiêu chí 147 và 047, chờ hồi quy chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261114-1021-suite-regression-d7ed84c |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-147, 047 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): 2.073 lần chạy, không lần nào có tiêu chí 147 hay 047 |
@@ -36,3 +36,4 @@ Test của bên chấm kiểm ba tình huống: mất path khi còn biên ngoài
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | 147 và 047 có trong kết quả và áp dụng ở 30/30 lượt F21 a–d (cục bộ 24 lượt; bộ regression có thêm một biến thể F21 a). Ở [20261113-2341-suite-regression-1014d20](../runs/20261113-2341-suite-regression-1014d20/report.md) không lượt nào có hai tiêu chí này |

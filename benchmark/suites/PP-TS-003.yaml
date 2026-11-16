@@ -1,0 +1,52 @@
+# Tuning and test runs of PP-TS-003 (research/studies/PP-TS-003-path-generator). Draft, not
+# locked: waiting for review. Chosen from the PP-SWR-100 failure groups of regression
+# 20261114-1021-suite-regression-d7ed84c (curve entry at aysmax with lane-model noise: S1 c
+# with F01, S12 a; S-bend S14 e; S14 c; S12 d at start-up; F06 on S1 c) plus the nominal and
+# recentering cases the generator must keep (S1, S1b, S2, S3). G01 is a combination case and
+# is not run by eval.study; it stays in the regression suite.
+# The last element of a run may set simulator values (ACC mode), read by eval.sweep.load_run.
+id: PP-TS-003
+title: Kỹ thuật tạo path HWA
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-001, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S3: [PP-SWR-055, PP-SWR-056, PP-SWR-058, PP-SWR-057, PP-SWR-059]
+  S12: [PP-SWR-001, PP-SWR-051, PP-SWR-050]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F01: [PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  F06: [PP-SWR-051, PP-SWR-125]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1b, a]
+    - [S1b, e]
+    - [S2, b]
+    - [S3, a]
+    - [S1, c, F01, a]
+    - [S12, a]
+    - [S14, e, {acc: "on"}]
+    - [S1, c, F06, b]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, c]
+    - [S1, f]
+    - [S1b, b]
+    - [S1b, c]
+    - [S2, a]
+    - [S2, d]
+    - [S3, b]
+    - [S1, c, F01, b]
+    - [S1, c, F01, c]
+    - [S12, d]
+    - [S14, a, {acc: "on"}]
+    - [S14, c]
+    - [S14, e, {acc: "ignore_limits"}]
+    - [S1, c, F06, e]
+    - [S1, a, F02, b]

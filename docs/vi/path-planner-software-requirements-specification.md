@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.18 |
+| Phiên bản | 1.20 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -158,7 +158,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 |---|---|---|---|---|
 | PP-SWR-030 | Planner phải chọn chức năng đang lái theo thứ tự ELK > LKA > HWA, chỉ xét chức năng có state = REQUEST | Test: S9 (a) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-031 | Khi chức năng đang lái đổi, path phải thoả PP-SWR-100 đến 102, trừ lúc LKA hoặc ELK bắt đầu mà xe thật đang lệch khỏi path cũ hơn 0,1 m hoặc 0,1 m/s; khi đó áp PP-SWR-080 | Test: S9, S8c (d) | Safety, SG-04 | đề bài |
-| PP-SWR-032 | Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục `T_end_hold`, planner phải đặt pha của chức năng đó thành COMPLETED | Test: S4, S5 | Functional | nhóm tự thống nhất |
+| PP-SWR-032 | Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục `T_end_hold`, planner phải đặt pha của chức năng đó thành COMPLETED trong tối đa 0,5 s | Test: S4, S5 | Functional | nhóm tự thống nhất (PP-TS-018); can thiệp vẫn dưới mốc 10 s của UN R79 5.1.6.1.2.1 |
 | PP-SWR-033 | Sau COMPLETED, planner phải chọn chức năng đang lái theo PP-SWR-030 trong các chức năng còn ở REQUEST, không tính chức năng vừa COMPLETED; không còn chức năng nào thì chọn NONE | Test: S9 (b) | Functional | nhóm tự thống nhất |
 | PP-SWR-034 | Nếu chức năng vừa COMPLETED vẫn giữ REQUEST, thì planner không được bắt đầu lần can thiệp mới cho chức năng đó cho tới khi state rời REQUEST rồi quay lại | Test: S16 (a, b) | Functional | nhóm tự thống nhất |
 | PP-SWR-035 | Mỗi lần can thiệp mới của LKA hoặc ELK phải có cùng giới hạn như lần đầu, không phụ thuộc số lần đã can thiệp | Test: S16 (c, d, e) | Functional | nhóm tự thống nhất |
@@ -262,8 +262,8 @@ Nguồn của giới hạn quyền lái: R79 không giới hạn a_y của CSF. 
 | PP-SWR-126 | Khi message bị mất, lẻ hoặc thành chuỗi, hoặc có jitter ±20 ms, path phải thoả PP-SWR-100 đến 102 và giới hạn jerk của chức năng đang lái | Test: F10 | Safety, SG-04 | nhóm tự thống nhất |
 | PP-SWR-127 | Khi message đến muộn hoặc sai thứ tự, path phải thoả PP-SWR-100 đến 102 | Test: F11 | Safety, SG-04 | nhóm tự thống nhất |
 | PP-SWR-128 | Trong khi camera gửi 20 Hz và planner chạy 40 Hz, path phải thoả PP-SWR-100 đến 102 ở mọi chu kỳ | Test: mọi kịch bản, F13 | Safety, SG-04 | nhóm tự thống nhất |
-| PP-SWR-129 | Nếu message bị lặp (counter lặp), thì output phải giống ca không lỗi cùng seed | Test: F15 (lặp) | Safety | nhóm tự thống nhất |
-| PP-SWR-130 | Nếu counter nhảy hoặc đứng yên, valid = false, qualifier FAULT hoặc CRC sai, thì output phải giống ca mất message tương ứng | Test: F15 (nhảy, đứng yên), F16, F17 | Safety | nhóm tự thống nhất |
+| PP-SWR-129 | Nếu message pub/sub bị lặp, hoặc counter của nó tăng không quá MaxDeltaCounter của Interface Control Document mục 3 so với message nhận trước đó, thì output phải giống ca không lỗi cùng seed | Test: F15 (lặp, nhảy trong giới hạn) | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (OK, OKSOMELOST) |
+| PP-SWR-130 | Nếu counter đứng yên hoặc tăng quá MaxDeltaCounter, valid = false, qualifier FAULT hoặc CRC sai, thì output phải giống ca mất message tương ứng | Test: F15 (nhảy quá giới hạn, đứng yên), F16, F17 | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (REPEATED, WRONGSEQUENCE); nhóm tự thống nhất |
 | PP-SWR-131 | Nếu tuổi của lane model hoặc ObjectList vượt 250 ms, thì planner phải coi input đó không hợp lệ | Test: Q1 (300 ms) | Safety | nhóm tự thống nhất |
 | PP-SWR-132 | Nếu stamp của input ở tương lai quá 10 ms, thì planner phải coi input đó không hợp lệ | Test: F19 | Safety | nhóm tự thống nhất |
 | PP-SWR-133 | Trong khi tuổi của lane model hoặc ObjectList trong khoảng 170–250 ms, planner phải tiếp tục dùng input đó | Test: Q1 (200 ms) | Functional | nhóm tự thống nhất |
@@ -349,3 +349,5 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.16 | 2026-11-13 | Định nghĩa Hai path liên tiếp: không tính cặp path trong lúc tài xế ghi đè. Lý do: khi tài xế lái, PP-SWR-039 và 100 không cùng thoả được; R79 5.6.4.3 ưu tiên tài xế (PP-TS-017, PP-PR-032). Ảnh hưởng: PP-SWR-100 đến 102 và các requirement dựa vào chúng; Software Qualification Test Specification 8.1; bên chấm |
 | 1.17 | 2026-11-14 | Mục 5 ghi giới hạn quan sát khi vào cua ở tốc độ cao theo PP-PR-007, phương án B. Giữ phạm vi áp dụng của PP-SWR-051 |
 | 1.18 | 2026-11-14 | Thêm PP-SWR-092: không bắt đầu LKA, ELK vạch về phía có vạch làn mình không đủ tin. Lý do: EU 2021/646 không đòi ELKS khi không có vạch; hệ thống trên xe bán ra không can thiệp về phía không nhận ra vạch; hành vi này trước chỉ có ở Software Detailed Design (PP-PR-038). Ảnh hưởng: Software Qualification Test Specification 5 (F04), 8.1; Software Detailed Design T9; bên chấm |
+| 1.19 | 2026-11-14 | PP-SWR-129, 130: counter nhảy trong MaxDeltaCounter thì dùng message (như không lỗi), quá giới hạn hoặc đứng yên thì như mất message. Lý do: PP-PR-035, câu cũ hiểu được theo hai cách; theo trạng thái của AUTOSAR E2E Profile 5. Ảnh hưởng: Interface Control Document 1.11 mục 3, 4; Software Detailed Design T1; F15 (thêm g); bên chấm |
+| 1.20 | 2026-11-14 | PP-SWR-032: báo COMPLETED trong tối đa 0,5 s sau khi điều kiện giữ đủ `T_end_hold`, thay cho đúng tick. Lý do: PP-TS-018 V1; planner chỉ thấy trạng thái ước lượng nên không báo được đúng tick của chuyển động thật; báo sớm vẫn trượt PP-SWR-090. Ảnh hưởng: PP-SWR-032; S4, S5, S12, S13 |

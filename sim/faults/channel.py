@@ -15,7 +15,7 @@ messages the fault made unusable (PP-SWR-130).
 | stop | nothing is delivered |
 | future_stamp | header.stamp_us + `value` ms; `count` > 0: only the first `count` messages |
 | counter_repeat | every `every`-th message delivered twice, the copy `value` ms later |
-| counter_jump | every `every`-th message: counter + `count` (that message and the next keep the jump) |
+| counter_jump | every `every`-th message: counter + `count`; later messages keep the offset, as a sender that skipped values |
 | counter_stuck | counter held at the value before the window |
 | invalid | header.valid = false; on a CAN frame qualifier FAULT (F16) |
 | crc | CAN frame with a wrong CRC (F17) |
@@ -25,12 +25,15 @@ messages the fault made unusable (PP-SWR-130).
 On a CAN channel the message is a sim.can.frames.CanFrame: the counter is the 4-bit frame
 counter, changed by the sender (CRC still right). The CAN receive layer drops wrong CRC and
 repeated counters, so the reference twin differs from a pub/sub channel (`equivalent`).
+On a pub/sub channel the planner checks the counter step against the largest accepted step
+of the input (Interface Control Document 4, AUTOSAR E2E Profile 5).
 """
 
 from dataclasses import dataclass, replace
 
 import numpy as np
 
+import interfaces as I
 from sim.faults import trigger
 
 KINDS = ("drop", "burst", "jitter", "late", "stop", "future_stamp", "counter_repeat",
@@ -41,6 +44,12 @@ CHANNELS = ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_st
 # equals no fault at all (PP-SWR-129).
 LOSS_EQUIVALENT = ("counter_jump", "counter_stuck", "invalid")
 NO_FAULT_EQUIVALENT = ("counter_repeat",)
+# Largest counter step a pub/sub input accepts (Interface Control Document 4).
+MAX_DELTA_COUNTER = {"lane_model": I.LANE_MODEL_MAX_DELTA_COUNTER,
+                     "object_list": I.OBJECT_LIST_MAX_DELTA_COUNTER,
+                     "vehicle_state": I.VEHICLE_STATE_MAX_DELTA_COUNTER,
+                     "function_requests": I.FUNCTION_REQUESTS_MAX_DELTA_COUNTER,
+                     "longitudinal_plan": I.LONGITUDINAL_PLAN_MAX_DELTA_COUNTER}
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,6 +84,7 @@ class _State:
     index: int = 0  # messages published on the channel so far
     in_window: int = 0  # messages published inside the window so far
     held_counter: int | None = None
+    counter_offset: int = 0  # counter_jump: sum of the jumps so far
     hit: list[int] | None = None  # indices made unusable (loss-equivalent bookkeeping)
 
 
@@ -93,6 +103,8 @@ class ChannelFaultInjector:
             if not fault.active(now_us):
                 if fault.kind == "counter_stuck":
                     st.held_counter = _counter(message)
+                if fault.kind == "counter_jump" and st.counter_offset:
+                    out = [(d, _with_counter(m, _counter(m) + st.counter_offset)) for d, m in out]
                 continue
             k = st.in_window
             st.in_window += 1
@@ -111,9 +123,12 @@ class ChannelFaultInjector:
                 out = [(d, _restamp(m, round(fault.value * 1000))) for d, m in out]
             elif kind == "counter_repeat" and pick:
                 out = out + [(d + round(fault.value * 1000), m) for d, m in out]
-            elif kind == "counter_jump" and pick:
-                out = [(d, _with_counter(m, (_counter(m) + fault.count) % 256)) for d, m in out]
-                st.hit.append(index)
+            elif kind == "counter_jump":
+                if pick:
+                    st.counter_offset += fault.count
+                    st.hit.append(index)
+                if st.counter_offset:
+                    out = [(d, _with_counter(m, _counter(m) + st.counter_offset)) for d, m in out]
             elif kind == "counter_stuck" and last_counter is not None:
                 out = [(d, _with_counter(m, last_counter)) for d, m in out]
                 st.hit.append(index)
@@ -150,9 +165,12 @@ def requirement(fault: ChannelFault, can_bus: bool = False) -> str:
 def equivalent(fault: ChannelFault, hit: list[int], can_bus: bool = False) -> ChannelFault | None:
     """Reference twin for PP-SWR-129, 130: None (no fault) or the loss of the messages hit.
     On a CAN channel the receive layer drops repeated counters and wrong CRC, and accepts a
-    counter jump (counted as lost frames)."""
+    counter jump (counted as lost frames). On a pub/sub channel a jump of step count + 1 up to
+    the largest accepted step is used like any message (PP-SWR-129); a larger step is lost."""
     can = can_bus and fault.channel in CAN_CHANNELS
     if fault.kind in NO_FAULT_EQUIVALENT or (can and fault.kind == "counter_jump"):
+        return None
+    if fault.kind == "counter_jump" and fault.count + 1 <= MAX_DELTA_COUNTER.get(fault.channel, 0):
         return None
     if fault.kind in LOSS_EQUIVALENT or (can and fault.kind == "crc"):
         return ChannelFault("drop_listed", fault.channel, indices=tuple(hit))
@@ -170,7 +188,7 @@ def _counter(message) -> int:
 def _with_counter(message, counter: int):
     if _is_frame(message):
         return message.with_byte6(counter % 16, message.qualifier)
-    return replace(message, header=replace(message.header, counter=counter))
+    return replace(message, header=replace(message.header, counter=counter % I.COUNTER_MODULO))
 
 
 def _with_valid(message, valid: bool):

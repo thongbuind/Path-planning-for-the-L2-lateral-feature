@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã cài bước 4 của T2, chờ hồi quy chính thức |
+| Trạng thái | Đóng; xác nhận ở 20261114-1021-suite-regression-d7ed84c |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-147; lộ qua PP-SWR-030 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F21 a, b, d trên S1a, mọi profile được chạy, seed 1 |
@@ -51,3 +51,4 @@ SIL cục bộ trên bộ F21 đã sinh lại đạt 30/30 lượt. PP-SWR-147 v
 
 | Run ID | Kết quả |
 |---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | F21 a, b trên S1a và S1c, F21 c, d trên S1a: 030 và 147 đạt ở mọi lượt (ở [20261113-2341-suite-regression-1014d20](../runs/20261113-2341-suite-regression-1014d20/report.md), F21 a, b trượt 030 ở 18/18 lượt, 550–916 chu kỳ). F21 e đạt 124 ở 6/6 lượt, vẫn dừng đúng. F21 c, d trên S1c đạt nhưng không tính làm bằng chứng: hai ca chạy đường khác ca chủ (PP-PR-045) |

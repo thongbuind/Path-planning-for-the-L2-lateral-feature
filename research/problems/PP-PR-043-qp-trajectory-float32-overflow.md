@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa, chờ hồi quy chính thức |
+| Trạng thái | Đã sửa, B0 cục bộ đạt; chờ B0 chính thức trên bản QP |
 | Mở ngày | 2026-11-14 |
 | Liên quan | B0 C2.robust, C2.finite, PP-SWR-043, PP-TS-003 |
 
@@ -17,3 +17,7 @@ Giá trị double còn hữu hạn trong T7 có thể vượt miền float32 khi
 ## 3. Xác nhận
 
 Test T11 kiểm một tọa độ hữu hạn vượt `FLT_MAX`. B0 cục bộ của bản QP đạt C2 sau khi sửa và cho phép chạy tiếp 10 lượt SIL đối chiếu. PP-TS-003 tiếp tục theo dõi lựa chọn generator.
+
+| Run ID | Kết quả |
+|---|---|
+| [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | Không xác nhận: thư viện của run là `t7 quintic`, không chạy bản QP |

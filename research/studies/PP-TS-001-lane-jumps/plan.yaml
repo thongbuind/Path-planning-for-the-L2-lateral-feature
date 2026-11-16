@@ -1,7 +1,15 @@
+# Evaluation plan of PP-TS-001 (research/README.md, step 2). Locked 2026-11-14 after review;
+# F06 a, d on host S1a added to the test part before locking (regression d7ed84c still fails
+# PP-SWR-051 there).
 id: PP-TS-001
-locked: null
-suite: PP-TS-001
+locked: 2026-11-14
+suite: PP-TS-001        # benchmark/suites/PP-TS-001.yaml: its tuning and test runs, seeds and scope
 parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+# Tuning budget: none. J0-shape adds no calibration parameter; both variants share the
+# calibration and T7, so only the build switch differs.
 variants:
   J0:
     description: Kiểm độ lệch c0 giữa hai frame

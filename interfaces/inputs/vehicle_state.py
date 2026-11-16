@@ -11,6 +11,7 @@ from interfaces.conventions import Header
 
 
 VEHICLE_STATE_TIMEOUT_US = 60000
+VEHICLE_STATE_MAX_DELTA_COUNTER = 4  # Largest accepted counter step (ICD 4, E2E): floor((60 + 25) / 20 ms)
 VEHICLE_STATE_MAX_AGE_US = 30000
 
 

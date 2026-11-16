@@ -9,6 +9,7 @@
 #include "arbitration.h"
 #include "curvature.h"
 #include "feasibility.h"
+#include "input_check.h"
 #include "generators/qp.h"
 #include "intervention.h"
 #include "offset.h"
@@ -20,9 +21,24 @@
 /* Marks memory that pp_init has set up. */
 #define PP_STATE_MAGIC (0x50504C31UL) /* "PPL1" */
 
+/* T1: last accepted message of each pub/sub input and its counter check (ICD 4). */
+typedef struct {
+    pp_counter_check_t lane_model_check;
+    pp_counter_check_t object_list_check;
+    pp_counter_check_t vehicle_state_check;
+    pp_counter_check_t function_requests_check;
+    pp_counter_check_t longitudinal_plan_check;
+    pp_received_lane_model_t lane_model;
+    pp_received_object_list_t object_list;
+    pp_received_vehicle_state_estimate_t vehicle_state;
+    pp_received_function_requests_t function_requests;
+    pp_received_longitudinal_plan_t longitudinal_plan;
+} pp_held_inputs_t;
+
 typedef struct {
     uint32_t magic;
     bool initialized;               /* pp_init returned OK */
+    pp_held_inputs_t held;          /* T1: accepted pub/sub messages */
     pp_vehicle_config_t vehicle;    /* Copy of VehicleConfig, read once (ICD 5.8) */
     const pp_calibration_t *cal;    /* Built-in calibration data set */
     uint8_t trajectory_counter;     /* Header counters, wrap at 256 (ICD 4) */

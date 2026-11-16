@@ -5,6 +5,9 @@ const vm = require("node:vm");
 
 const site = __dirname;
 const docs = path.join(site, "..", "docs");
+const benchmarkRun = JSON.parse(fs.readFileSync(path.join(site, "benchmark", "run.json"), "utf8"));
+if (!/^\d{8}-\d{4}-suite-full-[a-f0-9]+$/.test(benchmarkRun)) throw new Error("ID benchmark không hợp lệ");
+const benchmarkSource = path.join(site, "..", "research", "runs", benchmarkRun);
 const output = path.join(site, "dist");
 const data = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(site, "cards.js"), "utf8"), data);
@@ -22,13 +25,18 @@ try {
     fs.copyFileSync(path.join(site, file), path.join(staging, file));
   }
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
-  for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html"]) {
+  for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html"]) {
     const html = fs.readFileSync(path.join(site, file), "utf8")
       .replace("<html ", "<html data-static ")
       .replace('<meta name="github-repository" content="">', '<meta name="github-repository" content="' + repository + '">');
     const destination = path.join(staging, file);
     fs.mkdirSync(path.dirname(destination), { recursive: true });
     fs.writeFileSync(destination, html);
+  }
+  const benchmarkOutput = path.join(staging, "benchmark", "run");
+  fs.mkdirSync(benchmarkOutput);
+  for (const file of ["report.html", "report-details.html", "report-en.html", "report-en-details.html", "results.jsonl", "generation.json", "conformance.json"]) {
+    fs.copyFileSync(path.join(benchmarkSource, file), path.join(benchmarkOutput, file));
   }
   for (const { doc } of reports) {
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(doc)) throw new Error("ID báo cáo không hợp lệ: " + doc);

@@ -141,20 +141,71 @@ typedef struct {
     const pp_longitudinal_plan_t *longitudinal_plan;
 } pp_usable_inputs_t;
 
-static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
+/* The held message is older than the receive timeout, or none is held (ICD 4). */
+static bool timed_out(const bool *present, uint64_t rx_us, uint64_t t0_us, uint64_t timeout_us)
+{
+    return !*present || ((rx_us <= t0_us) && ((t0_us - rx_us) > timeout_us));
+}
+
+/* T1: counter check of the pub/sub inputs (ICD 4); the accepted message is held until replaced. */
+static void hold_inputs(pp_state_t *s, const pp_planner_inputs_t *in)
+{
+    pp_held_inputs_t *h = &s->held;
+    if (pp_counter_accept(&h->lane_model_check, in->lane_model.present, in->lane_model.rx_us,
+                          in->lane_model.message.header.counter,
+                          in->lane_model.message.header.valid, PP_LANE_MODEL_MAX_DELTA_COUNTER,
+                          timed_out(&h->lane_model.present, h->lane_model.rx_us, in->t0_us,
+                                    PP_LANE_MODEL_TIMEOUT_US))) {
+        h->lane_model = in->lane_model;
+    }
+    if (pp_counter_accept(&h->object_list_check, in->object_list.present, in->object_list.rx_us,
+                          in->object_list.message.header.counter,
+                          in->object_list.message.header.valid, PP_OBJECT_LIST_MAX_DELTA_COUNTER,
+                          timed_out(&h->object_list.present, h->object_list.rx_us, in->t0_us,
+                                    PP_OBJECT_LIST_TIMEOUT_US))) {
+        h->object_list = in->object_list;
+    }
+    if (pp_counter_accept(&h->vehicle_state_check, in->vehicle_state.present,
+                          in->vehicle_state.rx_us, in->vehicle_state.message.header.counter,
+                          in->vehicle_state.message.header.valid,
+                          PP_VEHICLE_STATE_MAX_DELTA_COUNTER,
+                          timed_out(&h->vehicle_state.present, h->vehicle_state.rx_us, in->t0_us,
+                                    PP_VEHICLE_STATE_TIMEOUT_US))) {
+        h->vehicle_state = in->vehicle_state;
+    }
+    if (pp_counter_accept(&h->function_requests_check, in->function_requests.present,
+                          in->function_requests.rx_us, in->function_requests.message.header.counter,
+                          in->function_requests.message.header.valid,
+                          PP_FUNCTION_REQUESTS_MAX_DELTA_COUNTER,
+                          timed_out(&h->function_requests.present, h->function_requests.rx_us, in->t0_us,
+                                    PP_FUNCTION_REQUESTS_TIMEOUT_US))) {
+        h->function_requests = in->function_requests;
+    }
+    if (pp_counter_accept(&h->longitudinal_plan_check, in->longitudinal_plan.present,
+                          in->longitudinal_plan.rx_us, in->longitudinal_plan.message.header.counter,
+                          in->longitudinal_plan.message.header.valid,
+                          PP_LONGITUDINAL_PLAN_MAX_DELTA_COUNTER,
+                          timed_out(&h->longitudinal_plan.present, h->longitudinal_plan.rx_us, in->t0_us,
+                                    PP_LONGITUDINAL_PLAN_TIMEOUT_US))) {
+        h->longitudinal_plan = in->longitudinal_plan;
+    }
+}
+
+static void check_inputs(const pp_state_t *s, const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
 {
     const uint64_t t0 = in->t0_us;
+    const pp_held_inputs_t *h = &s->held;
     (void)memset(out, 0, sizeof(*out));
 
-    if (pp_input_usable(in->lane_model.present, in->lane_model.message.header.valid,
-                        in->lane_model.rx_us, in->lane_model.message.header.stamp_us, t0,
+    if (pp_input_usable(h->lane_model.present, h->lane_model.message.header.valid,
+                        h->lane_model.rx_us, h->lane_model.message.header.stamp_us, t0,
                         PP_LANE_MODEL_TIMEOUT_US, PP_LANE_MODEL_MAX_AGE_US)) {
-        out->lane_model = &in->lane_model.message;
+        out->lane_model = &h->lane_model.message;
     }
-    if (pp_input_usable(in->object_list.present, in->object_list.message.header.valid,
-                        in->object_list.rx_us, in->object_list.message.header.stamp_us, t0,
+    if (pp_input_usable(h->object_list.present, h->object_list.message.header.valid,
+                        h->object_list.rx_us, h->object_list.message.header.stamp_us, t0,
                         PP_OBJECT_LIST_TIMEOUT_US, PP_OBJECT_LIST_MAX_AGE_US)) {
-        out->object_list = &in->object_list.message;
+        out->object_list = &h->object_list.message;
     }
     if (pp_input_usable(in->speed.present, in->speed.message.header.valid, in->speed.rx_us,
                         in->speed.message.header.stamp_us, t0, PP_SPEED_TIMEOUT_US,
@@ -173,27 +224,27 @@ static void check_inputs(const pp_planner_inputs_t *in, pp_usable_inputs_t *out)
                         PP_NO_AGE_LIMIT) && isfinite(in->steering.message.steering_wheel_angle_rad)) {
         out->steering = &in->steering.message;
     }
-    if (pp_input_usable(in->vehicle_state.present, in->vehicle_state.message.header.valid,
-                        in->vehicle_state.rx_us, in->vehicle_state.message.header.stamp_us, t0,
+    if (pp_input_usable(h->vehicle_state.present, h->vehicle_state.message.header.valid,
+                        h->vehicle_state.rx_us, h->vehicle_state.message.header.stamp_us, t0,
                         PP_VEHICLE_STATE_TIMEOUT_US, PP_VEHICLE_STATE_MAX_AGE_US)
-        && (isfinite(in->vehicle_state.message.lateral_velocity) != 0)) {
-        out->vehicle_state = &in->vehicle_state.message;
+        && (isfinite(h->vehicle_state.message.lateral_velocity) != 0)) {
+        out->vehicle_state = &h->vehicle_state.message;
     }
-    if (pp_input_usable(in->function_requests.present,
-                        in->function_requests.message.header.valid,
-                        in->function_requests.rx_us,
-                        in->function_requests.message.header.stamp_us, t0,
+    if (pp_input_usable(h->function_requests.present,
+                        h->function_requests.message.header.valid,
+                        h->function_requests.rx_us,
+                        h->function_requests.message.header.stamp_us, t0,
                         PP_FUNCTION_REQUESTS_TIMEOUT_US, PP_FUNCTION_REQUESTS_MAX_AGE_US)) {
-        out->function_requests = &in->function_requests.message;
-        out->requests_rx_us = in->function_requests.rx_us;
+        out->function_requests = &h->function_requests.message;
+        out->requests_rx_us = h->function_requests.rx_us;
     }
-    if (pp_input_usable(in->longitudinal_plan.present,
-                        in->longitudinal_plan.message.header.valid,
-                        in->longitudinal_plan.rx_us,
-                        in->longitudinal_plan.message.header.stamp_us, t0,
+    if (pp_input_usable(h->longitudinal_plan.present,
+                        h->longitudinal_plan.message.header.valid,
+                        h->longitudinal_plan.rx_us,
+                        h->longitudinal_plan.message.header.stamp_us, t0,
                         PP_LONGITUDINAL_PLAN_TIMEOUT_US, PP_LONGITUDINAL_PLAN_MAX_AGE_US)
-        && longitudinal_plan_in_range(&in->longitudinal_plan.message)) {
-        out->longitudinal_plan = &in->longitudinal_plan.message; /* else PP-SWR-154 fallback */
+        && longitudinal_plan_in_range(&h->longitudinal_plan.message)) {
+        out->longitudinal_plan = &h->longitudinal_plan.message; /* else PP-SWR-154 fallback */
     }
 }
 
@@ -203,9 +254,8 @@ static void check_requests_timeout(pp_state_t *s, const pp_planner_inputs_t *in,
     if (!s->requests_clock_set) {
         s->requests_clock_set = true;
         s->last_requests_us = now;
-        if (in->function_requests.present && in->function_requests.message.header.valid
-            && (in->function_requests.rx_us <= now)) {
-            s->last_requests_us = in->function_requests.rx_us;
+        if (s->held.function_requests.present && (s->held.function_requests.rx_us <= now)) {
+            s->last_requests_us = s->held.function_requests.rx_us;
         }
     }
     if ((out->function_requests != NULL) && (out->requests_rx_us <= now)
@@ -667,6 +717,10 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
 #endif
             if (out->path_valid) {
                 const double wheelbase = (double)s->vehicle.wheelbase;
+                /* PP-TS-003: limit the candidate first, so the blend of two feasible paths
+                 * is the path sent; the second T10 call below only meets speed changes. */
+                (void)pp_feasibility_limit(out->points, &out->samples, &PP_HWA_LIMITS,
+                                           &s->vehicle);                           /* T10 step 2 */
                 if (!override_now) {   /* T4 step 5: no blend while the driver overrides */
                     (void)pp_stitch_blend(&old, s->cal, wheelbase, continuity_limit(&out->ref),
                                           out->points);                            /* T4 steps 4, 5 */
@@ -708,7 +762,8 @@ void pp_step(void *state,
 
             if (s->initialized) {
                 pp_usable_inputs_t usable;
-                check_inputs(inputs, &usable);                                     /* T1 */
+                hold_inputs(s, inputs);                                            /* T1 */
+                check_inputs(s, inputs, &usable);
                 check_requests_timeout(s, inputs, &usable);
                 plan_path(s, t0, &usable, ego_motion, ego_motion_context, &cycle);
                 const pp_active_function_t active = cycle.arbitration.active_function;

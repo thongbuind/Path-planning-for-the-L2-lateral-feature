@@ -32,18 +32,12 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
-# PP-TS-001: compare the geometry check with the current c0-only jump check.
-option(PP_T2_SHAPE_CHECK "Check lane-boundary jumps along the visible range" OFF)
-if(PP_T2_SHAPE_CHECK)
-    set(PP_T2_DEFINES PP_T2_SHAPE_CHECK)
-endif()
-
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7} -DT2_SHAPE=${PP_T2_SHAPE_CHECK}
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()")
@@ -77,7 +71,7 @@ add_library(pp_planner SHARED
 target_include_directories(pp_planner PRIVATE ${PP_PRIVATE_INCLUDES})
 target_compile_options(pp_planner PRIVATE ${PP_WARNINGS})
 add_dependencies(pp_planner pp_build_info)
-target_compile_definitions(pp_planner PRIVATE ${PP_T7_DEFINES} ${PP_T2_DEFINES})
+target_compile_definitions(pp_planner PRIVATE ${PP_T7_DEFINES})
 if(NOT APPLE)
     target_link_libraries(pp_planner PRIVATE m)
 endif()
@@ -89,12 +83,12 @@ if(PP_BUILD_TESTS)
     set(PP_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../tests/planner/c)
     foreach(name test_math test_latency test_reference_line test_curvature test_quintic test_output
                  test_stitching test_feasibility test_step test_version test_qp test_offset
-                 test_arbitration test_intervention)
+                 test_arbitration test_intervention test_input_check)
         add_executable(${name} ${PP_TEST_DIR}/${name}.c src/pp_planner.c ${PP_UNIT_SOURCES}
                        ${PP_GENERATED_DIR}/pp_calibration.c)
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
         target_compile_options(${name} PRIVATE ${PP_WARNINGS})
-        target_compile_definitions(${name} PRIVATE ${PP_T7_DEFINES} ${PP_T2_DEFINES})
+        target_compile_definitions(${name} PRIVATE ${PP_T7_DEFINES})
         add_dependencies(${name} pp_build_info)
         if(NOT APPLE)
             target_link_libraries(${name} PRIVATE m)

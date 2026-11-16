@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.10 |
+| Phiên bản | 1.12 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-14 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -25,6 +25,7 @@
 | Signal list nhóm Motion (`docs/reference/vehicle-signal-list.txt`) | Tín hiệu khung gầm, tần số, đơn vị (mentor) |
 | Autoware `autoware_planning_msgs/Trajectory` | Định dạng Trajectory |
 | AUTOSAR E2E Profile 1; SAE J1850 | Counter và CRC của khung CAN |
+| AUTOSAR E2E Protocol Specification R22-11, mục 6.8 (Profile 5) | Trạng thái kiểm counter của message pub/sub |
 | IEEE 802.1AS (gPTP) | Đồng bộ đồng hồ giữa các ECU |
 
 ## 3. Interface overview {#icd-overview}
@@ -48,6 +49,7 @@
 | Tần số khung CAN | Theo signal list | mentor |
 | Tần số planner và khối Chức năng ADAS | 40 Hz | mentor |
 | Timeout nhận | 3 chu kỳ danh định của message, tức cho phép mất 2 message liên tiếp | nhóm tự thống nhất |
+| Bước counter lớn nhất được nhận (MaxDeltaCounter) | ⌊(timeout + chu kỳ planner) / chu kỳ message⌋: LaneModel, ObjectList 3; VehicleStateEstimate, FunctionRequests, LongitudinalPlan 4 | Suy từ timeout nhận: không bỏ message mà timeout còn chấp nhận; AUTOSAR PRS E2E R22-11 [PRS_E2E_00654] để giá trị cho hệ thống chọn |
 | Tuổi tối đa | Trễ lớn nhất giả định (Software Requirements Specification mục 6) cộng 1 chu kỳ. LaneModel, ObjectList: 250 ms (PP-SWR-131) | nhóm tự thống nhất |
 
 ## 4. Common conventions {#header}
@@ -84,6 +86,17 @@
 - Quá timeout nhận thì message không hợp lệ. Timeout tính từ `rx_us` của message mới nhất.
 - Tuổi = thời điểm hiện tại trừ `stamp_us`. Quá tuổi tối đa thì message không hợp lệ.
 - Khung CAN gán stamp lúc nhận, nên chỉ kiểm timeout, counter và CRC.
+- Counter của message pub/sub, theo trạng thái của AUTOSAR E2E Profile 5 ([PRS_E2E_00591]). Bước = counter mới trừ counter của message nhận trước đó, theo modulo 256. Bên nhận giữ message dùng được gần nhất; timeout và tuổi tính trên message đó.
+
+| Bước | Trạng thái E2E | Xử lý |
+|---|---|---|
+| 1 | OK | Dùng |
+| 2 tới MaxDeltaCounter | OKSOMELOST | Dùng; các message giữa coi như mất |
+| 0 (lặp hoặc đứng yên) | REPEATED | Bỏ, như mất message |
+| Lớn hơn MaxDeltaCounter | WRONGSEQUENCE | Bỏ, như mất message; message sau có bước 1 thì dùng lại |
+| Lớn hơn MaxDeltaCounter, khi message đang giữ đã quá timeout | Đồng bộ lại | Dùng: input đã coi như mất, bỏ thêm chỉ làm chậm hồi phục (như MaxDeltaCounter tăng dần của E2E Profile 1, 2) |
+
+- Message pub/sub có `valid = false` bị bỏ như mất message; counter của nó vẫn được theo dõi.
 
 **Contract gọi hàm của planner.** Planner là thư viện C11 (PP-ADR-013). Bên gọi cấp vùng nhớ trạng thái; planner không cấp phát động, không đọc file, không đọc đồng hồ hệ thống.
 
@@ -278,3 +291,5 @@ Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một 
 | 1.8 | 2026-11-12 | Mục 5.1: tầm nhìn riêng từng vạch và mép đường; planner nhận mọi tầm nhìn, dùng tối đa 126 m (PP-SWR-017) |
 | 1.9 | 2026-11-12 | Mục 6.1: Trajectory thêm `observed_horizon_s` |
 | 1.10 | 2026-11-13 | Mục 5.7: dải của `v`, `a` trong LongitudinalPlan; ngoài dải planner xử lý như chưa nhận (PP-SWR-156) |
+| 1.11 | 2026-11-14 | Mục 3, 4: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5, MaxDeltaCounter suy từ timeout nhận; bên nhận giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035, nghĩa của counter nhảy chưa rõ. Ảnh hưởng: PP-SWR-129, 130; Software Detailed Design T1; F15 |
+| 1.12 | 2026-11-14 | Mục 4: message đầu tiên sau khi message đang giữ quá timeout được nhận dù bước counter lớn hơn MaxDeltaCounter (bước 0 vẫn bỏ). Lý do: PP-PR-047. Ảnh hưởng: PP-SWR-153; T1 |

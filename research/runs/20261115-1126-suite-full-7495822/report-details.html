@@ -1,0 +1,387 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bằng chứng dashboard</title><style>body{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 -apple-system,Arial;color:#0b0b0b}section{border-top:1px solid #dcdbd6;padding:12px 0}section:target{background:#fdf4dd}pre{white-space:pre-wrap;overflow-wrap:anywhere}h2{margin-top:40px}</style><h1>Bằng chứng và định nghĩa</h1><p>20261115-1126-suite-full-7495822 · báo cáo 2.0 · 2026-11-16T11:12:18+07:00</p><h2>B0 · API / Contract / Integration</h2><section id="C1.symbols"><h3>C1.symbols · Có đủ pp_state_size, pp_init, pp_step, pp_version</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C1.layout"><h3>C1.layout · Build từ pp_types.h cùng phiên bản schema; layout struct khớp header sinh ra</h3><p><b>Trạng thái:</b> not_checked · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema</p></section><section id="C1.state_size"><h3>C1.state_size · pp_state_size trả cùng một số &gt; 0</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> 40664 byte</p></section><section id="C1.alignment"><h3>C1.alignment · Chạy được với vùng nhớ trạng thái căn theo PP_STATE_ALIGNMENT</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> interfaces/c/pp_planner.h</p><p><b>Bằng chứng / lý do:</b> trạng thái tại địa chỉ ≡ 8 (mod 16), 40 chu kỳ</p></section><section id="C2.init_ok"><h3>C2.init_ok · pp_init trả OK với VehicleConfig hợp lệ (VP-0)</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.init_missing"><h3>C2.init_missing · VehicleConfig thiếu: pp_init không trả OK, không chu kỳ nào gửi Trajectory</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-SWR-146</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.init_out_of_limits"><h3>C2.init_out_of_limits · VehicleConfig ngoài giới hạn: pp_init không trả OK, không chu kỳ nào gửi Trajectory</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 5.8 (bề rộng ≤ 2,5 m)</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.outputs_every_cycle"><h3>C2.outputs_every_cycle · Trajectory, PathStatus, LateralLimits gửi mỗi chu kỳ</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-SWR-010, 150</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.filled"><h3>C2.filled · pp_step điền mọi trường của output mỗi chu kỳ</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> interfaces/c/pp_planner.h</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.counter"><h3>C2.counter · header.counter tăng 1 mỗi message, quay vòng 0–255</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-SWR-014</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.stamp"><h3>C2.stamp · header.stamp_us của output là t0 của chu kỳ</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4, 6</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.enum"><h3>C2.enum · Enum trong tập giá trị, bool là 0 hoặc 1</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.trajectory_format"><h3>C2.trajectory_format · 31 điểm, bước 0,1 s, phủ 0–3 s, frame_id BASE_LINK, rear_wheel_angle 0</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-SWR-011; Interface Control Document 6.1</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.finite"><h3>C2.finite · Không có NaN hoặc vô cực trong output đã gửi</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Software Qualification Test Specification 11</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.robust"><h3>C2.robust · Input chưa nhận, valid = false, giá trị ở hai đầu dải không làm planner dừng</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4, 5</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C2.version"><h3>C2.version · pp_version trả cùng một chuỗi có phiên bản, commit, mã bộ calibration</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> pp_planner 0.2.0 commit 74958221c89e calibration d532993b1b2f t7 quintic</p></section><section id="C3.deterministic"><h3>C3.deterministic · Cùng chuỗi input cho cùng output từng bit</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-ADR-013</p><p><b>Bằng chứng / lý do:</b> 400 chu kỳ, hai instance</p></section><section id="C3.interleaved"><h3>C3.interleaved · Hai instance chạy xen kẽ cho cùng output như khi chạy riêng</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> PP-ADR-013</p><p><b>Bằng chứng / lý do:</b> 400 chu kỳ</p></section><section id="C3.memory"><h3>C3.memory · Không ghi ra ngoài vùng nhớ trạng thái (byte canh hai đầu)</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="C3.symbols"><h3>C3.symbols · Bảng symbol không có cấp phát động, đọc file, đọc đồng hồ hệ thống</h3><p><b>Trạng thái:</b> pass · <b>Nguồn:</b> Interface Control Document 4; PP-ADR-013</p><p><b>Bằng chứng / lý do:</b> Phép kiểm trả trạng thái trên; không có chi tiết bổ sung.</p></section><section id="info.vehicle_config"><h3>info.vehicle_config · </h3><p><b>Trạng thái:</b> info · <b>Nguồn:</b> Không ghi nguồn</p><p><b>Bằng chứng / lý do:</b> Từ chối mọi giá trị đã thử</p></section><section id="b6-data"><h2>B6 · Số liệu của từng chỉ số độ êm</h2><table class="data-table comfort-table"><thead><tr><th>ID</th><th>Chỉ số</th><th>Tốt hơn khi</th><th>Lần chạy</th><th>Trung vị</th><th>Bất lợi nhất</th><th>Ca bất lợi nhất</th><th>Bằng chứng</th></tr></thead><tbody><tr><td>053</td><td>Thời gian đưa xe về giữa</td><td>Thấp hơn</td><td>544</td><td>0,007 s</td><td><b>4,088 s</b></td><td>S9: Chuyển giữa chức năng c, VP-1</td><td><a href="report-details.html#run-S9-c-VP-1-9960a44246d2-1">Xem ca</a></td></tr><tr><td>002</td><td>Gia tốc ngang thêm vào khi đưa về giữa</td><td>Thấp hơn</td><td>1.537</td><td>0 m/s²</td><td><b>2,215 m/s²</b></td><td>S17: Tài xế chuyển làn khi HWA b… b, VP-4</td><td><a href="report-details.html#run-S17-b-VP-4-fce608d216a6-1">Xem ca</a></td></tr><tr><td>004</td><td>Jerk RMS 0–1 s</td><td>Thấp hơn</td><td>544</td><td>0,02416 m/s³</td><td><b>1,011 m/s³</b></td><td>S17: Tài xế chuyển làn khi HWA b… b, VP-1</td><td><a href="report-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">Xem ca</a></td></tr><tr><td>004</td><td>Jerk lớn nhất (TB 0,5 s)</td><td>Thấp hơn</td><td>544</td><td>0,09536 m/s³</td><td><b>5 m/s³</b></td><td>S17: Tài xế chuyển làn khi HWA b… b, VP-1</td><td><a href="report-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">Xem ca</a></td></tr><tr><td>004</td><td>Tốc độ quay vô lăng RMS</td><td>Thấp hơn</td><td>544</td><td>0,005274 rad/s</td><td><b>0,3613 rad/s</b></td><td>S17: Tài xế chuyển làn khi HWA b… b, VP-4</td><td><a href="report-details.html#run-S17-b-VP-4-fce608d216a6-1">Xem ca</a></td></tr><tr><td>057</td><td>Khoảng hở tới rào chắn</td><td>Cao hơn</td><td>10</td><td>1,195 m</td><td><b>1,123 m</b></td><td>S15: Dời tâm khi hai bên có vật b, VP-4</td><td><a href="report-details.html#run-S15-b-VP-4-7e8b95f6f0c1-1">Xem ca</a></td></tr><tr><td>057</td><td>Khoảng hở tới xe lớn khi ngang hàng</td><td>Cao hơn</td><td>136</td><td>1,094 m</td><td><b>0,073 m</b></td><td>S3b: Xe lớn vượt mình từ phía sa… e, VP-4</td><td><a href="report-details.html#run-S3b-e-VP-4-3f74c206432d-1">Xem ca</a></td></tr><tr><td>081</td><td>Thời lượng path LKA tới COMPLETED</td><td>Thấp hơn</td><td>332</td><td>3,3 s</td><td><b>7 s</b></td><td>S4b: LKA trôi làn trong cua e, VP-4</td><td><a href="report-details.html#run-S4b-e-VP-4-ee510703be24-1">Xem ca</a></td></tr><tr><td>087</td><td>DTLE nhỏ nhất khi LKA</td><td>Cao hơn</td><td>364</td><td>0,1242 m</td><td><b>−0,415 m</b></td><td>S16: Can thiệp lặp (mẫu ngẫu nhiên), VP-4</td><td><a href="report-details.html#run-S16-c-VP-4-bf8d98a04332-1">Xem ca</a></td></tr></tbody></table></section><h2 id="requirements">Requirement</h2><section id="PP-SWR-001"><h3>PP-SWR-001</h3><p>Trong khi HWA đang lái, a_y của path phải ≤ aysmax = 2,5 m/s² tại mọi điểm</p></section><section id="PP-SWR-002"><h3>PP-SWR-002</h3><p>a_y thêm vào lớn nhất khi HWA đưa xe về giữa hoặc dời tâm nên nhỏ</p></section><section id="PP-SWR-003"><h3>PP-SWR-003</h3><p>Trong khi HWA đang lái, jerk ngang của path phải ≤ 5 m/s³</p></section><section id="PP-SWR-004"><h3>PP-SWR-004</h3><p>Jerk ngang của path khi HWA đang lái nên nhỏ</p></section><section id="PP-SWR-005"><h3>PP-SWR-005</h3><p>Nếu a_y cần lớn nhất &gt; aysmax trong khi HWA đang lái, thì planner phải giữ path_valid = true và active_function = HWA, trừ khi arbitration chuyển sang LKA hoặc ELK</p></section><section id="PP-SWR-006"><h3>PP-SWR-006</h3><p>Nếu a_y cần &gt; aysmax tại một điểm trên đoạn 0–1 s của path trong khi HWA đang lái, thì a_y của path tại điểm đó phải ≥ aysmax − epsilon_ay</p></section><section id="PP-SWR-007"><h3>PP-SWR-007</h3><p>Khi một lốp trước bắt đầu đè vạch trong lúc HWA đang lái và a_y cần lớn nhất &gt; aysmax, lateral_limit_reached phải đang là true</p></section><section id="PP-SWR-008"><h3>PP-SWR-008</h3><p>Thời gian từ lúc a_y cần lớn nhất &lt; aysmax tới lúc lateral_limit_reached tắt nên ngắn</p></section><section id="PP-SWR-009"><h3>PP-SWR-009</h3><p>Planner phải gửi cùng một giá trị lateral_limit_reached trong PathStatus và LateralLimits của cùng chu kỳ</p></section><section id="PP-SWR-010"><h3>PP-SWR-010</h3><p>Planner phải gửi Trajectory và PathStatus mỗi chu kỳ</p></section><section id="PP-SWR-011"><h3>PP-SWR-011</h3><p>Trajectory phải theo định dạng ở Interface Control Document: 31 điểm, bước 0,1 s, phủ 0–3 s, frame_id = base_link</p></section><section id="PP-SWR-012"><h3>PP-SWR-012</h3><p>header.stamp_us của Trajectory phải là thời điểm mà path mô tả, đã bù trễ của lane model</p></section><section id="PP-SWR-013"><h3>PP-SWR-013</h3><p>Phần lệch ngang tăng thêm so với ca trễ 0, khi trễ camera 0–200 ms kèm jitter ±20 ms, nên nhỏ</p></section><section id="PP-SWR-014"><h3>PP-SWR-014</h3><p>header.counter phải tăng 1 sau mỗi message, quay vòng 0–255</p></section><section id="PP-SWR-015"><h3>PP-SWR-015</h3><p>Planner phải ghi thời gian tính của từng chu kỳ</p></section><section id="PP-SWR-016"><h3>PP-SWR-016</h3><p>Phân vị 99 % của thời gian tính mỗi chu kỳ nên nhỏ</p></section><section id="PP-SWR-017"><h3>PP-SWR-017</h3><p>Planner phải nhận lane model với mọi view_range_end &gt; view_range_start của từng vạch và mép đường. Phần tầm nhìn vượt 126 m không được làm input bị coi là không hợp lệ</p></section><section id="PP-SWR-018"><h3>PP-SWR-018</h3><p>Trajectory.observed_horizon_s không được lớn hơn thời điểm trên path mà path ra khỏi tầm nhìn lane model báo cho frame planner dùng ở chu kỳ đó quá 0,1 s</p></section><section id="PP-SWR-030"><h3>PP-SWR-030</h3><p>Planner phải chọn chức năng đang lái theo thứ tự ELK &gt; LKA &gt; HWA, chỉ xét chức năng có state = REQUEST</p></section><section id="PP-SWR-031"><h3>PP-SWR-031</h3><p>Khi chức năng đang lái đổi, path phải thoả PP-SWR-100 đến 102, trừ lúc LKA hoặc ELK bắt đầu mà xe thật đang lệch khỏi path cũ hơn 0,1 m hoặc 0,1 m/s; khi đó áp PP-SWR-080</p></section><section id="PP-SWR-032"><h3>PP-SWR-032</h3><p>Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục T_end_hold, planner phải đặt pha của chức năng đó thành COMPLETED trong tối đa 0,5 s</p></section><section id="PP-SWR-033"><h3>PP-SWR-033</h3><p>Sau COMPLETED, planner phải chọn chức năng đang lái theo PP-SWR-030 trong các chức năng còn ở REQUEST, không tính chức năng vừa COMPLETED; không còn chức năng nào thì chọn NONE</p></section><section id="PP-SWR-034"><h3>PP-SWR-034</h3><p>Nếu chức năng vừa COMPLETED vẫn giữ REQUEST, thì planner không được bắt đầu lần can thiệp mới cho chức năng đó cho tới khi state rời REQUEST rồi quay lại</p></section><section id="PP-SWR-035"><h3>PP-SWR-035</h3><p>Mỗi lần can thiệp mới của LKA hoặc ELK phải có cùng giới hạn như lần đầu, không phụ thuộc số lần đã can thiệp</p></section><section id="PP-SWR-036"><h3>PP-SWR-036</h3><p>Khi chức năng đang can thiệp rời REQUEST giữa chừng, planner phải chuyển từ trạng thái hiện tại sang chức năng được chọn theo PP-SWR-030 trong các chức năng còn ở REQUEST</p></section><section id="PP-SWR-037"><h3>PP-SWR-037</h3><p>Khi chức năng đang can thiệp rời REQUEST giữa chừng qua một message hợp lệ và không còn chức năng đủ điều kiện, planner phải báo active_function = NONE với path_valid = true nếu các input bắt buộc còn hợp lệ</p></section><section id="PP-SWR-038"><h3>PP-SWR-038</h3><p>Planner phải phản ánh thay đổi của FunctionRequests vào output trong không quá một chu kỳ kể từ lúc nhận message</p></section><section id="PP-SWR-039"><h3>PP-SWR-039</h3><p>Trong khi driver_override = true, điểm đầu của path phải trùng vị trí ngang hiện tại của xe, lệch ≤ 0,05 m</p></section><section id="PP-SWR-040"><h3>PP-SWR-040</h3><p>Khi driver_override chuyển về false trong lúc HWA ở REQUEST, điểm đầu của path HWA phải trùng vị trí ngang của xe lúc đó, lệch ≤ 0,05 m</p></section><section id="PP-SWR-041"><h3>PP-SWR-041</h3><p>Planner phải giữ pha của mỗi chức năng ở COMPLETED tới khi state của chức năng đó rời REQUEST</p></section><section id="PP-SWR-042"><h3>PP-SWR-042</h3><p>Khi HWA rời REQUEST và không chức năng nào ở REQUEST, planner phải đặt active_function = NONE và giữ path_valid = true</p></section><section id="PP-SWR-043"><h3>PP-SWR-043</h3><p>Trong khi path_valid = false, active_function phải bằng NONE</p></section><section id="PP-SWR-044"><h3>PP-SWR-044</h3><p>Khi input hồi phục sau lúc path_valid = false, điểm đầu của path mới phải khớp trạng thái ngang thật của xe theo dung sai của PP-SWR-080</p></section><section id="PP-SWR-045"><h3>PP-SWR-045</h3><p>Sau khi input hồi phục, planner chỉ được bắt đầu can thiệp LKA hoặc ELK khi state của chức năng đó rời REQUEST rồi quay lại</p></section><section id="PP-SWR-046"><h3>PP-SWR-046</h3><p>Nếu VehicleStateEstimate không hợp lệ trong lúc LKA hoặc ELK đang can thiệp, thì planner phải tiếp tục path can thiệp đó tới khi kết thúc</p></section><section id="PP-SWR-047"><h3>PP-SWR-047</h3><p>Trong khi tâm làn chỉ suy được từ biên ngoài làn đang chạy, planner không được chọn LKA hoặc ELK. Ngoại lệ cho ELK mép đường khi biên nguy hiểm của làn đang chạy là mép MEASURED với confidence ≥ conf_edge và có biên đối diện đủ tin hoặc bề rộng làn đã nhớ</p></section><section id="PP-SWR-048"><h3>PP-SWR-048</h3><p>Nếu FunctionRequests có tuổi (t0 trừ header.stamp_us) vượt 45 ms, thì planner phải xử lý như chưa nhận được message đó, kể cả cho thời gian timeout của PP-SWR-145</p></section><section id="PP-SWR-050"><h3>PP-SWR-050</h3><p>Lệch ngang của path nên nhỏ, trong toàn bộ ODD và khi lane model có lỗi</p></section><section id="PP-SWR-051"><h3>PP-SWR-051</h3><p>Trong khi HWA đang lái, a_y cần lớn nhất ≤ aysmax và khoảng trống mỗi bên ≥ free_space_min, DLC ở cả hai phía phải ≥ 0</p></section><section id="PP-SWR-052"><h3>PP-SWR-052</h3><p>Khi HWA bắt đầu lái lúc xe lệch tâm làn tới 0,5 m, chức năng đang lái phải giữ là HWA trong suốt đoạn đưa về giữa</p></section><section id="PP-SWR-053"><h3>PP-SWR-053</h3><p>Thời gian từ lúc HWA bắt đầu lái (xe lệch tâm tới 0,5 m) tới lúc lệch ngang ≤ 0,1 m nên ngắn</p></section><section id="PP-SWR-054"><h3>PP-SWR-054</h3><p>Trong khi HWA ở REQUEST và tốc độ xe trong khoảng 0–60 km/h, planner phải tiếp tục gửi path hợp lệ cho HWA</p></section><section id="PP-SWR-055"><h3>PP-SWR-055</h3><p>Trong khi một xe lớn ngang hàng ở làn bên kề có khoảng hở tới xe lớn &lt; gap_truck_min và làn bên kia không có xe lớn ngang hàng, path phải lệch khỏi tâm làn thật về phía xa xe lớn</p></section><section id="PP-SWR-056"><h3>PP-SWR-056</h3><p>Trong khi có xe lớn ngang hàng với khoảng hở tới xe lớn &lt; gap_truck_min, path không được lệch khỏi tâm làn thật về phía xe lớn có khoảng hở nhỏ nhất</p></section><section id="PP-SWR-057"><h3>PP-SWR-057</h3><p>Khoảng cách ngang nhỏ nhất từ thân xe tới vật ở hai bên trong lúc dời tâm nên lớn</p></section><section id="PP-SWR-058"><h3>PP-SWR-058</h3><p>Khi xe lớn ở làn bên kề đang tới gần, path phải bắt đầu dời trước lúc xe lớn tới ngang hàng</p></section><section id="PP-SWR-059"><h3>PP-SWR-059</h3><p>Thời gian từ lúc đuôi xe lớn qua tới lúc lệch ngang ≤ 0,1 m nên ngắn</p></section><section id="PP-SWR-060"><h3>PP-SWR-060</h3><p>Khi một biên làn mở rộng (làn dừng khẩn cấp, tách nhánh, thêm làn), DLC so với biên làn thật ở phía mở rộng phải ≥ 0</p></section><section id="PP-SWR-061"><h3>PP-SWR-061</h3><p>Khi lane model chuyển sang làn mới, path phải thoả PP-SWR-100 đến 102</p></section><section id="PP-SWR-062"><h3>PP-SWR-062</h3><p>Mọi requirement ở mục 8 phải thoả trong toàn bộ ODD ở mục 5, với cùng một bộ calibration</p></section><section id="PP-SWR-063"><h3>PP-SWR-063</h3><p>Khi khoảng trống mỗi bên nhỏ hơn free_space_min, planner phải đặt lane_too_narrow = true trong PathStatus</p></section><section id="PP-SWR-064"><h3>PP-SWR-064</h3><p>Thời gian từ lúc lateral_limit_reached bật tới lúc a_y cần tại vị trí xe vượt aysmax nên dài</p></section><section id="PP-SWR-080"><h3>PP-SWR-080</h3><p>Khi LKA hoặc ELK bắt đầu can thiệp, điểm đầu của path phải khớp trạng thái ngang thật của xe: lệch vị trí ≤ 0,1 m, lệch v_lat ≤ 0,1 m/s</p></section><section id="PP-SWR-081"><h3>PP-SWR-081</h3><p>Thời gian từ lúc LKA bắt đầu path can thiệp tới COMPLETED nên ngắn</p></section><section id="PP-SWR-082"><h3>PP-SWR-082</h3><p>Thời gian từ lúc ELK bắt đầu path can thiệp tới COMPLETED nên ngắn</p></section><section id="PP-SWR-083"><h3>PP-SWR-083</h3><p>obsolete (1.14, PP-TS-016): R79 5.1.6.1.2.1 và EU 2021/646 Annex I 3.6.4.1.1 cho phép can thiệp dài hơn 10 s, chỉ đòi cảnh báo âm thanh</p></section><section id="PP-SWR-084"><h3>PP-SWR-084</h3><p>Khi LKA báo COMPLETED, DLC ở phía xe đã trôi về phải ≥ 0</p></section><section id="PP-SWR-085"><h3>PP-SWR-085</h3><p>Sau một lần LKA hoặc ELK, DLC nhỏ nhất ở phía đối diện phải ≥ 0</p></section><section id="PP-SWR-086"><h3>PP-SWR-086</h3><p>DTLE nhỏ nhất trong một lần can thiệp phải ≥ −0,3 m với LKA và ELK vạch liền, và ≥ −0,1 m với ELK mép đường</p></section><section id="PP-SWR-087"><h3>PP-SWR-087</h3><p>DTLE nhỏ nhất của LKA nên lớn</p></section><section id="PP-SWR-088"><h3>PP-SWR-088</h3><p>Trong lúc ELK can thiệp vì xe ở làn bên, khoảng cách ngang nhỏ nhất tới xe đó khi hai xe ngang hàng phải ≥ 0,3 m</p></section><section id="PP-SWR-089"><h3>PP-SWR-089</h3><p>Nếu ELK được yêu cầu khi lốp trước đã sang quá 0,3 m qua vạch phía side, thì planner không được bắt đầu can thiệp ELK đó</p></section><section id="PP-SWR-090"><h3>PP-SWR-090</h3><p>Planner không được báo COMPLETED khi điều kiện kết thúc chưa giữ liên tục T_end_hold</p></section><section id="PP-SWR-091"><h3>PP-SWR-091</h3><p>Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086</p></section><section id="PP-SWR-092"><h3>PP-SWR-092</h3><p>Nếu LKA, hoặc ELK với lý do khác mép đường, được yêu cầu về một phía mà vạch làn mình ở phía đó không là biên làn đủ tin trong lane model planner nhận, thì planner không được bắt đầu can thiệp đó</p></section><section id="PP-SWR-100"><h3>PP-SWR-100</h3><p>Trong khi path_valid = true, lệch ngang giữa hai path liên tiếp phải ≤ 0,05 m</p></section><section id="PP-SWR-101"><h3>PP-SWR-101</h3><p>Trong khi path_valid = true, lệch hướng giữa hai path liên tiếp phải ≤ 0,005 rad</p></section><section id="PP-SWR-102"><h3>PP-SWR-102</h3><p>Trong khi path_valid = true, lệch độ cong giữa hai path liên tiếp phải ≤ 0,0003 1/m</p></section><section id="PP-SWR-110"><h3>PP-SWR-110</h3><p>Trong khi LKA đang lái, a_y của path phải ≤ 3,0 m/s²</p></section><section id="PP-SWR-111"><h3>PP-SWR-111</h3><p>Trong khi ELK đang lái, a_y của path phải ≤ 4,0 m/s²</p></section><section id="PP-SWR-112"><h3>PP-SWR-112</h3><p>Trong khi LKA đang lái, a_y thêm vào phải ≤ 1,5 m/s²</p></section><section id="PP-SWR-113"><h3>PP-SWR-113</h3><p>Trong khi ELK đang lái, a_y thêm vào phải ≤ 3,0 m/s²</p></section><section id="PP-SWR-114"><h3>PP-SWR-114</h3><p>Trong khi LKA đang lái, jerk ngang của path phải ≤ 5 m/s³</p></section><section id="PP-SWR-115"><h3>PP-SWR-115</h3><p>Trong khi ELK đang lái, jerk ngang của path phải ≤ 10 m/s³</p></section><section id="PP-SWR-116"><h3>PP-SWR-116</h3><p>front_wheel_angle tại mọi điểm của path phải ≤ max_wheel_angle của VehicleConfig</p></section><section id="PP-SWR-117"><h3>PP-SWR-117</h3><p>Tốc độ quay vô lăng suy ra từ path (tốc độ đổi front_wheel_angle nhân steering_ratio) phải ≤ max_steering_wheel_rate của VehicleConfig</p></section><section id="PP-SWR-120"><h3>PP-SWR-120</h3><p>Khi lane model có nhiễu c0, c1 tới mức ban đêm (gấp 2,5 lần ban ngày), path phải thoả giới hạn jerk của chức năng đang lái và PP-SWR-100 đến 102</p></section><section id="PP-SWR-121"><h3>PP-SWR-121</h3><p>Khi c0 nhảy 0,3–1,0 m trong một frame, path phải thoả PP-SWR-100 đến 102</p></section><section id="PP-SWR-122"><h3>PP-SWR-122</h3><p>Khi lane model nhận nhầm vạch làn bên, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-123"><h3>PP-SWR-123</h3><p>Khi lane model mất một vạch, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-124"><h3>PP-SWR-124</h3><p>Khi lane model không còn biên làn đủ tin nào (vạch làn mình, vạch làn bên, mép đường) hoặc không hợp lệ, planner phải giữ path_valid = true trong T_coast rồi đặt path_valid = false, sai lệch thời điểm không quá một chu kỳ</p></section><section id="PP-SWR-125"><h3>PP-SWR-125</h3><p>Khi lane model có c2 sai, tỉ lệ giữa lệch ngang của path trên đoạn 2–3 s và lệch của một path bám đúng lane model sai đó nên nhỏ</p></section><section id="PP-SWR-126"><h3>PP-SWR-126</h3><p>Khi message bị mất, lẻ hoặc thành chuỗi, hoặc có jitter ±20 ms, path phải thoả PP-SWR-100 đến 102 và giới hạn jerk của chức năng đang lái</p></section><section id="PP-SWR-127"><h3>PP-SWR-127</h3><p>Khi message đến muộn hoặc sai thứ tự, path phải thoả PP-SWR-100 đến 102</p></section><section id="PP-SWR-128"><h3>PP-SWR-128</h3><p>Trong khi camera gửi 20 Hz và planner chạy 40 Hz, path phải thoả PP-SWR-100 đến 102 ở mọi chu kỳ</p></section><section id="PP-SWR-129"><h3>PP-SWR-129</h3><p>Nếu message pub/sub bị lặp, hoặc counter của nó tăng không quá MaxDeltaCounter của Interface Control Document mục 3 so với message nhận trước đó, thì output phải giống ca không lỗi cùng seed</p></section><section id="PP-SWR-130"><h3>PP-SWR-130</h3><p>Nếu counter đứng yên hoặc tăng quá MaxDeltaCounter, valid = false, qualifier FAULT hoặc CRC sai, thì output phải giống ca mất message tương ứng</p></section><section id="PP-SWR-131"><h3>PP-SWR-131</h3><p>Nếu tuổi của lane model hoặc ObjectList vượt 250 ms, thì planner phải coi input đó không hợp lệ</p></section><section id="PP-SWR-132"><h3>PP-SWR-132</h3><p>Nếu stamp của input ở tương lai quá 10 ms, thì planner phải coi input đó không hợp lệ</p></section><section id="PP-SWR-133"><h3>PP-SWR-133</h3><p>Trong khi tuổi của lane model hoặc ObjectList trong khoảng 170–250 ms, planner phải tiếp tục dùng input đó</p></section><section id="PP-SWR-134"><h3>PP-SWR-134</h3><p>Planner phải ghi log số frame lane model và ObjectList có tuổi vượt 170 ms</p></section><section id="PP-SWR-135"><h3>PP-SWR-135</h3><p>Khi IMU có nhiễu tới hai lần mức datasheet, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-136"><h3>PP-SWR-136</h3><p>Khi yaw rate có bias tới 0,3 °/s, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-137"><h3>PP-SWR-137</h3><p>Khi đồng hồ trôi tới ±100 ppm hoặc mất đồng bộ gPTP tới 10 s, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-138"><h3>PP-SWR-138</h3><p>Khi yaw rate đã lọc trễ tới 50 ms mà planner không được báo phần trễ đó, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-139"><h3>PP-SWR-139</h3><p>Trong khi tín hiệu CAN bị làm tròn theo factor của DBC, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-140"><h3>PP-SWR-140</h3><p>Nếu ObjectList không hợp lệ, thì planner phải đưa phần dời tâm của HWA về 0, vẫn thoả PP-SWR-001, 003 và 100 đến 102</p></section><section id="PP-SWR-141"><h3>PP-SWR-141</h3><p>Nếu ObjectList không hợp lệ, thì planner vẫn phải thực hiện can thiệp ELK được yêu cầu</p></section><section id="PP-SWR-142"><h3>PP-SWR-142</h3><p>Nếu IMU, tốc độ hoặc góc lái không hợp lệ, thì planner phải đặt path_valid = false trong không quá một chu kỳ</p></section><section id="PP-SWR-143"><h3>PP-SWR-143</h3><p>Nếu ego-motion không hợp lệ, thì planner phải đặt path_valid = false trong không quá một chu kỳ</p></section><section id="PP-SWR-144"><h3>PP-SWR-144</h3><p>Nếu VehicleStateEstimate không hợp lệ, thì planner không được bắt đầu can thiệp LKA hoặc ELK mới</p></section><section id="PP-SWR-145"><h3>PP-SWR-145</h3><p>Nếu FunctionRequests quá timeout 75 ms, thì planner phải đặt active_function = NONE và path_valid = false trong không quá một chu kỳ</p></section><section id="PP-SWR-146"><h3>PP-SWR-146</h3><p>Nếu VehicleConfig thiếu lúc khởi động, thì planner không được gửi Trajectory</p></section><section id="PP-SWR-147"><h3>PP-SWR-147</h3><p>Khi lane model mất cả hai vạch của làn mình mà còn ít nhất một biên làn đủ tin khác, planner phải giữ path_valid = true</p></section><section id="PP-SWR-148"><h3>PP-SWR-148</h3><p>Khi lane model mất cả hai vạch của làn mình mà còn ít nhất một biên làn đủ tin khác, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-149"><h3>PP-SWR-149</h3><p>Khi tầm nhìn của lane model ngắn lại trong chốc lát, khác nhau giữa các vạch, đổi theo từng frame, hoặc được báo dài hơn đoạn đã thật sự quan sát, PP-SWR-051 và 100 đến 102 phải vẫn thoả</p></section><section id="PP-SWR-150"><h3>PP-SWR-150</h3><p>Planner phải gửi LateralLimits mỗi chu kỳ</p></section><section id="PP-SWR-151"><h3>PP-SWR-151</h3><p>LateralLimits.v_max phải bằng √(giới hạn a_y của chức năng đang lái / κ_max), với κ_max là độ cong lớn nhất của tâm làn thật trong tầm nhìn của lane model, tối đa 126 m, sai lệch ≤ 5 %</p></section><section id="PP-SWR-152"><h3>PP-SWR-152</h3><p>LateralLimits.distance phải bằng khoảng cách dọc tới điểm có κ_max, sai lệch ≤ 5 m</p></section><section id="PP-SWR-153"><h3>PP-SWR-153</h3><p>Khi LongitudinalPlan hợp lệ, longitudinal_velocity và acceleration của Trajectory phải lấy theo LongitudinalPlan</p></section><section id="PP-SWR-154"><h3>PP-SWR-154</h3><p>Nếu LongitudinalPlan mất hoặc quá timeout 75 ms, thì Trajectory phải dùng tốc độ hiện tại không đổi và gia tốc 0</p></section><section id="PP-SWR-155"><h3>PP-SWR-155</h3><p>Nếu LongitudinalPlan mất hoặc quá timeout 75 ms, thì planner phải giữ path_valid = true</p></section><section id="PP-SWR-156"><h3>PP-SWR-156</h3><p>Nếu LongitudinalPlan có v hoặc a ở bất kỳ điểm nào ngoài dải của Interface Control Document 5.7 (gồm NaN và vô cực), thì planner phải xử lý như chưa nhận được message đó</p></section><h2>Các lần chạy được dẫn chiếu</h2><section id="run-S8b-a-VP-1-eeee38dde0af-1"><h3>S8b-a-VP-1-eeee38dde0af · seed 1</h3><p>S8b: Chuyển làn có xi-nhan, xe s… (mẫu ngẫu nhiên), VP-1</p><pre>{
+  &quot;case&quot;: &quot;S8b-a-VP-1-eeee38dde0af&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-1&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S8b&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-1&quot;,
+    &quot;speed_mps&quot;: 20.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 17.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: false,
+    &quot;elk_enabled&quot;: true,
+    &quot;expect_intervention&quot;: &quot;&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 800.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: true,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;target_s_m&quot;: 68.0029986284195,
+    &quot;target_t_m&quot;: 3.175,
+    &quot;target_speed_mps&quot;: 22.2,
+    &quot;target_width_m&quot;: 1.9,
+    &quot;target_length_m&quot;: 4.8,
+    &quot;target_heading_rad&quot;: 0.0,
+    &quot;variant&quot;: &quot;a&quot;,
+    &quot;description&quot;: &quot;Xi-nhan trái, khe sau 20 m tại TLC 0,8 s, Δv 2.2 m/s, không yêu cầu LKA/ELK&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.5094242428889187,
+    &quot;departure_gap_m&quot;: 0.771029302499434,
+    &quot;expected_outcome&quot;: &quot;drive&quot;
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Lệch ngang của path so với tâm làn thật, 0–1 s, lớn nhất&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Thời gian đưa xe về giữa (lệch ≤ 0,1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;a_y thêm vào lớn nhất khi đưa về giữa&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính trung bình&quot;,
+      &quot;value&quot;: 3.922411930882353,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p95&quot;,
+      &quot;value&quot;: 10.658564599999997,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p99&quot;,
+      &quot;value&quot;: 56.240193610000134,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính lớn nhất&quot;,
+      &quot;value&quot;: 324.730958,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S8b-a-VP-1-eeee38dde0af.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S8c-a-VP-2-320eb4e78f3b-1"><h3>S8c-a-VP-2-320eb4e78f3b · seed 1</h3><p>S8c: Bẻ lái gấp tránh vật, làn b… a, VP-2</p><pre>{
+  &quot;case&quot;: &quot;S8c-a-VP-2-320eb4e78f3b&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-2&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S8c&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-2&quot;,
+    &quot;speed_mps&quot;: 20.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 6.5,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: true,
+    &quot;elk_enabled&quot;: true,
+    &quot;expect_intervention&quot;: &quot;none&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 300.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;target_s_m&quot;: 115.0,
+    &quot;target_t_m&quot;: 3.175,
+    &quot;target_speed_mps&quot;: 20.0,
+    &quot;target_width_m&quot;: 1.9,
+    &quot;target_length_m&quot;: 4.8,
+    &quot;target_heading_rad&quot;: 0.0,
+    &quot;variant&quot;: &quot;a&quot;,
+    &quot;description&quot;: &quot;Bẻ trái 1.2 m/s, không xi-nhan&quot;,
+    &quot;departure_v_lat_mps&quot;: 1.2,
+    &quot;departure_gap_m&quot;: 0.35,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;departure_repeats&quot;: &quot;[]&quot;,
+    &quot;departure_repeat_trigger&quot;: &quot;&quot;,
+    &quot;obstacle_s_m&quot;: 195.0,
+    &quot;obstacle_t_m&quot;: -1.0,
+    &quot;obstacle_speed_mps&quot;: 0.0,
+    &quot;obstacle_width_m&quot;: 0.8,
+    &quot;obstacle_length_m&quot;: 2.2,
+    &quot;obstacle_heading_rad&quot;: 0.0
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Lệch ngang của path so với tâm làn thật, 0–1 s, lớn nhất&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Thời gian đưa xe về giữa (lệch ≤ 0,1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;a_y thêm vào lớn nhất khi đưa về giữa&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính trung bình&quot;,
+      &quot;value&quot;: 5.046202365384615,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p95&quot;,
+      &quot;value&quot;: 13.371791649999976,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p99&quot;,
+      &quot;value&quot;: 47.07332284000026,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính lớn nhất&quot;,
+      &quot;value&quot;: 166.00270799999998,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S8c-a-VP-2-320eb4e78f3b.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S10-a-VP-4-2c636756e3b0-1"><h3>S10-a-VP-4-2c636756e3b0 · seed 1</h3><p>S10: Đi gần vạch mà không trôi (mẫu ghép đôi), VP-4</p><pre>{
+  &quot;case&quot;: &quot;S10-a-VP-4-2c636756e3b0&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S10&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 20.0,
+    &quot;lane_width_m&quot;: 4.2,
+    &quot;duration_s&quot;: 15.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.525,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: true,
+    &quot;elk_enabled&quot;: true,
+    &quot;expect_intervention&quot;: &quot;none&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 1200.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;a&quot;,
+    &quot;description&quot;: &quot;Đi gần vạch trái, DLC 0,2 m, v_lat gần 0&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.0,
+    &quot;departure_gap_m&quot;: 0.0,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;truck_present&quot;: false,
+    &quot;truck_s_m&quot;: 104.0,
+    &quot;truck_t_m&quot;: -3.5,
+    &quot;truck_speed_mps&quot;: 20.0,
+    &quot;truck_width_m&quot;: 2.5,
+    &quot;truck_length_m&quot;: 12.0,
+    &quot;night&quot;: false
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Lệch ngang của path so với tâm làn thật, 0–1 s, lớn nhất&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Thời gian đưa xe về giữa (lệch ≤ 0,1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;a_y thêm vào lớn nhất khi đưa về giữa&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính trung bình&quot;,
+      &quot;value&quot;: 5.04387883,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p95&quot;,
+      &quot;value&quot;: 11.95030834999994,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p99&quot;,
+      &quot;value&quot;: 60.701890089999985,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính lớn nhất&quot;,
+      &quot;value&quot;: 548.531292,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S10-a-VP-4-2c636756e3b0.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S10-a-VP-5-98ed0f35e48d-1"><h3>S10-a-VP-5-98ed0f35e48d · seed 1</h3><p>S10: Đi gần vạch mà không trôi (mẫu ghép đôi), VP-5</p><pre>{
+  &quot;case&quot;: &quot;S10-a-VP-5-98ed0f35e48d&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-5&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S10&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-5&quot;,
+    &quot;speed_mps&quot;: 20.0,
+    &quot;lane_width_m&quot;: 4.2,
+    &quot;duration_s&quot;: 15.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.525,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: true,
+    &quot;elk_enabled&quot;: true,
+    &quot;expect_intervention&quot;: &quot;none&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 1200.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;a&quot;,
+    &quot;description&quot;: &quot;Đi gần vạch trái, DLC 0,2 m, v_lat gần 0&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.0,
+    &quot;departure_gap_m&quot;: 0.0,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;truck_present&quot;: false,
+    &quot;truck_s_m&quot;: 104.0,
+    &quot;truck_t_m&quot;: -3.5,
+    &quot;truck_speed_mps&quot;: 20.0,
+    &quot;truck_width_m&quot;: 2.5,
+    &quot;truck_length_m&quot;: 12.0,
+    &quot;night&quot;: false
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Lệch ngang của path so với tâm làn thật, 0–1 s, lớn nhất&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Thời gian đưa xe về giữa (lệch ≤ 0,1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;a_y thêm vào lớn nhất khi đưa về giữa&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính trung bình&quot;,
+      &quot;value&quot;: 4.670122096666667,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p95&quot;,
+      &quot;value&quot;: 14.500481249999988,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính p99&quot;,
+      &quot;value&quot;: 44.31675092,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Thời gian tính lớn nhất&quot;,
+      &quot;value&quot;: 270.60875,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S10-a-VP-5-98ed0f35e48d.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section></html>

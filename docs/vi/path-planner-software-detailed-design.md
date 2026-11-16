@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.12 |
+| Phiên bản | 1.18 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -53,7 +53,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 
 | Bước | Việc |
 |---|---|
-| 1 | Input check: bỏ message có CRC sai hoặc counter lặp; ghi nhận mất khi counter nhảy; `valid = false` coi như chưa nhận. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134). LongitudinalPlan có một điểm `v` hoặc `a` ngoài dải của Interface Control Document 5.7, kể cả NaN và vô cực: bỏ cả message, T11 dùng tốc độ hiện tại và gia tốc 0 (PP-SWR-154, 156) |
+| 1 | Input check: khung CAN do lớp nhận kiểm (bỏ CRC sai, counter lặp; ghi nhận mất khi counter nhảy). Message pub/sub: kiểm counter theo Interface Control Document mục 4; message được nhận thay message đang giữ, message bị bỏ hoặc có `valid = false` thì giữ message cũ như mất message. Quá timeout hoặc tuổi > 250 ms hoặc stamp ở tương lai > 10 ms: input không hợp lệ. Tuổi > 170 ms: ghi log (PP-SWR-131 đến 134). LongitudinalPlan có một điểm `v` hoặc `a` ngoài dải của Interface Control Document 5.7, kể cả NaN và vô cực: bỏ cả message, T11 dùng tốc độ hiện tại và gia tốc 0 (PP-SWR-154, 156) |
 | 2 | Lấy LaneModel mới nhất, stamp t_c. Truy vấn ego-motion (t_c, t0). Không hợp lệ: `path_valid = false` (PP-SWR-143) |
 | 3 | Với mỗi vạch và mép đường: lấy mẫu y(x) mỗi 1 m trong tầm nhìn; đổi mẫu sang `base_link` tại t0 bằng p_mới = R(−Δψ)·(p_cũ − [Δx, Δy]); khớp lại đa thức bậc 3 bằng bình phương tối thiểu; dời tầm nhìn đi Δx |
 | 4 | Giữa hai frame camera, lặp bước 2–3 với frame mới nhất; không giữ đa thức đã dời từ chu kỳ trước (PP-SWR-128) |
@@ -68,7 +68,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | 1 | Kiểm tính nhất quán từng biên (bảng dưới). Biên đủ tin = đạt điều kiện ở Software Requirements Specification mục 4 và nhất quán |
 | 2 | L1 và R1 cùng đủ tin: tâm làn = (y_L1 + y_R1) / 2. Cập nhật w_mem và mọi o_k bằng lọc thông thấp hằng số thời gian `tau_mem`, chỉ khi bề rộng đo trong 2,5–5,5 m; đặt lại σ_o,k = `sigma_mem0` |
 | 3 | Chỉ một trong L1, R1 đủ tin: tâm làn = biên đó ∓ w_mem/2. Không cập nhật bộ nhớ |
-| 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây |
+| 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây. Nếu vạch làn mình chỉ bị loại ở kiểm nhất quán (không mất, vẫn đủ tin theo SRS 4), làm bước 5 trước; hết `T_coast` mới suy tâm |
 | 5 | Không còn biên nào đủ tin, kể cả khi lane model không hợp lệ: bám reference line cũ đã dời bằng ego-motion tối đa `T_coast`, path nối tiếp path cũ qua T4; rồi `path_valid = false` |
 | 6 | Biên làn của reference line = tâm làn ± w/2, dùng cho khoảng hở (T8) và corridor (T7). Khoảng trống mỗi bên = (w − `vehicle_width`) / 2; nhỏ hơn `free_space_min` thì `lane_too_narrow = true` |
 
@@ -77,10 +77,11 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Thang | Kiểm | Không nhất quán khi |
 |---|---|---|
 | Từng frame | Biên mới so với bộ nhớ của biên đó, bộ nhớ dời bằng ego-motion mỗi chu kỳ, tại x = 0 | Lệch c0 > `k_jump`·√(σ_mới² + σ_cũ²) |
+| Từng frame: hình dạng | Như trên, tại 50 % và 75 % đoạn tầm nhìn chung của hai frame | Lệch y(x) > `k_jump`·σ(x), σ(x)² = Σₖ (σ²ₖ,mới + σ²ₖ,cũ)·x²ᵏ trên các hệ số c0–c3 (PP-TS-001) |
 | Chậm: song song | Hiệu c1 của hai biên làn mình, lọc thông thấp `tau_mem` | Lệch > `parallel_max`; biên bị loại là biên đổi hướng so với lịch sử của chính nó |
 | Chậm: bề rộng | Bề rộng đo so với w_mem | Lệch > `width_dev_max` giữ quá `T_confirm` |
 
-- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Sau khi nhận, vị trí cũ được giữ thêm `T_confirm`: biên quay về vị trí cũ thì nhận ngay.
+- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Khi đang có ứng viên mà frame lại nhất quán với bộ nhớ, frame được nhận và bộ nhớ trước đó được giữ làm vị trí cũ như sau một thay đổi: bộ nhớ chỉ được dời theo ego-motion nên đoạn tầm nhìn chung ngắn dần và phép kiểm hình dạng yếu dần. Sau khi nhận, vị trí cũ được giữ thêm `T_confirm`: biên quay về vị trí cũ thì nhận ngay.
 
 **Chấp nhận thay đổi thật của làn**
 
@@ -103,7 +104,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 |---|---|
 | 1 | Đưa path chu kỳ trước về `base_link` tại t0 bằng ego-motion. Path cũ hơn timeout của Trajectory (75 ms) coi như không hợp lệ |
 | 2 | Trạng thái đầu (d, ḋ, d̈) = trạng thái của path cũ tại t0, tính theo reference line mới. Nếu trạng thái đo (T6) lệch quá `stitch_reset` thì dùng trạng thái đo. Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080). Trong khi `driver_override` và ở chu kỳ đầu sau khi về false, dùng trạng thái đo (PP-SWR-039, 040); khi không có FunctionRequests dùng được thì giữ giá trị của message dùng được gần nhất |
-| 3 | T7 sinh path ứng viên từ trạng thái đầu |
+| 3 | T7 sinh path ứng viên từ trạng thái đầu. Với HWA, T10 bước 2 cắt path ứng viên trước bước 4 |
 | 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
 | 5 | Bỏ bước 4 khi PP-SWR-031 cho phép (LKA, ELK bắt đầu lúc xe đã lệch), khi path cũ không hợp lệ, và trong khi `driver_override = true` (PP-TS-017) |
 
@@ -195,6 +196,7 @@ Kết quả khớp bảng arbitration state ở Software Architectural Design m�
 | 3 | `lateral_limit_reached`: bật khi a_y cần lớn nhất trong tầm nhìn > aysmax + `delta_ay`, tắt khi < aysmax − `delta_ay`; điều kiện phải đúng ở các chu kỳ liên tiếp trong `T_flag` / 2 |
 | 4 | LateralLimits: κ_max là trị tuyệt đối lớn nhất của κ(s) trong tầm nhìn; `v_max` = √(giới hạn a_y của chức năng / κ_max); `distance` = s tại κ_max |
 
+- Với HWA, bước 2 chạy hai lần: trên path ứng viên trước T4 bước 4, và trên path gửi sau đó. Tổ hợp lồi của hai path khả thi vẫn khả thi, nên lần sau chỉ gặp phần do tốc độ đổi; T10 không phá liên tục sau khi trộn (PP-TS-003).
 - Bước 2 cắt cả độ cong của điểm 0, giữ vị trí. Jerk cắt theo từng bước 0,1 s, chặt hơn trung bình 0,5 s của requirement. Mỗi giới hạn chừa 10⁻⁶ tương đối để giá trị float32 gửi đi không vượt.
 - Bước 3 và 4 dùng độ cong lớn hơn giữa reference line của camera và của T5: cờ và `v_max` báo trước cho khối dọc, nên lấy phía an toàn. Path vẫn bám độ cong của T5.
 
@@ -258,3 +260,9 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.10 | 2026-11-13 | T7: lưới thời lượng quintic của LKA, ELK tới `intervention_T_max` (mục 15), thay cho phần còn lại của 10 s; T9 bước 4 bỏ hủy khi quá 10 s (PP-SWR-083 obsolete, PP-TS-016) |
 | 1.11 | 2026-11-13 | Theo PP-TS-017 V2: T4 bước 2 dùng trạng thái đo trong lúc ghi đè và chu kỳ đầu sau đó; bước 5 bỏ trộn trong lúc ghi đè; T7 nhắm độ lệch hiện tại của xe trong lúc ghi đè, rồi về tâm theo `T_recenter` (PP-SWR-039, 040; PP-PR-032) |
 | 1.12 | 2026-11-14 | T7: ứng viên LKA, ELK thoả giới hạn khi T10 bước 2 không cắt. Lý do: T10 cắt jerk theo từng bước 0,1 s, chặt hơn trung bình 0,5 s; path bị cắt không kết thúc song song với làn và phần xa nhảy giữa các chu kỳ (PP-PR-041). T9 bước 4 trỏ điều kiện bắt đầu LKA, ELK vạch về PP-SWR-092 (PP-PR-038) |
+| 1.13 | 2026-11-14 | T2 kiểm từng frame thêm hình dạng: so hai frame tại 50 % và 75 % đoạn tầm nhìn chung, ngưỡng `k_jump` theo phương sai các hệ số. Lý do: PP-TS-001 chọn J0 kiểm hình dạng (20261114-1857-study-PP-TS-001-13913da); kiểm riêng c0 không thấy độ cong sai (F06). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
+| 1.14 | 2026-11-14 | T1 bước 1: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5 và giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035. Ảnh hưởng: PP-SWR-129, 130 |
+| 1.15 | 2026-11-14 | HWA: T10 bước 2 cắt path ứng viên trước T4 bước 4, rồi kiểm lại path gửi. Lý do: PP-TS-003 chọn V0b (20261114-1934-study-PP-TS-003-272a711); T10 sau T4 phá liên tục ở cua tại aysmax (PP-PR-005, 006). Ảnh hưởng: PP-SWR-100 đến 102, 001; T4, T10 |
+| 1.16 | 2026-11-14 | T2: khi đang có ứng viên, frame khớp ứng viên hơn bộ nhớ thì tính cho ứng viên. Lý do: PP-PR-048; hình dạng sai ngắn hơn `T_confirm` lọt qua bộ nhớ cũ và không để lại vị trí cũ cho R2 (F06 c). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
+| 1.17 | 2026-11-14 | T2 bước 4: vạch làn mình bị loại ở kiểm nhất quán thì bám reference line cũ trước khi suy tâm từ biên ngoài. Lý do: PP-PR-052; một frame nhiễu làm tâm thành suy ra và LKA bị hủy (G01 trên S4c). Ảnh hưởng: PP-SWR-047, 030; T2 |
+| 1.18 | 2026-11-14 | T2: thay quy tắc của 1.16. Frame nhất quán với bộ nhớ trong lúc có ứng viên được nhận, bộ nhớ trước đó giữ làm vị trí cũ cho R2. Lý do: PP-PR-055; quy tắc 1.16 loại cả frame nhất quán khi nhiễu tương quan theo thời gian, ELK bắt đầu trễ 0,8 s (S12 c). Ảnh hưởng: PP-SWR-121, 122, 125, 088; T2 |

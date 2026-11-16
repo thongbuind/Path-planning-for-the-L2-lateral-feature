@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.39 |
+| Phiên bản | 1.42 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -342,7 +342,7 @@ Chấm cả hai chiều:
 - **Từ chối thiếu.** Ca Từ chối mà planner vẫn lái: trượt requirement của ca.
 - **Từ chối thừa.** Ca Lái hoặc Lái có giới hạn mà `active_function` khác chức năng được chọn theo PP-SWR-030, trong khi không có điều kiện nào của PP-SWR-124, 142 đến 145: trượt PP-SWR-030.
 - Từ chối thừa chấm từng chu kỳ. LKA, ELK chỉ tính sau khi planner đã bắt đầu can thiệp cho REQUEST đó, tới khi pha là COMPLETED; việc không bắt đầu can thiệp chấm theo ca.
-- Không tính chu kỳ ngay sau khi chức năng được chọn đổi (PP-SWR-038). Không tính lúc input cần cho path không dùng được (PP-SWR-124, 142, 145) và 1 s sau khi input hồi phục (giới hạn trên của `T_coast`, Software Requirements Specification mục 7).
+- Không tính chu kỳ ngay sau khi chức năng được chọn đổi (PP-SWR-038). Không tính lúc input cần cho path không dùng được (PP-SWR-124, 142, 145) và 1 s sau khi input hồi phục (giới hạn trên của `T_coast`, Software Requirements Specification mục 7). Mất input như vậy kết thúc lần LKA, ELK đang chạy: sau khi hồi phục, chức năng đó chỉ được tính lại khi bắt đầu cho REQUEST mới (PP-SWR-045).
 
 **Khía cạnh.**
 
@@ -387,7 +387,7 @@ Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của f
 | F12 | Thời gian | Ngừng gửi | Từng input ngừng gửi quá timeout, rồi gửi lại (hồi phục) | PP-SWR-043 (Lane Model), 044 (Lane Model, hồi phục), 045 (Lane Model, hồi phục), 046 (v_y, trong S5), 124 (Lane Model), 140 (Perception, trong S3), 141 (Perception, trong S5), 142 (IMU, tốc độ, góc lái), 144 (v_y), 145 (FunctionRequests) |
 | F13 | Thời gian | Camera chậm hơn planner | 20 Hz so với 40 Hz, luôn có | PP-SWR-128 |
 | F14 | Thời gian | Mất đồng bộ đồng hồ | a) trôi ±20 ppm; b) ±100 ppm; c) mất gPTP 10 s | PP-SWR-137 (a, b, c, vòng kín) |
-| F15 | Toàn vẹn | Counter lặp, nhảy, đứng yên | Trên từng kênh | PP-SWR-129 (lặp), 130 (nhảy, đứng yên) |
+| F15 | Toàn vẹn | Counter lặp, nhảy, đứng yên. Nhảy: bên gửi bỏ qua `count` giá trị, các message sau giữ độ lệch | Trên từng kênh. g) lane model nhảy 2, bước 3 trong giới hạn | PP-SWR-129 (lặp, nhảy trong giới hạn), 130 (nhảy quá giới hạn, đứng yên) |
 | F16 | Toàn vẹn | Cờ không hợp lệ | `valid = false`, qualifier FAULT | PP-SWR-130 |
 | F17 | Toàn vẹn | CRC sai | Khung CAN | PP-SWR-130, 142 |
 | F18 | Toàn vẹn | Làm tròn CAN | Theo factor của DBC, luôn có | PP-SWR-139 (vòng kín) |
@@ -459,7 +459,7 @@ Ca chạy trên một anchor khác là một lần chạy của anchor đó, nê
 | Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ, ở phần path mới trong tầm nhìn lane model báo, đổi về t0 theo chuyển động thật; không có lane model thì cả path | ≤ 0,05 m; ≤ 0,005 rad; ≤ 0,0003 1/m | PP-SWR-100 đến 102 |
 | Phần quan sát | `observed_horizon_s` trừ thời điểm path ra khỏi tầm nhìn lane model báo, lớn nhất trên mọi chu kỳ có path hợp lệ và có lane model | ≤ 0,1 s | PP-SWR-018 |
 | Điểm đầu path can thiệp | Tại tick bắt đầu, so vị trí và v_lat tại cầu sau với trạng thái thật trong hệ làn | ≤ 0,1 m và ≤ 0,1 m/s | PP-SWR-080 |
-| Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng tại tick đủ `T_end_hold` | PP-SWR-032, 090 |
+| Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng trong 0,5 s sau tick đủ `T_end_hold`, không trước tick đó | PP-SWR-032, 090 |
 | ELK REQUEST muộn | DLC của lốp trước theo vạch phía yêu cầu tại thời điểm planner nhận REQUEST. Ca bổ sung S8 late bơm yêu cầu theo quỹ đạo danh định và xác nhận điều kiện bằng xe thật trong SIL | Không khởi động ELK nếu DLC < −0,3 m | PP-SWR-089 |
 | Vạch phía yêu cầu không đủ tin | Status và confidence của vạch làn mình phía `side` trong lane model planner nhận, ở chu kỳ planner bắt đầu LKA hoặc ELK vạch | Không bắt đầu khi vạch không là biên làn đủ tin | PP-SWR-092 |
 | Phản ứng với lỗi | Thời điểm `path_valid`, `active_function` đổi | Theo requirement, sai lệch ≤ một chu kỳ | PP-SWR-124, 142 đến 145, 147 |
@@ -704,3 +704,6 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.37 | 2026-11-13 | Mục 8.1: không chấm liên tục trong lúc tài xế ghi đè (Software Requirements Specification 1.16, PP-TS-017) |
 | 1.38 | 2026-11-14 | Mục 5.1: bài ESF với xe làn bên của R79 ghi biến thể theo hai điểm thử; bộ B2 chạy các ca này. Lý do: B2 chưa có ca nào cho bài này (PP-PR-042) |
 | 1.39 | 2026-11-14 | Mục 8.1: cách chấm PP-SWR-092; REQUEST về phía vạch không đủ tin không bắt buộc có path can thiệp (Software Requirements Specification 1.18, PP-PR-038) |
+| 1.40 | 2026-11-14 | F15: counter nhảy giữ độ lệch cho các message sau; thêm g (nhảy trong giới hạn); ca tham chiếu theo MaxDeltaCounter (PP-PR-035) |
+| 1.41 | 2026-11-14 | Chấm PP-SWR-032 theo SRS 1.20: COMPLETED trong 0,5 s sau tick đủ `T_end_hold`. Lý do: PP-TS-018 V1 |
+| 1.42 | 2026-11-14 | Mục 5.3: mất input cần cho path kết thúc lần LKA, ELK đang chạy khi chấm PP-SWR-030. Lý do: PP-PR-053; cách chấm cũ mâu thuẫn với PP-SWR-045 (F20 a) |

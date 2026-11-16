@@ -413,6 +413,7 @@ html,body{{margin:0;background:{PLANE};color:{INK};font:9pt/1.35 -apple-system,"
 body{{padding:20px 0}}
 .page{{width:1280px;height:720px;margin:0 auto 24px;background:{SURFACE};padding:28px 36px 20px;display:flex;flex-direction:column;gap:4mm;
 box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 28px rgba(0,0,0,.08);overflow:hidden}}
+@media screen{{.page{{zoom:var(--slide-zoom,1)}}}}
 .top{{display:flex;align-items:center;gap:5mm;padding-bottom:3mm;border-bottom:1px solid {RULE}}}
 .top .title{{font-size:20pt;font-weight:680;letter-spacing:-.01em}}
 .top .sub{{color:{INK3};font-size:8pt}}
@@ -446,6 +447,12 @@ box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 28px rgba(0,0,0,.08);overflow:hidden}
 
 # Legends keep their full text: the font shrinks until the legend fits its column (display only).
 FIT_SCRIPT = """<script>
+function fitSlides() {
+  const width = document.documentElement.clientWidth;
+  document.documentElement.style.setProperty('--slide-zoom', Math.min(1, (width - 16) / 1280));
+}
+fitSlides();
+window.addEventListener('resize', fitSlides);
 for (const el of document.querySelectorAll('.fit')) {
   let pt = 7.6;
   while (el.scrollHeight > el.clientHeight + 1 && pt > 5) { pt -= 0.2; el.style.setProperty('--lf', pt.toFixed(1) + 'pt'); }
@@ -497,6 +504,33 @@ def names_from_sqts(lang="vi"):
 
 DOCS = ("R79", "R171", "EU 2021/646", "Euro NCAP LSS")
 
+# What the tests of each document check (Software Qualification Test Specification 5.1), for the B2 slide.
+DOC_DESC = {
+    "R79": ("Xe giữ tốc độ không đổi trong cua, tài xế không tác động vô lăng. Cua cần 80–90 % aysmax (S1 g), cua cần hơn aysmax + 0,3 m/s² (S1b), xe ở làn bên áp sát hoặc chuyển làn (S7, S8).",
+            "Lốp trước không vượt mép ngoài vạch, jerk ≤ 5 m/s³, a_y trong giới hạn R79 5.6.2.1.1; cờ giới hạn bật khi lốp vượt vạch; không rời làn gốc."),
+    "R171": ("Cua chữ S chuẩn (S1 f), nhiều độ cong và tốc độ, có ca cần a_y vượt mức khai báo (S14 e); lane model mất vạch, còn mép đường hoặc một vạch (F04, F21).",
+             "Không rời làn, chuyển động ổn định."),
+    "EU 2021/646": ("72 ± 1 km/h, vạch liền bên trái hoặc phải, cung R ≥ 1200 m rồi thả tay, xe trôi ra với v_lat 0,2 và 0,5 m/s (S5 a, f); tài xế ghi đè giữa lúc ELK can thiệp (S9 c).",
+                    "DTLM không vượt −0,3 m; không mất hỗ trợ lái đột ngột sau khi ghi đè."),
+    "Euro NCAP LSS": ("72 km/h, cung R = 1200 m, v_lat 0,2–0,6 m/s bước 0,1, hai phía: LKA vạch đứt và vạch liền (S4), ELK mép đường và vạch liền (S5, S6), xe ngược chiều (S7), xe đang vượt (S8).",
+                      "DTLE ≥ −0,3 m (vạch), ≥ −0,1 m (mép đường); không va chạm."),
+}
+
+# Longer titles of the 5.1 tests for the B2 slide; the table of the document keeps the short name.
+TEST_TITLE = {
+    "Giữ làn trong cua": "Giữ làn trong cua gần giới hạn a_y",
+    "a_y lớn nhất": "Gia tốc ngang lớn nhất khi cua vượt aysmax",
+    "Cảnh báo vượt vạch": "Cờ giới hạn bật khi lốp vượt vạch",
+    "ESF với xe làn bên": "ELK tránh xe ở làn bên (ESF)",
+    "Vị trí trong làn, thử mở rộng": "Vị trí trong làn: cua chữ S và thử mở rộng",
+    "ELK lane keep": "ELK giữ làn khi xe trôi ra vạch liền",
+    "Ghi đè ELK": "Tài xế ghi đè trong lúc ELK can thiệp",
+    "LKA vạch đứt, vạch liền": "LKA khi xe trôi ra vạch đứt hoặc vạch liền",
+    "ELK mép đường, vạch liền": "ELK khi xe trôi ra mép đường hoặc vạch liền",
+    "ELK xe ngược chiều": "ELK tránh xe ngược chiều",
+    "ELK xe đang vượt": "ELK tránh xe đang vượt",
+}
+
 
 def regulatory_tests(lang="vi") -> list[dict]:
     """Tests of Software Qualification Test Specification 5.1 run in SIL: rows with a test point
@@ -508,12 +542,13 @@ def regulatory_tests(lang="vi") -> list[dict]:
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) < 5 or not cells[0] or cells[0].startswith((translate(lang, "Văn bản"), "---")):
             continue
-        source, name, point, _, scenarios = cells[:5]
+        source, name, point, criterion, scenarios = cells[:5]
         refs = [(m.group(1), set(re.findall(r"[a-z]", m.group(2))) if m.group(2) else None)
                 for m in re.finditer(r"\b(S\d+[bc]?|F\d\d|G\d\d)\b(?:\s*\(([a-z, ]+)\))?", scenarios)]
         if point in ("—", "") or not refs:
             continue
-        tests.append({"source": source, "name": name, "docs": [d for d in DOCS if d in source], "refs": refs})
+        tests.append({"source": source, "name": name, "docs": [d for d in DOCS if d in source], "refs": refs,
+                      "point": point, "criterion": criterion})
     return tests
 
 
@@ -1063,7 +1098,7 @@ class Report:
         for q in st["failed_req"]:
             levels[severity.level(q) if q.startswith("PP-SWR") else severity.BLOCKER] += 1
         n_fam = len({r['_family'] for r in recs})
-        success_view = k == "B3"
+        success_view = k in ("B1", "B3")
         shown_runs = st['passed'] if success_view else st['runs'] - st['passed']
         runs_label = self.tr("Lần chạy thành công" if success_view else "Lần chạy trượt")
         runs_kpi = kpi(runs_label, f"{fmt_n(shown_runs, lang=self.lang)} / {fmt_n(st['runs'], lang=self.lang)}",
@@ -1106,9 +1141,13 @@ class Report:
                 where = Counter(f'{r["_family"]} {r["_case"].get("anchor") or ""}'.strip() for r in rs if run_levels(r)[0])
                 why = (self.tr("trượt ") + ", ".join(f"{q.replace('PP-SWR-', '')} {self.tr(REQ_SHORT.get(q, ''))}".strip() for q, _ in fails.most_common(2))
                        + self.tr(". Ở ") + ", ".join(self.tr("{case} ({count} lần)", case=c, count=n) for c, n in where.most_common(3)))
-            rows.append(f'<div style="display:grid;grid-template-columns:5mm 1fr auto;gap:0 2mm;padding:1mm 0;border-bottom:1px solid {GRID};align-items:start">'
-                        f'<span class="{cls}" style="margin-top:.4mm">{mark}</span>'
-                        f'<div><b style="font-size:9pt">{E(t["name"])}</b><div style="font-size:7.3pt;color:{INK3}">{E(t["source"])}</div>'
+            test_title = TEST_TITLE.get(t["name"], t["name"]) if self.lang == "vi" else t["name"]
+            chips = "".join(f'<span style="font-size:6.5pt;font-weight:650;color:{INK2};background:{NEUTRAL_BG};border-radius:3px;padding:0 1.4mm;margin-left:1.2mm">{E(d)}</span>'
+                            for d in t["docs"])
+            rows.append(f'<div style="display:grid;grid-template-columns:5mm 1fr auto;gap:0 2.4mm;padding:.4mm 0;border-bottom:1px solid {GRID};align-items:start">'
+                        f'<span class="{cls}" style="margin-top:.5mm">{mark}</span>'
+                        f'<div style="min-width:0"><div><b style="font-size:9.5pt">{E(test_title)}</b>{chips}</div>'
+                        f'<div style="font-size:7pt;color:{INK3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{E(t["source"])}</div>'
                         + (f'<div style="font-size:7.5pt;color:{CRIT_TEXT}">{E(why)}</div>' if why else "")
                         + f'</div><div style="font-size:8.5pt;text-align:right;white-space:nowrap">{right}</div></div>')
         per_doc = []
@@ -1116,14 +1155,18 @@ class Report:
             mine = [st for t, _, _, _, st, _ in status if d in t["docs"]]
             n_ok, n_run = sum(st == "pass" for st in mine), sum(st != "none" for st in mine)
             per_doc.append((d, n_ok, n_run, len(mine)))
-        doc_line = "".join(
-            f'<div style="flex:1;border-radius:4px;padding:1.2mm 2mm;background:{GOOD_BG if n_ok == n_all else CRIT_BG if n_run > n_ok else NEUTRAL_BG}">'
-            f'<div style="font-size:7.5pt;color:{INK2}">{E(d)}</div><div style="font-size:11pt;font-weight:680">{n_ok} / {n_all} {self.tr("bài thử đạt")}</div>'
-            f'<div style="font-size:7pt;color:{INK3}">{n_all - n_run} {self.tr("bài chưa có lần chạy")}</div></div>' for d, n_ok, n_run, n_all in per_doc)
+        doc_cards = "".join(
+            f'<div style="flex:1;border-radius:5px;padding:2mm 3mm;display:flex;flex-direction:column;justify-content:center;'
+            f'background:{GOOD_BG if n_ok == n_all else CRIT_BG if n_run > n_ok else NEUTRAL_BG}">'
+            f'<div style="font-size:9pt;font-weight:650;color:{INK2}">{E(d)}</div>'
+            f'<div style="font-size:15pt;font-weight:680;line-height:1.2">{n_ok} / {n_all} <span style="font-size:9pt;font-weight:500">{self.tr("bài thử đạt")}</span></div>'
+            f'<div style="font-size:7.5pt;color:{INK3}">{n_all - n_run} {self.tr("bài chưa có lần chạy")}</div>'
+            + (f'<div style="font-size:7.3pt;color:{INK2};margin-top:1mm;line-height:1.3"><b>{self.tr("Tình huống")}:</b> {E(DOC_DESC[d][0])}'
+               f'<br><b>{self.tr("Kiểm")}:</b> {E(DOC_DESC[d][1])}</div>' if self.lang == "vi" and d in DOC_DESC else "")
+            + '</div>' for d, n_ok, n_run, n_all in per_doc)
         table = card(self.tr("Kết quả theo bài thử của văn bản"),
-                     f'<div style="width:100%;align-self:flex-start;display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;'
-                     f'grid-template-rows:repeat({math.ceil(len(rows) / 2)},auto);column-gap:8mm">{"".join(rows)}</div>',
-                     self.tr("Bài thử dùng chung được dẫn chiếu ở nhiều văn bản; không cộng tổng các nhóm. Đạt khi mọi lần chạy đạt requirement trong phạm vi."), style="grid-column:span 4")
+                     f'<div style="width:100%;align-self:flex-start">{"".join(rows)}</div>',
+                     self.tr("Bài thử dùng chung được dẫn chiếu ở nhiều văn bản; không cộng tổng các nhóm. Đạt khi mọi lần chạy đạt requirement trong phạm vi."), style="grid-column:3 / span 2")
         if not recs:
             self.page(f"B2 · {title}", self.suite_subtitle(focus, what), "grid-template-columns:1fr",
                       [card(self.tr("Không có ca"), self.tr("Bộ {suite} không có ca trong lần chạy này.", suite="B2"))])
@@ -1144,8 +1187,8 @@ class Report:
                 kpi(self.tr("Bài thử đạt"), f"{passed_tests} / {len(tests)}", self.tr("{count} bài thử chưa có lần chạy", count=len(tests) - ran_tests)),
                 ncap_kpi,
                 kpi(self.tr("Lần chạy đạt"), f"{vn(st['passed'] / st['runs'] * 100, 1, lang=self.lang)} %", self.tr("{failed} / {runs} lần có trượt", failed=fmt_n(st['runs'] - st['passed'], lang=self.lang), runs=fmt_n(st['runs'], lang=self.lang)))]
-        docs = f'<div style="grid-column:span 4;display:flex;gap:3mm">{doc_line}</div>'
-        self.page(f"B2 · {title}", self.tr("Đánh giá mô phỏng theo R79 (OJ 2025/3), R171 (01 series, OJ 2025/1899), EU 2021/646 · LSS v4.3 / SA v10.4.1"), "grid-template-columns:repeat(4,1fr);grid-template-rows:auto auto 1fr",
+        docs = f'<div style="grid-column:1 / span 2;display:flex;flex-direction:column;gap:2.4mm">{doc_cards}</div>'
+        self.page(f"B2 · {title}", self.tr("Đánh giá mô phỏng theo R79 (OJ 2025/3), R171 (01 series, OJ 2025/1899), EU 2021/646 · LSS v4.3 / SA v10.4.1"), "grid-template-columns:repeat(4,1fr);grid-template-rows:auto 1fr",
                   head + [docs, table])
 
     def suite_head(self, k):
@@ -1469,7 +1512,7 @@ class Report:
         body = table([self.tr("Trường"), self.tr("Giá trị / nguồn")], [[E(k),E(str(v))] for k,v in rows])
         self.page(self.tr("Thông tin báo cáo"), self.tr("Nhận diện dữ liệu, phần mềm và môi trường đo"), 'grid-template-columns:1fr;grid-template-rows:1fr auto',
                   [card(self.tr("Thông tin truy xuất"), body), card(self.tr("Dữ liệu gốc"),
-                   f'<a href="{self.href(self.d["folder"] / "results.jsonl")}">results.jsonl</a> · '
+                   f'<a href="{self.href(self.d["folder"] / "results.jsonl")}" download>results.jsonl</a> · '
                    f'<a href="{self.href(self.d["conformance_path"])}">{self.tr("Bằng chứng B0")}</a> · {self.details_link("requirements", self.tr("Requirement và các ca được dẫn chiếu"))}',
                    self.tr("Giữ nguyên dữ liệu chạy; trường không có trong hồ sơ được hiển thị là chưa ghi nhận."))], anchor='metadata')
 
@@ -1533,7 +1576,8 @@ class Report:
                        'failures_in_scope':r.get('_fail'), 'rerun':r.get('rerun'), 'mcap':r.get('mcap')}
             body.append(f'<section id="{E(anchor)}"><h3>{E(r["case"])} · seed {r["seed"]}</h3>'
                         f'<p>{E(self.case_name(r))}</p><pre>{E(json.dumps(details, ensure_ascii=False, indent=2))}</pre></section>')
-        return (f'<!doctype html><html lang="{self.lang}"><meta charset="utf-8"><title>{self.tr("Bằng chứng dashboard")}</title>'
+        return (f'<!doctype html><html lang="{self.lang}"><meta charset="utf-8">'
+                f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{self.tr("Bằng chứng dashboard")}</title>'
                 f'<style>body{{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 -apple-system,Arial;color:{INK}}}section{{border-top:1px solid {RULE};padding:12px 0}}section:target{{background:{WARN_BG}}}pre{{white-space:pre-wrap;overflow-wrap:anywhere}}h2{{margin-top:40px}}</style>'
                 + ''.join(body) + '</html>')
 

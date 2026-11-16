@@ -3,6 +3,7 @@ icd: "5.6"
 constants:
   FUNCTIONS: {type: uint, value: 3, doc: "requests[3]: HWA, LKA, ELK"}
   FUNCTION_REQUESTS_TIMEOUT_US: {type: uint64, value: 75000}
+  FUNCTION_REQUESTS_MAX_DELTA_COUNTER: {type: uint, value: 4, doc: "Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms)"}
   FUNCTION_REQUESTS_MAX_AGE_US: {type: uint64, value: 45000}
 enums:
   RequestState:

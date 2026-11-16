@@ -7,12 +7,12 @@ Change the ICD first, then interfaces/schema, then run interfaces/gen.py.
 from interfaces.conventions import COUNTER_MODULO, FrameId, Side, Header, BasicHeader, Pose2D
 from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, STEERING_TIMEOUT_US, SPEED_TIMEOUT_US, Direction, ImuSignals, SteeringSignals, SpeedSignals
 from interfaces.inputs.ego_motion import EGO_MOTION_WINDOW_US, EgoMotionRequest, EgoMotionResponse
-from interfaces.inputs.function_requests import FUNCTIONS, FUNCTION_REQUESTS_TIMEOUT_US, FUNCTION_REQUESTS_MAX_AGE_US, RequestState, ElkReason, CancelReason, FunctionRequest, FunctionRequests
-from interfaces.inputs.lane_model import LANE_LINES, ROAD_EDGES, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US, LineType, LineStatus, RoadEdgeType, LaneWidthSource, LaneLine, RoadEdge, LaneModel
-from interfaces.inputs.longitudinal_plan import LONGITUDINAL_PLAN_POINTS, LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_MAX_AGE_US, LONGITUDINAL_PLAN_V_MAX_MPS, LONGITUDINAL_PLAN_A_MAX_MPS2, LongitudinalMode, LongitudinalPoint, LongitudinalPlan
-from interfaces.inputs.object_list import MAX_OBJECTS, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US, Object, ObjectList
+from interfaces.inputs.function_requests import FUNCTIONS, FUNCTION_REQUESTS_TIMEOUT_US, FUNCTION_REQUESTS_MAX_DELTA_COUNTER, FUNCTION_REQUESTS_MAX_AGE_US, RequestState, ElkReason, CancelReason, FunctionRequest, FunctionRequests
+from interfaces.inputs.lane_model import LANE_LINES, ROAD_EDGES, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_DELTA_COUNTER, LANE_MODEL_MAX_AGE_US, LineType, LineStatus, RoadEdgeType, LaneWidthSource, LaneLine, RoadEdge, LaneModel
+from interfaces.inputs.longitudinal_plan import LONGITUDINAL_PLAN_POINTS, LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_MAX_DELTA_COUNTER, LONGITUDINAL_PLAN_MAX_AGE_US, LONGITUDINAL_PLAN_V_MAX_MPS, LONGITUDINAL_PLAN_A_MAX_MPS2, LongitudinalMode, LongitudinalPoint, LongitudinalPlan
+from interfaces.inputs.object_list import MAX_OBJECTS, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_DELTA_COUNTER, OBJECT_LIST_MAX_AGE_US, Object, ObjectList
 from interfaces.inputs.vehicle_config import MAX_VEHICLE_WIDTH_M, VehicleConfig
-from interfaces.inputs.vehicle_state import VEHICLE_STATE_TIMEOUT_US, VEHICLE_STATE_MAX_AGE_US, VehicleStateEstimate
+from interfaces.inputs.vehicle_state import VEHICLE_STATE_TIMEOUT_US, VEHICLE_STATE_MAX_DELTA_COUNTER, VEHICLE_STATE_MAX_AGE_US, VehicleStateEstimate
 from interfaces.outputs.lateral_limits import LateralLimits
 from interfaces.outputs.path_status import PATH_STATUS_TIMEOUT_US, ActiveFunction, InterventionPhase, PathStatus
 from interfaces.outputs.trajectory import TRAJECTORY_POINTS, TRAJECTORY_STEP_S, TRAJECTORY_HORIZON_S, TRAJECTORY_TIMEOUT_US, TrajectoryPoint, Trajectory
@@ -32,6 +32,7 @@ __all__ = [
     "ElkReason",
     "FUNCTIONS",
     "FUNCTION_REQUESTS_MAX_AGE_US",
+    "FUNCTION_REQUESTS_MAX_DELTA_COUNTER",
     "FUNCTION_REQUESTS_TIMEOUT_US",
     "FrameId",
     "FunctionRequest",
@@ -43,9 +44,11 @@ __all__ = [
     "InterventionPhase",
     "LANE_LINES",
     "LANE_MODEL_MAX_AGE_US",
+    "LANE_MODEL_MAX_DELTA_COUNTER",
     "LANE_MODEL_TIMEOUT_US",
     "LONGITUDINAL_PLAN_A_MAX_MPS2",
     "LONGITUDINAL_PLAN_MAX_AGE_US",
+    "LONGITUDINAL_PLAN_MAX_DELTA_COUNTER",
     "LONGITUDINAL_PLAN_POINTS",
     "LONGITUDINAL_PLAN_TIMEOUT_US",
     "LONGITUDINAL_PLAN_V_MAX_MPS",
@@ -61,6 +64,7 @@ __all__ = [
     "MAX_OBJECTS",
     "MAX_VEHICLE_WIDTH_M",
     "OBJECT_LIST_MAX_AGE_US",
+    "OBJECT_LIST_MAX_DELTA_COUNTER",
     "OBJECT_LIST_TIMEOUT_US",
     "Object",
     "ObjectList",
@@ -89,6 +93,7 @@ __all__ = [
     "Trajectory",
     "TrajectoryPoint",
     "VEHICLE_STATE_MAX_AGE_US",
+    "VEHICLE_STATE_MAX_DELTA_COUNTER",
     "VEHICLE_STATE_TIMEOUT_US",
     "VehicleConfig",
     "VehicleStateEstimate",

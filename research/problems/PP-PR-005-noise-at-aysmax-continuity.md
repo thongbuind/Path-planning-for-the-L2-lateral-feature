@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân; chờ PP-TS-003 |
+| Trạng thái | Đóng; xác nhận ở 20261114-1952-suite-regression-0776bad |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-100 (qua PP-SWR-120) |
 | Tái hiện | Lần chạy nháp `build/suites/smoke-20261111-1425`: F01 a, b, c trên đường chủ S1c, ACC tắt, VP-0, seed 1 |
@@ -32,8 +32,11 @@
 
 Đưa ràng buộc liên tục với path cũ và ràng buộc a_y vào cùng một bài toán: QP hợp nhất của PP-TS-003. Không vá riêng T10.
 
+**Lần dò 2026-11-14 (nháp).** Ngoài QP, đặt T10 cắt path ứng viên trước khi T4 trộn (V0b của PP-TS-003) cũng đưa S1 c + F01 a từ 0,095 về 0,047 m và S12 a từ 0,088 về 0,047 m, seed 1. Tổ hợp lồi của hai path khả thi vẫn khả thi, nên T10 không phá liên tục sau khi trộn.
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
 | 20261111-1443-suite-regression-ef8bf4b | Tái hiện trên mốc V0: F01 a, b, c trên S1c trượt PP-SWR-100 ở 84 lần chạy, cả 6 profile |
+| [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md) | F01 a, b, c trên S1c, S12 a, G01 S1c hết trượt PP-SWR-100 (trước: 54 lần chạy) |

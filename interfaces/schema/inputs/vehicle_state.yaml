@@ -2,6 +2,7 @@
 icd: "5.4"
 constants:
   VEHICLE_STATE_TIMEOUT_US: {type: uint64, value: 60000}
+  VEHICLE_STATE_MAX_DELTA_COUNTER: {type: uint, value: 4, doc: "Largest accepted counter step (ICD 4, E2E): floor((60 + 25) / 20 ms)"}
   VEHICLE_STATE_MAX_AGE_US: {type: uint64, value: 30000}
 structs:
   VehicleStateEstimate:

@@ -751,8 +751,10 @@
   function renderRegions() {
     regionLayer.replaceChildren();
     (window.SPEC_REGIONS || []).forEach(function (r) {
-      var frame = el("div", "map-region");
+      var benchmark = r.id === "benchmark";
+      var frame = el(benchmark ? "a" : "div", "map-region" + (benchmark ? " region-link" : ""));
       frame.dataset.region = r.id;
+      if (benchmark) frame.href = "benchmark/" + (localFile ? "index.html" : "") + "?lang=" + language;
       var heading = el("h2", "region-label");
       if (r.id === "docs") {
         var link = el("a", "region-link", tr(r.text));
@@ -817,6 +819,9 @@
     var simWidth = 768;
     var docsLeft = vehicleLeft - gap - docsWidth;
     var simLeft = vehicleRight + gap;
+    var benchmark = frames.benchmark;
+    placeRegion(benchmark, simLeft, top, simWidth);
+    benchmark.style.top = top - gap - benchmark.offsetHeight + "px";
     var docsBottom = placeGrid("docs", docsLeft, top, docsWidth, 5);
     var simBottom = placeGrid("simulation", simLeft, top, simWidth, 2);
     var upperBottom = Math.max(docsBottom, vehicleBottom, simBottom);

@@ -4,6 +4,7 @@ constants:
   LANE_LINES: {type: uint, value: 4, doc: "lines[4]: L2, L1, R1, R2"}
   ROAD_EDGES: {type: uint, value: 2, doc: "road_edges[2]: left, right"}
   LANE_MODEL_TIMEOUT_US: {type: uint64, value: 150000}
+  LANE_MODEL_MAX_DELTA_COUNTER: {type: uint, value: 3, doc: "Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms)"}
   LANE_MODEL_MAX_AGE_US: {type: uint64, value: 250000}
 enums:
   LineType:

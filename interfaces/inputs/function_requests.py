@@ -14,6 +14,7 @@ from interfaces.conventions import BasicHeader, Side
 
 FUNCTIONS = 3  # requests[3]: HWA, LKA, ELK
 FUNCTION_REQUESTS_TIMEOUT_US = 75000
+FUNCTION_REQUESTS_MAX_DELTA_COUNTER = 4  # Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms)
 FUNCTION_REQUESTS_MAX_AGE_US = 45000
 
 
