@@ -32,6 +32,12 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
+# PP-TS-020 V2, study only: ay_margin_hwa applies only while lateral_limit_reached is off.
+option(PP_AY_MARGIN_GATE "PP-TS-020 V2: HWA path a_y margin only while the limit flag is off" OFF)
+if(PP_AY_MARGIN_GATE)
+    list(APPEND PP_T7_DEFINES PP_AY_MARGIN_GATE)
+endif()
+
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL

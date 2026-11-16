@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.44 |
+| Phiên bản | 1.45 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -245,7 +245,7 @@ Mỗi bài thử của văn bản ứng với kịch bản nào. Bài thử củ
 | Văn bản, mục | Bài thử | Điểm thử của văn bản | Tiêu chí đạt | Kịch bản | Ghi chú |
 |---|---|---|---|---|---|
 | R79 Annex 8, 3.2.1; R171 Annex 4, 4.2.5.1.1.1.1 | Giữ làn trong cua | Không tay, tốc độ không đổi; cua cần 80–90 % aysmax | Lốp trước không vượt mép ngoài vạch; jerk ≤ 5 m/s³ | S1 (g) | aysmax như nhau trên 10–130 km/h nên thử một dải |
-| R79 Annex 8, 3.2.2; R171 Annex 4, 4.2.5.1.1.1.2 | a_y lớn nhất | Cua cần > aysmax + 0,3 m/s²; tắt giảm tốc trong cua | a_y trong giới hạn của R79 5.6.2.1.1; jerk ≤ 5 m/s³ | S1b (a, b, c), ACC bỏ qua LateralLimits | |
+| R79 Annex 8, 3.2.2; R171 Annex 4, 4.2.5.1.1.1.2 | a_y lớn nhất | Cua cần > aysmax + 0,3 m/s²; tắt giảm tốc trong cua | a_y trong giới hạn của R79 5.6.2.1.1; jerk ≤ 5 m/s³ | S1b (a, b, c), ACC bỏ qua LateralLimits | Ca chạy tới khi xe đã ở trên cung khoảng 7 s, đủ đo khoảng 2 s của 5.6.2.1.1 |
 | R79 Annex 8, 3.2.5 | Cảnh báo vượt vạch | Cua cần aysmax + 0,1 tới + 0,4 m/s² | Cảnh báo muộn nhất khi lốp trước vượt vạch; vẫn hỗ trợ | S1b (f) | Cảnh báo dựa trên `lateral_limit_reached` |
 | R79 Annex 8, 3.1, 3.2.3, 3.2.4 | Cảnh báo của CSF; lực ghi đè; tay rời vô lăng | — | — | Không | Khối Chức năng ADAS, Lateral Controller, EPS |
 | R79 Annex 8, 3.3.1, 3.3.2 | ESF với xe làn bên | Xe làn bên áp sát, không chủ ý (3.3.1); chuyển làn chủ ý (3.3.2) | Không rời làn gốc; cảnh báo không muộn hơn lúc can thiệp | S7 (a, b, c, d, e), S8 (a, b, c, d, e) | 3.3.1: S7, S8 (a, b, e). 3.3.2: S8 (c, d). Cảnh báo thuộc khối Chức năng ADAS |
@@ -709,3 +709,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.42 | 2026-11-14 | Mục 5.3: mất input cần cho path kết thúc lần LKA, ELK đang chạy khi chấm PP-SWR-030. Lý do: PP-PR-053; cách chấm cũ mâu thuẫn với PP-SWR-045 (F20 a) |
 | 1.43 | 2026-11-16 | Mục 8.1: chấm liên tục theo SRS 1.21: ≤ 0,2 m, 0,02 rad, 0,0012 1/m. PM-01: bước nhảy 0,1 → 0,3 m để vẫn vượt ngưỡng. Lý do: mentor nới PP-SWR-100 đến 102 |
 | 1.44 | 2026-11-16 | Mục 8.1: chấm liên tục theo ba đoạn của SRS 1.22, mỗi điểm so với ngưỡng của đoạn chứa nó |
+| 1.45 | 2026-11-16 | Mục 5.1: S1b a, b chạy 17 s, c chạy 15 s (trước 13 s, 12 s), để xe ở trên cung khoảng 7 s. Lý do: PP-PR-056; ca cũ dừng khi a_y xe còn trên aysmax + 0,3, nên không chấm được khoảng 2 s của R79 5.6.2.1.1. Sửa sau khi thấy kết quả của PP-TS-020; mọi phương án chạy lại |

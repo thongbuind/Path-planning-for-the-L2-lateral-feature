@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Đang chạy |
 | Mở ngày | 2026-11-16 |
 | Khóa ngày | 2026-11-16 |
 | Quyết định ngày | — |
@@ -44,6 +44,7 @@ Quy định:
 | V1a | Trần path = aysmax + 0,1 | `calibration: {ay_margin_hwa: 0.1}` | |
 | V1b | Trần path = aysmax + 0,2 | `calibration: {ay_margin_hwa: 0.2}` | Chừa 0,1 m/s² cho controller |
 | V1c | Trần path = aysmax + 0,3 | `calibration: {ay_margin_hwa: 0.3}` | Hết phần R79 cho; không chừa cho controller |
+| V2 | Như V1b khi `lateral_limit_reached` tắt; trần aysmax khi cờ bật | `calibration: {ay_margin_hwa: 0.2}`, `cmake: {PP_AY_MARGIN_GATE: 'ON'}` | Thêm 2026-11-16 sau chẩn đoán S1b b (mục 5). Cờ của chu kỳ trước |
 | Không xét | Hạ aysmax khai báo xuống 2,2, giữ trần 2,5 | — | Đưa S1c ra khỏi phạm vi của PP-SWR-051 sau khi đã thấy kết quả; hạ năng lực khai báo |
 | Không xét | Khoảng nới 40 % trong 2 s | — | PP-TS-002 |
 
@@ -61,7 +62,7 @@ Cơ chế chung của V1a đến V1c:
 
 ## 3. Cách đánh giá (khóa trong plan.yaml)
 
-Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-020](../../../benchmark/suites/PP-TS-020.yaml).
+Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-020](../../../benchmark/suites/PP-TS-020.yaml). Mở lại và khóa lại cùng ngày sau lần chạy 20261116-1548: S1b a, b, c chạy dài hơn (Software Qualification Test Specification 1.45, PP-PR-056), thêm V2; mọi phương án chạy lại.
 
 | Mục | Nội dung |
 |---|---|
@@ -90,12 +91,52 @@ Ca chọn từ nhóm trượt PP-SWR-051 trên S1c của lần chạy full, cùn
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261116-1548-study-PP-TS-020-04ae8c5](../../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md) | V0, V1a, V1b, V1c | Theo plan khóa 2026-11-16 |
 
 ## 5. Kết quả
 
 Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0,3 m/s² cho S1c, F08 a, F08 b trên S1c đạt PP-SWR-051 với DLC 0,60–0,74 m.
 
+**Lần chạy chính thức** [20261116-1548-study-PP-TS-020-04ae8c5](../../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md). Số lượt trượt (chỉnh / kiểm): V0 4 / 10; V1a 0 / 8; V1b 0 / 6; V1c 0 / 6.
+
+| Ca (2 seed mỗi ô) | V0 | V1a | V1b | V1c |
+|---|---|---|---|---|
+| S1c + F08 a, VP-0 và VP-5 | 051 | Đạt | Đạt | Đạt |
+| S1c + F06 e, VP-5 | 051 | Đạt | Đạt | Đạt |
+| S1c + F08 b, VP-0 và VP-5 | 051 | 051 | Đạt | Đạt |
+| S1b b, ACC bỏ qua LateralLimits | Đạt | Đạt | R79-5.6.2.1.1 | R79-5.6.2.1.1 |
+| S1c + F17 b, VP-0 và VP-5 (đối chứng) | 051 | 051 | 051 | 051 |
+| Mọi ca còn lại, gồm S1 c, S1 g, S12 a, S1b a, c, e, f, S14 a | Đạt | Đạt | Đạt | Đạt |
+
+- Không phương án nào đạt mọi tiêu chí. Theo luật ở mục 3, chưa chọn được.
+- V1b, V1c trượt tiêu chí loại R79: a_y đo trên xe ở S1b b (cua cần 4,2 m/s², bài R79 Annex 8, 3.2.2) vượt giới hạn của 5.6.2.1.1. Path nằm ở 2,7 hoặc 2,8 m/s²; xe vượt thêm. Biên cho controller dưới 0,2 m/s² không đủ ở cua này.
+- V1a giữ được R79 nhưng còn trượt F08 b (0,3 °/s, PP-SWR-136).
+- F17 b trượt ở mọi phương án, đúng như đối chứng: không cùng gốc (PP-PR-054).
+- Lệch tâm làn xấu nhất (PP-SWR-050): chỉnh V0 0,50 m, V1 0,12–0,13 m; kiểm V0 0,45 m, V1 0,28 m. PP-SWR-002, 053, 003 không đổi.
+- `results.json` của `eval.study` chỉ ghi ID trượt và target, không ghi giá trị của tiêu chí. Chưa có a_y của xe ở S1b b và DLC của F08 b theo từng phương án.
+
+**Chẩn đoán S1b b** (2026-11-16, nháp: thư viện của lần chạy chính thức, seed 3, chỉ để hiểu cơ chế). Chi tiết ở [PP-PR-056](../../problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md).
+
+| Phương án | a_y path | a_y xe lọc lớn nhất | Thời gian trên 2,8 m/s² |
+|---|---|---|---|
+| V0 | 2,50 | 3,19 | 1,89 s |
+| V1a | 2,60 | 3,29 | 1,91 s |
+| V1b | 2,70 | 3,39 | 1,93 s |
+
+- Xe vượt khi path đã bão hòa, không phải khi path kéo xe về: path đứng ở trần từ 9 s, xe lệch khỏi path 0,18 m và vượt path 0,5–0,7 m/s².
+- Margin cộng thẳng vào a_y của xe (mỗi 0,1 m/s² thêm 0,1), không giúp gì ở ca này: DLC nhỏ nhất 0,80 m ở mọi phương án.
+- Thời gian trên 2,8 m/s² bị cắt ở cuối log ở cả ba phương án. V0 và V1a "đạt" phần thời lượng của R79 vì ca ngắn, không phải vì hành vi.
+
 ## 6. Đề xuất
+
+2026-11-16, chờ người dùng:
+
+- Chưa chọn phương án nào. Kết quả R79 ở S1b chưa đủ tin để loại hay giữ phương án (PP-PR-056).
+- Bước 1, bên chấm: kéo dài cung của S1b để đo trọn 2 s của R79, ghi lý do ở SQTS. Đây là sửa kịch bản sau khi thấy kết quả, nên mở lại khóa.
+- Bước 2, thêm phương án V2: trần aysmax + `ay_margin_hwa` khi cờ `lateral_limit_reached` tắt; khi cờ bật (cua cần vượt aysmax + `delta_ay`) thì trần giữ aysmax (PP-SWR-006 không đổi). Lý do: margin có ích ở S1c (kéo xe về) và có hại ở S1b (cộng thẳng vào a_y xe).
+- Dùng cờ thay cho so trực tiếp a_y cần với aysmax: S1c cần đúng aysmax, nên a_y cần ước lượng dao động quanh aysmax theo nhiễu và trần sẽ bật tắt đúng ở ca cần margin. Cờ có trễ `delta_ay` và xác nhận `T_flag`.
+- Bước 3: chạy lại mọi phương án (V0, V1a, V1b, V1c, V2) trên suite đã sửa.
+- 2026-11-16: người dùng đồng ý cả ba bước.
 
 ## 7. Quyết định
 

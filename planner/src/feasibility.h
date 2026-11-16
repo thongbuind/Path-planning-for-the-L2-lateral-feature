@@ -37,10 +37,11 @@ typedef struct {
 } pp_function_limits_t;
 
 /*
- * Limits of the HWA path for step 2: a_y up to aysmax + `ay_margin_hwa` (PP-TS-020). The flag
- * of step 3 and v_max of step 4 stay on aysmax.
+ * Limits of the HWA path for step 2: a_y up to aysmax + `ay_margin_hwa` (PP-TS-020); aysmax
+ * when `limit_reached` (variant V2 passes the flag of step 3, the delivered build false).
+ * The flag of step 3 and v_max of step 4 stay on aysmax.
  */
-pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal);
+pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal, bool limit_reached);
 
 /* Step 1 on the 31 points. */
 typedef struct {

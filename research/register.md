@@ -33,7 +33,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-017 | Path HWA trong lúc tài xế ghi đè: V0–V4 | Đóng; hồi quy 20261113-2255-suite-regression-e99cf08 | V2b, không chấm liên tục khi ghi đè | [study](studies/PP-TS-017-path-during-driver-override/study.md) |
 | PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | V1 phía requirement đã áp dụng (SRS 1.20); phía planner cần plan mới | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
 | PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; T4 chưa có plan | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
-| PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đã khóa 2026-11-16 | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
+| PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1548-study-PP-TS-020-04ae8c5: không phương án nào đạt hết | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
 
 ## Problem reports
 
@@ -93,4 +93,5 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
 | PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
 | PP-PR-054 | F17 b và F21 c trên S1c: xe rời làn ở cua chạm aysmax | Mở | PP-SWR-051 | [report](problems/PP-PR-054-s1c-f17b-f21c-departure.md) |
+| PP-PR-056 | S1b b: a_y của xe vượt aysmax + 0,3 tới cuối ca ở mọi trần path; ca quá ngắn để chấm 2 s của R79 | Mở | R79 5.6.2.1.1; PP-TS-020 | [report](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md) |
 | PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |

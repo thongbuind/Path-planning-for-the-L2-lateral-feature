@@ -15,10 +15,10 @@
 /* Cut slightly inside each limit so the float32 value sent never exceeds it. */
 #define PP_LIMIT_SCALE (1.0 - 1.0e-6)
 
-pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal)
+pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal, bool limit_reached)
 {
-    const pp_function_limits_t limits = {PP_AYSMAX + (double)cal->ay_margin_hwa,
-                                         PP_JERK_MAX_HWA, 0.0};       /* PP-SWR-001, 003 */
+    const double margin = limit_reached ? 0.0 : (double)cal->ay_margin_hwa;
+    const pp_function_limits_t limits = {PP_AYSMAX + margin, PP_JERK_MAX_HWA, 0.0}; /* PP-SWR-001, 003 */
     return limits;
 }
 

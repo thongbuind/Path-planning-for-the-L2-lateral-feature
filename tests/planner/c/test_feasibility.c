@@ -67,13 +67,14 @@ static void test_hwa_path_ceiling_follows_margin(void)
     /* PP-TS-020: the HWA path may reach aysmax + ay_margin_hwa; margin 0 keeps aysmax. */
     pp_calibration_t cal = pp_calibration;
     cal.ay_margin_hwa = 0.0F;
-    pp_function_limits_t limits = pp_hwa_path_limits(&cal);
+    pp_function_limits_t limits = pp_hwa_path_limits(&cal, false);
     PP_CHECK_NEAR(limits.ay_max, PP_AYSMAX, 0.0);
     PP_CHECK_NEAR(limits.jerk_max, PP_JERK_MAX_HWA, 0.0);
     PP_CHECK_NEAR(limits.ay_add_max, 0.0, 0.0);
 
     cal.ay_margin_hwa = 0.2F;
-    limits = pp_hwa_path_limits(&cal);
+    PP_CHECK_NEAR(pp_hwa_path_limits(&cal, true).ay_max, PP_AYSMAX, 0.0);   /* V2: flag on */
+    limits = pp_hwa_path_limits(&cal, false);
     PP_CHECK_NEAR(limits.ay_max, PP_AYSMAX + 0.2, 1e-7);
 
     pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];

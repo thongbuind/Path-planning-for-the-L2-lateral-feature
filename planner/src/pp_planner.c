@@ -719,7 +719,12 @@ static void plan_path(pp_state_t *s, uint64_t t0_us, const pp_usable_inputs_t *i
                 const double wheelbase = (double)s->vehicle.wheelbase;
                 /* PP-TS-003: limit the candidate first, so the blend of two feasible paths
                  * is the path sent; the second T10 call below only meets speed changes. */
-                const pp_function_limits_t path_limits = pp_hwa_path_limits(s->cal); /* PP-TS-020 */
+#ifdef PP_AY_MARGIN_GATE
+                const bool over_limit = s->limit_flag.reached;   /* PP-TS-020 V2: flag of last cycle */
+#else
+                const bool over_limit = false;
+#endif
+                const pp_function_limits_t path_limits = pp_hwa_path_limits(s->cal, over_limit);
                 (void)pp_feasibility_limit(out->points, &out->samples, &path_limits,
                                            &s->vehicle);                           /* T10 step 2 */
                 if (!override_now) {   /* T4 step 5: no blend while the driver overrides */
