@@ -48,6 +48,16 @@ elseif(NOT PP_T4_BLEND STREQUAL "single")
     message(FATAL_ERROR "PP_T4_BLEND must be single or segments, got ${PP_T4_BLEND}")
 endif()
 
+# PP-TS-021: T4 step 2 resets the start to the measured state on a threshold (hard) or
+# weighs it in with the deviation (soft).
+set(PP_T4_START "hard" CACHE STRING "T4 step 2 start: hard or soft reset")
+set_property(CACHE PP_T4_START PROPERTY STRINGS hard soft)
+if(PP_T4_START STREQUAL "soft")
+    list(APPEND PP_T7_DEFINES PP_T4_START_SOFT)
+elseif(NOT PP_T4_START STREQUAL "hard")
+    message(FATAL_ERROR "PP_T4_START must be hard or soft, got ${PP_T4_START}")
+endif()
+
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).
 add_custom_target(pp_build_info ALL

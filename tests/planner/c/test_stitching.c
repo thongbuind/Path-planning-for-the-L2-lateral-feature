@@ -113,7 +113,16 @@ static void test_start_from_old_path_or_reset(void)
     pp_previous_path_t prev = straight_path(0.1, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
+#ifdef PP_T4_START_SOFT
+    {
+        const double w = pp_stitch_soft_weight(0.1, (double)pp_calibration.stitch_soft_min,
+                                               (double)pp_calibration.stitch_reset);
+        PP_CHECK(w > 0.0 && w < 1.0);
+        PP_CHECK_NEAR(start.d, 0.1 * (1.0 - w), 1e-6);   /* between old path and measured */
+    }
+#else
     PP_CHECK_NEAR(start.d, 0.1, 1e-6);
+#endif
     PP_CHECK_NEAR(start.d_dot, 0.0, 1e-9);
     PP_CHECK_NEAR(start.d_ddot, 0.0, 1e-9);
 
@@ -175,6 +184,46 @@ static void test_blend_ignores_change_beyond_view(void)
     PP_CHECK(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, whole.points) < 1.0);
 }
 
+/* PP-TS-021 soft reset weight: 0 up to soft_min, 1 from reset, linear between; no ramp when
+ * reset <= soft_min (the hard reset, also used for stitch_reset = 0). */
+static void test_soft_weight(void)
+{
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.01, 0.02, 0.1), 0.0, 0.0);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.02, 0.02, 0.1), 0.0, 0.0);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.06, 0.02, 0.1), 0.5, 1e-12);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.1, 0.02, 0.1), 1.0, 1e-12);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.3, 0.02, 0.1), 1.0, 0.0);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.05, 0.0, 0.1), 0.5, 1e-12);
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.001, 0.02, 0.0), 1.0, 0.0);   /* reset 0: always measured */
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.0, 0.02, 0.0), 0.0, 0.0);
+    /* Continuous: a small change of the deviation gives a small change of the weight. */
+    for (int i = 0; i < 100; i++) {
+        const double a = 0.001 * (double)i;
+        PP_CHECK(fabs(pp_stitch_soft_weight(a + 0.001, 0.02, 0.1) - pp_stitch_soft_weight(a, 0.02, 0.1))
+                 <= (0.001 / 0.08) + 1e-12);
+    }
+}
+
+#ifdef PP_T4_START_SOFT
+static void test_soft_start_blends_every_component(void)
+{
+    const pp_reference_line_t ref = straight_ref();
+    const pp_lateral_state_t measured = {0.0, 0.2, 0.4, 0.01};    /* d, d_dot, d_ddot, heading */
+    pp_lateral_state_t start;
+    pp_old_path_t old;
+    pp_calibration_t cal = pp_calibration;
+    cal.stitch_soft_min = 0.0F;
+    cal.stitch_reset = 0.2F;
+    pp_previous_path_t prev = straight_path(0.1, 0.0);              /* deviation 0.1: w = 0.5 */
+    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
+    PP_CHECK(pp_stitch_start(&old, &ref, &measured, &cal, &start));
+    PP_CHECK_NEAR(start.d, 0.05, 1e-6);
+    PP_CHECK_NEAR(start.d_dot, 0.1, 1e-6);
+    PP_CHECK_NEAR(start.d_ddot, 0.2, 1e-6);
+    PP_CHECK_NEAR(start.heading, 0.005, 1e-6);
+}
+#endif
+
 #ifdef PP_T4_BLEND_SEGMENTS
 /* PP-TS-021 V3: a large change after 2 s no longer holds back the first 2 s, and every
  * point stays within the limit of its own band of PP-SWR-100 (SRS 1.22). */
@@ -207,6 +256,10 @@ static void test_blend_by_band(void)
 
 int main(void)
 {
+    test_soft_weight();
+#ifdef PP_T4_START_SOFT
+    test_soft_start_blends_every_component();
+#endif
 #ifdef PP_T4_BLEND_SEGMENTS
     test_blend_by_band();
 #endif

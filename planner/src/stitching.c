@@ -143,6 +143,19 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
         const double d2 = (-((foot.dkappa * d) + (foot.kappa * d1)) * t)
                           + ((q / (c * c)) * (((p.kappa * q) / c) - foot.kappa)); /* d2d/ds2 */
         const double s_dot = (p.v * c) / q;
+#ifdef PP_T4_START_SOFT
+        /* PP-TS-021 soft reset: no on/off threshold, so the start cannot switch between the
+         * old path and the measured state from one cycle to the next. */
+        const double w = pp_stitch_soft_weight(fabs(d - measured->d),
+                                               (double)cal->stitch_soft_min,
+                                               (double)cal->stitch_reset);
+        start->d = d + (w * (measured->d - d));
+        start->d_dot = (d1 * s_dot) + (w * (measured->d_dot - (d1 * s_dot)));
+        start->d_ddot = ((d2 * s_dot * s_dot) + (d1 * p.a))
+                        + (w * (measured->d_ddot - ((d2 * s_dot * s_dot) + (d1 * p.a))));
+        start->heading = dtheta + (w * wrap_angle(measured->heading - dtheta));
+        from_old = (w < 1.0);
+#else
         if (fabs(d - measured->d) <= (double)cal->stitch_reset) {
             start->d = d;
             start->d_dot = d1 * s_dot;
@@ -150,8 +163,17 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
             start->heading = dtheta;
             from_old = true;
         }
+#endif
     }
     return from_old;
+}
+
+double pp_stitch_soft_weight(double deviation, double soft_min, double reset)
+{
+    if (reset <= soft_min) {
+        return (deviation > reset) ? 1.0 : 0.0;            /* no ramp: the hard reset */
+    }
+    return pp_clamp((deviation - soft_min) / (reset - soft_min), 0.0, 1.0);
 }
 
 static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, double lambda,

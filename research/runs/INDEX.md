@@ -38,3 +38,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261116-1548-study-PP-TS-020-04ae8c5 | study | PP-TS-020 | 04ae8c5 | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76 | Đứng đầu ở test: V1b | |
 | 20261116-1607-study-PP-TS-020-d1d50de | study | PP-TS-020 | d1d50de | calibration 710fc9d888e0, 80dfc43635bd, 1f38dc9fe751, 7e727740ab76, 1f38dc9fe751 | Đứng đầu ở test: V1b | |
 | 20261116-1702-study-PP-TS-021-f51044d | study | PP-TS-021 | f51044d | calibration 710fc9d888e0, 447a7c5019ae, 8dda0f75cc6d, 710fc9d888e0, 8dda0f75cc6d | Đứng đầu ở test: V2 | |
+| 20261116-1724-study-PP-TS-021-0a1d8c9 | study | PP-TS-021 | 0a1d8c9 | calibration 710fc9d888e0, 447a7c5019ae, 8dda0f75cc6d, 710fc9d888e0, 8dda0f75cc6d, d089659bf0fe, 1eeb6681144f | Đứng đầu ở test: V2 | |

@@ -2,6 +2,8 @@
 # agreed 2026-11-16; PP_T4_BLEND built (step 3). Locked 2026-11-16. Reopened and locked
 # again the same day after run 20261116-1702: V5, V6 added (stitch_reset between 0 and 0.1 m);
 # every variant runs again (research/README.md). Suite, seeds and criteria unchanged.
+# Reopened and locked again the same day after run 20261116-1724 and the V6 diagnostic
+# (study.md section 5): V7, V8 soft reset (PP_T4_START=soft) added; every variant runs again.
 # ay_margin_hwa stays 0 (PP-TS-020, point 3).
 # Tuning budget: none; every variant at the start calibration except the values it changes.
 id: PP-TS-021
@@ -40,3 +42,11 @@ variants:
     description: stitch_reset 0,05 m
     calibration: {stitch_reset: 0.05}
     cmake: {}
+  V7:
+    description: Reset mềm, trọng số trạng thái đo 0 dưới 0,02 m tới 1 từ 0,1 m
+    calibration: {stitch_soft_min: 0.02, stitch_reset: 0.1}
+    cmake: {PP_T4_START: soft}
+  V8:
+    description: Reset mềm, trọng số trạng thái đo từ 0 tới 1 trên 0–0,1 m
+    calibration: {stitch_soft_min: 0.0, stitch_reset: 0.1}
+    cmake: {PP_T4_START: soft}

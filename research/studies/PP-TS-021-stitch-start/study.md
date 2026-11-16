@@ -40,6 +40,8 @@ Cơ chế, đọc từ code T4 (`pp_stitch_start`, `pp_stitch_blend`):
 | V4 | V2 và V3 | `calibration: {stitch_reset: 0.0}`, `cmake: {PP_T4_BLEND: segments}` | |
 | V5 | `stitch_reset` 0,025 m | `calibration: {stitch_reset: 0.025}` | Thêm 2026-11-16 sau lần chạy 20261116-1702. Ngoài dải quét |
 | V6 | `stitch_reset` 0,05 m | `calibration: {stitch_reset: 0.05}` | Như V5. Bằng ngưỡng 0–1 s của PP-SWR-100. Ngoài dải quét |
+| V7 | Reset mềm: điểm đầu = path cũ + w · (trạng thái đo − path cũ), w = 0 dưới `stitch_soft_min` = 0,02 m, 1 từ `stitch_reset` = 0,1 m, tuyến tính ở giữa | `calibration: {stitch_soft_min: 0.02, stitch_reset: 0.1}`, `cmake: {PP_T4_START: soft}` | Thêm 2026-11-16 sau chẩn đoán V6. Trộn cả d, ḋ, d̈, góc lệch. `stitch_soft_min` là calibration parameter mới (Software Detailed Design 15) |
+| V8 | Như V7, w tuyến tính từ 0 m | `calibration: {stitch_soft_min: 0.0, stitch_reset: 0.1}`, `cmake: {PP_T4_START: soft}` | Như V7 |
 | Không xét | Bắt đầu từ trạng thái đo khi path chạm trần a_y | — | Dựa vào cờ `lateral_limit_reached`; cờ bật cả ở S1c (PP-TS-020 V2) |
 | Không xét | Bỏ bước 4 ở chu kỳ reset | — | Bước nhảy tới `stitch_reset` trong một chu kỳ, trượt PP-SWR-100 ở 0–1 s khi `stitch_reset` > 0,05 m |
 
@@ -48,7 +50,7 @@ Cơ chế, đọc từ code T4 (`pp_stitch_start`, `pp_stitch_blend`):
 
 ## 3. Cách đánh giá (khóa trong plan.yaml)
 
-Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-021](../../../benchmark/suites/PP-TS-021.yaml). Mở lại và khóa lại cùng ngày sau lần chạy 20261116-1702: thêm V5, V6; suite, seed và tiêu chí không đổi; mọi phương án chạy lại.
+Khóa 2026-11-16: [plan.yaml](plan.yaml), suite [PP-TS-021](../../../benchmark/suites/PP-TS-021.yaml). Mở lại và khóa lại cùng ngày sau lần chạy 20261116-1702: thêm V5, V6; suite, seed và tiêu chí không đổi; mọi phương án chạy lại. Mở lại và khóa lại lần nữa sau lần chạy 20261116-1724 và chẩn đoán V6: thêm V7, V8 (reset mềm); mọi phương án chạy lại.
 
 | Mục | Nội dung |
 |---|---|
@@ -80,6 +82,7 @@ Cài V3 (`PP_T4_BLEND=segments`, `pp_stitch_blend`):
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
 | [20261116-1702-study-PP-TS-021-f51044d](../../runs/20261116-1702-study-PP-TS-021-f51044d/summary.md) | V0 đến V4 | Theo plan khóa 2026-11-16. Chạy trong git worktree sạch ở f51044d, vì `web/` có thay đổi ngoài study; bản ghi chép về thư mục chính |
+| [20261116-1724-study-PP-TS-021-0a1d8c9](../../runs/20261116-1724-study-PP-TS-021-0a1d8c9/summary.md) | V0 đến V6 | Khóa lại: thêm V5, V6. Cùng cách chạy trong worktree. V0 đến V4 cho đúng số của lần trước |
 
 ## 5. Kết quả
 
@@ -124,9 +127,60 @@ Lệch ngang của path so với tâm làn thật (PP-SWR-050), lớn nhất the
 - Trộn theo đoạn (V3, V4) không giúp ở ca nào; V3 thêm trượt ở S14 e, V4 thêm trượt ở F06 e. Loại V3, V4.
 - V1 (0,1 m) không đủ: vẫn trượt R79 ở S1b a và thêm trượt PP-SWR-100.
 
+**Lần chạy sau khi khóa lại** [20261116-1724-study-PP-TS-021-0a1d8c9](../../runs/20261116-1724-study-PP-TS-021-0a1d8c9/summary.md). Số lượt trượt (chỉnh / kiểm): V0 4 / 5; V1 6 / 6; V2 4 / 2; V3 4 / 6; V4 4 / 4; V5 3 / 3; V6 4 / 4.
+
+| Ca (2 seed mỗi ô) | V0 (0,2 m) | V2 (0) | V5 (0,025 m) | V6 (0,05 m) |
+|---|---|---|---|---|
+| S1b a, bài R79 | R79 | Đạt | 100 | 100 |
+| S1b b, bài R79 | R79 | R79 | R79 | R79 |
+| S2 b | Đạt | 100 | Đạt | Đạt |
+| S14 e | 051 (1 seed) | Đạt | Đạt | Đạt |
+| Mọi ca còn lại | Đạt | Đạt | Đạt | Đạt |
+
+| Đại lượng | V0 | V2 | V5 | V6 |
+|---|---|---|---|---|
+| a_y xe trừ path, S1b a / c [m/s²] | 0,50 / 0,52 | 0,16 / 0,11 | 0,23 / 0,21 | 0,29 / 0,29 |
+| PP-SWR-050, S1 c [m] | 0,33 | 0,15 | 0,07 | 0,05 |
+| PP-SWR-050, S1 c + F02 b [m] | 0,33 | 0,15 | 0,07 | 0,05 |
+| PP-SWR-050, S12 a [m] | 0,50 | 0,30 | 0,34 | 0,33 |
+| PP-SWR-050, S1 f (cua chữ S) [m] | 0,28 | 0,82 | 0,46 | 0,36 |
+| PP-SWR-050, xấu nhất ở bộ kiểm [m] | 0,45 | 0,82 | 0,46 | 0,36 |
+
+- V5, V6 giữ được phần lớn lợi ích của V2: S1b a đạt R79, S1c gần tâm làn hơn cả V2, S1 f xấu ít hơn nhiều, S2 b đạt.
+- V5, V6 trượt PP-SWR-100 ở S1b a, ở mọi seed. V2 không trượt ở ca này. Giả thuyết: khi `stitch_reset` nhỏ nhưng khác 0, điểm đầu đổi qua lại giữa path cũ và trạng thái đo, và lần T10 kiểm lại sau T4 cắt path ở trần a_y (cua cần vượt aysmax), phá giới hạn trộn (cơ chế của PP-PR-005, 006). Chưa kiểm; `results.json` không ghi giá trị của PP-SWR-100.
+- V6 có lệch tâm làn xấu nhất nhỏ nhất ở bộ kiểm (0,36 m so với 0,45 m của V0).
+- S1b b trượt R79 ở mọi phương án.
+
+**Chẩn đoán V6 ở S1b a** (2026-11-16, nháp: thư viện build lại bằng `eval.sweep` từ 0a1d8c9 với calibration của từng phương án; seed 1, 3; ACC bỏ qua LateralLimits). Lệch giữa hai path liên tiếp tính theo từng điểm, như `eval.metrics._continuity`, chia cho ngưỡng của đoạn.
+
+| Bản | Chu kỳ lệch > 80 % ngưỡng | Đổi dấu giữa hai chu kỳ liền nhau | Khoảng | PP-SWR-100 lớn nhất |
+|---|---|---|---|---|
+| V0 (0,2 m) | 7 | 0 | 16,1–16,9 s | 0,95–0,99 (đạt) |
+| V6 (0,05 m) | 19–20 | 12 | 6,6–17,0 s | 1,02 (trượt) |
+| V2 (0) | 0 | — | — | 0,38 (đạt) |
+
+- Giả thuyết về T10 (mục trên) sai: quanh chu kỳ trượt, a_y của path đứng ở 2,50 m/s², độ cong path không đổi giữa hai chu kỳ.
+- Nguyên nhân: điểm đầu path đứng ở 0,038–0,047 m so với xe, sát dưới `stitch_reset`. T4 bước 2 đổi qua lại giữa nối từ path cũ và bắt đầu từ trạng thái đo. Lệch tại điểm 1 s đổi dấu mỗi chu kỳ (+0,047, −0,043, +0,051, −0,043 m): path dao động 40 Hz ở đúng giới hạn trộn `cont_margin` · 0,05 = 0,045 m.
+- Lần vượt 0,05 m: T4 đo lệch trên path cũ dời bằng ego-motion của planner, bên chấm dời bằng chuyển động thật. Khác vài mm, lớn hơn phần biên 10 % của `cont_margin`. V0 cũng tới 0,99 ở cuối S1b a.
+- Ngưỡng reset nhị phân càng nhỏ thì càng dễ dao động quanh ngưỡng. Chọn giá trị khác cho `stitch_reset` không gỡ được cơ chế này.
+
 ## 6. Đề xuất
 
-2026-11-16, chờ người dùng:
+2026-11-16, sau chẩn đoán V6, chờ người dùng:
+
+- Loại V5, V6: dao động theo chu kỳ ở S1b a. V2 không dao động nhưng mang sai số lane model vào path (S1 f, S2 b).
+- Phương án mới, cần mở lại khóa và cài code: reset mềm. Điểm đầu = trạng thái path cũ + w · (trạng thái đo − trạng thái path cũ), w tăng liên tục từ 0 tới 1 theo độ lệch giữa hai trạng thái (ví dụ 0 dưới 0,02 m, 1 từ 0,1 m). Không có ngưỡng nhị phân nên không dao động; V0 và V2 là hai đầu của cách này.
+- Cần chốt cùng lúc: biên của `cont_margin` so với sai số ego-motion (V0 cũng tới 0,99).
+- S1b b: problem report riêng.
+- 2026-11-16: người dùng đồng ý thêm reset mềm. Cài: `PP_T4_START=soft` (mặc định `hard`, code cũ giữ nguyên), `pp_stitch_soft_weight`; khi `stitch_reset` ≤ `stitch_soft_min` thì quay về reset nhị phân, nên V2 chạy được trên cả hai bản. Unit test C đạt 15/15 ở cả bốn tổ hợp hard, soft × single, segments.
+
+Đề xuất trước đó (2026-11-16, sau lần chạy 20261116-1724):
+
+- Chưa chọn. Không phương án nào đạt hết. V6 gần nhất: chỉ còn PP-SWR-100 ở S1b a, ngoài S1b b chung cho mọi phương án.
+- Bước tiếp: chẩn đoán S1b a với V6 (một lượt mô phỏng): chu kỳ trượt PP-SWR-100, điểm đầu lấy từ path cũ hay trạng thái đo, và T10 có cắt lại sau T4 không. Nếu đúng giả thuyết thì sửa T10 hoặc T4 ở cơ chế chung, rồi chạy lại.
+- S1b b: problem report riêng.
+
+Đề xuất trước đó (2026-11-16, sau lần chạy 20261116-1702):
 
 - Chưa chọn. V2 đi đúng hướng nhưng trượt PP-SWR-100 ở S2 b và làm S1 f xấu đi nhiều.
 - Loại V1, V3, V4. Phần T4 của PP-TS-019 kết thúc: trộn một λ (V0 của PP-TS-019, tức V3 ở đó) giữ nguyên.
