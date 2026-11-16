@@ -135,7 +135,7 @@ def test_continuity_exemption_applies_only_at_the_initial_tick():
     log = _log()
 
     def shift(cycle):
-        points = tuple(replace(p, pose=replace(p.pose, y=.2)) for p in cycle.trajectory.points)
+        points = tuple(replace(p, pose=replace(p.pose, y=.3)) for p in cycle.trajectory.points)
         cycle.trajectory = replace(cycle.trajectory, points=points)
 
     for c in log.cycles:
@@ -144,6 +144,26 @@ def test_continuity_exemption_applies_only_at_the_initial_tick():
     assert _criteria(evaluate(log), 100)[0].passed
     shift(next(c for c in log.cycles if c.t0_us == BEGIN + 25_000))
     assert not _criteria(evaluate(log), 100)[0].passed
+
+
+@pytest.mark.parametrize("first, last, step, passed", [
+    (21, 30, .15, True),    # beyond 2 s: 0.2 m
+    (21, 30, .25, False),
+    (11, 20, .08, True),    # 1-2 s: 0.1 m
+    (0, 10, .08, False),    # 0-1 s: 0.05 m
+])
+def test_continuity_limit_follows_the_time_band(first, last, step, passed):
+    """PP-SWR-100 (SRS 1.22): each point against the limit of its band of time_from_start."""
+    log = _log()
+    n = next(i for i, c in enumerate(log.cycles) if c.t0_us == 1_000_000)
+    c = log.cycles[n]
+    points = tuple(replace(p, pose=replace(p.pose, y=step)) if first <= i <= last else p
+                   for i, p in enumerate(c.trajectory.points))
+    log.cycles[n] = replace(c, trajectory=replace(c.trajectory, points=points))
+    criterion = _criteria(evaluate(log), 100)[0]
+    assert criterion.passed == passed
+    if first == 21 and passed:
+        assert criterion.value == pytest.approx(.75)
 
 
 def test_road_edge_dtle_and_100ms_actuator_delay():
@@ -203,11 +223,11 @@ INPUTS_OK = {k: True for k in ("lane_model", "imu", "speed", "steering", "ego_mo
 
 
 def _override_log(override: bool, jump_us: int = OVERRIDE_US):
-    """Path 0.12 m left of the car until jump_us, then at the car; driver_override from
+    """Path 0.3 m left of the car until jump_us, then at the car; driver_override from
     OVERRIDE_US when `override`."""
     log = _log(expect="", requested=NONE, active=NONE)
     for n, c in enumerate(log.cycles):
-        shift = 0.0 if c.t0_us >= jump_us else 0.12
+        shift = 0.0 if c.t0_us >= jump_us else 0.3
         points = tuple(replace(p, pose=replace(p.pose, y=shift)) for p in c.trajectory.points)
         on = override and c.t0_us >= OVERRIDE_US
         message = replace(c.function_requests,

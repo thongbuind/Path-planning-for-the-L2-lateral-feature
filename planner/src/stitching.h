@@ -16,10 +16,11 @@
 #include "pp_planner.h"
 #include "reference_line.h"
 
-/* Continuity limits between two consecutive paths. */
-#define PP_CONT_LATERAL_M (0.05)       /* PP-SWR-100 */
-#define PP_CONT_HEADING_RAD (0.005)    /* PP-SWR-101 */
-#define PP_CONT_CURVATURE (0.0003)     /* PP-SWR-102 */
+/* Continuity limits between two consecutive paths: the 0-1 s band, the tightest of
+   PP-SWR-100 to 102. T4 blends the whole path with one lambda, so it uses these. */
+#define PP_CONT_LATERAL_M (0.05)       /* PP-SWR-100, 0-1 s */
+#define PP_CONT_HEADING_RAD (0.005)    /* PP-SWR-101, 0-1 s */
+#define PP_CONT_CURVATURE (0.0003)     /* PP-SWR-102, 0-1 s */
 
 /* Path sent in the previous cycle, kept in the state. */
 typedef struct {

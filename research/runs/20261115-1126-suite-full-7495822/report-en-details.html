@@ -1,4 +1,219 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Benchmark evidence</title><style>body{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 -apple-system,Arial;color:#0b0b0b}section{border-top:1px solid #dcdbd6;padding:12px 0}section:target{background:#fdf4dd}pre{white-space:pre-wrap;overflow-wrap:anywhere}h2{margin-top:40px}</style><h1>Evidence and definitions</h1><p>20261115-1126-suite-full-7495822 · report 2.0 · 2026-11-16T11:16:21+07:00</p><h2>B0 · API / Contract / Integration</h2><section id="C1.symbols"><h3>C1.symbols · Exports pp_state_size, pp_init, pp_step, and pp_version</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C1.layout"><h3>C1.layout · Builds with pp_types.h from the same schema version, with struct layout matching the generated header</h3><p><b>Status:</b> Unchecked · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> Cannot verify from the library binary because pp_types.h has no schema version marker</p></section><section id="C1.state_size"><h3>C1.state_size · pp_state_size returns a consistent value greater than zero</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> 40664 byte</p></section><section id="C1.alignment"><h3>C1.alignment · Runs with state memory aligned to PP_STATE_ALIGNMENT</h3><p><b>Status:</b> Pass · <b>Source:</b> interfaces/c/pp_planner.h</p><p><b>Evidence / reason:</b> state memory at address ≡ 8 (mod 16), 40 cycles</p></section><section id="C2.init_ok"><h3>C2.init_ok · pp_init returns OK with valid VehicleConfig (VP-0)</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.init_missing"><h3>C2.init_missing · With missing VehicleConfig, pp_init rejects initialization and no cycle publishes Trajectory</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-146</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.init_out_of_limits"><h3>C2.init_out_of_limits · With out-of-range VehicleConfig, pp_init rejects initialization and no cycle publishes Trajectory</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 5.8 (vehicle width ≤ 2.5 m)</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.outputs_every_cycle"><h3>C2.outputs_every_cycle · Publishes Trajectory, PathStatus, and LateralLimits every cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-010, 150</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.filled"><h3>C2.filled · pp_step populates all output fields every cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> interfaces/c/pp_planner.h</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.counter"><h3>C2.counter · header.counter increments once per message and wraps from 255 to 0</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-014</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.stamp"><h3>C2.stamp · Output header.stamp_us matches t0 for the cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4, 6</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.enum"><h3>C2.enum · Enum values are defined and Boolean values are 0 or 1</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.trajectory_format"><h3>C2.trajectory_format · 31 points at 0.1 s intervals over 0–3 s, frame_id BASE_LINK, and rear_wheel_angle 0</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-011; Interface Control Document 6.1</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.finite"><h3>C2.finite · Published outputs contain only finite values</h3><p><b>Status:</b> Pass · <b>Source:</b> Software Qualification Test Specification 11</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.robust"><h3>C2.robust · Planner continues running with missing, invalid, or boundary-value inputs</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4, 5</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.version"><h3>C2.version · pp_version returns a consistent string containing version, commit, and calibration set ID</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> pp_planner 0.2.0 commit 74958221c89e calibration d532993b1b2f t7 quintic</p></section><section id="C3.deterministic"><h3>C3.deterministic · Identical input sequences produce bitwise identical outputs</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-ADR-013</p><p><b>Evidence / reason:</b> 400 cycles, two instances</p></section><section id="C3.interleaved"><h3>C3.interleaved · Interleaved instances match the output of isolated runs</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-ADR-013</p><p><b>Evidence / reason:</b> 400 cycles</p></section><section id="C3.memory"><h3>C3.memory · Writes stay within state memory, verified by guard bytes at both ends</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C3.symbols"><h3>C3.symbols · Symbol table has no dynamic allocation, file reads, or system clock reads</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4; PP-ADR-013</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="info.vehicle_config"><h3>info.vehicle_config · Additional VehicleConfig inputs (informational)</h3><p><b>Status:</b> Information · <b>Source:</b> Source not recorded</p><p><b>Evidence / reason:</b> Rejected all tested values</p></section><section id="b6-data"><h2>B6 · Comfort metric values</h2><table class="data-table comfort-table"><thead><tr><th>ID</th><th>Metric</th><th>Preferred direction</th><th>Runs</th><th>Median</th><th>Worst value</th><th>Worst case</th><th>Evidence</th></tr></thead><tbody><tr><td>053</td><td>Recentering time</td><td>Lower</td><td>544</td><td>0.007 s</td><td><b>4.088 s</b></td><td>S9: Function transitions c, VP-1</td><td><a href="report-en-details.html#run-S9-c-VP-1-9960a44246d2-1">View case</a></td></tr><tr><td>002</td><td>Added lateral acceleration during recentering</td><td>Lower</td><td>1,537</td><td>0 m/s²</td><td><b>2.215 m/s²</b></td><td>S17: Driver changes lanes with H… b, VP-4</td><td><a href="report-en-details.html#run-S17-b-VP-4-fce608d216a6-1">View case</a></td></tr><tr><td>004</td><td>Jerk RMS 0–1 s</td><td>Lower</td><td>544</td><td>0.02416 m/s³</td><td><b>1.011 m/s³</b></td><td>S17: Driver changes lanes with H… b, VP-1</td><td><a href="report-en-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">View case</a></td></tr><tr><td>004</td><td>Peak jerk (0.5 s average)</td><td>Lower</td><td>544</td><td>0.09536 m/s³</td><td><b>5 m/s³</b></td><td>S17: Driver changes lanes with H… b, VP-1</td><td><a href="report-en-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">View case</a></td></tr><tr><td>004</td><td>RMS steering wheel rate</td><td>Lower</td><td>544</td><td>0.005274 rad/s</td><td><b>0.3613 rad/s</b></td><td>S17: Driver changes lanes with H… b, VP-4</td><td><a href="report-en-details.html#run-S17-b-VP-4-fce608d216a6-1">View case</a></td></tr><tr><td>057</td><td>Barrier clearance</td><td>Higher</td><td>10</td><td>1.195 m</td><td><b>1.123 m</b></td><td>S15: Center offset with objects … b, VP-4</td><td><a href="report-en-details.html#run-S15-b-VP-4-7e8b95f6f0c1-1">View case</a></td></tr><tr><td>057</td><td>Clearance to a large vehicle alongside</td><td>Higher</td><td>136</td><td>1.094 m</td><td><b>0.073 m</b></td><td>S3b: A large vehicle overtakes f… e, VP-4</td><td><a href="report-en-details.html#run-S3b-e-VP-4-3f74c206432d-1">View case</a></td></tr><tr><td>081</td><td>LKA path duration to COMPLETED</td><td>Lower</td><td>332</td><td>3.3 s</td><td><b>7 s</b></td><td>S4b: LKA for lane drift in a cur… e, VP-4</td><td><a href="report-en-details.html#run-S4b-e-VP-4-ee510703be24-1">View case</a></td></tr><tr><td>087</td><td>Minimum DTLE during LKA</td><td>Higher</td><td>364</td><td>0.1242 m</td><td><b>−0.415 m</b></td><td>S16: Repeated interventions (Latin hypercube sample), VP-4</td><td><a href="report-en-details.html#run-S16-c-VP-4-bf8d98a04332-1">View case</a></td></tr></tbody></table></section><h2 id="requirements">Requirements</h2><section id="PP-SWR-001"><h3>PP-SWR-001</h3><p>While HWA is in control, path a_y shall be ≤ aysmax = 2.5 m/s² at every point</p></section><section id="PP-SWR-002"><h3>PP-SWR-002</h3><p>Maximum added a_y during HWA recentering or center offset should be small</p></section><section id="PP-SWR-003"><h3>PP-SWR-003</h3><p>While HWA is in control, path lateral jerk shall be ≤ 5 m/s³</p></section><section id="PP-SWR-004"><h3>PP-SWR-004</h3><p>Path lateral jerk while HWA is in control should be small</p></section><section id="PP-SWR-005"><h3>PP-SWR-005</h3><p>If maximum required a_y &gt; aysmax while HWA is in control, the planner shall keep path_valid = true and active_function = HWA, unless arbitration switches to LKA or ELK</p></section><section id="PP-SWR-006"><h3>PP-SWR-006</h3><p>If required a_y &gt; aysmax at a point in the 0–1 s segment of the path while HWA is in control, path a_y at that point shall be ≥ aysmax − epsilon_ay</p></section><section id="PP-SWR-007"><h3>PP-SWR-007</h3><p>When a front tire starts to touch the marking while HWA is in control and maximum required a_y &gt; aysmax, lateral_limit_reached shall already be true</p></section><section id="PP-SWR-008"><h3>PP-SWR-008</h3><p>The time from when maximum required a_y drops below aysmax until lateral_limit_reached clears should be short</p></section><section id="PP-SWR-009"><h3>PP-SWR-009</h3><p>The planner shall publish the same lateral_limit_reached value in PathStatus and LateralLimits for the same cycle</p></section><section id="PP-SWR-010"><h3>PP-SWR-010</h3><p>The planner shall publish Trajectory and PathStatus every cycle</p></section><section id="PP-SWR-011"><h3>PP-SWR-011</h3><p>Trajectory shall follow the format in the Interface Control Document: 31 points at 0.1 s intervals, spanning 0–3 s, frame_id = base_link</p></section><section id="PP-SWR-012"><h3>PP-SWR-012</h3><p>Trajectory header.stamp_us shall be the time represented by the path, with lane model latency compensated</p></section><section id="PP-SWR-013"><h3>PP-SWR-013</h3><p>Additional lateral deviation relative to the zero-latency case should be small when camera latency is 0–200 ms with ±20 ms jitter</p></section><section id="PP-SWR-014"><h3>PP-SWR-014</h3><p>header.counter shall increment by 1 after every message and wrap over 0–255</p></section><section id="PP-SWR-015"><h3>PP-SWR-015</h3><p>The planner shall record computation time for every cycle</p></section><section id="PP-SWR-016"><h3>PP-SWR-016</h3><p>The 99th percentile of computation time per cycle should be low</p></section><section id="PP-SWR-017"><h3>PP-SWR-017</h3><p>The planner shall accept a lane model with any view_range_end &gt; view_range_start for each marking and road edge. A view range beyond 126 m shall not invalidate the input</p></section><section id="PP-SWR-018"><h3>PP-SWR-018</h3><p>Trajectory.observed_horizon_s shall be no more than 0.1 s later than the point in time when the path leaves the view range reported by the lane model frame used in that cycle</p></section><section id="PP-SWR-030"><h3>PP-SWR-030</h3><p>The planner shall select the function in control in the priority order ELK &gt; LKA &gt; HWA, considering only functions with state = REQUEST</p></section><section id="PP-SWR-031"><h3>PP-SWR-031</h3><p>When the function in control changes, the path shall satisfy PP-SWR-100 to 102, except when LKA or ELK starts and the actual vehicle deviates from the previous path by more than 0.1 m or 0.1 m/s. In that case, apply PP-SWR-080</p></section><section id="PP-SWR-032"><h3>PP-SWR-032</h3><p>When the LKA or ELK termination conditions have held continuously for T_end_hold, the planner shall set that function&#x27;s phase to COMPLETED</p></section><section id="PP-SWR-033"><h3>PP-SWR-033</h3><p>After COMPLETED, the planner shall select the function in control according to PP-SWR-030 from the functions still in REQUEST, excluding the one just marked COMPLETED. If no function remains, select NONE</p></section><section id="PP-SWR-034"><h3>PP-SWR-034</h3><p>If the function just marked COMPLETED remains in REQUEST, the planner shall not start a new intervention for that function until its state leaves REQUEST and returns to it</p></section><section id="PP-SWR-035"><h3>PP-SWR-035</h3><p>Each new LKA or ELK intervention shall have the same limits as the first, regardless of the number of prior interventions</p></section><section id="PP-SWR-036"><h3>PP-SWR-036</h3><p>When the intervening function leaves REQUEST mid-intervention, the planner shall transition from the current state to the function selected under PP-SWR-030 from those still in REQUEST</p></section><section id="PP-SWR-037"><h3>PP-SWR-037</h3><p>When the intervening function leaves REQUEST mid-intervention through a valid message and no eligible function remains, the planner shall report active_function = NONE with path_valid = true if the required inputs remain valid</p></section><section id="PP-SWR-038"><h3>PP-SWR-038</h3><p>The planner shall reflect changes in FunctionRequests in its output within one cycle of receiving the message</p></section><section id="PP-SWR-039"><h3>PP-SWR-039</h3><p>While driver_override = true, the start of the path shall match the vehicle&#x27;s current lateral position with an error of ≤ 0.05 m</p></section><section id="PP-SWR-040"><h3>PP-SWR-040</h3><p>When driver_override changes to false while HWA is in REQUEST, the start of the HWA path shall match the vehicle&#x27;s lateral position at that time with an error of ≤ 0.05 m</p></section><section id="PP-SWR-041"><h3>PP-SWR-041</h3><p>The planner shall keep each function&#x27;s phase at COMPLETED until that function leaves REQUEST</p></section><section id="PP-SWR-042"><h3>PP-SWR-042</h3><p>When HWA leaves REQUEST and no function is in REQUEST, the planner shall set active_function = NONE and keep path_valid = true</p></section><section id="PP-SWR-043"><h3>PP-SWR-043</h3><p>While path_valid = false, active_function shall equal NONE</p></section><section id="PP-SWR-044"><h3>PP-SWR-044</h3><p>When inputs recover after path_valid = false, the start of the new path shall match the vehicle&#x27;s actual lateral state within the tolerances in PP-SWR-080</p></section><section id="PP-SWR-045"><h3>PP-SWR-045</h3><p>After input recovery, the planner shall start an LKA or ELK intervention only after the state of that function leaves REQUEST and returns to it</p></section><section id="PP-SWR-046"><h3>PP-SWR-046</h3><p>If VehicleStateEstimate becomes invalid during LKA or ELK intervention, the planner shall continue that intervention path until it ends</p></section><section id="PP-SWR-047"><h3>PP-SWR-047</h3><p>While the lane center can only be inferred from boundaries outside the ego lane, the planner shall not select LKA or ELK. Road-edge ELK is allowed if the hazard-side boundary of the ego lane is a MEASURED edge with confidence ≥ conf_edge and a reliable opposite boundary or stored lane width is available</p></section><section id="PP-SWR-048"><h3>PP-SWR-048</h3><p>If the age of FunctionRequests (t0 minus header.stamp_us) exceeds 45 ms, the planner shall treat the message as missing, including for the PP-SWR-145 timeout</p></section><section id="PP-SWR-050"><h3>PP-SWR-050</h3><p>Lateral path deviation should be small throughout the ODD and under lane model faults</p></section><section id="PP-SWR-051"><h3>PP-SWR-051</h3><p>While HWA is in control, maximum required a_y ≤ aysmax, and free space on each side is ≥ free_space_min, DLC on both sides shall be ≥ 0</p></section><section id="PP-SWR-052"><h3>PP-SWR-052</h3><p>When HWA takes control with the vehicle up to 0.5 m from the lane center, the function in control shall remain HWA throughout recentering</p></section><section id="PP-SWR-053"><h3>PP-SWR-053</h3><p>The time from HWA taking control (with the vehicle up to 0.5 m off center) to lateral deviation ≤ 0.1 m should be short</p></section><section id="PP-SWR-054"><h3>PP-SWR-054</h3><p>While HWA is in REQUEST and vehicle speed is within 0–60 km/h, the planner shall continue publishing a valid path for HWA</p></section><section id="PP-SWR-055"><h3>PP-SWR-055</h3><p>While a large vehicle is alongside in an adjacent lane with clearance &lt; gap_truck_min and no large vehicle is alongside on the opposite side, the path shall be offset from the actual lane center away from the large vehicle</p></section><section id="PP-SWR-056"><h3>PP-SWR-056</h3><p>While a large vehicle is alongside with clearance &lt; gap_truck_min, the path shall not be offset from the actual lane center toward the large vehicle with the smallest clearance</p></section><section id="PP-SWR-057"><h3>PP-SWR-057</h3><p>Minimum lateral clearance from the vehicle body to objects on either side while offsetting the center should be large</p></section><section id="PP-SWR-058"><h3>PP-SWR-058</h3><p>When a large vehicle in an adjacent lane is approaching, the path shall begin shifting before the large vehicle draws alongside</p></section><section id="PP-SWR-059"><h3>PP-SWR-059</h3><p>The time from when the rear of the large vehicle has passed to lateral deviation ≤ 0.1 m should be short</p></section><section id="PP-SWR-060"><h3>PP-SWR-060</h3><p>When one lane boundary widens outward (emergency stopping lane, branch, or added lane), DLC relative to the actual lane boundary on the widening side shall be ≥ 0</p></section><section id="PP-SWR-061"><h3>PP-SWR-061</h3><p>When the lane model switches to a new lane, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-062"><h3>PP-SWR-062</h3><p>All requirements in Section 8 shall be met throughout the ODD in Section 5 using the same calibration set</p></section><section id="PP-SWR-063"><h3>PP-SWR-063</h3><p>When free space on each side is less than free_space_min, the planner shall set lane_too_narrow = true in PathStatus</p></section><section id="PP-SWR-064"><h3>PP-SWR-064</h3><p>The time from when lateral_limit_reached is set until required a_y at the vehicle&#x27;s position exceeds aysmax should be long</p></section><section id="PP-SWR-080"><h3>PP-SWR-080</h3><p>When LKA or ELK starts intervening, the start of the path shall match the vehicle&#x27;s actual lateral state within position error ≤ 0.1 m and v_lat error ≤ 0.1 m/s</p></section><section id="PP-SWR-081"><h3>PP-SWR-081</h3><p>The time from the start of the LKA intervention path to COMPLETED should be short</p></section><section id="PP-SWR-082"><h3>PP-SWR-082</h3><p>The time from the start of the ELK intervention path to COMPLETED should be short</p></section><section id="PP-SWR-083"><h3>PP-SWR-083</h3><p>The duration of an LKA or ELK intervention, ending in COMPLETED or cancellation, shall be ≤ 10 s</p></section><section id="PP-SWR-084"><h3>PP-SWR-084</h3><p>When LKA reports COMPLETED, DLC on the side toward which the vehicle drifted shall be ≥ 0</p></section><section id="PP-SWR-085"><h3>PP-SWR-085</h3><p>After an LKA or ELK intervention, minimum DLC on the opposite side shall be ≥ 0</p></section><section id="PP-SWR-086"><h3>PP-SWR-086</h3><p>Minimum DTLE during an intervention shall be ≥ −0.3 m for LKA and solid-marking ELK, and ≥ −0.1 m for road-edge ELK</p></section><section id="PP-SWR-087"><h3>PP-SWR-087</h3><p>Minimum LKA DTLE should be large</p></section><section id="PP-SWR-088"><h3>PP-SWR-088</h3><p>During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle shall be ≥ 0.3 m</p></section><section id="PP-SWR-089"><h3>PP-SWR-089</h3><p>If ELK is requested when the front tire is already more than 0.3 m beyond the marking on the requested side, the planner shall not start that ELK intervention</p></section><section id="PP-SWR-090"><h3>PP-SWR-090</h3><p>The planner shall not report COMPLETED until the termination conditions have held continuously for T_end_hold</p></section><section id="PP-SWR-091"><h3>PP-SWR-091</h3><p>When EPS latency is up to 100 ms, minimum DTLE shall still satisfy PP-SWR-086</p></section><section id="PP-SWR-100"><h3>PP-SWR-100</h3><p>While path_valid = true, lateral deviation between consecutive paths shall be ≤ 0.05 m</p></section><section id="PP-SWR-101"><h3>PP-SWR-101</h3><p>While path_valid = true, heading difference between consecutive paths shall be ≤ 0.005 rad</p></section><section id="PP-SWR-102"><h3>PP-SWR-102</h3><p>While path_valid = true, curvature difference between consecutive paths shall be ≤ 0.0003 1/m</p></section><section id="PP-SWR-110"><h3>PP-SWR-110</h3><p>While LKA is in control, path a_y shall be ≤ 3.0 m/s²</p></section><section id="PP-SWR-111"><h3>PP-SWR-111</h3><p>While ELK is in control, path a_y shall be ≤ 4.0 m/s²</p></section><section id="PP-SWR-112"><h3>PP-SWR-112</h3><p>While LKA is in control, added a_y shall be ≤ 1.5 m/s²</p></section><section id="PP-SWR-113"><h3>PP-SWR-113</h3><p>While ELK is in control, added a_y shall be ≤ 3.0 m/s²</p></section><section id="PP-SWR-114"><h3>PP-SWR-114</h3><p>While LKA is in control, path lateral jerk shall be ≤ 5 m/s³</p></section><section id="PP-SWR-115"><h3>PP-SWR-115</h3><p>While ELK is in control, path lateral jerk shall be ≤ 10 m/s³</p></section><section id="PP-SWR-116"><h3>PP-SWR-116</h3><p>front_wheel_angle at every path point shall be ≤ max_wheel_angle from VehicleConfig</p></section><section id="PP-SWR-117"><h3>PP-SWR-117</h3><p>The steering wheel rate derived from the path (rate of change of front_wheel_angle times steering_ratio) shall be ≤ max_steering_wheel_rate from VehicleConfig</p></section><section id="PP-SWR-120"><h3>PP-SWR-120</h3><p>When lane model c0 and c1 noise reaches nighttime levels (2.5 times the daytime level), the path shall satisfy the active function&#x27;s jerk limit and PP-SWR-100 to 102</p></section><section id="PP-SWR-121"><h3>PP-SWR-121</h3><p>When c0 jumps by 0.3–1.0 m in one frame, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-122"><h3>PP-SWR-122</h3><p>When the lane model misidentifies an adjacent-lane marking, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-123"><h3>PP-SWR-123</h3><p>When the lane model loses one marking, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-124"><h3>PP-SWR-124</h3><p>When the lane model has no reliable lane boundary left (ego-lane markings, adjacent-lane markings, or road edges) or is invalid, the planner shall keep path_valid = true for T_coast, then set path_valid = false with a timing error of no more than one cycle</p></section><section id="PP-SWR-125"><h3>PP-SWR-125</h3><p>When lane model c2 is incorrect, the ratio of the path&#x27;s lateral deviation over 2–3 s to the deviation of a path that follows the erroneous lane model exactly should be small</p></section><section id="PP-SWR-126"><h3>PP-SWR-126</h3><p>When messages are lost individually or in bursts, or have ±20 ms jitter, the path shall satisfy PP-SWR-100 to 102 and the active function&#x27;s jerk limit</p></section><section id="PP-SWR-127"><h3>PP-SWR-127</h3><p>When messages arrive late or out of order, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-128"><h3>PP-SWR-128</h3><p>While the camera publishes at 20 Hz and the planner runs at 40 Hz, the path shall satisfy PP-SWR-100 to 102 every cycle</p></section><section id="PP-SWR-129"><h3>PP-SWR-129</h3><p>If a message is duplicated (repeated counter), the output shall match the fault-free case with the same seed</p></section><section id="PP-SWR-130"><h3>PP-SWR-130</h3><p>If the counter skips or is stuck, valid = false, the qualifier is FAULT, or the CRC is incorrect, the output shall match the corresponding message loss case</p></section><section id="PP-SWR-131"><h3>PP-SWR-131</h3><p>If the age of the lane model or ObjectList exceeds 250 ms, the planner shall treat that input as invalid</p></section><section id="PP-SWR-132"><h3>PP-SWR-132</h3><p>If an input timestamp is more than 10 ms in the future, the planner shall treat that input as invalid</p></section><section id="PP-SWR-133"><h3>PP-SWR-133</h3><p>While the age of the lane model or ObjectList is within 170–250 ms, the planner shall continue using that input</p></section><section id="PP-SWR-134"><h3>PP-SWR-134</h3><p>The planner shall log the number of lane model and ObjectList frames with an age greater than 170 ms</p></section><section id="PP-SWR-135"><h3>PP-SWR-135</h3><p>When IMU noise is up to twice the datasheet level, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-136"><h3>PP-SWR-136</h3><p>When yaw-rate bias is up to 0.3 °/s, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-137"><h3>PP-SWR-137</h3><p>When clock drift is up to ±100 ppm or gPTP synchronization is lost for up to 10 s, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-138"><h3>PP-SWR-138</h3><p>When filtered yaw rate is delayed by up to 50 ms without that delay being reported to the planner, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-139"><h3>PP-SWR-139</h3><p>While CAN signals are quantized according to the DBC scaling factor, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-140"><h3>PP-SWR-140</h3><p>If ObjectList is invalid, the planner shall return the HWA center offset to 0 while still meeting PP-SWR-001, 003, and 100 to 102</p></section><section id="PP-SWR-141"><h3>PP-SWR-141</h3><p>If ObjectList is invalid, the planner shall still perform the requested ELK intervention</p></section><section id="PP-SWR-142"><h3>PP-SWR-142</h3><p>If IMU, speed, or steering angle is invalid, the planner shall set path_valid = false within one cycle</p></section><section id="PP-SWR-143"><h3>PP-SWR-143</h3><p>If ego-motion is invalid, the planner shall set path_valid = false within one cycle</p></section><section id="PP-SWR-144"><h3>PP-SWR-144</h3><p>If VehicleStateEstimate is invalid, the planner shall not start a new LKA or ELK intervention</p></section><section id="PP-SWR-145"><h3>PP-SWR-145</h3><p>If FunctionRequests exceeds its 75 ms timeout, the planner shall set active_function = NONE and path_valid = false within one cycle</p></section><section id="PP-SWR-146"><h3>PP-SWR-146</h3><p>If VehicleConfig is missing at startup, the planner shall not publish Trajectory</p></section><section id="PP-SWR-147"><h3>PP-SWR-147</h3><p>When the lane model loses both ego-lane markings but at least one other reliable lane boundary remains, the planner shall keep path_valid = true</p></section><section id="PP-SWR-148"><h3>PP-SWR-148</h3><p>When the lane model loses both ego-lane markings but at least one other reliable lane boundary remains, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-149"><h3>PP-SWR-149</h3><p>When the lane model view range briefly shortens, differs by marking, varies by frame, or is reported beyond the actually observed segment, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-150"><h3>PP-SWR-150</h3><p>The planner shall publish LateralLimits every cycle</p></section><section id="PP-SWR-151"><h3>PP-SWR-151</h3><p>LateralLimits.v_max shall equal √(a_y limit of the function in control / κ_max), within 5% error. κ_max is the maximum curvature of the actual lane center within the lane model&#x27;s view range, up to 126 m</p></section><section id="PP-SWR-152"><h3>PP-SWR-152</h3><p>LateralLimits.distance shall equal the longitudinal distance to the point with κ_max, with error ≤ 5 m</p></section><section id="PP-SWR-153"><h3>PP-SWR-153</h3><p>When LongitudinalPlan is valid, Trajectory longitudinal_velocity and acceleration shall be taken from LongitudinalPlan</p></section><section id="PP-SWR-154"><h3>PP-SWR-154</h3><p>If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant with acceleration set to 0</p></section><section id="PP-SWR-155"><h3>PP-SWR-155</h3><p>If LongitudinalPlan is missing or exceeds its 75 ms timeout, the planner shall keep path_valid = true</p></section><section id="PP-SWR-156"><h3>PP-SWR-156</h3><p>If v or a at any LongitudinalPlan point is outside the range specified in Interface Control Document 5.7, including NaN or infinity, the planner shall treat the message as missing</p></section><h2>Referenced runs</h2><p><a href="generation.json">Source case manifest</a></p><section id="run-S8b-a-VP-1-eeee38dde0af-1"><h3>S8b-a-VP-1-eeee38dde0af · seed 1</h3><p>S8b: Signaled lane change with a… (Latin hypercube sample), VP-1</p><pre>{
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Benchmark evidence</title><style>body{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#1D1D1F}section{border-top:1px solid #E8E8ED;padding:12px 0}section:target{background:#FFF3E0}pre{white-space:pre-wrap;overflow-wrap:anywhere}h2{margin-top:40px}</style><h1>Evidence and definitions</h1><p>20261115-1126-suite-full-7495822 · report 2.0 · 2026-11-16T14:09:39+07:00</p><h2>B0 · API / Contract / Integration</h2><section id="C1.symbols"><h3>C1.symbols · Exports pp_state_size, pp_init, pp_step, and pp_version</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C1.layout"><h3>C1.layout · Builds with pp_types.h from the same schema version, with struct layout matching the generated header</h3><p><b>Status:</b> Unchecked · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> Cannot verify from the library binary because pp_types.h has no schema version marker</p></section><section id="C1.state_size"><h3>C1.state_size · pp_state_size returns a consistent value greater than zero</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> 40664 byte</p></section><section id="C1.alignment"><h3>C1.alignment · Runs with state memory aligned to PP_STATE_ALIGNMENT</h3><p><b>Status:</b> Pass · <b>Source:</b> interfaces/c/pp_planner.h</p><p><b>Evidence / reason:</b> state memory at address ≡ 8 (mod 16), 40 cycles</p></section><section id="C2.init_ok"><h3>C2.init_ok · pp_init returns OK with valid VehicleConfig (VP-0)</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.init_missing"><h3>C2.init_missing · With missing VehicleConfig, pp_init rejects initialization and no cycle publishes Trajectory</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-146</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.init_out_of_limits"><h3>C2.init_out_of_limits · With out-of-range VehicleConfig, pp_init rejects initialization and no cycle publishes Trajectory</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 5.8 (vehicle width ≤ 2.5 m)</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.outputs_every_cycle"><h3>C2.outputs_every_cycle · Publishes Trajectory, PathStatus, and LateralLimits every cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-010, 150</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.filled"><h3>C2.filled · pp_step populates all output fields every cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> interfaces/c/pp_planner.h</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.counter"><h3>C2.counter · header.counter increments once per message and wraps from 255 to 0</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-014</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.stamp"><h3>C2.stamp · Output header.stamp_us matches t0 for the cycle</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4, 6</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.enum"><h3>C2.enum · Enum values are defined and Boolean values are 0 or 1</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.trajectory_format"><h3>C2.trajectory_format · 31 points at 0.1 s intervals over 0–3 s, frame_id BASE_LINK, and rear_wheel_angle 0</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-SWR-011; Interface Control Document 6.1</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.finite"><h3>C2.finite · Published outputs contain only finite values</h3><p><b>Status:</b> Pass · <b>Source:</b> Software Qualification Test Specification 11</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.robust"><h3>C2.robust · Planner continues running with missing, invalid, or boundary-value inputs</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4, 5</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C2.version"><h3>C2.version · pp_version returns a consistent string containing version, commit, and calibration set ID</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> pp_planner 0.2.0 commit 74958221c89e calibration d532993b1b2f t7 quintic</p></section><section id="C3.deterministic"><h3>C3.deterministic · Identical input sequences produce bitwise identical outputs</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-ADR-013</p><p><b>Evidence / reason:</b> 400 cycles, two instances</p></section><section id="C3.interleaved"><h3>C3.interleaved · Interleaved instances match the output of isolated runs</h3><p><b>Status:</b> Pass · <b>Source:</b> PP-ADR-013</p><p><b>Evidence / reason:</b> 400 cycles</p></section><section id="C3.memory"><h3>C3.memory · Writes stay within state memory, verified by guard bytes at both ends</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="C3.symbols"><h3>C3.symbols · Symbol table has no dynamic allocation, file reads, or system clock reads</h3><p><b>Status:</b> Pass · <b>Source:</b> Interface Control Document 4; PP-ADR-013</p><p><b>Evidence / reason:</b> The check returned the status shown above. No additional details were recorded.</p></section><section id="info.vehicle_config"><h3>info.vehicle_config · Additional VehicleConfig inputs (informational)</h3><p><b>Status:</b> Information · <b>Source:</b> Source not recorded</p><p><b>Evidence / reason:</b> Rejected all tested values</p></section><section id="b6-data"><h2>B6 · Comfort metric values</h2><table class="data-table comfort-table"><thead><tr><th>ID</th><th>Metric</th><th>Preferred direction</th><th>Runs</th><th>Median</th><th>Worst value</th><th>Worst case</th><th>Evidence</th></tr></thead><tbody><tr><td>053</td><td>Recentering time</td><td>Lower</td><td>544</td><td>0.007 s</td><td><b>4.088 s</b></td><td>S9: Function transitions c, VP-1</td><td><a href="report-en-details.html#run-S9-c-VP-1-9960a44246d2-1">View case</a></td></tr><tr><td>002</td><td>Added lateral acceleration during recentering</td><td>Lower</td><td>1,537</td><td>0 m/s²</td><td><b>2.215 m/s²</b></td><td>S17: Driver changes lanes with H… b, VP-4</td><td><a href="report-en-details.html#run-S17-b-VP-4-fce608d216a6-1">View case</a></td></tr><tr><td>004</td><td>Jerk RMS 0–1 s</td><td>Lower</td><td>544</td><td>0.02416 m/s³</td><td><b>1.011 m/s³</b></td><td>S17: Driver changes lanes with H… b, VP-1</td><td><a href="report-en-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">View case</a></td></tr><tr><td>004</td><td>Peak jerk (0.5 s average)</td><td>Lower</td><td>544</td><td>0.09536 m/s³</td><td><b>5 m/s³</b></td><td>S17: Driver changes lanes with H… b, VP-1</td><td><a href="report-en-details.html#run-S17-b-VP-1-e7d4b9f04c9b-1">View case</a></td></tr><tr><td>004</td><td>RMS steering wheel rate</td><td>Lower</td><td>544</td><td>0.005274 rad/s</td><td><b>0.3613 rad/s</b></td><td>S17: Driver changes lanes with H… b, VP-4</td><td><a href="report-en-details.html#run-S17-b-VP-4-fce608d216a6-1">View case</a></td></tr><tr><td>057</td><td>Barrier clearance</td><td>Higher</td><td>10</td><td>1.195 m</td><td><b>1.123 m</b></td><td>S15: Center offset with objects … b, VP-4</td><td><a href="report-en-details.html#run-S15-b-VP-4-7e8b95f6f0c1-1">View case</a></td></tr><tr><td>057</td><td>Clearance to a large vehicle alongside</td><td>Higher</td><td>136</td><td>1.094 m</td><td><b>0.073 m</b></td><td>S3b: A large vehicle overtakes f… e, VP-4</td><td><a href="report-en-details.html#run-S3b-e-VP-4-3f74c206432d-1">View case</a></td></tr><tr><td>081</td><td>LKA path duration to COMPLETED</td><td>Lower</td><td>332</td><td>3.3 s</td><td><b>7 s</b></td><td>S4b: LKA for lane drift in a cur… e, VP-4</td><td><a href="report-en-details.html#run-S4b-e-VP-4-ee510703be24-1">View case</a></td></tr><tr><td>087</td><td>Minimum DTLE during LKA</td><td>Higher</td><td>364</td><td>0.1242 m</td><td><b>−0.415 m</b></td><td>S16: Repeated interventions (Latin hypercube sample), VP-4</td><td><a href="report-en-details.html#run-S16-c-VP-4-bf8d98a04332-1">View case</a></td></tr></tbody></table><div class="card" style=""><h3>Recentering time [s]</h3><div class=cap><div>PP-SWR-053 · 544 runs · ↓ Lower is better · 4/13 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, s"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="190.0" x2="190.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="262.0" x2="262.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S9: Function transitions: 15 runs, 0.003–4.088 s, median 0.008, worst 4.088</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S9: Function transitions</text><line x1="118.1" x2="265.2" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="118.3" cy="13.0" r="3" fill="#6E6E73"/><circle cx="265.2" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="273.2" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">4.088</text></g><g><title>S2: HWA activates with …: 93 runs, 0.003–3.663 s, median 2.353, worst 3.663</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S2: HWA activates with …</text><line x1="118.1" x2="249.9" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="202.7" cy="33.0" r="3" fill="#6E6E73"/><circle cx="249.9" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="257.9" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">3.663</text></g><g><title>S6b: Lane widening: 41 runs, 0.007–1.757 s, median 0.007, worst 1.757</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S6b: Lane widening</text><line x1="118.3" x2="181.3" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="118.3" cy="53.0" r="3" fill="#6E6E73"/><circle cx="181.3" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="189.3" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.757</text></g><g><title>S17: Driver changes lane…: 33 runs, 0.008–1.258 s, median 0.588, worst 1.258</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S17: Driver changes lane…</text><line x1="118.3" x2="163.3" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="139.2" cy="73.0" r="3" fill="#6E6E73"/><circle cx="163.3" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="171.3" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.258</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="190.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">2</text><text x="262.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">4</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">6</text></svg></div></div><div class="card" style=""><h3>Added lateral acceleration during recentering [m/s²]</h3><div class=cap><div>PP-SWR-002 · 1,537 runs · ↓ Lower is better · 4/24 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, m/s²"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="190.0" x2="190.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="262.0" x2="262.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S17: Driver changes lane…: 33 runs, 0–2.215 m/s², median 0.03781, worst 2.215</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S17: Driver changes lane…</text><line x1="118.0" x2="277.5" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="120.7" cy="13.0" r="3" fill="#6E6E73"/><circle cx="277.5" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="285.5" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">2.215</text></g><g><title>S2: HWA activates with …: 93 runs, 0.0108–1.206 m/s², median 0.1881, worst 1.206</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S2: HWA activates with …</text><line x1="118.8" x2="204.8" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="131.5" cy="33.0" r="3" fill="#6E6E73"/><circle cx="204.8" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="212.8" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.206</text></g><g><title>S9: Function transitions: 59 runs, 0–0.4771 m/s², median 0, worst 0.4771</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S9: Function transitions</text><line x1="118.0" x2="152.3" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="118.0" cy="53.0" r="3" fill="#6E6E73"/><circle cx="152.3" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="160.3" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.4771</text></g><g><title>S6b: Lane widening: 41 runs, 0–0.2997 m/s², median 0, worst 0.2997</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S6b: Lane widening</text><line x1="118.0" x2="139.6" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="118.0" cy="73.0" r="3" fill="#6E6E73"/><circle cx="139.6" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="147.6" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.2997</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="190.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">1</text><text x="262.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">2</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">3</text></svg></div></div><div class="card" style=""><h3>Jerk RMS 0–1 s [m/s³]</h3><div class=cap><div>PP-SWR-004 · 544 runs · ↓ Lower is better · 4/13 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, m/s³"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="190.0" x2="190.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="262.0" x2="262.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S17: Driver changes lane…: 33 runs, 0.6069–1.011 m/s³, median 0.636, worst 1.011</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S17: Driver changes lane…</text><line x1="205.4" x2="263.6" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="209.6" cy="13.0" r="3" fill="#6E6E73"/><circle cx="263.6" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="271.6" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.011</text></g><g><title>S1b: HWA on a curve requ…: 18 runs, 0.003149–0.2937 m/s³, median 0.2723, worst 0.2937</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S1b: HWA on a curve requ…</text><line x1="118.5" x2="160.3" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="157.2" cy="33.0" r="3" fill="#6E6E73"/><circle cx="160.3" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="168.3" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.2937</text></g><g><title>S2: HWA activates with …: 93 runs, 0.007287–0.2871 m/s³, median 0.06969, worst 0.2871</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S2: HWA activates with …</text><line x1="119.0" x2="159.3" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="128.0" cy="53.0" r="3" fill="#6E6E73"/><circle cx="159.3" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="167.3" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.2871</text></g><g><title>S1: HWA tracks a curve: 73 runs, 0.0004745–0.2825 m/s³, median 0.1244, worst 0.2825</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S1: HWA tracks a curve</text><line x1="118.1" x2="158.7" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="135.9" cy="73.0" r="3" fill="#6E6E73"/><circle cx="158.7" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="166.7" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.2825</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="190.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.5</text><text x="262.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">1</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">1.5</text></svg></div></div><div class="card" style=""><h3>Peak jerk (0.5 s average) [m/s³]</h3><div class=cap><div>PP-SWR-004 · 544 runs · ↓ Lower is better · 4/13 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, m/s³"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="190.0" x2="190.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="262.0" x2="262.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S17: Driver changes lane…: 33 runs, 2.537–5 m/s³, median 2.63, worst 5</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S17: Driver changes lane…</text><line x1="209.3" x2="298.0" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="212.7" cy="13.0" r="3" fill="#6E6E73"/><circle cx="298.0" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="306.0" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">5</text></g><g><title>S1: HWA tracks a curve: 73 runs, 0.004699–1.571 m/s³, median 0.3576, worst 1.571</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S1: HWA tracks a curve</text><line x1="118.2" x2="174.6" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="130.9" cy="33.0" r="3" fill="#6E6E73"/><circle cx="174.6" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="182.6" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.571</text></g><g><title>S2: HWA activates with …: 93 runs, 0.06591–1.266 m/s³, median 0.4284, worst 1.266</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S2: HWA activates with …</text><line x1="120.4" x2="163.6" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="133.4" cy="53.0" r="3" fill="#6E6E73"/><circle cx="163.6" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="171.6" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.266</text></g><g><title>S9: Function transitions: 15 runs, 0.01469–1.068 m/s³, median 0.143, worst 1.068</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S9: Function transitions</text><line x1="118.5" x2="156.4" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="123.1" cy="73.0" r="3" fill="#6E6E73"/><circle cx="156.4" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="164.4" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">1.068</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="190.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">2</text><text x="262.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">4</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">6</text></svg></div></div><div class="card" style=""><h3>RMS steering wheel rate [rad/s]</h3><div class=cap><div>PP-SWR-004 · 544 runs · ↓ Lower is better · 4/13 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, rad/s"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="172.0" x2="172.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="226.0" x2="226.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="280.0" x2="280.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S17: Driver changes lane…: 33 runs, 0.1105–0.3613 rad/s, median 0.1358, worst 0.3613</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S17: Driver changes lane…</text><line x1="177.6" x2="313.1" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="191.3" cy="13.0" r="3" fill="#6E6E73"/><circle cx="313.1" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="321.1" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.3613</text></g><g><title>S2: HWA activates with …: 93 runs, 0.005704–0.2151 rad/s, median 0.03744, worst 0.2151</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S2: HWA activates with …</text><line x1="121.1" x2="234.2" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="138.2" cy="33.0" r="3" fill="#6E6E73"/><circle cx="234.2" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="242.2" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.2151</text></g><g><title>S6b: Lane widening: 41 runs, 0–0.0717 rad/s, median 0, worst 0.0717</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S6b: Lane widening</text><line x1="118.0" x2="156.7" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="118.0" cy="53.0" r="3" fill="#6E6E73"/><circle cx="156.7" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="164.7" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.0717</text></g><g><title>S9: Function transitions: 15 runs, 0.001395–0.0511 rad/s, median 0.01114, worst 0.0511</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S9: Function transitions</text><line x1="118.8" x2="145.6" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="124.0" cy="73.0" r="3" fill="#6E6E73"/><circle cx="145.6" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="153.6" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.0511</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="172.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.1</text><text x="226.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.2</text><text x="280.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.3</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.4</text></svg></div></div><div class="card" style=""><h3>Barrier clearance [m]</h3><div class=cap><div>PP-SWR-057 · 10 runs · ↑ Higher is better · 1/1 scenarios</div></div><div class="body"><svg viewBox="0 0 380 40.7" width="100%" role="img" aria-label="Values by scenario, m"><line x1="118.0" x2="118.0" y1="3" y2="23.000000000000004" stroke="#EDEDF0"/><line x1="190.0" x2="190.0" y1="3" y2="23.000000000000004" stroke="#EDEDF0"/><line x1="262.0" x2="262.0" y1="3" y2="23.000000000000004" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="23.000000000000004" stroke="#EDEDF0"/><g><title>S15: Center offset with …: 10 runs, 1.123–1.3 m, median 1.195, worst 1.123</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S15: Center offset with …</text><line x1="279.7" x2="305.2" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="290.1" cy="13.0" r="3" fill="#6E6E73"/><circle cx="279.7" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="271.7" y="16.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">1.123</text></g><line x1="118" x2="334" y1="23.000000000000004" y2="23.000000000000004" stroke="#D2D2D7"/><text x="118.0" y="35.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="190.0" y="35.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.5</text><text x="262.0" y="35.0" font-size="8" text-anchor="middle" fill="#6E6E73">1</text><text x="334.0" y="35.0" font-size="8" text-anchor="middle" fill="#6E6E73">1.5</text></svg></div></div><div class="card" style=""><h3>Clearance to a large vehicle alongside [m]</h3><div class=cap><div>PP-SWR-057 · 136 runs · ↑ Higher is better · 4/4 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, m"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="172.0" x2="172.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="226.0" x2="226.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="280.0" x2="280.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S3b: A large vehicle ove…: 64 runs, 0.073–1.306 m, median 0.9692, worst 0.073</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S3b: A large vehicle ove…</text><line x1="125.9" x2="259.1" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="222.7" cy="13.0" r="3" fill="#6E6E73"/><circle cx="125.9" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="133.9" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">0.073</text></g><g><title>S3: HWA offsets the cen…: 62 runs, 0.4521–1.418 m, median 1.24, worst 0.4521</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S3: HWA offsets the cen…</text><line x1="166.8" x2="271.1" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="251.9" cy="33.0" r="3" fill="#6E6E73"/><circle cx="166.8" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="158.8" y="36.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">0.4521</text></g><g><title>S6b: Lane widening: 5 runs, 0.9398–1.119 m, median 1.016, worst 0.9398</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S6b: Lane widening</text><line x1="219.5" x2="238.8" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="227.8" cy="53.0" r="3" fill="#6E6E73"/><circle cx="219.5" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="211.5" y="56.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">0.9398</text></g><g><title>S10: Travel close to a m…: 5 runs, 1.648–1.825 m, median 1.72, worst 1.648</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S10: Travel close to a m…</text><line x1="296.0" x2="315.1" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="303.8" cy="73.0" r="3" fill="#6E6E73"/><circle cx="296.0" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="288.0" y="76.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">1.648</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="172.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.5</text><text x="226.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">1</text><text x="280.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">1.5</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">2</text></svg></div></div><div class="card" style=""><h3>LKA path duration to COMPLETED [s]</h3><div class=cap><div>PP-SWR-081 · 332 runs · ↓ Lower is better · 4/5 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, s"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="172.0" x2="172.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="226.0" x2="226.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="280.0" x2="280.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S4b: LKA for lane drift …: 54 runs, 3.3–7 s, median 4.125, worst 7</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S4b: LKA for lane drift …</text><line x1="207.1" x2="307.0" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="229.4" cy="13.0" r="3" fill="#6E6E73"/><circle cx="307.0" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="315.0" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">7</text></g><g><title>S13: Slow EPS: 35 runs, 4.225–4.65 s, median 4.525, worst 4.65</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S13: Slow EPS</text><line x1="232.1" x2="243.5" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="240.2" cy="33.0" r="3" fill="#6E6E73"/><circle cx="243.5" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="251.5" y="36.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">4.65</text></g><g><title>S4: LKA for lane drift …: 157 runs, 3.275–4.525 s, median 3.3, worst 4.525</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S4: LKA for lane drift …</text><line x1="206.4" x2="240.2" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="207.1" cy="53.0" r="3" fill="#6E6E73"/><circle cx="240.2" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="248.2" y="56.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">4.525</text></g><g><title>S16: Repeated interventi…: 47 runs, 3.3–4.35 s, median 4.225, worst 4.35</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S16: Repeated interventi…</text><line x1="207.1" x2="235.4" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="232.1" cy="73.0" r="3" fill="#6E6E73"/><circle cx="235.4" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="243.4" y="76.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">4.35</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="172.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">2</text><text x="226.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">4</text><text x="280.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">6</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">8</text></svg></div></div><div class="card" style=""><h3>Minimum DTLE during LKA [m]</h3><div class=cap><div>PP-SWR-087 · 364 runs · ↑ Higher is better · 4/6 scenarios</div></div><div class="body"><svg viewBox="0 0 380 100.7" width="100%" role="img" aria-label="Values by scenario, m"><line x1="118.0" x2="118.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="172.0" x2="172.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="226.0" x2="226.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="280.0" x2="280.0" y1="3" y2="83.0" stroke="#EDEDF0"/><line x1="334.0" x2="334.0" y1="3" y2="83.0" stroke="#EDEDF0"/><g><title>S16: Repeated interventi…: 47 runs, −0.415–0.1624 m, median −0.3599, worst −0.415</title><rect x="0" y="3.0" width="380" height="20" fill="transparent"/><text x="0.0" y="16.4" font-size="9" text-anchor="start" fill="#48484A">S16: Repeated interventi…</text><line x1="136.4" x2="261.1" y1="13.0" y2="13.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="148.3" cy="13.0" r="3" fill="#6E6E73"/><circle cx="136.4" cy="13.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="144.4" y="16.4" font-size="9" text-anchor="start" fill="#1D1D1F" font-weight="650">−0.415</text></g><g><title>S9: Function transitions: 44 runs, −0.09045–0.495 m, median 0.358, worst −0.09045</title><rect x="0" y="23.0" width="380" height="20" fill="transparent"/><text x="0.0" y="36.4" font-size="9" text-anchor="start" fill="#48484A">S9: Function transitions</text><line x1="206.5" x2="332.9" y1="33.0" y2="33.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="303.3" cy="33.0" r="3" fill="#6E6E73"/><circle cx="206.5" cy="33.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="198.5" y="36.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">−0.09045</text></g><g><title>S13: Slow EPS: 35 runs, −0.04474–0.00896 m, median −0.01792, worst −0.04474</title><rect x="0" y="43.0" width="380" height="20" fill="transparent"/><text x="0.0" y="56.4" font-size="9" text-anchor="start" fill="#48484A">S13: Slow EPS</text><line x1="216.3" x2="227.9" y1="53.0" y2="53.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="222.1" cy="53.0" r="3" fill="#6E6E73"/><circle cx="216.3" cy="53.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="208.3" y="56.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">−0.04474</text></g><g><title>S4: LKA for lane drift …: 157 runs, −0.009932–0.1805 m, median 0.1063, worst −0.009932</title><rect x="0" y="63.0" width="380" height="20" fill="transparent"/><text x="0.0" y="76.4" font-size="9" text-anchor="start" fill="#48484A">S4: LKA for lane drift …</text><line x1="223.9" x2="265.0" y1="73.0" y2="73.0" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round"/><circle cx="249.0" cy="73.0" r="3" fill="#6E6E73"/><circle cx="223.9" cy="73.0" r="4.5" fill="#5B3DF5" stroke="#ffffff" stroke-width="2"/><text stroke="#ffffff" stroke-width="3" paint-order="stroke" x="215.9" y="76.4" font-size="9" text-anchor="end" fill="#1D1D1F" font-weight="650">−0.009932</text></g><line x1="118" x2="334" y1="83.0" y2="83.0" stroke="#D2D2D7"/><text x="118.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">−0.5</text><text x="172.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">−0.25</text><text x="226.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0</text><text x="280.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.25</text><text x="334.0" y="95.0" font-size="8" text-anchor="middle" fill="#6E6E73">0.5</text></svg></div></div></section><h2 id="requirements">Requirements</h2><section id="PP-SWR-001"><h3>PP-SWR-001</h3><p>While HWA is in control, path a_y shall be ≤ aysmax = 2.5 m/s² at every point</p></section><section id="PP-SWR-002"><h3>PP-SWR-002</h3><p>Maximum added a_y during HWA recentering or center offset should be small</p></section><section id="PP-SWR-003"><h3>PP-SWR-003</h3><p>While HWA is in control, path lateral jerk shall be ≤ 5 m/s³</p></section><section id="PP-SWR-004"><h3>PP-SWR-004</h3><p>Path lateral jerk while HWA is in control should be small</p></section><section id="PP-SWR-005"><h3>PP-SWR-005</h3><p>If maximum required a_y &gt; aysmax while HWA is in control, the planner shall keep path_valid = true and active_function = HWA, unless arbitration switches to LKA or ELK</p></section><section id="PP-SWR-006"><h3>PP-SWR-006</h3><p>If required a_y &gt; aysmax at a point in the 0–1 s segment of the path while HWA is in control, path a_y at that point shall be ≥ aysmax − epsilon_ay</p></section><section id="PP-SWR-007"><h3>PP-SWR-007</h3><p>When a front tire starts to touch the marking while HWA is in control and maximum required a_y &gt; aysmax, lateral_limit_reached shall already be true</p></section><section id="PP-SWR-008"><h3>PP-SWR-008</h3><p>The time from when maximum required a_y drops below aysmax until lateral_limit_reached clears should be short</p></section><section id="PP-SWR-009"><h3>PP-SWR-009</h3><p>The planner shall publish the same lateral_limit_reached value in PathStatus and LateralLimits for the same cycle</p></section><section id="PP-SWR-010"><h3>PP-SWR-010</h3><p>The planner shall publish Trajectory and PathStatus every cycle</p></section><section id="PP-SWR-011"><h3>PP-SWR-011</h3><p>Trajectory shall follow the format in the Interface Control Document: 31 points at 0.1 s intervals, spanning 0–3 s, frame_id = base_link</p></section><section id="PP-SWR-012"><h3>PP-SWR-012</h3><p>Trajectory header.stamp_us shall be the time represented by the path, with lane model latency compensated</p></section><section id="PP-SWR-013"><h3>PP-SWR-013</h3><p>Additional lateral deviation relative to the zero-latency case should be small when camera latency is 0–200 ms with ±20 ms jitter</p></section><section id="PP-SWR-014"><h3>PP-SWR-014</h3><p>header.counter shall increment by 1 after every message and wrap over 0–255</p></section><section id="PP-SWR-015"><h3>PP-SWR-015</h3><p>The planner shall record computation time for every cycle</p></section><section id="PP-SWR-016"><h3>PP-SWR-016</h3><p>The 99th percentile of computation time per cycle should be low</p></section><section id="PP-SWR-017"><h3>PP-SWR-017</h3><p>The planner shall accept a lane model with any view_range_end &gt; view_range_start for each marking and road edge. A view range beyond 126 m shall not invalidate the input</p></section><section id="PP-SWR-018"><h3>PP-SWR-018</h3><p>Trajectory.observed_horizon_s shall be no more than 0.1 s later than the point in time when the path leaves the view range reported by the lane model frame used in that cycle</p></section><section id="PP-SWR-030"><h3>PP-SWR-030</h3><p>The planner shall select the function in control in the priority order ELK &gt; LKA &gt; HWA, considering only functions with state = REQUEST</p></section><section id="PP-SWR-031"><h3>PP-SWR-031</h3><p>When the function in control changes, the path shall satisfy PP-SWR-100 to 102, except when LKA or ELK starts and the actual vehicle deviates from the previous path by more than 0.1 m or 0.1 m/s. In that case, apply PP-SWR-080</p></section><section id="PP-SWR-032"><h3>PP-SWR-032</h3><p>When the LKA or ELK termination conditions have held continuously for T_end_hold, the planner shall set that function&#x27;s phase to COMPLETED</p></section><section id="PP-SWR-033"><h3>PP-SWR-033</h3><p>After COMPLETED, the planner shall select the function in control according to PP-SWR-030 from the functions still in REQUEST, excluding the one just marked COMPLETED. If no function remains, select NONE</p></section><section id="PP-SWR-034"><h3>PP-SWR-034</h3><p>If the function just marked COMPLETED remains in REQUEST, the planner shall not start a new intervention for that function until its state leaves REQUEST and returns to it</p></section><section id="PP-SWR-035"><h3>PP-SWR-035</h3><p>Each new LKA or ELK intervention shall have the same limits as the first, regardless of the number of prior interventions</p></section><section id="PP-SWR-036"><h3>PP-SWR-036</h3><p>When the intervening function leaves REQUEST mid-intervention, the planner shall transition from the current state to the function selected under PP-SWR-030 from those still in REQUEST</p></section><section id="PP-SWR-037"><h3>PP-SWR-037</h3><p>When the intervening function leaves REQUEST mid-intervention through a valid message and no eligible function remains, the planner shall report active_function = NONE with path_valid = true if the required inputs remain valid</p></section><section id="PP-SWR-038"><h3>PP-SWR-038</h3><p>The planner shall reflect changes in FunctionRequests in its output within one cycle of receiving the message</p></section><section id="PP-SWR-039"><h3>PP-SWR-039</h3><p>While driver_override = true, the start of the path shall match the vehicle&#x27;s current lateral position with an error of ≤ 0.05 m</p></section><section id="PP-SWR-040"><h3>PP-SWR-040</h3><p>When driver_override changes to false while HWA is in REQUEST, the start of the HWA path shall match the vehicle&#x27;s lateral position at that time with an error of ≤ 0.05 m</p></section><section id="PP-SWR-041"><h3>PP-SWR-041</h3><p>The planner shall keep each function&#x27;s phase at COMPLETED until that function leaves REQUEST</p></section><section id="PP-SWR-042"><h3>PP-SWR-042</h3><p>When HWA leaves REQUEST and no function is in REQUEST, the planner shall set active_function = NONE and keep path_valid = true</p></section><section id="PP-SWR-043"><h3>PP-SWR-043</h3><p>While path_valid = false, active_function shall equal NONE</p></section><section id="PP-SWR-044"><h3>PP-SWR-044</h3><p>When inputs recover after path_valid = false, the start of the new path shall match the vehicle&#x27;s actual lateral state within the tolerances in PP-SWR-080</p></section><section id="PP-SWR-045"><h3>PP-SWR-045</h3><p>After input recovery, the planner shall start an LKA or ELK intervention only after the state of that function leaves REQUEST and returns to it</p></section><section id="PP-SWR-046"><h3>PP-SWR-046</h3><p>If VehicleStateEstimate becomes invalid during LKA or ELK intervention, the planner shall continue that intervention path until it ends</p></section><section id="PP-SWR-047"><h3>PP-SWR-047</h3><p>While the lane center can only be inferred from boundaries outside the ego lane, the planner shall not select LKA or ELK. Road-edge ELK is allowed if the hazard-side boundary of the ego lane is a MEASURED edge with confidence ≥ conf_edge and a reliable opposite boundary or stored lane width is available</p></section><section id="PP-SWR-048"><h3>PP-SWR-048</h3><p>If the age of FunctionRequests (t0 minus header.stamp_us) exceeds 45 ms, the planner shall treat the message as missing, including for the PP-SWR-145 timeout</p></section><section id="PP-SWR-050"><h3>PP-SWR-050</h3><p>Lateral path deviation should be small throughout the ODD and under lane model faults</p></section><section id="PP-SWR-051"><h3>PP-SWR-051</h3><p>While HWA is in control, maximum required a_y ≤ aysmax, and free space on each side is ≥ free_space_min, DLC on both sides shall be ≥ 0</p></section><section id="PP-SWR-052"><h3>PP-SWR-052</h3><p>When HWA takes control with the vehicle up to 0.5 m from the lane center, the function in control shall remain HWA throughout recentering</p></section><section id="PP-SWR-053"><h3>PP-SWR-053</h3><p>The time from HWA taking control (with the vehicle up to 0.5 m off center) to lateral deviation ≤ 0.1 m should be short</p></section><section id="PP-SWR-054"><h3>PP-SWR-054</h3><p>While HWA is in REQUEST and vehicle speed is within 0–60 km/h, the planner shall continue publishing a valid path for HWA</p></section><section id="PP-SWR-055"><h3>PP-SWR-055</h3><p>While a large vehicle is alongside in an adjacent lane with clearance &lt; gap_truck_min and no large vehicle is alongside on the opposite side, the path shall be offset from the actual lane center away from the large vehicle</p></section><section id="PP-SWR-056"><h3>PP-SWR-056</h3><p>While a large vehicle is alongside with clearance &lt; gap_truck_min, the path shall not be offset from the actual lane center toward the large vehicle with the smallest clearance</p></section><section id="PP-SWR-057"><h3>PP-SWR-057</h3><p>Minimum lateral clearance from the vehicle body to objects on either side while offsetting the center should be large</p></section><section id="PP-SWR-058"><h3>PP-SWR-058</h3><p>When a large vehicle in an adjacent lane is approaching, the path shall begin shifting before the large vehicle draws alongside</p></section><section id="PP-SWR-059"><h3>PP-SWR-059</h3><p>The time from when the rear of the large vehicle has passed to lateral deviation ≤ 0.1 m should be short</p></section><section id="PP-SWR-060"><h3>PP-SWR-060</h3><p>When one lane boundary widens outward (emergency stopping lane, branch, or added lane), DLC relative to the actual lane boundary on the widening side shall be ≥ 0</p></section><section id="PP-SWR-061"><h3>PP-SWR-061</h3><p>When the lane model switches to a new lane, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-062"><h3>PP-SWR-062</h3><p>All requirements in Section 8 shall be met throughout the ODD in Section 5 using the same calibration set</p></section><section id="PP-SWR-063"><h3>PP-SWR-063</h3><p>When free space on each side is less than free_space_min, the planner shall set lane_too_narrow = true in PathStatus</p></section><section id="PP-SWR-064"><h3>PP-SWR-064</h3><p>The time from when lateral_limit_reached is set until required a_y at the vehicle&#x27;s position exceeds aysmax should be long</p></section><section id="PP-SWR-080"><h3>PP-SWR-080</h3><p>When LKA or ELK starts intervening, the start of the path shall match the vehicle&#x27;s actual lateral state within position error ≤ 0.1 m and v_lat error ≤ 0.1 m/s</p></section><section id="PP-SWR-081"><h3>PP-SWR-081</h3><p>The time from the start of the LKA intervention path to COMPLETED should be short</p></section><section id="PP-SWR-082"><h3>PP-SWR-082</h3><p>The time from the start of the ELK intervention path to COMPLETED should be short</p></section><section id="PP-SWR-083"><h3>PP-SWR-083</h3><p>The duration of an LKA or ELK intervention, ending in COMPLETED or cancellation, shall be ≤ 10 s</p></section><section id="PP-SWR-084"><h3>PP-SWR-084</h3><p>When LKA reports COMPLETED, DLC on the side toward which the vehicle drifted shall be ≥ 0</p></section><section id="PP-SWR-085"><h3>PP-SWR-085</h3><p>After an LKA or ELK intervention, minimum DLC on the opposite side shall be ≥ 0</p></section><section id="PP-SWR-086"><h3>PP-SWR-086</h3><p>Minimum DTLE during an intervention shall be ≥ −0.3 m for LKA and solid-marking ELK, and ≥ −0.1 m for road-edge ELK</p></section><section id="PP-SWR-087"><h3>PP-SWR-087</h3><p>Minimum LKA DTLE should be large</p></section><section id="PP-SWR-088"><h3>PP-SWR-088</h3><p>During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle shall be ≥ 0.3 m</p></section><section id="PP-SWR-089"><h3>PP-SWR-089</h3><p>If ELK is requested when the front tire is already more than 0.3 m beyond the marking on the requested side, the planner shall not start that ELK intervention</p></section><section id="PP-SWR-090"><h3>PP-SWR-090</h3><p>The planner shall not report COMPLETED until the termination conditions have held continuously for T_end_hold</p></section><section id="PP-SWR-091"><h3>PP-SWR-091</h3><p>When EPS latency is up to 100 ms, minimum DTLE shall still satisfy PP-SWR-086</p></section><section id="PP-SWR-100"><h3>PP-SWR-100</h3><p>While path_valid = true, lateral deviation between consecutive paths shall be ≤ 0.05 m</p></section><section id="PP-SWR-101"><h3>PP-SWR-101</h3><p>While path_valid = true, heading difference between consecutive paths shall be ≤ 0.005 rad</p></section><section id="PP-SWR-102"><h3>PP-SWR-102</h3><p>While path_valid = true, curvature difference between consecutive paths shall be ≤ 0.0003 1/m</p></section><section id="PP-SWR-110"><h3>PP-SWR-110</h3><p>While LKA is in control, path a_y shall be ≤ 3.0 m/s²</p></section><section id="PP-SWR-111"><h3>PP-SWR-111</h3><p>While ELK is in control, path a_y shall be ≤ 4.0 m/s²</p></section><section id="PP-SWR-112"><h3>PP-SWR-112</h3><p>While LKA is in control, added a_y shall be ≤ 1.5 m/s²</p></section><section id="PP-SWR-113"><h3>PP-SWR-113</h3><p>While ELK is in control, added a_y shall be ≤ 3.0 m/s²</p></section><section id="PP-SWR-114"><h3>PP-SWR-114</h3><p>While LKA is in control, path lateral jerk shall be ≤ 5 m/s³</p></section><section id="PP-SWR-115"><h3>PP-SWR-115</h3><p>While ELK is in control, path lateral jerk shall be ≤ 10 m/s³</p></section><section id="PP-SWR-116"><h3>PP-SWR-116</h3><p>front_wheel_angle at every path point shall be ≤ max_wheel_angle from VehicleConfig</p></section><section id="PP-SWR-117"><h3>PP-SWR-117</h3><p>The steering wheel rate derived from the path (rate of change of front_wheel_angle times steering_ratio) shall be ≤ max_steering_wheel_rate from VehicleConfig</p></section><section id="PP-SWR-120"><h3>PP-SWR-120</h3><p>When lane model c0 and c1 noise reaches nighttime levels (2.5 times the daytime level), the path shall satisfy the active function&#x27;s jerk limit and PP-SWR-100 to 102</p></section><section id="PP-SWR-121"><h3>PP-SWR-121</h3><p>When c0 jumps by 0.3–1.0 m in one frame, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-122"><h3>PP-SWR-122</h3><p>When the lane model misidentifies an adjacent-lane marking, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-123"><h3>PP-SWR-123</h3><p>When the lane model loses one marking, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-124"><h3>PP-SWR-124</h3><p>When the lane model has no reliable lane boundary left (ego-lane markings, adjacent-lane markings, or road edges) or is invalid, the planner shall keep path_valid = true for T_coast, then set path_valid = false with a timing error of no more than one cycle</p></section><section id="PP-SWR-125"><h3>PP-SWR-125</h3><p>When lane model c2 is incorrect, the ratio of the path&#x27;s lateral deviation over 2–3 s to the deviation of a path that follows the erroneous lane model exactly should be small</p></section><section id="PP-SWR-126"><h3>PP-SWR-126</h3><p>When messages are lost individually or in bursts, or have ±20 ms jitter, the path shall satisfy PP-SWR-100 to 102 and the active function&#x27;s jerk limit</p></section><section id="PP-SWR-127"><h3>PP-SWR-127</h3><p>When messages arrive late or out of order, the path shall satisfy PP-SWR-100 to 102</p></section><section id="PP-SWR-128"><h3>PP-SWR-128</h3><p>While the camera publishes at 20 Hz and the planner runs at 40 Hz, the path shall satisfy PP-SWR-100 to 102 every cycle</p></section><section id="PP-SWR-129"><h3>PP-SWR-129</h3><p>If a message is duplicated (repeated counter), the output shall match the fault-free case with the same seed</p></section><section id="PP-SWR-130"><h3>PP-SWR-130</h3><p>If the counter skips or is stuck, valid = false, the qualifier is FAULT, or the CRC is incorrect, the output shall match the corresponding message loss case</p></section><section id="PP-SWR-131"><h3>PP-SWR-131</h3><p>If the age of the lane model or ObjectList exceeds 250 ms, the planner shall treat that input as invalid</p></section><section id="PP-SWR-132"><h3>PP-SWR-132</h3><p>If an input timestamp is more than 10 ms in the future, the planner shall treat that input as invalid</p></section><section id="PP-SWR-133"><h3>PP-SWR-133</h3><p>While the age of the lane model or ObjectList is within 170–250 ms, the planner shall continue using that input</p></section><section id="PP-SWR-134"><h3>PP-SWR-134</h3><p>The planner shall log the number of lane model and ObjectList frames with an age greater than 170 ms</p></section><section id="PP-SWR-135"><h3>PP-SWR-135</h3><p>When IMU noise is up to twice the datasheet level, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-136"><h3>PP-SWR-136</h3><p>When yaw-rate bias is up to 0.3 °/s, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-137"><h3>PP-SWR-137</h3><p>When clock drift is up to ±100 ppm or gPTP synchronization is lost for up to 10 s, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-138"><h3>PP-SWR-138</h3><p>When filtered yaw rate is delayed by up to 50 ms without that delay being reported to the planner, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-139"><h3>PP-SWR-139</h3><p>While CAN signals are quantized according to the DBC scaling factor, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-140"><h3>PP-SWR-140</h3><p>If ObjectList is invalid, the planner shall return the HWA center offset to 0 while still meeting PP-SWR-001, 003, and 100 to 102</p></section><section id="PP-SWR-141"><h3>PP-SWR-141</h3><p>If ObjectList is invalid, the planner shall still perform the requested ELK intervention</p></section><section id="PP-SWR-142"><h3>PP-SWR-142</h3><p>If IMU, speed, or steering angle is invalid, the planner shall set path_valid = false within one cycle</p></section><section id="PP-SWR-143"><h3>PP-SWR-143</h3><p>If ego-motion is invalid, the planner shall set path_valid = false within one cycle</p></section><section id="PP-SWR-144"><h3>PP-SWR-144</h3><p>If VehicleStateEstimate is invalid, the planner shall not start a new LKA or ELK intervention</p></section><section id="PP-SWR-145"><h3>PP-SWR-145</h3><p>If FunctionRequests exceeds its 75 ms timeout, the planner shall set active_function = NONE and path_valid = false within one cycle</p></section><section id="PP-SWR-146"><h3>PP-SWR-146</h3><p>If VehicleConfig is missing at startup, the planner shall not publish Trajectory</p></section><section id="PP-SWR-147"><h3>PP-SWR-147</h3><p>When the lane model loses both ego-lane markings but at least one other reliable lane boundary remains, the planner shall keep path_valid = true</p></section><section id="PP-SWR-148"><h3>PP-SWR-148</h3><p>When the lane model loses both ego-lane markings but at least one other reliable lane boundary remains, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-149"><h3>PP-SWR-149</h3><p>When the lane model view range briefly shortens, differs by marking, varies by frame, or is reported beyond the actually observed segment, PP-SWR-051 and 100 to 102 shall still be met</p></section><section id="PP-SWR-150"><h3>PP-SWR-150</h3><p>The planner shall publish LateralLimits every cycle</p></section><section id="PP-SWR-151"><h3>PP-SWR-151</h3><p>LateralLimits.v_max shall equal √(a_y limit of the function in control / κ_max), within 5% error. κ_max is the maximum curvature of the actual lane center within the lane model&#x27;s view range, up to 126 m</p></section><section id="PP-SWR-152"><h3>PP-SWR-152</h3><p>LateralLimits.distance shall equal the longitudinal distance to the point with κ_max, with error ≤ 5 m</p></section><section id="PP-SWR-153"><h3>PP-SWR-153</h3><p>When LongitudinalPlan is valid, Trajectory longitudinal_velocity and acceleration shall be taken from LongitudinalPlan</p></section><section id="PP-SWR-154"><h3>PP-SWR-154</h3><p>If LongitudinalPlan is missing or exceeds its 75 ms timeout, Trajectory shall use the current speed held constant with acceleration set to 0</p></section><section id="PP-SWR-155"><h3>PP-SWR-155</h3><p>If LongitudinalPlan is missing or exceeds its 75 ms timeout, the planner shall keep path_valid = true</p></section><section id="PP-SWR-156"><h3>PP-SWR-156</h3><p>If v or a at any LongitudinalPlan point is outside the range specified in Interface Control Document 5.7, including NaN or infinity, the planner shall treat the message as missing</p></section><h2>Referenced runs</h2><p><a href="generation.json">Source case manifest</a></p><section id="run-S4b-e-VP-4-ee510703be24-1"><h3>S4b-e-VP-4-ee510703be24 · seed 1</h3><p>S4b: LKA for lane drift in a cur… e, VP-4</p><pre>{
+  &quot;case&quot;: &quot;S4b-e-VP-4-ee510703be24&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S4b&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4be.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 17.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: true,
+    &quot;elk_enabled&quot;: false,
+    &quot;expect_intervention&quot;: &quot;LKA&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;right&quot;,
+    &quot;departure_radius_m&quot;: 1200.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;e&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.3,
+    &quot;departure_gap_m&quot;: 0.9,
+    &quot;expected_outcome&quot;: &quot;drive&quot;
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 1.519088644117647,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 2.47691695,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 3.448964180000005,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 8.818833999999999,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-087&quot;,
+      &quot;metric&quot;: &quot;Minimum LKA DTLE&quot;,
+      &quot;value&quot;: 0.13091128837758714,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-081&quot;,
+      &quot;metric&quot;: &quot;LKA path duration to COMPLETED&quot;,
+      &quot;value&quot;: 7.0,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S4b-e-VP-4-ee510703be24.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S3b-e-VP-4-3f74c206432d-1"><h3>S3b-e-VP-4-3f74c206432d · seed 1</h3><p>S3b: A large vehicle overtakes f… e, VP-4</p><pre>{
+  &quot;case&quot;: &quot;S3b-e-VP-4-3f74c206432d&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;lane_width_m&quot;: 2.75,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;hwa_request_s&quot;: &quot;1.0&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;duration_s&quot;: 26.0,
+    &quot;acc&quot;: &quot;on&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;scenario_id&quot;: &quot;S3b&quot;,
+    &quot;variant&quot;: &quot;e&quot;,
+    &quot;road_file&quot;: &quot;../roads/S3be.xodr&quot;,
+    &quot;truck_s_m&quot;: 10.0,
+    &quot;truck_t_m&quot;: -2.45,
+    &quot;truck_speed_mps&quot;: 30.0,
+    &quot;truck_length_m&quot;: 12.0,
+    &quot;truck_width_m&quot;: 2.5,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;other_s_m&quot;: 10.0,
+    &quot;other_t_m&quot;: 2.75,
+    &quot;other_speed_mps&quot;: 30.0,
+    &quot;other_width_m&quot;: 2.5,
+    &quot;other_length_m&quot;: 12.0,
+    &quot;other_category&quot;: &quot;truck&quot;,
+    &quot;other_center_z_m&quot;: 1.75,
+    &quot;other_height_m&quot;: 3.5,
+    &quot;other_front_axle_m&quot;: 5.0,
+    &quot;other_track_m&quot;: 2.0,
+    &quot;other_wheel_m&quot;: 1.0,
+    &quot;other_axle_height_m&quot;: 0.5
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: 0.006999999999999999,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 0.9961770173076921,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.1899354,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 1.4709536199999997,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 54.052541999999995,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;Peak lateral path jerk under HWA control (0.5 s moving average)&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS lateral path jerk over 0–1 s under HWA control&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS steering wheel rate under HWA control, closed loop&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;rad/s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-057&quot;,
+      &quot;metric&quot;: &quot;Minimum lateral clearance from the ego vehicle body to a large vehicle while alongside&quot;,
+      &quot;value&quot;: 0.07300000000000018,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-059&quot;,
+      &quot;metric&quot;: &quot;Time from end of alongside interval to lateral deviation ≤ 0.1 m&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S3b-e-VP-4-3f74c206432d.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S8b-a-VP-1-eeee38dde0af-1"><h3>S8b-a-VP-1-eeee38dde0af · seed 1</h3><p>S8b: Signaled lane change with a… (Latin hypercube sample), VP-1</p><pre>{
   &quot;case&quot;: &quot;S8b-a-VP-1-eeee38dde0af&quot;,
   &quot;seed&quot;: 1,
   &quot;profile&quot;: &quot;VP-1&quot;,
@@ -192,6 +407,112 @@
   &quot;failures_in_scope&quot;: [],
   &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S8c-a-VP-2-320eb4e78f3b.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
   &quot;mcap&quot;: null
+}</pre></section><section id="run-S9-c-VP-1-9960a44246d2-1"><h3>S9-c-VP-1-9960a44246d2 · seed 1</h3><p>S9: Function transitions c, VP-1</p><pre>{
+  &quot;case&quot;: &quot;S9-c-VP-1-9960a44246d2&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-1&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S9&quot;,
+    &quot;road_file&quot;: &quot;../roads/S3a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-1&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 17.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.4,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;1.0&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;on&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;scripted&quot;,
+    &quot;lka_enabled&quot;: false,
+    &quot;elk_enabled&quot;: false,
+    &quot;expect_intervention&quot;: &quot;&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 1200.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;c&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.0,
+    &quot;departure_gap_m&quot;: 0.8,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;request_events&quot;: &quot;{\&quot;events\&quot;:[{\&quot;at_s\&quot;:1.5,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:true},{\&quot;at_s\&quot;:3.5,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:false}]}&quot;
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 0.3872732401259445,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: 4.088,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.4605319190886803,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 0.9800688029411765,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.3326086499999998,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 1.7102985700000024,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 3.746667,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;Peak lateral path jerk under HWA control (0.5 s moving average)&quot;,
+      &quot;value&quot;: 1.0675648627511691,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS lateral path jerk over 0–1 s under HWA control&quot;,
+      &quot;value&quot;: 0.1061742739187307,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS steering wheel rate under HWA control, closed loop&quot;,
+      &quot;value&quot;: 0.04891811695291303,
+      &quot;unit&quot;: &quot;rad/s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S9-c-VP-1-9960a44246d2.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
 }</pre></section><section id="run-S10-a-VP-4-2c636756e3b0-1"><h3>S10-a-VP-4-2c636756e3b0 · seed 1</h3><p>S10: Travel close to a marking w… (pairwise sample), VP-4</p><pre>{
   &quot;case&quot;: &quot;S10-a-VP-4-2c636756e3b0&quot;,
   &quot;seed&quot;: 1,
@@ -379,5 +700,438 @@
   ],
   &quot;failures_in_scope&quot;: [],
   &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S10-a-VP-5-98ed0f35e48d.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S15-b-VP-4-7e8b95f6f0c1-1"><h3>S15-b-VP-4-7e8b95f6f0c1 · seed 1</h3><p>S15: Center offset with objects … b, VP-4</p><pre>{
+  &quot;case&quot;: &quot;S15-b-VP-4-7e8b95f6f0c1&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;hwa_request_s&quot;: &quot;1.0&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;duration_s&quot;: 21.0,
+    &quot;acc&quot;: &quot;on&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;scenario_id&quot;: &quot;S15&quot;,
+    &quot;variant&quot;: &quot;b&quot;,
+    &quot;road_file&quot;: &quot;../roads/S15b.xodr&quot;,
+    &quot;truck_s_m&quot;: 1100.0,
+    &quot;truck_t_m&quot;: 0.0,
+    &quot;truck_speed_mps&quot;: 0.0,
+    &quot;truck_length_m&quot;: 12.0,
+    &quot;truck_width_m&quot;: 2.5,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;other_s_m&quot;: 170.0,
+    &quot;other_t_m&quot;: 3.2,
+    &quot;other_speed_mps&quot;: 20.0,
+    &quot;other_width_m&quot;: 2.5,
+    &quot;other_length_m&quot;: 12.0,
+    &quot;other_category&quot;: &quot;truck&quot;,
+    &quot;other_center_z_m&quot;: 1.75,
+    &quot;other_height_m&quot;: 3.5,
+    &quot;other_front_axle_m&quot;: 5.0,
+    &quot;other_track_m&quot;: 2.0,
+    &quot;other_wheel_m&quot;: 1.0,
+    &quot;other_axle_height_m&quot;: 0.5
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: 0.006999999999999999,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 3.9114376642857125,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.5053475999999995,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 2.80320249,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 2443.337291,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;Peak lateral path jerk under HWA control (0.5 s moving average)&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS lateral path jerk over 0–1 s under HWA control&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS steering wheel rate under HWA control, closed loop&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;rad/s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-057&quot;,
+      &quot;metric&quot;: &quot;Minimum lateral clearance from the vehicle body to a barrier under HWA control&quot;,
+      &quot;value&quot;: 1.123,
+      &quot;unit&quot;: &quot;m&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S15-b-VP-4-7e8b95f6f0c1.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S16-c-VP-4-bf8d98a04332-1"><h3>S16-c-VP-4-bf8d98a04332 · seed 1</h3><p>S16: Repeated interventions (Latin hypercube sample), VP-4</p><pre>{
+  &quot;case&quot;: &quot;S16-c-VP-4-bf8d98a04332&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S16&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 20.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 26.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;off&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;off&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;B&quot;,
+    &quot;lka_enabled&quot;: true,
+    &quot;elk_enabled&quot;: false,
+    &quot;expect_intervention&quot;: &quot;LKA&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;right&quot;,
+    &quot;departure_radius_m&quot;: 1200.0,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 1.0,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: false,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;c&quot;,
+    &quot;departure_v_lat_mps&quot;: 0.4,
+    &quot;departure_gap_m&quot;: 0.8966641644022754,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;departure_repeats&quot;: &quot;[[2,1],[2,1]]&quot;,
+    &quot;departure_repeat_trigger&quot;: &quot;lka_completed&quot;,
+    &quot;scripted_requests&quot;: false,
+    &quot;request_events&quot;: &quot;[]&quot;
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: NaN,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.0,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 1.1556442692307693,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.35827565,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 1.5188648599999983,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 59.326041999999994,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-087&quot;,
+      &quot;metric&quot;: &quot;Minimum LKA DTLE&quot;,
+      &quot;value&quot;: -0.41502754429705213,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-081&quot;,
+      &quot;metric&quot;: &quot;LKA path duration to COMPLETED&quot;,
+      &quot;value&quot;: 3.3,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S16-c-VP-4-bf8d98a04332.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S17-b-VP-1-e7d4b9f04c9b-1"><h3>S17-b-VP-1-e7d4b9f04c9b · seed 1</h3><p>S17: Driver changes lanes with H… b, VP-1</p><pre>{
+  &quot;case&quot;: &quot;S17-b-VP-1-e7d4b9f04c9b&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-1&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S17&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-1&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 17.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;1.0&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;on&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;scripted&quot;,
+    &quot;lka_enabled&quot;: false,
+    &quot;elk_enabled&quot;: false,
+    &quot;expect_intervention&quot;: &quot;&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 209.10114654920002,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 3.5,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: true,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;b&quot;,
+    &quot;departure_v_lat_mps&quot;: 1.8663770212431006,
+    &quot;departure_gap_m&quot;: 0.1414856382769374,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;loop&quot;: &quot;closed&quot;,
+    &quot;departure_repeats&quot;: &quot;[[3.875,-1]]&quot;,
+    &quot;departure_torque_windows&quot;: &quot;[[2,4.5]]&quot;,
+    &quot;request_events&quot;: &quot;{\&quot;events\&quot;:[{\&quot;at_s\&quot;:2,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:true},{\&quot;at_s\&quot;:4.5,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:false}]}&quot;,
+    &quot;late_flag&quot;: false
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 1.8510863318604658,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: 0.008,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 0.010803822760863113,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 0.992740557352941,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.4074788499999997,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 2.5555550400000135,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 18.387541,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;Peak lateral path jerk under HWA control (0.5 s moving average)&quot;,
+      &quot;value&quot;: 4.999994999934643,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS lateral path jerk over 0–1 s under HWA control&quot;,
+      &quot;value&quot;: 1.0109415403091442,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS steering wheel rate under HWA control, closed loop&quot;,
+      &quot;value&quot;: 0.28551911185182877,
+      &quot;unit&quot;: &quot;rad/s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S17-b-VP-1-e7d4b9f04c9b.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
+  &quot;mcap&quot;: null
+}</pre></section><section id="run-S17-b-VP-4-fce608d216a6-1"><h3>S17-b-VP-4-fce608d216a6 · seed 1</h3><p>S17: Driver changes lanes with H… b, VP-4</p><pre>{
+  &quot;case&quot;: &quot;S17-b-VP-4-fce608d216a6&quot;,
+  &quot;seed&quot;: 1,
+  &quot;profile&quot;: &quot;VP-4&quot;,
+  &quot;parameters&quot;: {
+    &quot;scenario_id&quot;: &quot;S17&quot;,
+    &quot;road_file&quot;: &quot;../roads/S4a.xodr&quot;,
+    &quot;profile&quot;: &quot;VP-4&quot;,
+    &quot;speed_mps&quot;: 25.0,
+    &quot;lane_width_m&quot;: 3.5,
+    &quot;duration_s&quot;: 17.0,
+    &quot;start_s_m&quot;: 100.0,
+    &quot;start_offset_m&quot;: 0.0,
+    &quot;start_heading_rad&quot;: 0.0,
+    &quot;hwa_request_s&quot;: &quot;1.0&quot;,
+    &quot;hold_until_hwa&quot;: false,
+    &quot;acc&quot;: &quot;on&quot;,
+    &quot;curvature_scale&quot;: 1.0,
+    &quot;direction&quot;: 1.0,
+    &quot;adas_mode&quot;: &quot;scripted&quot;,
+    &quot;lka_enabled&quot;: false,
+    &quot;elk_enabled&quot;: false,
+    &quot;expect_intervention&quot;: &quot;&quot;,
+    &quot;protocol&quot;: &quot;&quot;,
+    &quot;departure_side&quot;: &quot;left&quot;,
+    &quot;departure_radius_m&quot;: 209.10114654920002,
+    &quot;departure_boundary&quot;: &quot;marking&quot;,
+    &quot;departure_target&quot;: &quot;none&quot;,
+    &quot;steer_start_s&quot;: 2.0,
+    &quot;driver_torque_nm&quot;: 3.5,
+    &quot;wind_force_n&quot;: 0.0,
+    &quot;bank_grade&quot;: 0.0,
+    &quot;indicated&quot;: true,
+    &quot;passive_hands_on&quot;: true,
+    &quot;late_request&quot;: false,
+    &quot;variant&quot;: &quot;b&quot;,
+    &quot;departure_v_lat_mps&quot;: 1.8663770212431006,
+    &quot;departure_gap_m&quot;: 0.1414856382769374,
+    &quot;expected_outcome&quot;: &quot;drive&quot;,
+    &quot;loop&quot;: &quot;closed&quot;,
+    &quot;departure_repeats&quot;: &quot;[[3.875,-1]]&quot;,
+    &quot;departure_torque_windows&quot;: &quot;[[2,4.5]]&quot;,
+    &quot;request_events&quot;: &quot;{\&quot;events\&quot;:[{\&quot;at_s\&quot;:2,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:true},{\&quot;at_s\&quot;:4.5,\&quot;requests\&quot;:[[\&quot;REQUEST\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;],[\&quot;OFF\&quot;,\&quot;NONE\&quot;,\&quot;NONE\&quot;]],\&quot;driver_override\&quot;:false}]}&quot;,
+    &quot;late_flag&quot;: false
+  },
+  &quot;targets&quot;: [
+    {
+      &quot;id&quot;: &quot;PP-SWR-050&quot;,
+      &quot;metric&quot;: &quot;Maximum path lateral deviation from ground-truth lane center over 0–1 s&quot;,
+      &quot;value&quot;: 1.8627510535955607,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-053&quot;,
+      &quot;metric&quot;: &quot;Recentering time (deviation ≤ 0.1 m)&quot;,
+      &quot;value&quot;: 1.238,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-002&quot;,
+      &quot;metric&quot;: &quot;Peak added a_y during recentering&quot;,
+      &quot;value&quot;: 2.215480199083686,
+      &quot;unit&quot;: &quot;m/s²&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Mean computation time&quot;,
+      &quot;value&quot;: 1.1041607073529411,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p95 computation time&quot;,
+      &quot;value&quot;: 1.39692675,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;p99 computation time&quot;,
+      &quot;value&quot;: 1.9621087900000036,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-016&quot;,
+      &quot;metric&quot;: &quot;Maximum computation time&quot;,
+      &quot;value&quot;: 4.475917,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;Peak lateral path jerk under HWA control (0.5 s moving average)&quot;,
+      &quot;value&quot;: 4.999994998797774,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS lateral path jerk over 0–1 s under HWA control&quot;,
+      &quot;value&quot;: 0.9998567005139624,
+      &quot;unit&quot;: &quot;m/s³&quot;
+    },
+    {
+      &quot;id&quot;: &quot;PP-SWR-004&quot;,
+      &quot;metric&quot;: &quot;RMS steering wheel rate under HWA control, closed loop&quot;,
+      &quot;value&quot;: 0.36130494630660315,
+      &quot;unit&quot;: &quot;rad/s&quot;
+    }
+  ],
+  &quot;failures_in_scope&quot;: [],
+  &quot;rerun&quot;: &quot;python3 -m eval.runner build/benchmark/20261115-1125-full-7495822/concrete/cases/S17-b-VP-4-fce608d216a6.xosc --seed 1 --planner build/planner/libpp_planner.dylib&quot;,
   &quot;mcap&quot;: null
 }</pre></section></html>

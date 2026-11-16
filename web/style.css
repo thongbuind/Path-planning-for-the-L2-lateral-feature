@@ -369,6 +369,7 @@ button { font: inherit; color: inherit; }
 .doc-page :is(h1, h2, h3)[id] { scroll-margin-top: 76px; }
 .doc-page a { color: var(--violet); }
 .doc-page p { margin: 0 0 8px; }
+.doc-page a[data-study-figure] img { display: block; max-width: 100%; height: auto; }
 .doc-page ul, .doc-page ol { margin: 0 0 8px; padding-left: 22px; }
 .doc-page li { margin: 2px 0; }
 .doc-page .doc-meta { margin-bottom: 16px; font-size: 12px; color: #5F6368; }
@@ -634,11 +635,16 @@ button { font: inherit; color: inherit; }
 }
 .region-link { color: inherit; pointer-events: auto; text-underline-offset: 4px; }
 .region-note { margin: 4px 0 0; font-size: 21px; line-height: 1.25; }
-.map-region[data-region="benchmark"] {
+.map-region:is([data-region="benchmark"], [data-region="simulation-pending"]) {
   color: var(--region-accent);
   text-decoration: none;
 }
-.map-region[data-region="benchmark"]:is(:hover, :focus-visible) .region-label {
+.map-region[data-region="simulation-pending"] {
+  --region-accent: #76511F;
+  --region-line: #C8AD86;
+  --region-bg: #FBF6EDED;
+}
+.map-region:is([data-region="benchmark"], [data-region="simulation-pending"]):is(:hover, :focus-visible) .region-label {
   text-decoration: underline;
 }
 

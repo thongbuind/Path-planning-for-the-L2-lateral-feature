@@ -32,13 +32,13 @@ jobs:
         with:
           node-version: '24'
       - name: Build the static site
-        run: node spec-web/build-static.cjs
+        run: node web/build-static.cjs
         env:
           SPEC_WEB_GITHUB_REPOSITORY: ${{ github.repository }}
       - name: Upload the static site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: spec-web/dist
+          path: web/dist
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

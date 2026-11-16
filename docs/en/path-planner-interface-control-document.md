@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-ICD` |
-| Version | 1.10 |
+| Version | 1.12 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-13 |
+| Last updated | 2026-11-14 |
 
 ## 1. Purpose and scope {#icd-scope}
 
@@ -25,6 +25,7 @@
 | Motion team's signal list (`docs/reference/vehicle-signal-list.txt`) | Chassis signals, rates, and units (mentor) |
 | Autoware `autoware_planning_msgs/Trajectory` | Trajectory format |
 | AUTOSAR E2E Profile 1; SAE J1850 | CAN frame counter and CRC |
+| AUTOSAR E2E Protocol Specification R22-11, Section 6.8 (Profile 5) | Pub/sub message counter check states |
 | IEEE 802.1AS (gPTP) | Clock synchronization across ECUs |
 
 ## 3. Interface overview {#icd-overview}
@@ -48,6 +49,7 @@
 | CAN frame rates | As specified in the signal list | mentor |
 | Planner and ADAS Functions rates | 40 Hz | mentor |
 | Receive timeout | 3 nominal message periods, allowing 2 consecutive missed messages | team agreement |
+| Maximum accepted counter increment (MaxDeltaCounter) | ⌊(timeout + planner period) / message period⌋: LaneModel, ObjectList 3; VehicleStateEstimate, FunctionRequests, LongitudinalPlan 4 | Derived from the receive timeout; AUTOSAR PRS E2E R22-11 [PRS_E2E_00654] leaves the value to the system |
 | Maximum age | Maximum assumed latency (Software Requirements Specification Section 6) plus 1 cycle. LaneModel and ObjectList: 250 ms (PP-SWR-131) | team agreement |
 
 ## 4. Common conventions {#header}
@@ -84,6 +86,17 @@
 - A message is invalid if the receive timeout has elapsed. Measure the timeout from the latest message's `rx_us`.
 - Age = current time minus `stamp_us`. A message is invalid if it exceeds the maximum age.
 - CAN frames are timestamped on receipt, so check only timeout, counter, and CRC.
+- Pub/sub counters follow AUTOSAR E2E Profile 5 states ([PRS_E2E_00591]). The increment is the new counter minus the previous received counter modulo 256. The receiver retains the last usable message; timeout and age are measured against that message.
+
+| Increment | E2E state | Handling |
+|---|---|---|
+| 1 | OK | Use |
+| 2 to MaxDeltaCounter | OKSOMELOST | Use; treat intervening messages as lost |
+| 0 (repeated or stuck) | REPEATED | Discard as message loss |
+| Greater than MaxDeltaCounter | WRONGSEQUENCE | Discard as message loss; resume use when the next increment is 1 |
+| Greater than MaxDeltaCounter when the retained message has timed out | Resynchronization | Use; input is already considered lost, and further discarding would delay recovery (similar to the increasing MaxDeltaCounter of E2E Profiles 1 and 2) |
+
+- Discard pub/sub messages with `valid = false` as lost, but continue tracking their counters.
 
 **Planner call contract.** The planner is a C11 library (PP-ADR-013). The caller supplies state memory. The planner uses no dynamic allocation, file reads, or system clock reads.
 
@@ -278,3 +291,5 @@ When an intervention is canceled, that function's phase returns to NONE. One Pat
 | 1.8 | 2026-11-12 | Section 5.1 specifies the view range for each marking and road edge. The planner accepts all valid view ranges and uses at most 126 m (PP-SWR-017) |
 | 1.9 | 2026-11-12 | Section 6.1 adds `observed_horizon_s` to Trajectory |
 | 1.10 | 2026-11-13 | Section 5.7 defines the `v` and `a` ranges in LongitudinalPlan. The planner treats out-of-range messages as missing (PP-SWR-156) |
+| 1.11 | 2026-11-14 | Sections 3 and 4: check pub/sub message counters per AUTOSAR E2E Profile 5, derive MaxDeltaCounter from the receive timeout, retain the latest usable message, and treat `valid = false` as lost. Resolves PP-PR-035; affects PP-SWR-129, 130, Software Detailed Design T1, and F15 |
+| 1.12 | 2026-11-14 | Section 4: accept the first message after the retained message times out even if its counter increment exceeds MaxDeltaCounter; increment 0 remains rejected. Resolves PP-PR-047; affects PP-SWR-153 and T1 |

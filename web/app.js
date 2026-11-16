@@ -752,9 +752,11 @@
     regionLayer.replaceChildren();
     (window.SPEC_REGIONS || []).forEach(function (r) {
       var benchmark = r.id === "benchmark";
-      var frame = el(benchmark ? "a" : "div", "map-region" + (benchmark ? " region-link" : ""));
+      var simulation = r.id === "simulation-pending";
+      var frame = el(benchmark || simulation ? "a" : "div", "map-region" + (benchmark || simulation ? " region-link" : ""));
       frame.dataset.region = r.id;
       if (benchmark) frame.href = "benchmark/" + (localFile ? "index.html" : "") + "?lang=" + language;
+      if (simulation) frame.href = "simulation/" + (localFile ? "index.html" : "") + "?lang=" + language;
       var heading = el("h2", "region-label");
       if (r.id === "docs") {
         var link = el("a", "region-link", tr(r.text));
@@ -819,11 +821,17 @@
     var simWidth = 768;
     var docsLeft = vehicleLeft - gap - docsWidth;
     var simLeft = vehicleRight + gap;
+    var pendingSimulation = frames["simulation-pending"];
     var benchmark = frames.benchmark;
-    placeRegion(benchmark, simLeft, top, simWidth);
-    benchmark.style.top = top - gap - benchmark.offsetHeight + "px";
+    var featureWidth = (simWidth - cardGap) / 2;
+    placeRegion(pendingSimulation, simLeft, top, featureWidth);
+    placeRegion(benchmark, simLeft + featureWidth + cardGap, top, featureWidth);
+    pendingSimulation.style.height = benchmark.style.height = "";
+    var featureHeight = Math.max(pendingSimulation.offsetHeight, benchmark.offsetHeight);
+    pendingSimulation.style.height = benchmark.style.height = featureHeight + "px";
+    var simTop = top + featureHeight + gap;
     var docsBottom = placeGrid("docs", docsLeft, top, docsWidth, 5);
-    var simBottom = placeGrid("simulation", simLeft, top, simWidth, 2);
+    var simBottom = placeGrid("simulation", simLeft, simTop, simWidth, 2);
     var upperBottom = Math.max(docsBottom, vehicleBottom, simBottom);
     var diagramTop = upperBottom + gap;
     frames.docs.style.height = upperBottom - top + "px";
@@ -838,7 +846,7 @@
     if (dynamicsShift > 0) {
       placeGrid("dynamics", simLeft, dynamicsTop + dynamicsShift, simWidth, 1);
     }
-    frames.simulation.style.height = simBottom + dynamicsShift - top + "px";
+    frames.simulation.style.height = simBottom + dynamicsShift - simTop + "px";
   }
 
   // ---------- Đường dữ liệu ----------

@@ -2,6 +2,14 @@
 
 Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](runs/INDEX.md).
 
+## Đọc trước buổi review
+
+- So sánh quintic và QP cho HWA, chọn giới hạn tính khả thi trước khi nối path. [PP-TS-003](studies/PP-TS-003-path-generator/study.md)
+- Đối chứng kiểm hình dạng lane model và các lỗi kéo dài vẫn cần xử lý. [PP-TS-001](studies/PP-TS-001-lane-jumps/study.md)
+- Ngưỡng continuity theo ba đoạn đã vào đặc tả. Còn cần so trộn cả path với trộn theo từng đoạn. [PP-TS-019](studies/PP-TS-019-continuity-scope/study.md)
+- Cửa sổ báo `COMPLETED` của LKA/ELK đã vào đặc tả. Cách xử lý phía planner còn chờ kiểm chứng. [PP-TS-018](studies/PP-TS-018-intervention-completion-window/study.md)
+- ELK bắt đầu muộn dưới nhiễu mưa. Ca S12c hết trượt trong hồi quy sau khi sửa T2. [PP-PR-055](problems/PP-PR-055-s12c-elk-late-correlated-noise.md)
+
 ## Trade studies
 
 | ID | Câu hỏi | Trạng thái | Quyết định | Hồ sơ |
@@ -24,7 +32,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-016 | Chức năng đang lái sau giới hạn 10 s của PP-SWR-083 (mâu thuẫn với 030) | Đã quyết; đã đưa vào; hồi quy 20261113-1803-suite-regression-3c31309 có trượt 030 chưa phân tích | V4 (theo R79, EU 2021/646) | [study](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 | PP-TS-017 | Path HWA trong lúc tài xế ghi đè: V0–V4 | Đóng; hồi quy 20261113-2255-suite-regression-e99cf08 | V2b, không chấm liên tục khi ghi đè | [study](studies/PP-TS-017-path-during-driver-override/study.md) |
 | PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | V1 phía requirement đã áp dụng (SRS 1.20); phía planner cần plan mới | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
-| PP-TS-019 | Phạm vi và ngưỡng của PP-SWR-100 đến 102 (đoạn gần hay toàn tầm nhìn) | Mở; plan chưa soạn | — | [study](studies/PP-TS-019-continuity-scope/study.md) |
+| PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; T4 chưa có plan | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
 
 ## Problem reports
 
@@ -43,9 +51,9 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-011 | PP-SWR-047 chặn ELK ở các ca S6 chỉ có mép đường | Đã cài PP-TS-007 V1; chưa xác nhận được: bên chấm chưa đo PP-SWR-047 | PP-SWR-047, 086 | [report](problems/PP-PR-011-road-edge-only-qualification.md) |
 | PP-PR-012 | Cửa sổ dự báo mặc định có thể bỏ lỡ xung đột S7(a) | Đã kiểm cục bộ đối chứng xe ngược chiều ngoài cửa sổ | PP-SWR-088, 089 | [report](problems/PP-PR-012-slow-oncoming-conflict.md) |
 | PP-PR-013 | LKA cùng phía có thể được chọn trước khi yêu cầu rút tới planner | Đã cài PP-TS-010 V1, chờ SIL hai chức năng cùng yêu cầu | PP-SWR-033, ADAS-FS mục 9 | [report](problems/PP-PR-013-same-side-request-handover.md) |
-| PP-PR-014 | Lần can thiệp đang chạy khi log dừng bị chấm thời lượng vô hạn | Bỏ; PP-SWR-083 obsolete (PP-TS-016) | PP-SWR-083 | [report](problems/PP-PR-014-intervention-at-run-end.md) |
+| PP-PR-014 | S4(d, e), seed 1: lần can thiệp còn ACTIVE khi log dừng bị chấm thời lượng vô hạn | Bỏ vì đã loại tiêu chí thời lượng PP-SWR-083 | PP-SWR-083 | [Quyết định PP-TS-016](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 | PP-PR-015 | Xe bắt đầu trong cua trôi trước Tsteer | Đã đo v_lat trước Tsteer trên bốn neo cua, chờ hồi quy chính thức | S4b, S7(e) | [report](problems/PP-PR-015-curve-driver-initial-lateral-speed.md) |
-| PP-PR-016 | Kết quả khoảng hở xe mục tiêu không ghi được JSON | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 | PP-SWR-088 | [report](problems/PP-PR-016-traffic-score-json.md) |
+| PP-PR-016 | Kết quả khoảng hở xe mục tiêu chứa giá trị boolean NumPy nên không ghi được JSON | Đóng sau khi chuyển kết quả sang kiểu Python. Hồi quy ghi được PP-SWR-088 ở mọi lượt S7, S8, S8b | PP-SWR-088 | [Hồi quy 20261113-1803-suite-regression-3c31309](runs/20261113-1803-suite-regression-3c31309/report.md) |
 | PP-PR-017 | S4b(c), S8(b) kế thừa sai hướng trôi hoặc tốc độ xe mục tiêu | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 | Định nghĩa S4b(c), S8(b) | [report](problems/PP-PR-017-anchor-inherits-wrong-parameter.md) |
 | PP-PR-018 | T9 dùng v_y trước t0 khi kiểm COMPLETED | Đã cài PP-TS-012 V1; chưa đạt: PP-SWR-032, 090 còn trượt (PP-PR-020) | PP-SWR-032, 090 | [report](problems/PP-PR-018-intervention-completion-state-age.md) |
 | PP-PR-019 | ELK mép đường mất path trong tick nhận OFF | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 | PP-SWR-037 | [report](problems/PP-PR-019-road-edge-cancellation.md) |

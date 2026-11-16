@@ -2,12 +2,12 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const { execFileSync } = require("node:child_process");
 
 const site = __dirname;
 const docs = path.join(site, "..", "docs");
-const benchmarkRun = JSON.parse(fs.readFileSync(path.join(site, "benchmark", "run.json"), "utf8"));
-if (!/^\d{8}-\d{4}-suite-full-[a-f0-9]+$/.test(benchmarkRun)) throw new Error("ID benchmark không hợp lệ");
-const benchmarkSource = path.join(site, "..", "research", "runs", benchmarkRun);
+const benchmark = JSON.parse(execFileSync("python3", [path.join(site, "latest_benchmark.py")], { encoding: "utf8" }));
+const studyFigure = "research/studies/PP-TS-013-comfort-line/sample-r171-sbend.png";
 const output = path.join(site, "dist");
 const data = { window: {} };
 vm.runInNewContext(fs.readFileSync(path.join(site, "cards.js"), "utf8"), data);
@@ -24,6 +24,10 @@ try {
   for (const file of ["app.js", "cards.js", "docmd.js", "diagrams.js", "style.css", "reviews.js", "reviews.css", "en/strings.js"]) {
     fs.copyFileSync(path.join(site, file), path.join(staging, file));
   }
+  fs.cpSync(path.join(site, "simulation"), path.join(staging, "simulation"), {
+    recursive: true,
+    filter: source => !source.endsWith(".py") && !source.endsWith("README.md") && !source.endsWith("tools") && !source.includes("__pycache__")
+  });
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
   for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html"]) {
     const html = fs.readFileSync(path.join(site, file), "utf8")
@@ -35,9 +39,18 @@ try {
   }
   const benchmarkOutput = path.join(staging, "benchmark", "run");
   fs.mkdirSync(benchmarkOutput);
+  const hasEnglish = ["report-en.html", "report-en-details.html"].every(file => fs.existsSync(path.join(benchmark.run, file)));
   for (const file of ["report.html", "report-details.html", "report-en.html", "report-en-details.html", "results.jsonl", "generation.json", "conformance.json"]) {
-    fs.copyFileSync(path.join(benchmarkSource, file), path.join(benchmarkOutput, file));
+    const sourceFile = !hasEnglish && file.startsWith("report-en") ? file.replace("-en", "") : file;
+    fs.copyFileSync(path.join(file.startsWith("report") ? benchmark.run : benchmark.data, sourceFile), path.join(benchmarkOutput, file));
   }
+  fs.mkdirSync(path.join(benchmarkOutput, "suite"));
+  for (const file of ["results.jsonl", "generation.json", "conformance.json"]) {
+    fs.copyFileSync(path.join(benchmark.data, file), path.join(benchmarkOutput, "suite", file));
+  }
+  const figureOutput = path.join(staging, studyFigure);
+  fs.mkdirSync(path.dirname(figureOutput), { recursive: true });
+  fs.copyFileSync(path.join(site, "..", studyFigure), figureOutput);
   for (const { doc } of reports) {
     if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(doc)) throw new Error("ID báo cáo không hợp lệ: " + doc);
     const file = doc + ".md";

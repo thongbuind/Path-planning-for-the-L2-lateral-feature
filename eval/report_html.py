@@ -37,15 +37,16 @@ E = html.escape
 # One colour set for the whole dashboard (reference palette of the dataviz method): text and
 # chrome; one data hue with its light step and a gray for context marks; the status set, with
 # text and background steps. Red only ever means a failure; an extreme or a highlight is ACCENT.
-INK, INK2, INK3, INK4 = "#0b0b0b", "#52514e", "#686762", "#8a8984"  # text: primary, secondary, muted, block labels
-RULE, GRID, AXIS = "#dcdbd6", "#e1e0d9", "#c3c2b7"  # card border, gridline, axis and baseline
-PANEL, PLANE, SURFACE = "#f9f9f7", "#e6e5e0", "#ffffff"  # soft panel, page plane, slide
-ACCENT, ACCENT_SOFT, ACCENT_TEXT, ACCENT_BG = "#2a78d6", "#cde2fb", "#1c5cab", "#eef5fd"
-MUTE = "#c3c2b7"  # data marks that are context, not the point
-GOOD, WARN, SERIOUS, CRIT = "#0ca30c", "#fab219", "#ec835a", "#d03b3b"
-GOOD_TEXT, WARN_TEXT, SERIOUS_TEXT, CRIT_TEXT = "#006300", "#8a5a00", "#a8481f", "#a32626"
-GOOD_BG, WARN_BG, SERIOUS_BG, CRIT_BG, NEUTRAL_BG = "#e9f5e9", "#fdf4dd", "#fcede5", "#fbeaea", "#f1f0ec"
-GOOD_EDGE, SERIOUS_EDGE, CRIT_EDGE = "#bfe0bf", "#f3c9b4", "#efc4c4"
+INK, INK2, INK3, INK4 = "#1D1D1F", "#48484A", "#6E6E73", "#86868B"  # text: primary, secondary, muted, block labels (SAI text scale)
+RULE, GRID, AXIS = "#E8E8ED", "#EDEDF0", "#D2D2D7"  # card border, gridline, axis and baseline
+PANEL, PLANE, SURFACE = "#F5F5F7", "#E8E8ED", "#ffffff"  # soft panel, page plane, slide
+ACCENT, ACCENT_SOFT, ACCENT_TEXT, ACCENT_BG = "#5B3DF5", "#D9D2FD", "#4B2FD6", "#F2EFFF"  # SAI violet
+MUTE = "#C7C7CC"  # data marks that are context, not the point
+GOOD, WARN, SERIOUS, CRIT = "#34C759", "#FF9500", "#C2410C", "#D70015"
+GOOD_TEXT, WARN_TEXT, SERIOUS_TEXT, CRIT_TEXT = "#1E7B34", "#B25000", "#9A3412", "#C00013"
+GOOD_BG, WARN_BG, SERIOUS_BG, CRIT_BG, NEUTRAL_BG = "#EAF8ED", "#FFF3E0", "#FDEEE6", "#FDECEC", "#F5F5F7"
+GOOD_EDGE, SERIOUS_EDGE, CRIT_EDGE = "#BFE5C8", "#F3C9B4", "#F4C2C6"
+FONT_SANS = '-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif'
 BLUE, GRAY = ACCENT, MUTE
 LEVEL_COLOR = {severity.BLOCKER: CRIT, severity.MAJOR: SERIOUS, severity.MINOR: WARN}
 WARN_MARK = 0.8  # warning mark of the limit-use table; chosen by the report, not a requirement
@@ -96,7 +97,7 @@ SCORING = {
     "B7": (PASS_FAIL, "Đạt khi 100 % trên mọi xe; độ chênh giữa các xe chỉ tính điểm"),
     "B8": (SCORE, "Đo p99 thời gian tính; không có ngưỡng đạt"),
 }
-REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang ≤ 0,05 m", "PP-SWR-101": "Hai path liên tiếp lệch hướng",
+REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang trong ngưỡng", "PP-SWR-101": "Hai path liên tiếp lệch hướng",
              "PP-SWR-102": "Hai path liên tiếp lệch độ cong", "PP-SWR-051": "Xe không lấn vạch khi HWA lái",
              "PP-SWR-039": "Path bắt đầu tại xe khi tài xế ghi đè", "PP-SWR-040": "Path HWA bắt đầu tại xe khi hết ghi đè",
              "PP-SWR-030": "Chọn đúng chức năng theo ưu tiên", "PP-SWR-032": "Báo COMPLETED đúng lúc",
@@ -296,6 +297,34 @@ def range_rows(rows, unit, W=380, row=20, label_w=118, font=9, *, lang="vi"):
     return svg(W, H, "".join(out), translate(lang, "Giá trị theo tình huống, {unit}", unit=unit))
 
 
+def comfort_bars(rows, unit, *, lang="vi"):
+    """Per-scenario worst value as a bar, with its median marked by a dot."""
+    W, H, left, right, top, row = 380, 245, 8, 65, 5, 49
+    values = [v for _, samples, _ in rows for v in samples]
+    ticks = nice_ticks(min(values + [0.0]), max(values + [0.0]), n=3)
+    lo, hi = ticks[0], ticks[-1]
+    x = lambda v: left + (v - lo) / (hi - lo) * (W - left - right)
+    bottom = top + row * len(rows)
+    out = []
+    for i, (label, samples, worst) in enumerate(rows):
+        y = top + row * i + 30
+        median = float(np.median(samples))
+        tip = translate(lang, "{label}: {count} lần chạy, {minimum}–{maximum} {unit}, trung vị {median}, bất lợi nhất {worst}",
+                        label=label, count=len(samples), minimum=precise(min(samples), lang=lang),
+                        maximum=precise(max(samples), lang=lang), unit=unit,
+                        median=precise(median, lang=lang), worst=precise(worst, lang=lang))
+        start, end = sorted((x(0), x(worst)))
+        out.append(f'<g><title>{E(tip)}</title>'
+                   + text(left, y - 13, label, 11, 'start', INK, 650)
+                   + f'<rect x="{start:.1f}" y="{y - 7}" width="{max(end - start, 1):.1f}" height="14" rx="3" fill="{ACCENT}"/>'
+                   + f'<circle cx="{x(median):.1f}" cy="{y}" r="4.5" fill="{INK}" stroke="{SURFACE}" stroke-width="1.5"/>'
+                   + text(W - 4, y + 4, precise(worst, lang=lang), 11, 'end', INK, 650)
+                   + '</g>')
+    out.append(f'<line x1="{left}" x2="{W-right}" y1="{bottom}" y2="{bottom}" stroke="{AXIS}"/>')
+    out.extend(text(x(t), bottom + 15, precise(t, lang=lang), 9, 'middle', INK3) for t in ticks)
+    return svg(W, H, ''.join(out), translate(lang, "Giá trị theo tình huống, {unit}", unit=unit))
+
+
 def ranked_ref(items, ref=None, ref_label="", unit="", W=560, row=22, label_w=190, *, lang="vi"):
     """Ranked horizontal bars, one hue, value at the tip, with an optional neutral reference line.
     items: [(label, value, tooltip)], largest first."""
@@ -353,6 +382,7 @@ REVIEW_CSS = """
 #B5 .data-table td:nth-child(n+3),#B5 .data-table th:nth-child(n+3){white-space:nowrap;min-width:42px;text-align:right}
 #B5 .data-table{font-size:9pt}#B5 .data-table td{padding:8px 5px}
 #B6 .data-table td{padding:1px 6px;font-size:8pt;line-height:1.25}#B6 .data-table th{padding:1px 6px;font-size:7.5pt}#B6 .card .cap{margin-bottom:1mm}#B6 .card .body{align-items:flex-start}#B6 .card .body svg{height:auto;max-height:100%;max-width:470px}
+#B6 .comfort-summary{display:flex;flex-direction:column;gap:3mm;width:100%;height:100%;font-size:10pt;line-height:1.35}#B6 .comfort-summary .value{font-size:19pt;font-weight:700;color:var(--ink)}#B6 .comfort-summary .minor{color:var(--ink2);font-size:9pt}#B6 .comfort-summary a{color:var(--accent)}#B6 .comfort-summary svg{width:100%;height:auto;max-height:none}#B6 .comfort-summary .chart{flex:1;display:flex;align-items:center}#B6 .comfort-summary .chart-foot{border-top:1px solid var(--rule);padding-top:3mm}
 #B7 .data-table td{padding-top:9px;padding-bottom:9px;font-size:9pt}#B7 .data-table td:nth-child(n+2){white-space:nowrap}
 [lang="en"] #B5 .data-table td,[lang="en"] #B7 .data-table td{padding-block:7px}
 .margin-table td{padding:2px 3px;font-size:8pt}.margin-table th{padding:3px;font-size:7.5pt;white-space:nowrap}
@@ -408,7 +438,7 @@ a{color:inherit;text-underline-offset:2px} .top .meta a,.foot a{text-decoration:
 # ---- page shell ------------------------------------------------------------------------------------
 CSS = f"""
 *{{box-sizing:border-box}}
-html,body{{margin:0;background:{PLANE};color:{INK};font:9pt/1.35 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+html,body{{margin:0;background:{PLANE};color:{INK};font:9pt/1.35 {FONT_SANS};letter-spacing:-.01em;
 -webkit-print-color-adjust:exact;print-color-adjust:exact}}
 body{{padding:20px 0}}
 .page{{width:1280px;height:720px;margin:0 auto 24px;background:{SURFACE};padding:28px 36px 20px;display:flex;flex-direction:column;gap:4mm;
@@ -419,7 +449,7 @@ box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 28px rgba(0,0,0,.08);overflow:hidden}
 .top .sub{{color:{INK3};font-size:8pt}}
 .top .meta{{margin-left:auto;text-align:right;color:{INK3};font-size:7.5pt;line-height:1.5}}
 .grid{{flex:1;display:grid;gap:4mm;min-height:0}}
-.card{{border:1px solid {RULE};border-radius:6px;padding:3mm 3.5mm 2.5mm;display:flex;flex-direction:column;min-height:0}}
+.card{{border:1px solid {RULE};border-radius:12px;padding:3mm 3.5mm 2.5mm;display:flex;flex-direction:column;min-height:0}}
 .card h3{{margin:0;font-size:9pt;font-weight:650}}
 .card .cap{{margin:.6mm 0 2mm;color:{INK3};font-size:7.5pt}}
 .card .body{{flex:1;display:flex;align-items:center;min-height:0;overflow:hidden}}
@@ -429,7 +459,7 @@ box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 28px rgba(0,0,0,.08);overflow:hidden}
 .v-major{{background:{SERIOUS_BG};border-color:{SERIOUS_EDGE}}} .v-major .v{{color:{SERIOUS_TEXT}}}
 .v-ok{{background:{GOOD_BG};border-color:{GOOD_EDGE}}} .v-ok .v{{color:{GOOD_TEXT}}}
 .v-info{{background:{ACCENT_BG};border-color:{ACCENT_SOFT}}} .v-info .v{{color:{ACCENT_TEXT}}}
-.chip{{display:inline-block;font-size:7pt;font-weight:700;letter-spacing:.03em;padding:.6mm 1.8mm;border-radius:3px;white-space:nowrap}}
+.chip{{display:inline-block;font-size:7pt;font-weight:700;letter-spacing:.03em;padding:.6mm 1.8mm;border-radius:999px;white-space:nowrap}}
 .chip-pf{{background:{INK};color:#fff}} .chip-sc{{background:{SURFACE};color:{ACCENT_TEXT};border:1.2px solid {ACCENT_TEXT}}}
 .foot{{display:flex;justify-content:space-between;color:{INK3};font-size:7pt}}
 .checks{{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;gap:2.2mm 6mm;font-size:8.5pt;width:100%;align-self:flex-start}}
@@ -1339,8 +1369,8 @@ class Report:
                 if t['id'] in COMFORT_TARGETS and isinstance(t.get('value'), (int, float)) and math.isfinite(t['value']):
                     series[(t['id'], t['metric'])].append((t['value'], r))
         metrics_of = Counter(rid for rid, _ in series)
-        keep = 4 if len(series) <= 9 else 3  # scenarios per small multiple, so that every chart stays legible
-        cards, rows = [], []
+        keep = 4
+        cards, rows, summaries = [], [], []
         for (rid, metric), samples in sorted(series.items(), key=lambda kv: (COMFORT_TARGETS.index(kv[0][0]), kv[0][1])):
             name, fallback_unit = COMFORT_LABELS[rid]
             if metrics_of[rid] > 1 or (self.lang == "en" and rid == "PP-SWR-004"):
@@ -1367,24 +1397,45 @@ class Report:
             rows.append([rid.replace('PP-SWR-', ''), E(name), self.tr("Cao hơn") if high else self.tr("Thấp hơn"), fmt_n(len(values), lang=self.lang),
                          f'{precise(float(np.median(values)), lang=self.lang)} {E(unit)}', f'<b>{precise(worst_v, lang=self.lang)} {E(unit)}</b>',
                          E(self.case_name(worst_r)), self.details_link('run-' + worst_r['case'] + '-' + str(worst_r['seed']), self.tr("Xem ca"))])
+            summaries.append((rid, metric, name, unit, values, worst_v, worst_r, chart_rows))
         if not cards:
             self.page('B6 · Comfort', self.tr("Chỉ đo hiệu năng; không có ngưỡng đạt"), 'grid-template-columns:1fr',
                       [card(self.tr("Chưa có dữ liệu"), self.tr("Không có lần chạy nào trong bộ B6 cho các chỉ số độ êm."))])
             return
-        cols = min(3, len(cards))
         data_table = table(['ID', self.tr("Chỉ số"), self.tr("Tốt hơn khi"), self.tr("Lần chạy"), self.tr("Trung vị"), self.tr("Bất lợi nhất"), self.tr("Ca bất lợi nhất"), self.tr("Bằng chứng")], rows, 'data-table comfort-table')
-        if len(cards) <= 6:
-            extra, rows_css = [card(self.tr("Số liệu của từng chỉ số"), data_table, style='grid-column:1/-1')], ' auto'
-        else:  # nine small multiples fill the slide; the data table moves to the details page
-            self.detail_sections.append(('b6-data', self.tr("B6 · Số liệu của từng chỉ số độ êm"), data_table))
-            extra = [f'<div style="grid-column:1/-1;font-size:8.5pt">'
-                     f'{self.tr("Bảng số liệu (trung vị, bất lợi nhất, ca, bằng chứng): ")}'
-                     f'{self.details_link("b6-data", self.tr("mở bảng"))}</div>']
-            rows_css = ' auto'
+        self.detail_sections.append(('b6-data', self.tr("B6 · Số liệu của từng chỉ số độ êm"),
+                                     data_table + ''.join(cards)))
+        # Fixed representative metrics, not a severity ranking. Use available data on partial runs.
+        ordered = sorted(summaries, key=lambda s: (
+            {"PP-SWR-053": 0, "PP-SWR-004": 1, "PP-SWR-002": 2}.get(s[0], 3),
+            0 if "RMS của path 0–1 s" in s[1] else 1, COMFORT_TARGETS.index(s[0]), s[1]))
+        selected, seen = [], set()
+        for item in ordered:
+            if item[0] not in seen:
+                selected.append(item)
+                seen.add(item[0])
+            if len(selected) == 3:
+                break
+        overview = []
+        for rid, metric, name, unit, values, worst_v, worst_r, chart_rows in selected:
+            evidence = self.details_link('run-' + worst_r['case'] + '-' + str(worst_r['seed']), self.tr("Xem ca"))
+            labeled_rows = [(self.label(label.split(':', 1)[0], 32), samples, worst)
+                            for label, samples, worst in chart_rows]
+            body = (f'<div class="comfort-summary"><div class="minor">'
+                    f'{self.tr("{n} lần đo", n=fmt_n(len(values), lang=self.lang))} · '
+                    f'{self.tr("Cao hơn tốt hơn") if rid in LARGER_IS_BETTER else self.tr("Thấp hơn tốt hơn")}</div>'
+                    f'<div>{self.tr("Trung vị toàn bộ")}: <b>{precise(float(np.median(values)), lang=self.lang)} {E(unit)}</b></div>'
+                    f'<div class="chart">{comfort_bars(labeled_rows, unit, lang=self.lang)}</div>'
+                    f'<div class="chart-foot"><span class="minor">{self.tr("Bất lợi nhất")}</span><br>'
+                    f'<span class="value">{precise(worst_v, lang=self.lang)} {E(unit)}</span><br>'
+                    f'<span class="minor">{E(self.case_name(worst_r))} · {evidence}</span></div></div>')
+            overview.append(card(f'{name} [{unit}]', body))
+        link = self.details_link('b6-data', self.tr("Xem tất cả chỉ số và biểu đồ"))
+        legend = self.tr("Thanh: giá trị bất lợi nhất · Chấm: trung vị của tình huống · Tối đa 4 tình huống bất lợi nhất")
         self.page('B6 · Comfort',
-                  self.tr("Chỉ đo hiệu năng, không có ngưỡng đạt · mỗi hàng một tình huống: vạch xám = khoảng qua các lần chạy, chấm xám = trung vị, chấm xanh = bất lợi nhất"),
-                  f'grid-template-columns:repeat({cols},minmax(0,1fr));grid-template-rows:repeat({math.ceil(len(cards) / cols)},minmax(0,1fr)){rows_css}',
-                  cards + extra)
+                  self.tr("{n} lượt trong bộ Comfort · Chỉ đo hiệu năng, không có ngưỡng đạt", n=fmt_n(len(recs), lang=self.lang)),
+                  f'grid-template-columns:repeat({len(overview)},minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto',
+                  overview + [f'<div class="definitions">{E(legend)} · {link}</div>'])
 
     def b7_slide(self):
         recs = self.by_aspect.get('B7', [])
@@ -1559,7 +1610,7 @@ class Report:
             if manifest:
                 body.append(f'<p><a href="{self.href(manifest)}">Source case manifest</a></p>')
         # Only exported references, not thousands of unused results.
-        referenced = set(re.findall(r'#(run-[^"<>]+)', ''.join(self.pages)))
+        referenced = set(re.findall(r'#(run-[^"<>]+)', ''.join(self.pages) + ''.join(content for _, _, content in self.detail_sections)))
         for r in self.d['records']:
             anchor = 'run-'+r['case']+'-'+str(r['seed'])
             if html.escape(anchor) not in referenced: continue
@@ -1578,7 +1629,7 @@ class Report:
                         f'<p>{E(self.case_name(r))}</p><pre>{E(json.dumps(details, ensure_ascii=False, indent=2))}</pre></section>')
         return (f'<!doctype html><html lang="{self.lang}"><meta charset="utf-8">'
                 f'<meta name="viewport" content="width=device-width, initial-scale=1"><title>{self.tr("Bằng chứng dashboard")}</title>'
-                f'<style>body{{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 -apple-system,Arial;color:{INK}}}section{{border-top:1px solid {RULE};padding:12px 0}}section:target{{background:{WARN_BG}}}pre{{white-space:pre-wrap;overflow-wrap:anywhere}}h2{{margin-top:40px}}</style>'
+                f'<style>body{{max-width:1000px;margin:40px auto;padding:0 24px;font:15px/1.5 {FONT_SANS};color:{INK}}}section{{border-top:1px solid {RULE};padding:12px 0}}section:target{{background:{WARN_BG}}}pre{{white-space:pre-wrap;overflow-wrap:anywhere}}h2{{margin-top:40px}}</style>'
                 + ''.join(body) + '</html>')
 
     def html(self):

@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SQTS` |
-| Version | 1.33 |
+| Version | 1.44 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-13 |
+| Last updated | 2026-11-16 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -200,7 +200,7 @@ The simulator's longitudinal module belongs to the test system and is fixed acro
 | S4(d, e) repeated drift | Lateral force persists after COMPLETED. A new intervention is eligible once the reactivation conditions are met. Score each intervention | ADAS Function Specification Section 9, PP-SWR-035 |
 | Repeated drift and event-triggered steering | A subsequent steering input starts after the kth occurrence of a phase in the output (S16: 2 s after COMPLETED. S8c(d): 0.2 s after ACTIVE, four times the first steering arc). Scripted FunctionRequests can also be triggered by phase (S16 a, b, e) | team agreement |
 | Driver override and lane change | Hold 3.5 Nm throughout the lane change (S17), above `torque_override`. The camera reindexes the markings relative to the new lane | team agreement |
-| Cases requiring no intervention | In S8b(a–c), S8c(a–c), and S10, the ADAS Functions module must not send REQUEST. A REQUEST is reported as a test-side error and the planner is left unscored. Record REQUEST counts in modes A and B | ADAS Function Specification Sections 6, 8. Section 6.3 |
+| Cases requiring no intervention | In S8b(a, b, f), S8c(a–c), and S10, the ADAS Functions module must not send REQUEST. A REQUEST is reported as a test-side error and the planner is left unscored. Record REQUEST counts in modes A and B | ADAS Function Specification Sections 6, 8. Section 6.3 |
 
 ## 5. Test cases {#benchmark-scenarios}
 
@@ -218,14 +218,14 @@ The simulator's longitudinal module belongs to the test system and is fixed acro
 | S2 | HWA activates with the vehicle off center | 90 km/h. Measure offset and heading error when HWA takes control. a) 0.2 m offset, 0° heading error. b) 0.4 m, 1° inward. c) 0.5 m, 2° outward. d) 0.4 m on the outside of a curve with R = 500 m. e) 0.5 m at 130 km/h | PP-SWR-002, 052, 053 |
 | S3 | HWA offsets the center when passing a truck in an adjacent lane | Truck width 2.5 m. a) 5 m/s slower. b) 2 m/s slower. c) 10 m/s slower. d) Truck 0.1 m from the marking. e) Truck encroaches 0.3 m beyond the marking | PP-SWR-002, 055, 056, 057, 058, 059 |
 | S3b | A large vehicle overtakes from behind in a narrow lane | Truck is 5 m/s faster and detected only by corner radar before drawing alongside. a) Opposite side empty, lane 3.5 m. b) Passenger car on the opposite side. c) Truck on the opposite side. d) As a, lane 3.0 m. e) As c, lane 2.75 m | PP-SWR-056, 057 |
-| S4 | LKA for lane drift on a straight road | a) 72 km/h, dashed marking, v_lat 0.2 m/s; b) 72 km/h, solid marking, 0.4; c) 90 km/h, 0.6; d) crosswind-induced drift; e) cross slope-induced drift | PP-SWR-032, 080, 081, 083, 084 (closed loop), 085 (closed loop), 086 (closed loop), 087 (closed loop), 090, 110, 112, 114 |
-| S4b | LKA for lane drift in a curve | 90 km/h. a) R = 1000 m, outward drift at 0.3 m/s; b) R = 500 m, outward; c) R = 500 m, inward; d) R = 250 m, outward, with only 0.5 m/s² remaining within the LKA limit; e) outward drift in the clothoid | PP-SWR-083, 085 (closed loop), 110, 112, 114 |
-| S5 | Solid-marking ELK with LKA disabled | a) 72 km/h, v_lat 0.2. b) 0.4. c) 0.6. d) 90 km/h, 0.4. e) Double marking. f) 72 km/h, 0.5 | PP-SWR-032, 080, 082, 083, 085 (closed loop), 086 (closed loop), 090, 111, 113, 115 |
-| S6 | Road-edge ELK | Passenger side. a) road edge only, v_lat 0.2; b) road edge only, 0.6; c) dashed center marking with no marking by the edge; d) barrier as the road edge; e) 90 km/h, 0.4 | PP-SWR-080, 082, 083, 085 (closed loop), 086 (closed loop), 111, 113, 115 |
+| S4 | LKA for lane drift on a straight road | a) 72 km/h, dashed marking, v_lat 0.2 m/s; b) 72 km/h, solid marking, 0.4; c) 90 km/h, 0.6; d) crosswind-induced drift; e) cross slope-induced drift | PP-SWR-032, 080, 081, 084 (closed loop), 085 (closed loop), 086 (closed loop), 087 (closed loop), 090, 110, 112, 114 |
+| S4b | LKA for lane drift in a curve | 90 km/h. a) R = 1000 m, outward drift at 0.3 m/s; b) R = 500 m, outward; c) R = 500 m, inward; d) R = 250 m, outward, with only 0.5 m/s² remaining within the LKA limit; e) outward drift in the clothoid | PP-SWR-085 (closed loop), 110, 112, 114 |
+| S5 | Solid-marking ELK with LKA disabled | a) 72 km/h, v_lat 0.2. b) 0.4. c) 0.6. d) 90 km/h, 0.4. e) Double marking. f) 72 km/h, 0.5 | PP-SWR-032, 080, 082, 085 (closed loop), 086 (closed loop), 090, 111, 113, 115 |
+| S6 | Road-edge ELK | Passenger side. a) road edge only, v_lat 0.2; b) road edge only, 0.6; c) dashed center marking with no marking by the edge; d) barrier as the road edge; e) 90 km/h, 0.4 | PP-SWR-080, 082, 085 (closed loop), 086 (closed loop), 111, 113, 115 |
 | S6b | Lane widening | HWA enabled. a) emergency lane widens by 1.5 m over 100 m on the right; b) exit branch; c) new lane on the left; d) widening on a curve with R = 500 m; e) widening while offsetting the center due to a truck on the other side | PP-SWR-050, 060 (closed loop) |
-| S7 | ELK for an oncoming vehicle | Other vehicle 1.5 m from the inner edge of the center marking, with 10 % overlap without intervention. a) both at 72 km/h, v_lat 0.2; b) 0.4; c) 0.6; d) other vehicle at 90 km/h; e) on a curve with R = 500 m | PP-SWR-082, 083, 085 (closed loop), 088 (closed loop), 111, 113, 115 |
-| S8 | ELK for an overtaking vehicle | a) Other vehicle at 80 km/h, ego vehicle at 72 km/h, drift at 0.2 m/s. b) Both at 72 km/h, drift at 0.4. c) Turn indicator 1.0 ± 0.5 s before steering, 0.5 m/s. d) As c, 0.7 m/s. e) Other vehicle at 100 km/h, drift at 0.4. The additional late case injects ELK REQUEST after the front tire has crossed the marking | PP-SWR-082, 083, 085 (closed loop), 088 (closed loop), 089, 111, 113, 115 |
-| S8b | Signaled lane change with a rear vehicle at different distances | a) 20 m away, 2.2 m/s faster; b) 10 m, 2.2 m/s; c) 20 m, 8 m/s; d) 12 m, 10 m/s (TTC 1.2 s); e) 30 m, 14 m/s (requires 3.3 m/s²). a–c: no intervention; d, e: intervene per ADAS Function Specification Section 6, step 5 | PP-SWR-082 (d, e), 083 (d, e), 085 (d, e, closed loop), 111 (d, e), 113 (d, e), 115 (d, e) |
+| S7 | ELK for an oncoming vehicle | Other vehicle 1.5 m from the inner edge of the center marking, with 10 % overlap without intervention. a) both at 72 km/h, v_lat 0.2; b) 0.4; c) 0.6; d) other vehicle at 90 km/h; e) on a curve with R = 500 m | PP-SWR-082, 085 (closed loop), 088 (closed loop), 111, 113, 115 |
+| S8 | ELK for an overtaking vehicle | a) Other vehicle at 80 km/h, ego vehicle at 72 km/h, drift at 0.2 m/s. b) Both at 72 km/h, drift at 0.4. c) Turn indicator 1.0 ± 0.5 s before steering, 0.5 m/s. d) As c, 0.7 m/s. e) Other vehicle at 100 km/h, drift at 0.4. The additional late case injects ELK REQUEST after the front tire has crossed the marking | PP-SWR-082, 085 (closed loop), 088 (closed loop), 089, 111, 113, 115 |
+| S8b | Signaled lane change with a following vehicle at different distances | Gap at TLC = 0.8 s. a) 20 m, 2.2 m/s faster; b) 10 m, 2.2 m/s; c) 20 m, 8 m/s (TTC 1.1 s when the tyre crosses 0.3 m past the marking); d) 12 m, 10 m/s (TTC 1.2 s); e) 30 m, 14 m/s (requires 3.3 m/s²); f) 40 m, 8 m/s (TTC 3.6 s at 0.3 m past the marking). a, b, f: no intervention; c, d, e: intervention per ADAS Function Specification Section 6, step 5 | PP-SWR-082 (c, d, e), 085 (c, d, e, closed loop), 088 (c, d, e, closed loop), 111 (c, d, e), 113 (c, d, e), 115 (c, d, e) |
 | S8c | Sudden evasive steering with a vehicle in the adjacent lane | No turn indicator. a) v_lat 1.2 m/s; b) 1.5 m/s; c) steer and immediately steer back; d) steer during LKA intervention | PP-SWR-031 (d), 036 (d), 037 (d) |
 | S9 | Function transitions | a) LKA to ELK; b) ELK finishes and returns to HWA; c) HWA overridden, then override released; d) request cancelled due to turn indicator; e) driver switches off HWA mid-curve at R = 500 m | PP-SWR-030 (a), 031, 033 (b), 036 (d), 037 (d), 038, 039 (c), 040 (c), 042 (e) |
 | S10 | Travel close to a marking without drifting | a) DLC 0.2 m, v_lat near 0; b) DLC 0.4 m; c) cut a curve with R = 500 m; d) drive offset to one side when a truck is present; e) as a, at night, mode A |   |
@@ -248,7 +248,7 @@ The table maps each protocol test to a scenario. Tests assigned to other modules
 | R79 Annex 8, 3.2.2 and R171 Annex 4, 4.2.5.1.1.1.2 | Maximum a_y | The curve requires > aysmax + 0.3 m/s². Disable curve deceleration | a_y within the R79 5.6.2.1.1 limits and jerk ≤ 5 m/s³ | S1b (a, b, c), ACC ignores LateralLimits | |
 | R79 Annex 8, 3.2.5 | Lane departure warning | The curve requires aysmax + 0.1 to + 0.4 m/s² | Warn by the time the front tire crosses the marking and continue assistance | S1b (f) | Warning uses `lateral_limit_reached` |
 | R79 Annex 8, 3.1, 3.2.3, 3.2.4 | CSF warning, override force, hands off | — | — | None | ADAS Functions, Lateral Controller, EPS |
-| R79 Annex 8, 3.3.1, 3.3.2 | ESF with an adjacent-lane vehicle | An adjacent-lane vehicle approaches. The driver intentionally changes lanes | Stay in the original lane and warn no later than intervention onset | S7, S8 | ADAS Functions is responsible for the warning |
+| R79 Annex 8, 3.3.1, 3.3.2 | ESF with an adjacent-lane vehicle | An adjacent-lane vehicle approaches unintentionally (3.3.1); intentional lane change (3.3.2) | Stay in the original lane and warn no later than intervention onset | S7 (a, b, c, d, e), S8 (a, b, c, d, e) | 3.3.1: S7 and S8 (a, b, e); 3.3.2: S8 (c, d). ADAS Functions is responsible for the warning |
 | R79 Annex 8, 3.3.3 to 3.3.5 | ESF with objects in the road, missing markings, or incorrect response | — | — | None | Outside the ELK function and the project's ODD |
 | R171 Annex 4, 4.2.4.1, 4.2.5.1.1.2 | Lane position, extended tests | Standard S-curve and multiple curvatures and speeds. At least one case exceeds declared a_y. Include markings, road edges, and a single marking | Stay in the lane with stable motion | S1 (f), S14 (e), F04, F21 | R171 requires ≥ 90% of tests to pass (Annex 3 Appendix 4). The project requires all tests to pass |
 | R171 5.3.7.1.1.1, 5.3.7.1.3 | Adjust speed to curvature | — | A speed strategy is defined and can be described | S14 | Software Architectural Design Section 6.2 |
@@ -342,7 +342,7 @@ Score both directions.
 - **Missed refusal.** If the planner keeps driving in a Refuse case, fail the case's requirement.
 - **Unnecessary refusal.** In a Drive or Drive with limits case, fail PP-SWR-030 if `active_function` differs from the function selected under PP-SWR-030 and none of the conditions in PP-SWR-124, 142 to 145 applies.
 - Score unnecessary refusals cycle by cycle. For LKA and ELK, start scoring when the planner starts the intervention for that REQUEST and stop at COMPLETED. Score failures to start an intervention at the case level.
-- Exclude the cycle immediately after the selected function changes (PP-SWR-038). Also exclude periods when an input required for the path is unusable (PP-SWR-124, 142, 145) and the 1 s after input recovery (the upper bound of `T_coast`, Software Requirements Specification Section 7).
+- Exclude the cycle immediately after the selected function changes (PP-SWR-038). Also exclude periods when an input required for the path is unusable (PP-SWR-124, 142, 145) and the 1 s after input recovery (the upper bound of `T_coast`, Software Requirements Specification Section 7). Loss of a required input ends the ongoing LKA or ELK intervention; after recovery, count that function again only when it starts for a new REQUEST (PP-SWR-045).
 
 **Aspects**
 
@@ -376,7 +376,7 @@ Inject each fault at three times. Time faults by frame capture timestamp. The la
 | F01 | Lane model | c0 and c1 noise | a) daytime σ_c0 = 0.03 m, σ_c1 = 0.002; b) × 1.5; c) night or rain × 2.5 | PP-SWR-120 |
 | F02 | Lane model | c0 jump without a flag | The entire lane model jumps in one frame. a) 0.3 m. b) 0.6 m. c) 1.0 m. In a–c, hold for 1 s before returning. d) 0.6 m, return after one frame. e) 0.6 m, hold | PP-SWR-121 |
 | F03 | Lane model | Misidentified adjacent-lane marking | a) left marking jumps to L2 in one frame; b) as a, lasting 0.5 s; c) both markings jump to the adjacent lane with no lane change flag; d) old marking or crack offset by 0.5 m, lasting 2 s; e) as a, during ELK | PP-SWR-050, 122 (closed loop) |
-| F04 | Lane model | Loss of one marking | a) Immediate loss on the left. b) Immediate loss on the right. c) Left-side confidence falls to 0 over 2 s. d) Right-side confidence falls to 0 over 2 s. e) Loss while lane width changes | PP-SWR-050, 123 (a–d, closed loop) |
+| F04 | Lane model | Loss of one marking | a) Immediate loss on the left. b) Immediate loss on the right. c) Left-side confidence falls to 0 over 2 s. d) Right-side confidence falls to 0 over 2 s. e) Loss while lane width changes | PP-SWR-050, 092, 123 (a–d, closed loop) |
 | F05 | Lane model | Loss of all boundaries: both ego-lane markings, adjacent-lane markings, and road edges | a) reconstruct for 0.5 s, then lose them; b) reconstruct for 1 s, then lose them; c) lose them for 0.5 s, then recover; d) loss mid-curve at R = 500 m | PP-SWR-043, 124 |
 | F06 | Lane model | Incorrect curvature | All markings. a) c2 +0.0005 1/m on a straight road. b) −0.0005 1/m in a curve. c) c3 +4·10⁻⁶ 1/m², with the same curvature error as a at 40 m. d) As a, for 2 s. e) As a, during curve entry. Cases a, b, c, and e last 1 s | PP-SWR-125 |
 | F07 | IMU | Noise | a) yaw-rate σ = 0.07 °/s, a_y σ = 0.004 m/s²; b) 0.14 °/s and 0.008 m/s² | PP-SWR-135 (a, b, closed loop) |
@@ -387,7 +387,7 @@ Inject each fault at three times. Time faults by frame capture timestamp. The la
 | F12 | Timing | Transmission stops | Stop each input for longer than its timeout, then resume transmission (recovery) | PP-SWR-043 (Lane Model), 044 (Lane Model, recovery), 045 (Lane Model, recovery), 046 (v_y, in S5), 124 (Lane Model), 140 (Perception, in S3), 141 (Perception, in S5), 142 (IMU, speed, steering angle), 144 (v_y), 145 (FunctionRequests) |
 | F13 | Timing | Camera slower than planner | 20 Hz versus 40 Hz, always present | PP-SWR-128 |
 | F14 | Timing | Loss of clock synchronization | a) drift ±20 ppm; b) ±100 ppm; c) loss of gPTP for 10 s | PP-SWR-137 (a, b, c, closed loop) |
-| F15 | Message integrity | Counter repeats, skips, or is stuck | On each channel | PP-SWR-129 (repeat), 130 (skip, stuck) |
+| F15 | Message integrity | Counter repeats, skips, or is stuck. A skip omits `count` sender values and subsequent messages retain the offset | Each channel; g) lane model skips 2, increment 3 within the limit | PP-SWR-129 (repeat, increment within limit), 130 (increment beyond limit, stuck) |
 | F16 | Message integrity | Invalid flag | `valid = false`, qualifier FAULT | PP-SWR-130 |
 | F17 | Message integrity | Incorrect CRC | CAN frame | PP-SWR-130, 142 |
 | F18 | Message integrity | CAN quantization | Per DBC scaling factor, always present | PP-SWR-139 (closed loop) |
@@ -440,22 +440,24 @@ Select on the tuning set and score on the test set. Use one calibration set for 
 
 A requirement passes when it passes in every scenario, variant, seed, and profile specified in the Verification column of the Software Requirements Specification.
 
+A run on another anchor is also scored against that anchor’s scope. Faults on a host use the union of host and fault scopes; S12 (a–d), S13 (a–c), and S14 (a, c) also include their referenced anchor scope. Sampled cases in Section 5.2 do not inherit another anchor’s scope because their parameters differ.
+
 | Metric | Measurement | Threshold | Requirement |
 |---|---|---|---|
 | Minimum DTLE | Minimum over the intervention from the outer edge of the front tire to the inner edge of the marking or to the road edge | ≥ −0.3 m (LKA and solid-marking ELK), ≥ −0.1 m (road-edge ELK) | PP-SWR-086, 091 |
-| Clearance to adjacent-lane vehicle | Minimum lateral distance between the vehicles during ELK triggered by the adjacent-lane vehicle | ≥ 0.3 m | PP-SWR-088 |
+| Clearance to adjacent-lane vehicle | Minimum lateral distance between the vehicles during ELK triggered by the adjacent-lane vehicle, only while their longitudinal extents overlap, including front and rear overhangs. Do not score an intervention with no alongside period | ≥ 0.3 m | PP-SWR-088 |
 | DLC relative to actual lane | Minimum on each side. For PP-SWR-051, measure only when actual free space on each side is ≥ `free_space_min` | ≥ 0 | PP-SWR-051, 060, 122, 123, 148 |
 | Drift-side DLC at LKA completion | Actual DLC on the requested side when LKA reports COMPLETED | ≥ 0 | PP-SWR-084 |
 | Opposite-side DLC | Minimum DLC on the opposite side from intervention onset through the 1 s EPS handover after COMPLETED or cancellation. End the window at the next independent intervention | ≥ 0 | PP-SWR-085 |
 | `lane_too_narrow` in a narrow lane | When actual free space on each side is < `free_space_min`, measure the fraction of valid-path cycles reporting `lane_too_narrow` | = 1 | PP-SWR-063 |
 | a_y, added a_y, jerk | Measure on Trajectory for the function in control. Compute required a_y from actual lane curvature at the path point. Average jerk over 0.5 s | Per PP-SWR-001, 003, 110 to 115 | PP-SWR-001, 003, 110 to 115 |
 | Wheel angle and steering wheel rate | On the path | Per the profile's VehicleConfig | PP-SWR-116, 117 |
-| Continuity | Differences in lateral position, heading, and curvature between consecutive paths every cycle. Evaluate the new path within the reported lane model view range, transforming to t0 using actual vehicle motion. If no lane model is available, use the entire path | ≤ 0.05 m, ≤ 0.005 rad, ≤ 0.0003 1/m | PP-SWR-100 to 102 |
+| Continuity | Differences in lateral position, heading, and curvature between consecutive paths every cycle. Evaluate the new path within the reported lane model view range, transforming to t0 using actual vehicle motion. If no lane model is available, use the entire path | By the new path’s `time_from_start`: 0–1 s: ≤ 0.05 m, 0.005 rad, 0.0003 1/m; 1–2 s: ≤ 0.1 m, 0.01 rad, 0.0006 1/m; after 2 s: ≤ 0.2 m, 0.02 rad, 0.0012 1/m | PP-SWR-100 to 102 |
 | Observed horizon | Compare `observed_horizon_s` with the time when the path leaves the reported lane model view range, on every cycle with a valid path and a lane model | Reported value ≤ time when the path leaves the view range + 0.1 s | PP-SWR-018 |
-| Intervention duration | From REQUEST to COMPLETED or cancellation | ≤ 10 s | PP-SWR-083 |
 | Start of the intervention path | At the start tick, compare rear-axle position and v_lat with ground truth in the lane frame | ≤ 0.1 m and ≤ 0.1 m/s | PP-SWR-080 |
-| Completion | At each tick, track DLC, front-axle v_lat, body heading relative to the lane, and added a_y of the path in use | Report COMPLETED for the correct function on the tick when `T_end_hold` is met | PP-SWR-032, 090 |
+| Completion | At each tick, track DLC, front-axle v_lat, body heading relative to the lane, and added a_y of the path in use | Report COMPLETED for the correct function within 0.5 s after the tick when `T_end_hold` is met, and not before that tick | PP-SWR-032, 090 |
 | Late ELK REQUEST | Measure front-tire DLC at the requested-side marking when the planner receives REQUEST. S8 late injects the request based on the nominal trajectory and verifies the condition using vehicle ground truth in SIL | Do not start ELK if DLC < −0.3 m | PP-SWR-089 |
+| Requested-side marking unreliable | Status and confidence of the ego-lane marking on `side` in the lane model received when LKA or marking-based ELK starts | Do not start if the marking is not a reliable lane boundary | PP-SWR-092 |
 | Fault response | Time when `path_valid` or `active_function` changes | Per requirement, timing error ≤ one cycle | PP-SWR-124, 142 to 145, 147 |
 | Output and arbitration | PathStatus values for each event | Per requirement | PP-SWR-010 to 015, 030 to 047 |
 | Limit flag at marking contact | `lateral_limit_reached` when the front tire first touches the marking while HWA is in control and maximum required a_y > aysmax | true | PP-SWR-007 |
@@ -474,11 +476,10 @@ Additional scoring rules:
 - PP-SWR-091: score cases where actual EPS delay exceeds the VehicleConfig value, up to 100 ms.
 - PP-SWR-062: in ODD boundary cases (label L1), score against all other requirements evaluated in the run.
 
-A case expected to intervene must deliver REQUEST to the planner and produce a path for the corresponding function. If either is missing, fail the case and report the missing step.
+A case expected to intervene must deliver REQUEST to the planner and produce a path for the corresponding function. If either is missing, fail the case and report the missing step. Exception: if the ego-lane marking on the requested side is not a reliable boundary throughout the REQUEST, not starting is correct under PP-SWR-092.
 
-For PP-SWR-083, score each intervention whose end is observed or that has reached the 10 s limit. If the log ends while the intervention is still ACTIVE before the limit, report the observed duration. A case that requires intervention must have at least one intervention with a sufficient scoring window.
 
-When LKA or ELK starts and the actual state deviates from the previous path by more than 0.1 m or 0.1 m/s, apply PP-SWR-080 on that tick per PP-SWR-031. Continue scoring continuity for subsequent path pairs.
+When LKA or ELK starts and the actual state deviates from the previous path by more than 0.1 m or 0.1 m/s, apply PP-SWR-080 on that tick per PP-SWR-031. Continue scoring continuity for subsequent path pairs. Do not score PP-SWR-100 to 102 or 061 for path pairs during `driver_override = true`; continue scoring PP-SWR-039. Resume continuity scoring on the first cycle after override.
 
 ### 8.2 Performance targets: measurement and ranking {#benchmark-metrics}
 
@@ -638,7 +639,7 @@ C2 input range endpoints. Keep the headers valid so the planner processes the pa
 
 | ID | Deliberate defect | Expected finding |
 |---|---|---|
-| PM-01 | Add a 0.1 m lateral jump to the path every 40 cycles | PP-SWR-100, BLOCKER |
+| PM-01 | Add a 0.3 m lateral jump to the path every 40 cycles | PP-SWR-100, BLOCKER |
 | PM-02 | Leave a_y unconstrained by aysmax | PP-SWR-001, BLOCKER |
 | PM-03 | Keep `path_valid = true` when ego-motion is invalid | PP-SWR-143, BLOCKER |
 | PM-04 | Always set `path_valid = false` when HWA is in REQUEST | PP-SWR-030 (unnecessary refusal), BLOCKER |
@@ -694,3 +695,14 @@ C2 input range endpoints. Keep the headers valid so the planner processes the pa
 | 1.31 | 2026-11-13 | Section 4.4 defines boundary profiles. Section 5.2 defines profiles and seeds for Regression and Full, plus the Latin hypercube sample count by parameter count. Sections 4.1 and 8.3 follow these rules. Previously, both suites repeated each sample on six profiles with multiple seeds, and Regression was larger than Full |
 | 1.32 | 2026-11-13 | Section 4.1 uses up to four forkserver workers. Section 8.2 measures computation time during parallel execution and limits comparisons to runs with the same worker count. Section 4.2 points to 8.2. Parallel execution speeds up the benchmark and preserves determinism |
 | 1.33 | 2026-11-13 | Section 6 adds F23, out-of-range LongitudinalPlan (PP-SWR-156, PP-PR-024) |
+| 1.34 | 2026-11-13 | Section 8.1 includes the scope of a referenced anchor when scoring runs on that anchor (PP-TS-015) |
+| 1.35 | 2026-11-13 | S8b(c) becomes an intervention case; added safe-gap case f; removed obsolete PP-SWR-083 duration scoring (PP-PR-027, PP-TS-016) |
+| 1.36 | 2026-11-13 | Measure adjacent-vehicle clearance only while vehicles are alongside, per SRS 1.15 (PP-PR-029) |
+| 1.37 | 2026-11-13 | Do not score continuity during driver override (SRS 1.16, PP-TS-017) |
+| 1.38 | 2026-11-14 | Section 5.1 identifies scenario variants for both R79 adjacent-vehicle ESF test points; B2 runs those cases (PP-PR-042) |
+| 1.39 | 2026-11-14 | Added PP-SWR-092 scoring: a REQUEST toward an unreliable marking does not require an intervention path (PP-PR-038) |
+| 1.40 | 2026-11-14 | F15 counter skips retain their offset in subsequent messages; added g for a skip within MaxDeltaCounter (PP-PR-035) |
+| 1.41 | 2026-11-14 | Score PP-SWR-032 as COMPLETED within 0.5 s after `T_end_hold` (SRS 1.20, PP-TS-018 V1) |
+| 1.42 | 2026-11-14 | Loss of a required path input ends the active LKA/ELK intervention for PP-SWR-030 scoring (PP-PR-053) |
+| 1.43 | 2026-11-16 | Section 8.1 adopted SRS 1.21 continuity limits; PM-01 jump increased from 0.1 to 0.3 m to remain above the limit |
+| 1.44 | 2026-11-16 | Section 8.1 scores continuity over the three SRS 1.22 time segments, comparing each point with its segment’s limits |

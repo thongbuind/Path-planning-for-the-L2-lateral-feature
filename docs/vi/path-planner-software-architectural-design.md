@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.7 |
+| Phiên bản | 1.9 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-16 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -323,7 +323,7 @@ Calibration parameter cấp thuật toán (bộ nhớ biên, trọng số của 
 
 **A.2 Tuổi tối đa 250 ms** (PP-ADR-003, PP-SWR-131). Ego-motion lưu 0,5 s, đủ để dời 250 ms. Bias xấu nhất 1 °/s làm sai hướng 0,0044 rad sau 250 ms, tức 0,11 m ở 25 m; bias 0,3 °/s chỉ 0,03 m. Sai vận tốc vật thể 0,3 m/s nhân 250 ms ra 0,075 m.
 
-**A.3 Trễ bộ lọc yaw rate 50 ms** (PP-SWR-138). Sai hướng khi bù trễ camera khoảng 1 cm ở 25 m; sai độ cong khi vào clothoid R = 250 m ở 90 km/h khoảng 0,00007 1/m, dưới ngưỡng 0,0003 1/m của PP-SWR-102.
+**A.3 Trễ bộ lọc yaw rate 50 ms** (PP-SWR-138). Sai hướng khi bù trễ camera khoảng 1 cm ở 25 m; sai độ cong khi vào clothoid R = 250 m ở 90 km/h khoảng 0,00007 1/m, dưới ngưỡng 0,0003 1/m của PP-SWR-102 ở đoạn 0–1 s.
 
 **A.4 Dead reckoning khi không có biên** (PP-ADR-009, `T_coast`). 25 m/s, bias yaw rate 0,3 °/s, nhiễu v_y σ = 0,05 m/s:
 
@@ -362,3 +362,5 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.5 | 2026-11-11 | T8: offset theo khoảng hở tới xe lớn và `gap_truck_min` (PP-ADR-008 mới); thêm `gap_truck_min` |
 | 1.6 | 2026-11-12 | T9 tách pha và chọn lại khi hủy. ELK mép đường dùng biên trực tiếp và `conf_edge`. Kiểm điều kiện kết thúc theo chu kỳ |
 | 1.7 | 2026-11-13 | Mục LKA, ELK: dòng Thời lượng tối đa thay bằng điều kiện kết thúc; giới hạn của `T_lka`, `T_elk` bỏ ≤ 10 s (PP-SWR-083 obsolete, PP-TS-016) |
+| 1.8 | 2026-11-16 | A.3: ngưỡng PP-SWR-102 là 0,0012 1/m (SRS 1.21). Lý do: mentor nới PP-SWR-100 đến 102 |
+| 1.9 | 2026-11-16 | A.3: so với ngưỡng đoạn 0–1 s của PP-SWR-102 (SRS 1.22) |

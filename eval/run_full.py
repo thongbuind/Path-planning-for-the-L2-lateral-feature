@@ -99,6 +99,8 @@ def main() -> None:
         from eval import report_html
         report = report_html.write(suite, out / "report.html", generation=concrete / "manifest.json")
         log(f"Dashboard: {report}")
+        report_en = report_html.write(suite, out / "report-en.html", generation=concrete / "manifest.json", lang="en")
+        log(f"Dashboard EN: {report_en}")
     except Exception as exc:  # the log and results stay; the dashboard can be rebuilt later
         log(f"Không lập được dashboard: {exc!r}. Lập lại: python3 -m eval.report_html {suite}")
         raise SystemExit(3)

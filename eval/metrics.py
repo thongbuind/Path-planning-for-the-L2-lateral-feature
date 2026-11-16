@@ -32,9 +32,12 @@ _PLANNER_CYCLE_US = 25_000  # 40 Hz, tolerance of PP-SWR-145 (one cycle)
 LONG_VIEW_M = 126.0  # Largest view range the planner uses (Interface Control Document 5.1)
 JERK_MAX_HWA = 5.0  # [m/s^3] PP-SWR-003
 JERK_WINDOW_S = 0.5  # Software Requirements Specification 4, "Jerk ngang của path"
-CONTINUITY_LATERAL_M = 0.05  # PP-SWR-100
-CONTINUITY_HEADING_RAD = 0.005  # PP-SWR-101
-CONTINUITY_CURVATURE = 0.0003  # PP-SWR-102
+# PP-SWR-100, 101, 102 (SRS 1.22): limits by time_from_start of the new path, 0-1 s, 1-2 s,
+# beyond 2 s. Each row: lateral [m], heading [rad], curvature [1/m].
+CONTINUITY_BAND_ENDS_S = (1.0, 2.0)
+CONTINUITY_LIMITS = np.array([[0.05, 0.005, 0.0003],
+                              [0.1, 0.01, 0.0006],
+                              [0.2, 0.02, 0.0012]])
 DEVIATION_WINDOW_S = 1.0  # Software Requirements Specification 4, "Lệch ngang của path"
 CENTRED_M = 0.1  # PP-SWR-053: centred when the lateral offset is within 0.1 m
 RECENTER_MAX_M = 0.5  # PP-SWR-052: HWA starts with the car up to 0.5 m off centre
@@ -254,9 +257,10 @@ def _view_limit(cur: PlannerCycle, truth: _Truth) -> float:
 
 
 def _continuity(prev: PlannerCycle, cur: PlannerCycle, truth: _Truth) -> tuple[float, float, float]:
-    """Largest lateral, heading and curvature difference between two consecutive paths
-    on their common time span within the reported view range of the new cycle, the old
-    path moved by the true motion of the car."""
+    """Largest lateral, heading and curvature difference between two consecutive paths, each
+    divided by the limit of the time band of the point (CONTINUITY_LIMITS), on their common
+    time span within the reported view range of the new cycle, the old path moved by the true
+    motion of the car. A value above 1 fails PP-SWR-100, 101 or 102."""
     t_o, x_o, y_o, yaw_o, k_o, _, _ = _points(prev.trajectory)
     t_n, x_n, y_n, yaw_n, k_n, _, _ = _points(cur.trajectory)
     shift = (cur.t0_us - prev.t0_us) * 1e-6
@@ -272,8 +276,10 @@ def _continuity(prev: PlannerCycle, cur: PlannerCycle, truth: _Truth) -> tuple[f
     fx, fy, fyaw = _to_frame(pose_n, wx, wy, wyaw)
     xn, yn, yawn, kn = x_n[keep], y_n[keep], yaw_n[keep], k_n[keep]
     lateral = -np.sin(yawn) * (fx - xn) + np.cos(yawn) * (fy - yn)
-    return (float(np.max(np.abs(lateral))), float(np.max(np.abs(_wrap(fyaw - yawn)))),
-            float(np.max(np.abs(ko - kn))))
+    limits = CONTINUITY_LIMITS[np.searchsorted(CONTINUITY_BAND_ENDS_S, t_n[keep] - 1e-9)]
+    return (float(np.max(np.abs(lateral) / limits[:, 0])),
+            float(np.max(np.abs(_wrap(fyaw - yawn)) / limits[:, 1])),
+            float(np.max(np.abs(ko - kn) / limits[:, 2])))
 
 
 @dataclass
@@ -1241,12 +1247,12 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
         Criterion("PP-SWR-040", "Lệch ngang điểm đầu path HWA khi hết driver_override [m]",
                   float(max(starts_040, default=float("nan"))), f"<= {OVERRIDE_START_M}",
                   max(starts_040, default=0.0) <= OVERRIDE_START_M, applicable=bool(starts_040)),
-        Criterion("PP-SWR-061", "Lệch ngang giữa hai path liên tiếp khi lane model sang làn mới [m]", cont[0],
-                  f"<= {CONTINUITY_LATERAL_M}", cont[0] <= CONTINUITY_LATERAL_M, applicable=n_061 > 0),
-        Criterion("PP-SWR-061", "Lệch hướng giữa hai path liên tiếp khi lane model sang làn mới [rad]", cont[1],
-                  f"<= {CONTINUITY_HEADING_RAD}", cont[1] <= CONTINUITY_HEADING_RAD, applicable=n_061 > 0),
-        Criterion("PP-SWR-061", "Lệch độ cong giữa hai path liên tiếp khi lane model sang làn mới [1/m]", cont[2],
-                  f"<= {CONTINUITY_CURVATURE}", cont[2] <= CONTINUITY_CURVATURE, applicable=n_061 > 0),
+        Criterion("PP-SWR-061", "Lệch ngang giữa hai path liên tiếp khi lane model sang làn mới / ngưỡng của khoảng",
+                  cont[0], "<= 1", cont[0] <= 1.0, applicable=n_061 > 0),
+        Criterion("PP-SWR-061", "Lệch hướng giữa hai path liên tiếp khi lane model sang làn mới / ngưỡng của khoảng",
+                  cont[1], "<= 1", cont[1] <= 1.0, applicable=n_061 > 0),
+        Criterion("PP-SWR-061", "Lệch độ cong giữa hai path liên tiếp khi lane model sang làn mới / ngưỡng của khoảng",
+                  cont[2], "<= 1", cont[2] <= 1.0, applicable=n_061 > 0),
     ]
 
 
@@ -1778,7 +1784,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                 continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017): not judged while the driver overrides
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
-                if value > (CONTINUITY_LATERAL_M, CONTINUITY_HEADING_RAD, CONTINUITY_CURVATURE)[j]:
+                if value > 1.0:
                     mark(("PP-SWR-100", "PP-SWR-101", "PP-SWR-102")[j], t_s[i])
 
     # PP-SWR-018: observed_horizon_s may not exceed the time the path leaves the reported view
@@ -1949,12 +1955,12 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   big.away_058 if big and big.away_058 is not None else float("nan"), "> 0",
                   bool(big and big.away_058 is not None and big.away_058 > 0.0),
                   applicable=bool(big and big.away_058 is not None)),
-        Criterion("PP-SWR-100", "Lệch ngang giữa hai path liên tiếp [m]", cont[0],
-                  f"<= {CONTINUITY_LATERAL_M}", cont[0] <= CONTINUITY_LATERAL_M),
-        Criterion("PP-SWR-101", "Lệch hướng giữa hai path liên tiếp [rad]", cont[1],
-                  f"<= {CONTINUITY_HEADING_RAD}", cont[1] <= CONTINUITY_HEADING_RAD),
-        Criterion("PP-SWR-102", "Lệch độ cong giữa hai path liên tiếp [1/m]", cont[2],
-                  f"<= {CONTINUITY_CURVATURE}", cont[2] <= CONTINUITY_CURVATURE),
+        Criterion("PP-SWR-100", "Lệch ngang giữa hai path liên tiếp / ngưỡng của khoảng", cont[0],
+                  "<= 1", cont[0] <= 1.0),
+        Criterion("PP-SWR-101", "Lệch hướng giữa hai path liên tiếp / ngưỡng của khoảng", cont[1],
+                  "<= 1", cont[1] <= 1.0),
+        Criterion("PP-SWR-102", "Lệch độ cong giữa hai path liên tiếp / ngưỡng của khoảng", cont[2],
+                  "<= 1", cont[2] <= 1.0),
         Criterion("PP-SWR-116", "Góc bánh lớn nhất trên path [rad]", wheel_max,
                   f"<= {log.max_wheel_angle:.3f}", wheel_max <= log.max_wheel_angle),
         Criterion("PP-SWR-117", "Tốc độ quay vô lăng lớn nhất suy ra từ path [rad/s]",

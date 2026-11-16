@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.42 |
+| Phiên bản | 1.44 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-14 |
+| Cập nhật | 2026-11-16 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -456,7 +456,7 @@ Ca chạy trên một anchor khác là một lần chạy của anchor đó, nê
 | `lane_too_narrow` khi làn hẹp | Khoảng trống thật mỗi bên < `free_space_min`: tỉ lệ chu kỳ có path hợp lệ báo `lane_too_narrow` | = 1 | PP-SWR-063 |
 | a_y, a_y thêm vào, jerk | Trên Trajectory, theo chức năng đang lái. a_y cần lấy từ độ cong làn thật tại điểm path. Jerk trung bình 0,5 s | Theo PP-SWR-001, 003, 110 đến 115 | PP-SWR-001, 003, 110 đến 115 |
 | Góc bánh, tốc độ vô lăng | Trên path | Theo VehicleConfig của profile | PP-SWR-116, 117 |
-| Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ, ở phần path mới trong tầm nhìn lane model báo, đổi về t0 theo chuyển động thật; không có lane model thì cả path | ≤ 0,05 m; ≤ 0,005 rad; ≤ 0,0003 1/m | PP-SWR-100 đến 102 |
+| Liên tục | Lệch ngang, hướng, độ cong giữa hai path liên tiếp, mọi chu kỳ, ở phần path mới trong tầm nhìn lane model báo, đổi về t0 theo chuyển động thật; không có lane model thì cả path | Theo `time_from_start` của path mới: 0–1 s ≤ 0,05 m, 0,005 rad, 0,0003 1/m; 1–2 s ≤ 0,1 m, 0,01 rad, 0,0006 1/m; sau 2 s ≤ 0,2 m, 0,02 rad, 0,0012 1/m | PP-SWR-100 đến 102 |
 | Phần quan sát | `observed_horizon_s` trừ thời điểm path ra khỏi tầm nhìn lane model báo, lớn nhất trên mọi chu kỳ có path hợp lệ và có lane model | ≤ 0,1 s | PP-SWR-018 |
 | Điểm đầu path can thiệp | Tại tick bắt đầu, so vị trí và v_lat tại cầu sau với trạng thái thật trong hệ làn | ≤ 0,1 m và ≤ 0,1 m/s | PP-SWR-080 |
 | Hoàn tất | Theo dõi DLC, v_lat tại cầu trước, góc thân xe so với hướng làn và a_y thêm vào của path đang áp dụng tại mỗi tick | Báo COMPLETED cho đúng chức năng trong 0,5 s sau tick đủ `T_end_hold`, không trước tick đó | PP-SWR-032, 090 |
@@ -642,7 +642,7 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 
 | Mã | Lỗi cố ý | Phải được báo |
 |---|---|---|
-| PM-01 | Cộng bước nhảy ngang 0,1 m vào path mỗi 40 chu kỳ | PP-SWR-100; BLOCKER |
+| PM-01 | Cộng bước nhảy ngang 0,3 m vào path mỗi 40 chu kỳ | PP-SWR-100; BLOCKER |
 | PM-02 | Không giới hạn a_y theo aysmax | PP-SWR-001; BLOCKER |
 | PM-03 | Giữ `path_valid = true` khi ego-motion không hợp lệ | PP-SWR-143; BLOCKER |
 | PM-04 | Luôn `path_valid = false` khi HWA ở REQUEST | PP-SWR-030 (từ chối thừa); BLOCKER |
@@ -707,3 +707,5 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.40 | 2026-11-14 | F15: counter nhảy giữ độ lệch cho các message sau; thêm g (nhảy trong giới hạn); ca tham chiếu theo MaxDeltaCounter (PP-PR-035) |
 | 1.41 | 2026-11-14 | Chấm PP-SWR-032 theo SRS 1.20: COMPLETED trong 0,5 s sau tick đủ `T_end_hold`. Lý do: PP-TS-018 V1 |
 | 1.42 | 2026-11-14 | Mục 5.3: mất input cần cho path kết thúc lần LKA, ELK đang chạy khi chấm PP-SWR-030. Lý do: PP-PR-053; cách chấm cũ mâu thuẫn với PP-SWR-045 (F20 a) |
+| 1.43 | 2026-11-16 | Mục 8.1: chấm liên tục theo SRS 1.21: ≤ 0,2 m, 0,02 rad, 0,0012 1/m. PM-01: bước nhảy 0,1 → 0,3 m để vẫn vượt ngưỡng. Lý do: mentor nới PP-SWR-100 đến 102 |
+| 1.44 | 2026-11-16 | Mục 8.1: chấm liên tục theo ba đoạn của SRS 1.22, mỗi điểm so với ngưỡng của đoạn chứa nó |
