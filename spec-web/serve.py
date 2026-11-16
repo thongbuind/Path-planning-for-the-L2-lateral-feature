@@ -35,7 +35,19 @@ STATIC_PATHS = {
     "index.html", "report.html", "style.css", "reviews.css",
     "app.js", "cards.js", "docmd.js", "diagrams.js", "reviews.js",
     "home", "home/index.html", "technical-documents", "technical-documents/index.html",
+    "benchmark", "benchmark/index.html",
 }
+BENCHMARK_FILES = {
+    "report.html", "report-details.html", "report-en.html", "report-en-details.html",
+    "results.jsonl", "generation.json", "conformance.json",
+}
+
+
+def benchmark_file(path):
+    prefix = "/benchmark/run/"
+    if path.startswith(prefix) and path[len(prefix):] in BENCHMARK_FILES:
+        return path[len(prefix):]
+    return None
 
 
 def doc_path(path):
@@ -52,7 +64,13 @@ def etag(p):
 
 class Handler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        translation = EN_DOCUMENT.fullmatch(path.partition("?")[0])
+        path_without_query = path.partition("?")[0]
+        file = benchmark_file(path_without_query)
+        if file:
+            run = json.loads((STATIC_ROOT / "benchmark" / "run.json").read_text(encoding="utf-8"))
+            if re.fullmatch(r"\d{8}-\d{4}-suite-full-[a-f0-9]+", run):
+                return str(Path(PROJECT) / "research" / "runs" / run / file)
+        translation = EN_DOCUMENT.fullmatch(path_without_query)
         if translation:
             return str(DOCS / "en" / translation.group(1))
         return super().translate_path(path)
@@ -60,6 +78,11 @@ class Handler(SimpleHTTPRequestHandler):
     def send_head(self):
         # Chỉ phục vụ trang, tài nguyên và bản xuất. Nhận xét đi qua API.
         target = Path(self.translate_path(self.path)).resolve()
+        if benchmark_file(self.path.partition("?")[0]):
+            runs = (Path(PROJECT) / "research" / "runs").resolve()
+            if target.parent.parent != runs:
+                return self.send_error(404)
+            return super().send_head()
         if EN_DOCUMENT.fullmatch(self.path.partition("?")[0]):
             if target.parent != (DOCS / "en").resolve():
                 return self.send_error(404)

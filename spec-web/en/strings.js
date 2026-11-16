@@ -9,6 +9,7 @@ window.SPEC_EN = {
   "Tham chiếu và kiểm chứng": "Reference & Verification",
   "Hệ thống trên xe": "Vehicle system",
   "Kiểm chứng SIL": "SIL verification",
+  "Xem kết quả lần chạy SIL mới nhất": "View the latest SIL run results",
   "Chức năng và chiến lược điều khiển": "Functions and control strategy",
   "Giới hạn vận hành và khái niệm an toàn": "Operating limits and safety concept",
   "Luồng tín hiệu và thời gian": "Signal flow and timing",

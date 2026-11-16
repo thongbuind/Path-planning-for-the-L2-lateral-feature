@@ -634,6 +634,13 @@ button { font: inherit; color: inherit; }
 }
 .region-link { color: inherit; pointer-events: auto; text-underline-offset: 4px; }
 .region-note { margin: 4px 0 0; font-size: 21px; line-height: 1.25; }
+.map-region[data-region="benchmark"] {
+  color: var(--region-accent);
+  text-decoration: none;
+}
+.map-region[data-region="benchmark"]:is(:hover, :focus-visible) .region-label {
+  text-decoration: underline;
+}
 
 .edge-labels { position: absolute; left: 0; top: 0; }
 .edge-label {

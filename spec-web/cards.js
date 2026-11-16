@@ -408,6 +408,11 @@ window.SPEC_REGIONS = [
     "note": "Không phải phần mềm trên xe; simulator gọi đúng thư viện planner sẽ bàn giao"
   },
   {
+    "id": "benchmark",
+    "text": "Benchmark",
+    "note": "Xem kết quả lần chạy SIL mới nhất"
+  },
+  {
     "id": "strategy",
     "text": "Chức năng và chiến lược điều khiển",
     "note": "R79 Annex 6, 3.2; R171 5.3.7.1.3. Vẽ từ bảng trong tài liệu; bấm sơ đồ để xem bảng"
