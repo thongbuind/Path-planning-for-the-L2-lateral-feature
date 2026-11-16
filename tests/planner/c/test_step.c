@@ -486,7 +486,12 @@ static void test_driver_override_path_starts_at_car(void)
         step(&in, drifting_motion, &out);
         PP_CHECK(out.path_status.path_valid);
     }
+#ifdef PP_T4_START_SOFT
+    /* Soft reset (PP-TS-021): the start already moves part of the way to the car. */
+    PP_CHECK(fabs((double)out.trajectory.points[0].pose.y) > 0.01);
+#else
     PP_CHECK(fabs((double)out.trajectory.points[0].pose.y) > 0.05);
+#endif
     /* PP-SWR-039: while the driver overrides, point 0 is the car. */
     for (; k < 14U; k++) {
         drift_inputs(&in, k, true);

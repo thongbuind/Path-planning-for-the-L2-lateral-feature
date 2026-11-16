@@ -41,7 +41,7 @@ STATIC_PATHS = {
     "index.html", "report.html", "style.css", "reviews.css",
     "app.js", "cards.js", "docmd.js", "diagrams.js", "reviews.js",
     "home", "home/index.html", "technical-documents", "technical-documents/index.html",
-    "benchmark", "benchmark/index.html",
+    "benchmark", "benchmark/index.html", "path-planner", "path-planner/index.html",
 }
 BENCHMARK_FILES = {
     "report.html", "report-details.html", "report-en.html", "report-en-details.html",

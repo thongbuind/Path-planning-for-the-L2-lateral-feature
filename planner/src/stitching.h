@@ -78,10 +78,20 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
                      pp_lateral_state_t *start);
 
 /*
+ * PP-TS-021 soft reset (built with PP_T4_START_SOFT): with it, step 2 starts at
+ * old + w (measured - old), w = weight of the lateral deviation between the two states:
+ * 0 up to soft_min, 1 from reset, linear between; the hard reset when reset <= soft_min.
+ * pp_stitch_start returns true while w < 1.
+ */
+double pp_stitch_soft_weight(double deviation, double soft_min, double reset);
+
+/*
  * Step 4: sent path = old + lambda (candidate - old), lambda from the largest lateral,
  * heading and curvature difference on the common time span, at the points with x <= x_limit
  * (end of the lane model view range; INFINITY while coasting). Changes `points` in place
  * and returns lambda; 1 when the old path is not valid (step 5).
+ * With PP_T4_BLEND_SEGMENTS (PP-TS-021 V3): one lambda per time band of PP-SWR-100 to 102,
+ * joined without a step; returns the smallest lambda applied.
  */
 double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
                        double x_limit,

@@ -1,0 +1,36 @@
+# Evaluation plan of PP-TS-020 (research/README.md, step 2). Draft, not locked: waiting for
+# review. ay_margin_hwa does not exist in planner/calibration/calibration.yaml yet (step 3).
+# Points of study.md section 3 agreed and built 2026-11-16: proposed criteria in
+# eval/proposed.py, per-run `profile` in eval.sweep, VP-5 runs in the suite.
+# Locked 2026-11-16 after user review (suite as it stands). Reopened and locked again the
+# same day after run 20261116-1548: S1b a, b, c run longer (SQTS 1.45, PP-PR-056) and V2 is
+# added; every variant runs again (research/README.md).
+# Tuning budget: none; every variant is one value of the same parameter.
+id: PP-TS-020
+locked: 2026-11-16
+suite: PP-TS-020        # benchmark/suites/PP-TS-020.yaml: its tuning and test runs, seeds and scope
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+variants:
+  V0:
+    description: Trần a_y của path HWA = aysmax (bản hiện tại)
+    calibration: {ay_margin_hwa: 0.0}
+    cmake: {}
+  V1a:
+    description: Trần a_y của path HWA = aysmax + 0,1 m/s²
+    calibration: {ay_margin_hwa: 0.1}
+    cmake: {}
+  V1b:
+    description: Trần a_y của path HWA = aysmax + 0,2 m/s²
+    calibration: {ay_margin_hwa: 0.2}
+    cmake: {}
+  V1c:
+    description: Trần a_y của path HWA = aysmax + 0,3 m/s²
+    calibration: {ay_margin_hwa: 0.3}
+    cmake: {}
+  V2:
+    description: Trần aysmax + 0,2 m/s² khi cờ giới hạn tắt; aysmax khi cờ bật
+    calibration: {ay_margin_hwa: 0.2}
+    cmake: {PP_AY_MARGIN_GATE: 'ON'}

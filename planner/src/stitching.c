@@ -143,6 +143,19 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
         const double d2 = (-((foot.dkappa * d) + (foot.kappa * d1)) * t)
                           + ((q / (c * c)) * (((p.kappa * q) / c) - foot.kappa)); /* d2d/ds2 */
         const double s_dot = (p.v * c) / q;
+#ifdef PP_T4_START_SOFT
+        /* PP-TS-021 soft reset: no on/off threshold, so the start cannot switch between the
+         * old path and the measured state from one cycle to the next. */
+        const double w = pp_stitch_soft_weight(fabs(d - measured->d),
+                                               (double)cal->stitch_soft_min,
+                                               (double)cal->stitch_reset);
+        start->d = d + (w * (measured->d - d));
+        start->d_dot = (d1 * s_dot) + (w * (measured->d_dot - (d1 * s_dot)));
+        start->d_ddot = ((d2 * s_dot * s_dot) + (d1 * p.a))
+                        + (w * (measured->d_ddot - ((d2 * s_dot * s_dot) + (d1 * p.a))));
+        start->heading = dtheta + (w * wrap_angle(measured->heading - dtheta));
+        from_old = (w < 1.0);
+#else
         if (fabs(d - measured->d) <= (double)cal->stitch_reset) {
             start->d = d;
             start->d_dot = d1 * s_dot;
@@ -150,8 +163,17 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
             start->heading = dtheta;
             from_old = true;
         }
+#endif
     }
     return from_old;
+}
+
+double pp_stitch_soft_weight(double deviation, double soft_min, double reset)
+{
+    if (reset <= soft_min) {
+        return (deviation > reset) ? 1.0 : 0.0;            /* no ramp: the hard reset */
+    }
+    return pp_clamp((deviation - soft_min) / (reset - soft_min), 0.0, 1.0);
 }
 
 static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, double lambda,
@@ -167,6 +189,85 @@ static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, dou
     c->front_wheel_angle_rad = (float)atan(wheelbase * kappa);
 }
 
+#ifdef PP_T4_BLEND_SEGMENTS
+/* PP-TS-021 V3: limits of the three time bands of PP-SWR-100 to 102 (SRS 1.22); a point at
+ * exactly 1 s or 2 s belongs to the earlier band, as the evaluation side judges it. */
+#define PP_CONT_BANDS (3U)
+static const double PP_CONT_BAND_LIMITS[PP_CONT_BANDS][3] = {
+    {0.05, 0.005, 0.0003}, {0.1, 0.01, 0.0006}, {0.2, 0.02, 0.0012}};
+
+static uint32_t cont_band(uint32_t k)
+{
+    return (k <= 10U) ? 0U : ((k <= 20U) ? 1U : 2U);
+}
+
+static double band_lambda(double margin, const double limits[3], double lateral, double heading,
+                          double curvature)
+{
+    double lambda = 1.0;
+    if (lateral > 0.0) {
+        lambda = fmin(lambda, (margin * limits[0]) / lateral);
+    }
+    if (heading > 0.0) {
+        lambda = fmin(lambda, (margin * limits[1]) / heading);
+    }
+    if (curvature > 0.0) {
+        lambda = fmin(lambda, (margin * limits[2]) / curvature);
+    }
+    return lambda;
+}
+
+/*
+ * Step 4 by band: lambda_j from the largest differences within band j, then lambda(t) linear
+ * through lambda_0, min(lambda_0, lambda_1), min(lambda_1, lambda_2), lambda_2 at 0, 1, 2, 3 s.
+ * Every point keeps lambda <= the lambda of its own band, and lambda has no step between bands.
+ */
+double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
+                       double x_limit, pp_trajectory_point_t points[PP_TRAJECTORY_POINTS])
+{
+    double smallest = 1.0;
+
+    if (old->valid) {
+        pp_path_sample_t samples[PP_TRAJECTORY_POINTS];
+        double lateral[PP_CONT_BANDS] = {0.0, 0.0, 0.0};
+        double heading[PP_CONT_BANDS] = {0.0, 0.0, 0.0};
+        double curvature[PP_CONT_BANDS] = {0.0, 0.0, 0.0};
+
+        for (uint32_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+            const pp_trajectory_point_t *c = &points[k];
+            const bool common = pp_stitch_sample_old(old, (double)k * PP_GRID_STEP_S, &samples[k]);
+            if (common && ((double)c->pose.x <= x_limit)) {
+                const pp_path_sample_t *o = &samples[k];
+                const uint32_t b = cont_band(k);
+                const double yaw = (double)c->pose.yaw;
+                const double ex = o->x - (double)c->pose.x;
+                const double ey = o->y - (double)c->pose.y;
+                lateral[b] = fmax(lateral[b], fabs((-sin(yaw) * ex) + (cos(yaw) * ey)));
+                heading[b] = fmax(heading[b], fabs(wrap_angle(yaw - o->yaw)));
+                curvature[b] = fmax(curvature[b], fabs((double)c->curvature - o->kappa));
+            }
+        }
+
+        const double margin = (double)cal->cont_margin;
+        double lam[PP_CONT_BANDS];
+        for (uint32_t b = 0U; b < PP_CONT_BANDS; b++) {
+            lam[b] = band_lambda(margin, PP_CONT_BAND_LIMITS[b], lateral[b], heading[b], curvature[b]);
+        }
+        const double knots[4] = {lam[0], fmin(lam[0], lam[1]), fmin(lam[1], lam[2]), lam[2]};
+
+        for (uint32_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+            const uint32_t seg = (k == 0U) ? 0U : ((k - 1U) / 10U);   /* (0, 1], (1, 2], (2, 3] s */
+            const double f = ((double)k - (10.0 * (double)seg)) / 10.0;
+            const double lambda = knots[seg] + (f * (knots[seg + 1U] - knots[seg]));
+            smallest = fmin(smallest, lambda);
+            if (lambda < 1.0) {
+                blend_point(&points[k], &samples[k], lambda, wheelbase);
+            }
+        }
+    }
+    return smallest;
+}
+#else
 double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
                        double x_limit, pp_trajectory_point_t points[PP_TRAJECTORY_POINTS])
 {
@@ -212,3 +313,4 @@ double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, do
     }
     return lambda;
 }
+#endif

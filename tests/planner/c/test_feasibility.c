@@ -62,6 +62,36 @@ static void test_cut_to_aysmax_and_integrate_again(void)
     PP_CHECK_NEAR(pts[30].front_wheel_angle_rad, atan(2.9 * 0.004), 1e-6);
 }
 
+static void test_hwa_path_ceiling_follows_margin(void)
+{
+    /* PP-TS-020: the HWA path may reach aysmax + ay_margin_hwa; margin 0 keeps aysmax. */
+    pp_calibration_t cal = pp_calibration;
+    cal.ay_margin_hwa = 0.0F;
+    pp_function_limits_t limits = pp_hwa_path_limits(&cal, false);
+    PP_CHECK_NEAR(limits.ay_max, PP_AYSMAX, 0.0);
+    PP_CHECK_NEAR(limits.jerk_max, PP_JERK_MAX_HWA, 0.0);
+    PP_CHECK_NEAR(limits.ay_add_max, 0.0, 0.0);
+
+    cal.ay_margin_hwa = 0.2F;
+    PP_CHECK_NEAR(pp_hwa_path_limits(&cal, true).ay_max, PP_AYSMAX, 0.0);   /* V2: flag on */
+    limits = pp_hwa_path_limits(&cal, false);
+    PP_CHECK_NEAR(limits.ay_max, PP_AYSMAX + 0.2, 1e-7);
+
+    pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
+    const pp_ref_samples_t ref = ref_samples(0.0048);
+    path(pts, 25.0, 0.0048, 0.0048);                       /* wants 3.0 m/s^2 */
+    PP_CHECK(pp_feasibility_limit(pts, &ref, &limits, &VP0));
+    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        const double v = (double)pts[k].longitudinal_velocity_mps;
+        PP_CHECK(v * v * (double)pts[k].curvature <= limits.ay_max + 1e-6);
+    }
+    PP_CHECK_NEAR(625.0 * (double)pts[30].curvature, PP_AYSMAX + 0.2, 1e-5);
+
+    path(pts, 25.0, 0.0042, 0.0042);                       /* 2.625 m/s^2: under the ceiling */
+    PP_CHECK(!pp_feasibility_limit(pts, &ref, &limits, &VP0));
+    PP_CHECK_NEAR(625.0 * (double)pts[30].curvature, 2.625, 1e-5);
+}
+
 static void test_point0_curvature_is_cut_too(void)
 {
     pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
@@ -189,6 +219,7 @@ int main(void)
     test_ay_need_max_within_view();
     test_check();
     test_cut_to_aysmax_and_integrate_again();
+    test_hwa_path_ceiling_follows_margin();
     test_point0_curvature_is_cut_too();
     test_jerk_is_limited();
     test_jerk_stays_below_limit_after_float32();

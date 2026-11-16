@@ -1,0 +1,55 @@
+# Tuning and test runs of PP-TS-021 (research/studies/PP-TS-021-stitch-start). Locked
+# 2026-11-16 with the plan. The R79 Annex 8, 3.2.2 test (S1b a, b, c with ACC ignoring
+# LateralLimits) where the car leaves the stitched path (PP-PR-056), plus the cases where
+# the path must stay continuous: curve at aysmax with lane-model noise (S1 c + F01 c, S12 a),
+# c0 jump (F02 b), wrong curvature (F06 e), recentering (S2), S-bend (S14 e), and the
+# nominal S1 cases. G01 is a combination case and is not run by eval.study.
+# The last element of a run may set simulator values (ACC mode, vehicle profile).
+id: PP-TS-021
+title: Điểm đầu path HWA khi xe rời path cũ
+
+proposed: [PP-TS-020/R79-5.6.2.1.1]
+# Ranking only (study.md section 3, point 4); in results.json, not in the summary table.
+proposed_targets: [PP-TS-021/ay-vehicle-over-path]
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117,
+           PP-TS-020/R79-5.6.2.1.1]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-001, PP-SWR-003, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064,
+        PP-TS-021/ay-vehicle-over-path]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S12: [PP-SWR-001, PP-SWR-051, PP-SWR-050]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F01: [PP-SWR-003, PP-SWR-051, PP-SWR-050]
+  F02: [PP-SWR-051, PP-SWR-050, PP-SWR-121]
+  F06: [PP-SWR-051, PP-SWR-125]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, c]
+    - [S1b, a, {acc: "ignore_limits"}]
+    - [S1b, b, {acc: "ignore_limits"}]
+    - [S2, b]
+    - [S12, a]
+    - [S1, c, F01, c]
+    - [S1, a, F02, b]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S1, g]
+    - [S1b, a, {acc: "ignore_limits"}]
+    - [S1b, b, {acc: "ignore_limits"}]
+    - [S1b, c, {acc: "ignore_limits"}]
+    - [S1b, e, {acc: "on"}]
+    - [S2, a]
+    - [S2, d]
+    - [S14, e, {acc: "on"}]
+    - [S1, c, F01, b]
+    - [S1, c, F06, e]
+    - [S1, c, F02, b]
+    - [S1, c, F01, c, {profile: VP-5}]
