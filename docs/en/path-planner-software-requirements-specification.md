@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SRS` |
-| Version | 1.13 |
+| Version | 1.22 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-13 |
+| Last updated | 2026-11-16 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -72,13 +72,13 @@
 | Maximum required a_y | Maximum required a_y over 0–3 s, considering only the portion within the lane model's visible range |
 | Added a_y | Path a_y minus required a_y at the same point |
 | Path lateral jerk | Time derivative of path a_y, with a 0.5 s moving average |
-| Consecutive paths | Compare over the time interval both paths describe. Use points of the new path within the view range reported for the lane model frame used in that cycle, or the entire path if no lane model is available. Transform the previous path into the new path's base_link using the vehicle's actual motion |
+| Consecutive paths | Compare over the time interval both paths describe. Use points of the new path within the view range reported for the lane model frame used in that cycle, or the entire path if no lane model is available. Transform the previous path into the new path's base_link using the vehicle's actual motion. Exclude pairs whose new path is produced while `driver_override = true`; during override the path follows the vehicle (PP-SWR-039) |
 | Reliable lane boundary | L1 and R1 markings: status MEASURED, confidence ≥ `conf_ego`. L2 and R2 markings or road edges, when used to infer the lane center: status MEASURED, confidence ≥ `conf_inferred` |
 | DLC | As in ADAS Function Specification Section 5, calculated using the actual lane and actual vehicle position |
 | DTLE | Minimum distance from the outer edge of the tire to the inner edge of the lane marking during an intervention; negative means the marking has been crossed (Euro NCAP) |
 | Free space on each side | (actual lane width − vehicle width including mirrors) / 2 |
 | Large vehicle | Object in an adjacent lane with width ≥ 2.3 m |
-| Alongside | The longitudinal extent of the large vehicle overlaps the ego vehicle body |
+| Alongside | The longitudinal extent of the other vehicle overlaps the ego vehicle body |
 | Clearance to a large vehicle | Lateral distance from the ego vehicle body, including mirrors, when centered in the actual lane, to the nearest edge of the large vehicle |
 | Termination conditions | DLC ≥ 0 on both sides, magnitude of v_lat ≤ `v_lat_end`, magnitude of heading error relative to the lane ≤ `heading_end`, and magnitude of added a_y ≤ `ay_add_end` |
 
@@ -91,6 +91,8 @@
 | Vehicle | All passenger cars with width ≤ 2.5 m including mirrors. Vehicle parameters are read from VehicleConfig | QCVN 09:2015/BGTVT 2.1.1.1 b (PP-ASM-016) |
 | Calibration | One calibration set for all vehicles | team agreement |
 | Rate | 40 Hz | mentor |
+
+**Observation limit on curve entry.** If the speed at curve detection would require braking from before the camera view range, the planner still applies PP-SWR-005 to 007 and publishes the limit to the longitudinal controller. In S14(a) at 130 km/h, entering an R = 200 m curve with a_y ≤ 2.5 m/s² requires slowing to about 80.5 km/h. At constant deceleration of 2–3 m/s² this requires about 134–201 m, while the nominal view range is 80 m. PP-SWR-051 still applies on cycles satisfying its conditions (PP-PR-007, option B).
 
 ## 6. Assumptions and dependencies {#req-assumptions}
 
@@ -156,7 +158,7 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 |---|---|---|---|---|
 | PP-SWR-030 | The planner shall select the function in control in the priority order ELK > LKA > HWA, considering only functions with state = REQUEST | Test: S9 (a) | Safety, SG-01 | team agreement |
 | PP-SWR-031 | When the function in control changes, the path shall satisfy PP-SWR-100 to 102, except when LKA or ELK starts and the actual vehicle deviates from the previous path by more than 0.1 m or 0.1 m/s. In that case, apply PP-SWR-080 | Test: S9, S8c (d) | Safety, SG-04 | assignment |
-| PP-SWR-032 | When the LKA or ELK termination conditions have held continuously for `T_end_hold`, the planner shall set that function's phase to COMPLETED | Test: S4, S5 | Functional | team agreement |
+| PP-SWR-032 | When the LKA or ELK termination conditions have held continuously for `T_end_hold`, the planner shall set that function’s phase to COMPLETED within 0.5 s | Test: S4, S5 | Functional | team agreement (PP-TS-018); intervention remains below the 10 s threshold of UN R79 5.1.6.1.2.1 |
 | PP-SWR-033 | After COMPLETED, the planner shall select the function in control according to PP-SWR-030 from the functions still in REQUEST, excluding the one just marked COMPLETED. If no function remains, select NONE | Test: S9 (b) | Functional | team agreement |
 | PP-SWR-034 | If the function just marked COMPLETED remains in REQUEST, the planner shall not start a new intervention for that function until its state leaves REQUEST and returns to it | Test: S16 (a, b) | Functional | team agreement |
 | PP-SWR-035 | Each new LKA or ELK intervention shall have the same limits as the first, regardless of the number of prior interventions | Test: S16 (c, d, e) | Functional | team agreement |
@@ -210,30 +212,31 @@ Only parameters referenced by requirements are listed here. The full catalog, in
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
 | PP-SWR-080 | When LKA or ELK starts intervening, the start of the path shall match the vehicle's actual lateral state within position error ≤ 0.1 m and v_lat error ≤ 0.1 m/s | Test: S4, S5, S6 | Functional | assignment, with tolerances set by the team |
-| PP-SWR-083 | The duration of an LKA or ELK intervention, ending in COMPLETED or cancellation, shall be ≤ 10 s | Test: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement based on R79 5.1.6.1.2.1 (audible warning required beyond 10 s) |
+| PP-SWR-083 | obsolete (1.14, PP-TS-016): R79 5.1.6.1.2.1 and EU 2021/646 Annex I 3.6.4.1.1 permit interventions longer than 10 s and require an audible warning | — | Safety, SG-01 | R79 5.1.6.1.2.1, Annex 8 3.1.1.1; EU 2021/646 Annex I 3.6.4.1.1 |
 | PP-SWR-084 | When LKA reports COMPLETED, DLC on the side toward which the vehicle drifted shall be ≥ 0 | Test, closed loop: S4 | Functional | assignment |
-| PP-SWR-085 | After an LKA or ELK intervention, minimum DLC on the opposite side shall be ≥ 0 | Test, closed loop: S4, S4b, S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | assignment |
+| PP-SWR-085 | After an LKA or ELK intervention, minimum DLC on the opposite side shall be ≥ 0 | Test, closed loop: S4, S4b, S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | assignment |
 | PP-SWR-086 | Minimum DTLE during an intervention shall be ≥ −0.3 m for LKA and solid-marking ELK, and ≥ −0.1 m for road-edge ELK | Test, closed loop: S4, S5, S6 | Regulatory, SG-03 | Euro NCAP Assessment 4.3.2, 4.3.3.3; EU 2021/646 3.6.2 |
-| PP-SWR-088 | During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle shall be ≥ 0.3 m | Test, closed loop: S7, S8 | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) is the minimum. The team adopted the stricter 0.3 m from LSS 7.4.7 |
+| PP-SWR-088 | During an ELK intervention for an adjacent-lane vehicle, minimum lateral clearance to that vehicle while the vehicles are alongside shall be ≥ 0.3 m | Test, closed loop: S7, S8, S8b (c, d, e) | Regulatory, SG-03 | Euro NCAP SA 4.3.3.4 (no impact) is the minimum; the team adopted the stricter 0.3 m from LSS 7.4.7 |
 | PP-SWR-089 | If ELK is requested when the front tire is already more than 0.3 m beyond the marking on the requested side, the planner shall not start that ELK intervention | Test: S8 | Safety, SG-01 | team agreement |
 | PP-SWR-090 | The planner shall not report COMPLETED until the termination conditions have held continuously for `T_end_hold` | Test: S4, S5 | Functional | team agreement |
 | PP-SWR-091 | When EPS latency is up to 100 ms, minimum DTLE shall still satisfy PP-SWR-086 | Test, closed loop: S13 (a, b) | Safety, SG-03 | team agreement |
+| PP-SWR-092 | If LKA, or ELK for a reason other than a road edge, is requested toward a side where the ego-lane marking is not a sufficiently reliable lane boundary in the lane model received by the planner, the planner shall not start that intervention | Test: F04 | Safety, SG-01 | EU 2021/646 recital 6, Annex I 3.6.2 (visible markings); Euro NCAP LSS 7.2.6 |
 
-Limit 083 caps the time the planner keeps the intervening function in control while the vehicle is still unsettled. At the timeout, arbitration releases the intervening function and the controller applies its existing handover mechanism.
+There is no duration cutoff. An LKA or ELK intervention ends on COMPLETED (PP-SWR-032), withdrawal of REQUEST (PP-SWR-036, 037), driver override, or loss of the conditions for continuation (PP-SWR-046, 047). The ADAS Function block provides an audible warning for interventions longer than 10 s (ADAS Function Specification Section 10).
 
 ### 8.7 Limits, continuity, feasibility {#req-limits}
 
 | ID | Requirement | Verification | Type | Source |
 |---|---|---|---|---|
-| PP-SWR-100 | While `path_valid = true`, lateral deviation between consecutive paths shall be ≤ 0.05 m | Test: all scenarios, all faults | Safety, SG-04 | assignment |
-| PP-SWR-101 | While `path_valid = true`, heading difference between consecutive paths shall be ≤ 0.005 rad | Test: all scenarios, all faults | Safety, SG-04 | assignment |
-| PP-SWR-102 | While `path_valid = true`, curvature difference between consecutive paths shall be ≤ 0.0003 1/m | Test: all scenarios, all faults | Safety, SG-04 | assignment |
+| PP-SWR-100 | While `path_valid = true`, lateral deviation between consecutive paths shall be ≤ 0.05 m over 0–1 s, ≤ 0.1 m over 1–2 s, and ≤ 0.2 m after 2 s of the path | Test: all scenarios, all faults | Safety, SG-04 | team agreement (0–2 s); mentor (after 2 s) |
+| PP-SWR-101 | While `path_valid = true`, heading difference between consecutive paths shall be ≤ 0.005 rad over 0–1 s, ≤ 0.01 rad over 1–2 s, and ≤ 0.02 rad after 2 s of the path | Test: all scenarios, all faults | Safety, SG-04 | team agreement (0–2 s); mentor (after 2 s) |
+| PP-SWR-102 | While `path_valid = true`, curvature difference between consecutive paths shall be ≤ 0.0003 1/m over 0–1 s, ≤ 0.0006 1/m over 1–2 s, and ≤ 0.0012 1/m after 2 s of the path | Test: all scenarios, all faults | Safety, SG-04 | team agreement (0–2 s); mentor (after 2 s) |
 | PP-SWR-110 | While LKA is in control, path a_y shall be ≤ 3.0 m/s² | Test: S4, S4b | Safety, SG-01 | team agreement |
-| PP-SWR-111 | While ELK is in control, path a_y shall be ≤ 4.0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
+| PP-SWR-111 | While ELK is in control, path a_y shall be ≤ 4.0 m/s² | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | team agreement |
 | PP-SWR-112 | While LKA is in control, added a_y shall be ≤ 1.5 m/s² | Test: S4, S4b | Safety, SG-01 | team agreement |
-| PP-SWR-113 | While ELK is in control, added a_y shall be ≤ 3.0 m/s² | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
+| PP-SWR-113 | While ELK is in control, added a_y shall be ≤ 3.0 m/s² | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | team agreement |
 | PP-SWR-114 | While LKA is in control, path lateral jerk shall be ≤ 5 m/s³ | Test: S4, S4b | Safety, SG-01 | ISO 11270, section number to be verified |
-| PP-SWR-115 | While ELK is in control, path lateral jerk shall be ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (d, e) | Safety, SG-01 | team agreement |
+| PP-SWR-115 | While ELK is in control, path lateral jerk shall be ≤ 10 m/s³ | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | team agreement |
 | PP-SWR-116 | `front_wheel_angle` at every path point shall be ≤ `max_wheel_angle` from VehicleConfig | Test: all scenarios | Safety | VehicleConfig |
 | PP-SWR-117 | The steering wheel rate derived from the path (rate of change of `front_wheel_angle` times `steering_ratio`) shall be ≤ `max_steering_wheel_rate` from VehicleConfig | Test: all scenarios | Safety | VehicleConfig |
 
@@ -259,8 +262,8 @@ Basis for steering authority limits: R79 does not limit CSF a_y. ELK at 4.0 m/s�
 | PP-SWR-126 | When messages are lost individually or in bursts, or have ±20 ms jitter, the path shall satisfy PP-SWR-100 to 102 and the active function's jerk limit | Test: F10 | Safety, SG-04 | team agreement |
 | PP-SWR-127 | When messages arrive late or out of order, the path shall satisfy PP-SWR-100 to 102 | Test: F11 | Safety, SG-04 | team agreement |
 | PP-SWR-128 | While the camera publishes at 20 Hz and the planner runs at 40 Hz, the path shall satisfy PP-SWR-100 to 102 every cycle | Test: all scenarios, F13 | Safety, SG-04 | team agreement |
-| PP-SWR-129 | If a message is duplicated (repeated counter), the output shall match the fault-free case with the same seed | Test: F15 (repeat) | Safety | team agreement |
-| PP-SWR-130 | If the counter skips or is stuck, valid = false, the qualifier is FAULT, or the CRC is incorrect, the output shall match the corresponding message loss case | Test: F15 (skip, stuck), F16, F17 | Safety | team agreement |
+| PP-SWR-129 | If a pub/sub message is duplicated, or its counter increments by no more than MaxDeltaCounter in Interface Control Document Section 3 relative to the previous received message, the output shall match the fault-free case with the same seed | Test: F15 (repeat, increment within limit) | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (OK, OKSOMELOST) |
+| PP-SWR-130 | If the counter is stuck or increments by more than MaxDeltaCounter, `valid = false`, the qualifier is FAULT, or the CRC is incorrect, the output shall match the corresponding message loss case | Test: F15 (increment beyond limit, stuck), F16, F17 | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (REPEATED, WRONGSEQUENCE); team agreement |
 | PP-SWR-131 | If the age of the lane model or ObjectList exceeds 250 ms, the planner shall treat that input as invalid | Test: Q1 (300 ms) | Safety | team agreement |
 | PP-SWR-132 | If an input timestamp is more than 10 ms in the future, the planner shall treat that input as invalid | Test: F19 | Safety | team agreement |
 | PP-SWR-133 | While the age of the lane model or ObjectList is within 170–250 ms, the planner shall continue using that input | Test: Q1 (200 ms) | Functional | team agreement |
@@ -319,7 +322,7 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | PP-SWR-057 | Minimum lateral clearance from the vehicle body to objects on either side while offsetting the center should be large | Test: S3, S3b, S15 | Performance | team agreement |
 | PP-SWR-059 | The time from when the rear of the large vehicle has passed to lateral deviation ≤ 0.1 m should be short | Test: S3 | Performance | team agreement |
 | PP-SWR-081 | The time from the start of the LKA intervention path to COMPLETED should be short | Test: S4 | Performance | team agreement |
-| PP-SWR-082 | The time from the start of the ELK intervention path to COMPLETED should be short | Test: S5, S6, S7, S8, S8b (d, e) | Performance | team agreement |
+| PP-SWR-082 | The time from the start of the ELK intervention path to COMPLETED should be short | Test: S5, S6, S7, S8, S8b (c, d, e) | Performance | team agreement |
 | PP-SWR-087 | Minimum LKA DTLE should be large | Test, closed loop: S4 | Performance | team agreement |
 | PP-SWR-125 | When lane model c2 is incorrect, the ratio of the path's lateral deviation over 2–3 s to the deviation of a path that follows the erroneous lane model exactly should be small | Test: F06 | Performance | assignment |
 
@@ -341,3 +344,12 @@ There are no pass thresholds. The Software Qualification Test Specification meas
 | 1.11 | 2026-11-12 | PP-ASM-021 specifies the controller type and a maximum lookahead of 0.6 s so the ADAS Functions module’s view-range thresholds can be verified |
 | 1.12 | 2026-11-12 | Added PP-SWR-048 to treat FunctionRequests older than 45 ms as missing. Q3 at 60 ms exceeds the Interface Control Document’s maximum age. PP-PR-023 identified the missing planner response requirement |
 | 1.13 | 2026-11-13 | Added PP-SWR-156 to treat out-of-range LongitudinalPlan messages as missing. B0 C2 failed because a plan near the upper float32 limit produced infinite Trajectory values (PP-PR-024). Verified by F23 |
+| 1.14 | 2026-11-13 | Made PP-SWR-083 obsolete: R79 and EU 2021/646 require a warning beyond 10 s; a cutoff conflicts with SG-02 and SG-03 (PP-TS-016). S8b(c) is an intervention case (PP-PR-027). Affects HARA, SAD, SDD T7 and T9, SQTS Sections 5 and 8.1, and Mentor Report |
+| 1.15 | 2026-11-13 | PP-SWR-088 measures clearance only while vehicles are alongside; added S8b(c, d, e) and generalized the alongside definition (PP-PR-029). Affects SQTS 8.2 and the evaluator |
+| 1.16 | 2026-11-13 | Excluded driver override from consecutive-path comparisons: PP-SWR-039 and 100 cannot both be met while the driver steers (PP-TS-017, PP-PR-032). Affects PP-SWR-100 to 102, dependent requirements, SQTS 8.1 and the evaluator |
+| 1.17 | 2026-11-14 | Section 5 records the high-speed curve-entry observation limit (PP-PR-007 option B); PP-SWR-051 scope remains unchanged |
+| 1.18 | 2026-11-14 | Added PP-SWR-092: do not start LKA or marking-based ELK toward an unreliable ego-lane marking (PP-PR-038). Affects SQTS F04 and 8.1, SDD T9 and the evaluator |
+| 1.19 | 2026-11-14 | PP-SWR-129, 130 accept counter increments within MaxDeltaCounter and treat larger increments or stuck counters as message loss, per AUTOSAR E2E Profile 5 (PP-PR-035). Affects ICD 1.11, SDD T1, F15 and the evaluator |
+| 1.20 | 2026-11-14 | PP-SWR-032 reports COMPLETED within 0.5 s of `T_end_hold`, instead of at the exact tick (PP-TS-018 V1); early reporting still fails PP-SWR-090 |
+| 1.21 | 2026-11-16 | Mentor relaxed PP-SWR-100 to 102 by a factor of four to 0.2 m, 0.02 rad and 0.0012 1/m. Affects dependent requirements, SQTS 8.1, SDD T4 and SAD A.3; PP-SWR-039 and 040 remain at 0.05 m |
+| 1.22 | 2026-11-16 | PP-SWR-100 to 102 now use three path-time segments: 0–1 s retains 0.05 m, 0.005 rad and 0.0003 1/m; 1–2 s doubles them; after 2 s uses the mentor limits. At 25 m/s a 0.2 m deviation at 15 m causes about 1.1 m/s² a_y change per cycle, versus 0.28 m/s² for 0.05 m (PP-TS-019). Affects SQTS 8.1, SDD T4, SAD A.3 and Mentor Report |

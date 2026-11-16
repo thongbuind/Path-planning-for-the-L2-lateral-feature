@@ -1,4 +1,4 @@
-"""Lưu nhận xét theo báo cáo trong spec-web/data/review-comments/."""
+"""Lưu nhận xét theo báo cáo trong web/data/review-comments/."""
 
 import json
 import os
@@ -8,7 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 
-REVIEW_DIR = Path("spec-web/data/review-comments")
+REVIEW_DIR = Path("web/data/review-comments")
 
 
 class ReviewError(Exception):
@@ -181,8 +181,8 @@ def resolve_reviews(project, doc_id, numbers, resolved=True, resolution=None):
 
 if __name__ == "__main__":
     # Dùng từ dòng lệnh, ví dụ:
-    #   python3 spec-web/review_store.py resolve adas-functions 1 5 6 --note "Đã sửa trong bản mới"
-    #   python3 spec-web/review_store.py reopen adas-functions 3
+    #   python3 web/review_store.py resolve adas-functions 1 5 6 --note "Đã sửa trong bản mới"
+    #   python3 web/review_store.py reopen adas-functions 3
     import argparse
 
     parser = argparse.ArgumentParser(description="Đánh dấu nhận xét đã xong hoặc mở lại")

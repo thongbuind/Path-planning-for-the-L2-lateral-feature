@@ -9,6 +9,8 @@ window.SPEC_EN = {
   "Tham chiếu và kiểm chứng": "Reference & Verification",
   "Hệ thống trên xe": "Vehicle system",
   "Kiểm chứng SIL": "SIL verification",
+  "Mô phỏng": "Simulation",
+  "Chạy mô phỏng SIL theo thời gian thực": "Run a real-time SIL simulation",
   "Xem kết quả lần chạy SIL mới nhất": "View the latest SIL run results",
   "Chức năng và chiến lược điều khiển": "Functions and control strategy",
   "Giới hạn vận hành và khái niệm an toàn": "Operating limits and safety concept",
@@ -97,7 +99,8 @@ window.SPEC_EN = {
   "Không vẽ được sơ đồ: {reason}": "Could not draw the diagram. {reason}",
 
   // Thẻ và đường nối
-  "Tóm tắt 2 trang: hệ thống, thiết kế chính, tuân thủ, kiểm chứng, an toàn và việc cần mentor hỗ trợ.": "Two-page summary: system, key design decisions, compliance, verification, safety, and points that need mentor input.",
+  "Mentor Report tuần 2": "Week 2 Mentor Report",
+  "Tổng quan dự án từ tài liệu kỹ thuật đến framework, SIL, path planner, kết quả benchmark và các hướng nghiên cứu đang mở.": "Project overview covering the technical documents, framework, SIL, path planner, benchmark results, and open research questions.",
   "Requirement, performance target, ODD, giả định và giới hạn calibration parameter; căn cứ để chấm planner.": "Requirements, performance targets, ODD, assumptions, and calibration parameter limits; the basis for evaluating the planner.",
   "Thành phần, chu kỳ, reference line, arbitration, path HWA, LKA, ELK, fault handling và calibration parameter.": "Components, execution cycle, reference line, arbitration, HWA, LKA, and ELK paths, fault handling, and calibration parameters.",
   "Các quyết định thiết kế, bối cảnh, phương án đã xét và hệ quả.": "Design decisions with their context, alternatives considered, and consequences.",

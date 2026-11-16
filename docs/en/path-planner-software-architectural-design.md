@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SAD` |
-| Version | 1.6 |
+| Version | 1.9 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-16 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -193,7 +193,7 @@ R171 5.3.7.1.1.1 requires speed to be adjusted to curvature. R171 5.3.7.1.3 requ
 | Target | Inside the lane, with DLC on the drift side ≥ `dlc_target_lka` | Inside the lane, without overshooting to the opposite side | PP-SWR-084, 085 |
 | Boundary tightening | None | Tighten the boundary on the hazard side so the wheels do not cross that marking | PP-SWR-086 |
 | Intentional lane change with an overtaking vehicle in the adjacent lane | — | Only if the ADAS Functions module requests it under strict conditions; the path returns the vehicle to its original lane. Do not start if the front tire is already more than 0.3 m beyond the marking | PP-SWR-089 |
-| Maximum duration | 10 s | 10 s | PP-SWR-083 |
+| Termination | COMPLETED, withdrawal of REQUEST, driver override, or loss of conditions for continuation; no duration cutoff | Same as LKA | PP-SWR-032, 036, 037, 046 |
 | Limits | a_y ≤ 3.0; added a_y ≤ 1.5 m/s²; jerk ≤ 5 m/s³ | a_y ≤ 4.0; added a_y ≤ 3.0 m/s²; jerk ≤ 10 m/s³ | PP-SWR-110 to 115 |
 
 LKA and ELK use quintic paths in both builds (Software Detailed Design Section 10). `PP_T7` selects T7 for HWA.
@@ -291,8 +291,8 @@ One calibration set for all vehicles. Initial values are starting points. The So
 | `heading_end` | ° | 0.5 | 0.3–1.0 | ≥ 0 | PP-SWR-032, 090 |
 | `ay_add_end` | m/s² | 0.2 | 0.1–0.3 | ≥ 0 | PP-SWR-032, 090 |
 | `T_end_hold` | s | 0.5 | 0.3–1.0 | ≥ 0 | PP-SWR-032, 090 |
-| `T_lka` | s | 3.0 | 2.0–4.0 | > 0 and ≤ 10 | PP-SWR-083, 110, 112, 114. Targets 081, 087 |
-| `T_elk` | s | 2.0 | 1.0–3.0 | > 0 and ≤ 10 | PP-SWR-083, 111, 113, 115. Target 082 |
+| `T_lka` | s | 3.0 | 2.0–4.0 | > 0 | PP-SWR-110, 112, 114. Targets 081, 087 |
+| `T_elk` | s | 2.0 | 1.0–3.0 | > 0 | PP-SWR-111, 113, 115. Target 082 |
 | `dlc_target_lka` | m | 0.5 | 0–0.8 | ≥ 0 (PP-SWR-084) | Targets 081, 087 |
 | `T_recenter` | s | 3.5 | 2.5–5.0 | Limits in PP-SWR-001, 003 | Targets 002, 053 |
 | `ay_add_max_hwa` | m/s² | 0.5 | 0.3–1.0 | ≤ 2.5 (PP-SWR-001) | Targets 002, 053, 059 |
@@ -323,7 +323,7 @@ Algorithm-level calibration parameters (stored boundaries, path generation weigh
 
 **A.2 Maximum age of 250 ms** (PP-ADR-003, PP-SWR-131). Ego-motion retains 0.5 s of history, enough to transform by 250 ms. The worst-case bias of 1 °/s causes a heading error of 0.0044 rad after 250 ms, or 0.11 m at 25 m; a 0.3 °/s bias gives only 0.03 m. An object velocity error of 0.3 m/s over 250 ms gives 0.075 m.
 
-**A.3 Yaw-rate filter latency of 50 ms** (PP-SWR-138). The heading error during camera latency compensation corresponds to about 1 cm at 25 m. Curvature error on entry to a clothoid with R = 250 m at 90 km/h is about 0.00007 1/m, below the PP-SWR-102 limit of 0.0003 1/m.
+**A.3 Yaw-rate filter latency of 50 ms** (PP-SWR-138). The heading error during camera latency compensation corresponds to about 1 cm at 25 m. Curvature error on entry to a clothoid with R = 250 m at 90 km/h is about 0.00007 1/m, below the PP-SWR-102 limit of 0.0003 1/m for the 0–1 s segment.
 
 **A.4 Dead reckoning without boundaries** (PP-ADR-009, `T_coast`). At 25 m/s, yaw-rate bias 0.3 °/s, v_y noise σ = 0.05 m/s:
 
@@ -361,3 +361,6 @@ T = 2 s exceeds the 5 m/s³ jerk limit. T = 4 s brings the vehicle closer to the
 | 1.4 | 2026-11-11 | Added Section 6.2 on speed strategy in curves (R171 5.3.7.1.3) and Section 8.3 on degradation levels (R79 Annex 6, 3.4.3), consolidating existing material |
 | 1.5 | 2026-11-11 | Updated the T8 offset to use clearance to the large vehicle and the new `gap_truck_min` parameter (revised PP-ADR-008) |
 | 1.6 | 2026-11-12 | T9 reports separate phases and reselects a function on cancellation. Road-edge ELK uses a direct boundary and `conf_edge`. Completion conditions are checked each cycle |
+| 1.7 | 2026-11-13 | Replaced the maximum LKA/ELK duration with termination conditions and removed the ≤ 10 s bounds on `T_lka` and `T_elk` (PP-SWR-083 obsolete, PP-TS-016) |
+| 1.8 | 2026-11-16 | A.3: PP-SWR-102 limit changed to 0.0012 1/m under SRS 1.21, following the mentor’s relaxation of PP-SWR-100 to 102 |
+| 1.9 | 2026-11-16 | A.3: compare against the 0–1 s limit of PP-SWR-102 under SRS 1.22 |

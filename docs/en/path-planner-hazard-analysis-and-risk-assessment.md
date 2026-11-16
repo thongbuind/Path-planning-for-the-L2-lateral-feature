@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-HARA` |
-| Version | 1.2 |
+| Version | 1.3 |
 | Status | Awaiting confirmation review |
 | Author | thongbui |
 | Reviewer |   |
-| Last updated | 2026-11-11 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#safety-scope}
 
@@ -52,8 +52,8 @@
 | Function | Total a_y | Added a_y | Jerk | Duration of a single intervention |
 |---|---|---|---|---|
 | HWA | ≤ 2.5 m/s² (R79 allows up to 3 m/s²) | ≤ 0.5 m/s² (initial value) | ≤ 5 m/s³ (R79) | Continuous |
-| LKA | ≤ 3.0 m/s² | ≤ 1.5 m/s² | ≤ 5 m/s³ | ≤ 10 s (R79) |
-| ELK | ≤ 4.0 m/s² | ≤ 3.0 m/s² | ≤ 10 m/s³ | ≤ 10 s (R79) |
+| LKA | ≤ 3.0 m/s² | ≤ 1.5 m/s² | ≤ 5 m/s³ | Until completion; audible warning after 10 s (R79 5.1.6.1.2.1) |
+| ELK | ≤ 4.0 m/s² | ≤ 3.0 m/s² | ≤ 10 m/s³ | Until completion; audible warning after 10 s (R79 5.1.6.1.2.1) |
 
 The driver can override at any time. The ADAS Functions module cancels the intervention when driver torque is ≥ 3.0 Nm for 0.1 s, below the Euro NCAP limit of 3.5 Nm and well below the R79 limit of 50 N (about 9.5 Nm).
 
@@ -199,3 +199,4 @@ Sensor and algorithm limitations when no fault is present. Each condition has a 
 | 1.0 | 2026-11-10 | Rewritten as the HARA for the safety department. Made the item definition self-contained; added operational situations, proposed S, E, C, ASIL ratings, safe states, and FTTIs; split out HE-08 for ELK; added TC-13, safety mechanisms, and open points |
 | 1.1 | 2026-11-10 | Added frequency-based E classification; recorded the basis for the SG-04 and SG-05 FTTIs; specified no sudden torque release in the SG-01 safe state; split the open points; added questions about S for HE-03 and HE-06; revised the ASIL rationale for HE-05 |
 | 1.2 | 2026-11-11 | Updated TC-07 for the revised center offset (PP-ADR-008) |
+| 1.3 | 2026-11-13 | Section 4 removes the 10 s LKA and ELK duration limit; R79 5.1.6.1.2.1 requires an audible warning beyond 10 s. Cutting off at 10 s conflicts with SG-02 and SG-03 (PP-TS-016) |

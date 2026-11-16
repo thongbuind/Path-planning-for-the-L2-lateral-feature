@@ -1,4 +1,4 @@
-"""Server nhỏ cho spec-web: phục vụ file tĩnh và đồng bộ tài liệu với file Markdown.
+"""Server nhỏ cho web: phục vụ file tĩnh và đồng bộ tài liệu với file Markdown.
 
 Chạy:  python3 serve.py            (mặc định http://127.0.0.1:8770/)
        python3 serve.py --port 8771
@@ -10,10 +10,11 @@ GET /api/docs/<id>  trả nội dung md, kèm ETag theo thời điểm sửa fil
 PUT /api/docs/<id>  thân là md mới. Gửi If-Match là ETag lúc web tải; nếu file đã bị sửa ở
                     ngoài sau đó thì trả 409 và không ghi đè.
 
-GET/POST/PUT /api/reviews/<id> đọc, tạo và sửa nhận xét trong spec-web/data/review-comments/<id>.json.
+GET/POST/PUT /api/reviews/<id> đọc, tạo và sửa nhận xét trong web/data/review-comments/<id>.json.
 Chỉ nghe trên 127.0.0.1 và dùng thư viện chuẩn.
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -22,6 +23,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from review_store import ReviewError, read_reviews, save_review
+from latest_benchmark import latest_benchmark
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(ROOT)
@@ -31,6 +33,10 @@ EN_DOCUMENT = re.compile(r"/en/(versions\.json|[a-z0-9][a-z0-9-]{0,63}\.md)")
 MAX_BODY = 2 * 1024 * 1024
 MAX_REVIEW_BODY = 64 * 1024
 STATIC_ROOT = Path(ROOT).resolve()
+STUDY_FIGURE = "research/studies/PP-TS-013-comfort-line/sample-r171-sbend.png"
+simulation_spec = importlib.util.spec_from_file_location("simulation_server", STATIC_ROOT / "simulation" / "server.py")
+simulation_server = importlib.util.module_from_spec(simulation_spec)
+simulation_spec.loader.exec_module(simulation_server)
 STATIC_PATHS = {
     "index.html", "report.html", "style.css", "reviews.css",
     "app.js", "cards.js", "docmd.js", "diagrams.js", "reviews.js",
@@ -45,8 +51,12 @@ BENCHMARK_FILES = {
 
 def benchmark_file(path):
     prefix = "/benchmark/run/"
-    if path.startswith(prefix) and path[len(prefix):] in BENCHMARK_FILES:
-        return path[len(prefix):]
+    if path.startswith(prefix):
+        name = path[len(prefix):]
+        if name in BENCHMARK_FILES:
+            return name
+        if name in {"suite/results.jsonl", "suite/generation.json", "suite/conformance.json"}:
+            return name.removeprefix("suite/")
     return None
 
 
@@ -62,14 +72,23 @@ def etag(p):
     return '"%d"' % os.stat(p).st_mtime_ns
 
 
-class Handler(SimpleHTTPRequestHandler):
+class Handler(simulation_server.Handler):
+    def __init__(self, *args, **kwargs):
+        SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
+
     def translate_path(self, path):
         path_without_query = path.partition("?")[0]
+        if path_without_query == "/" + STUDY_FIGURE:
+            return str(Path(PROJECT) / STUDY_FIGURE)
         file = benchmark_file(path_without_query)
         if file:
-            run = json.loads((STATIC_ROOT / "benchmark" / "run.json").read_text(encoding="utf-8"))
-            if re.fullmatch(r"\d{8}-\d{4}-suite-full-[a-f0-9]+", run):
-                return str(Path(PROJECT) / "research" / "runs" / run / file)
+            selected = latest_benchmark()
+            if selected:
+                base = selected["run"] if file.startswith("report") else selected["data"]
+                if file in ("report-en.html", "report-en-details.html") and not all(
+                        (Path(base) / name).is_file() for name in ("report-en.html", "report-en-details.html")):
+                    file = file.replace("-en", "")
+                return str(Path(base) / file)
         translation = EN_DOCUMENT.fullmatch(path_without_query)
         if translation:
             return str(DOCS / "en" / translation.group(1))
@@ -78,9 +97,13 @@ class Handler(SimpleHTTPRequestHandler):
     def send_head(self):
         # Chỉ phục vụ trang, tài nguyên và bản xuất. Nhận xét đi qua API.
         target = Path(self.translate_path(self.path)).resolve()
+        if self.path.partition("?")[0] == "/" + STUDY_FIGURE:
+            if target != Path(PROJECT).resolve() / STUDY_FIGURE:
+                return self.send_error(404)
+            return super().send_head()
         if benchmark_file(self.path.partition("?")[0]):
-            runs = (Path(PROJECT) / "research" / "runs").resolve()
-            if target.parent.parent != runs:
+            selected = latest_benchmark()
+            if not selected or target.parent not in {Path(selected["run"]), Path(selected["data"])}:
                 return self.send_error(404)
             return super().send_head()
         if EN_DOCUMENT.fullmatch(self.path.partition("?")[0]):
@@ -90,7 +113,8 @@ class Handler(SimpleHTTPRequestHandler):
         if not target.is_relative_to(STATIC_ROOT):
             return self.send_error(404)
         parts = target.relative_to(STATIC_ROOT).parts
-        if parts and parts[0] not in {"en", "dist"} and "/".join(parts) not in STATIC_PATHS:
+        simulation_files = {"simulation", "simulation/index.html", "simulation/app.css", "simulation/js/i18n.js", "simulation/js/catalog-en.js", "simulation/js/core.js", "simulation/js/scene.js", "simulation/js/charts.js", "simulation/js/ui.js"}
+        if parts and parts[0] not in {"en", "dist"} and "/".join(parts) not in STATIC_PATHS | simulation_files:
             return self.send_error(404)
         return super().send_head()
 
@@ -105,6 +129,9 @@ class Handler(SimpleHTTPRequestHandler):
         super().log_message(fmt, *args)
 
     def do_GET(self):
+        if self.path == "/simulation/api/catalog":
+            self.path = "/api/catalog"
+            return simulation_server.Handler.do_GET(self)
         if self.path.startswith("/api/reviews/"):
             return self.handle_reviews("GET")
         if not self.path.startswith("/api/"):
@@ -157,6 +184,9 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
+        if self.path in {"/simulation/api/run", "/simulation/api/control", "/simulation/api/stop"}:
+            self.path = self.path[len("/simulation"):]
+            return simulation_server.Handler.do_POST(self)
         if self.path.startswith("/api/reviews/"):
             return self.handle_reviews("POST")
         self.send_error(404)
@@ -201,8 +231,12 @@ def main():
     ap.add_argument("--port", type=int, default=8770)
     args = ap.parse_args()
     server = ThreadingHTTPServer(("127.0.0.1", args.port), partial(Handler, directory=ROOT))
-    print(f"spec-web: http://127.0.0.1:{args.port}/")
-    server.serve_forever()
+    print(f"web: http://127.0.0.1:{args.port}/")
+    try:
+        server.serve_forever()
+    finally:
+        simulation_server.kill_current()
+        server.server_close()
 
 
 if __name__ == "__main__":

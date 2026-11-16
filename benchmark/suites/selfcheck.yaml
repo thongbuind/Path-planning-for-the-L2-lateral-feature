@@ -7,7 +7,7 @@ id: selfcheck
 control: PM-00
 seeds: [1]
 baits:
-  PM-01: {define: PM_01, fault: "Bước nhảy ngang 0,1 m mỗi 40 chu kỳ", expect: [PP-SWR-100], level: BLOCKER, runs: [[S1, a], [S1, c]]}
+  PM-01: {define: PM_01, fault: "Bước nhảy ngang 0,3 m mỗi 40 chu kỳ", expect: [PP-SWR-100], level: BLOCKER, runs: [[S1, a], [S1, c]]}
   PM-02: {define: PM_02, fault: "Không giới hạn a_y theo aysmax", expect: [PP-SWR-001], level: BLOCKER, runs: [[S1b, a], [S1b, c]]}
   PM-03: {define: PM_03, fault: "Giữ path_valid = true khi ego-motion không hợp lệ", expect: [PP-SWR-143], level: BLOCKER, runs: [[S1, a, F20, b], [S1, c, F20, c]]}
   PM-04: {define: PM_04, fault: "Luôn path_valid = false khi HWA ở REQUEST", expect: [PP-SWR-030], level: BLOCKER, runs: [[S1, a], [S2, a]]}

@@ -573,7 +573,7 @@
         const { anchor } = item;
         const sourceDoc = item.sourceDoc || docId;
         const folder = item.sourceDoc
-          ? (anchor.language === "en" ? "spec-web/en/" : "")
+          ? (anchor.language === "en" ? "web/en/" : "")
           : "docs/" + anchor.language + "/";
         const file = folder + sourceDoc + ".md";
         const version = anchor.revision ? " · SHA-256 `" + anchor.revision + "`" : "";

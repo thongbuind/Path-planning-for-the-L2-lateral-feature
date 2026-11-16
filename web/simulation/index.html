@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Path Planner SIL Replay</title>
+<link rel="stylesheet" href="app.css">
+<script>
+  try { var th = localStorage.getItem('pp-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+</script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.5 2.6v10.8L13 8z" fill="currentColor"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 16 16"><path d="M4 2.8h3v10.4H4zM9 2.8h3v10.4H9z" fill="currentColor"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><path d="M3.8 3.8h8.4v8.4H3.8z" fill="currentColor"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor"/><path d="M5 8.2l2.1 2.1L11 6.2" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5L3.5 9h4L7 14.5 12.5 7h-4z" fill="currentColor"/></symbol>
+  <symbol id="i-logo" viewBox="0 0 20 20"><path d="M3 17c0-6 4-7 7-7s7-1 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="3" cy="17" r="1.8" fill="currentColor"/></symbol>
+</svg>
+
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <svg width="18" height="18" style="color:var(--violet);align-self:center"><use href="#i-logo"/></svg>
+      <b>Path Planner</b><span>SIL, chạy thời gian thực</span>
+    </div>
+    <div class="crumb" id="crumb" aria-live="polite"></div>
+    <div class="top-actions">
+      <span id="ver" class="num"></span>
+      <button class="icon-btn" id="theme" type="button" aria-label="Đổi giao diện sáng tối" title="Đổi giao diện sáng tối">
+        <svg id="theme-ico"><use href="#i-moon"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="menu" aria-label="Chọn ca mô phỏng">
+    <div class="runbox">
+      <button class="run-btn" id="run" type="button">Chạy planner</button>
+      <div class="run-state" id="run-state"><i class="led"></i><span>Đang kết nối server…</span></div>
+    </div>
+
+    <section class="msec">
+      <h2>Tình huống <em id="n-scen"></em></h2>
+      <input class="search" id="q" type="search" placeholder="Tìm: S1, cua, xe tải, xi-nhan…" aria-label="Tìm tình huống" autocomplete="off">
+      <div class="chips" id="fn-chips" role="radiogroup" aria-label="Lọc theo chức năng"></div>
+      <div class="slist" id="m-scen" role="radiogroup" aria-label="Tình huống"></div>
+    </section>
+
+    <section class="msec">
+      <h2>Lỗi tiêm <em id="n-fault"></em></h2>
+      <div class="combos" id="m-combo"></div>
+      <div id="m-faults"></div>
+      <label class="field">Lỗi bắt đầu
+        <select id="trigger">
+          <option value="">Theo định nghĩa của lỗi</option>
+          <option value="lka_active">Khi LKA can thiệp</option>
+          <option value="elk_active">Khi ELK can thiệp</option>
+          <option value="intervention_active">Khi LKA hoặc ELK can thiệp</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="msec">
+      <h2>Môi trường</h2>
+      <div class="toggles" id="m-env"></div>
+    </section>
+
+    <section class="msec">
+      <h2>Xe, seed, ACC</h2>
+      <div class="vgrid" id="m-veh" role="radiogroup" aria-label="Xe"></div>
+      <div class="row2">
+        <label class="field">Seed <input id="seed" type="number" min="1" max="999" value="1"></label>
+        <label class="field">ACC
+          <select id="acc">
+            <option value="">Theo kịch bản</option>
+            <option value="off">Tắt</option>
+            <option value="on">Bật, đọc LateralLimits</option>
+            <option value="ignore_limits">Bật, bỏ qua LateralLimits</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <div class="menu-foot" id="foot"></div>
+  </nav>
+
+  <main class="stage">
+    <section class="screen idle" id="screen" aria-label="Màn hình mô phỏng">
+      <canvas id="scene"></canvas>
+      <div class="hud hud-tl">
+        <span class="chip" id="chip-fn" data-fn="NONE"><i class="dot"></i><span id="chip-fn-t">NONE</span><small id="chip-fn-s"></small></span>
+        <span class="chip" id="chip-path"><span id="chip-path-t"></span></span>
+        <span class="fault-flag" id="fault-flag"><svg><use href="#i-bolt"/></svg><span id="fault-flag-t"></span></span>
+      </div>
+      <div class="hud hud-tr"><canvas id="minimap" width="190" height="104" aria-label="Bản đồ lộ trình"></canvas></div>
+      <div class="hud hud-bl">
+        <div class="speed"><span id="hud-v">0</span><small>km/h</small></div>
+      </div>
+      <div class="hud hud-br" id="hud-br"></div>
+      <div class="screen-msg" id="screen-msg"></div>
+    </section>
+
+    <section class="transport" aria-label="Điều khiển lượt chạy">
+      <button class="icon-btn primary" id="pause" type="button" aria-label="Tạm dừng hoặc tiếp tục (Space)" title="Tạm dừng hoặc tiếp tục (Space)" disabled><svg width="16" height="16"><use href="#i-pause" id="pause-ico"/></svg></button>
+      <button class="icon-btn" id="stop" type="button" aria-label="Dừng lượt chạy" title="Dừng lượt chạy" disabled><svg width="16" height="16"><use href="#i-stop"/></svg></button>
+      <div class="rate" id="rate" role="radiogroup" aria-label="Tốc độ chạy">
+        <button type="button" role="radio" data-r="0.5" aria-checked="false">0,5×</button>
+        <button type="button" role="radio" data-r="1" aria-checked="true">1×</button>
+        <button type="button" role="radio" data-r="2" aria-checked="false">2×</button>
+        <button type="button" role="radio" data-r="0" aria-checked="false" title="Không canh nhịp: chạy nhanh nhất máy cho phép">Tối đa</button>
+      </div>
+      <input class="scrub" id="scrub" type="range" min="0" max="22" step="0.025" value="0" aria-label="Thời gian mô phỏng, kéo để xem lại khi đã tạm dừng hoặc chạy xong" disabled>
+      <div class="clock" id="clock"></div>
+      <div class="view-toggle" id="view" role="radiogroup" aria-label="Dạng hiển thị">
+        <button type="button" role="radio" data-v="chart" aria-checked="true">Biểu đồ</button>
+        <button type="button" role="radio" data-v="table" aria-checked="false">Bảng</button>
+      </div>
+    </section>
+
+    <section class="charts" aria-label="Biểu đồ theo thời gian">
+      <div class="legend" id="legend"></div>
+      <div class="plot" id="plot">
+        <svg id="chart" role="img" aria-label="Biểu đồ chức năng, lệch tâm làn, a_y, góc vô lăng và thời gian tính, vẽ dần theo thời gian chạy"></svg>
+        <div class="tip" id="tip" hidden></div>
+        <div class="tablebox" id="tablebox" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="panel" aria-label="Thông số">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-live" aria-selected="true" aria-controls="pane-live">Thông số</button>
+      <button type="button" role="tab" id="tab-res" aria-selected="false" aria-controls="pane-res">Kết quả</button>
+    </div>
+    <div class="pane" id="pane-live" role="tabpanel" aria-labelledby="tab-live"></div>
+    <div class="pane" id="pane-res" role="tabpanel" aria-labelledby="tab-res" hidden></div>
+  </aside>
+
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/catalog-en.js"></script>
+<script src="js/core.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

@@ -156,8 +156,8 @@ window.SPEC_CARDS = [
     "doc": "mentor-report",
     "main": true,
     "eyebrow": "Summary · Path Planner",
-    "title": "Mentor Report",
-    "summary": "Tóm tắt 2 trang: hệ thống, thiết kế chính, tuân thủ, kiểm chứng, an toàn và việc cần mentor hỗ trợ."
+    "title": "Mentor Report tuần 2",
+    "summary": "Tổng quan dự án từ tài liệu kỹ thuật đến framework, SIL, path planner, kết quả benchmark và các hướng nghiên cứu đang mở."
   },
   {
     "id": "path-planner-software-requirements-specification",
@@ -406,6 +406,11 @@ window.SPEC_REGIONS = [
     "id": "simulation",
     "text": "Kiểm chứng SIL",
     "note": "Không phải phần mềm trên xe; simulator gọi đúng thư viện planner sẽ bàn giao"
+  },
+  {
+    "id": "simulation-pending",
+    "text": "Mô phỏng",
+    "note": "Chạy mô phỏng SIL theo thời gian thực"
   },
   {
     "id": "benchmark",

@@ -1,4 +1,4 @@
-# spec-web: bản đồ yêu cầu
+# Web dự án
 
 Đề bài G1 nằm ở `docs/reference/G1_Path_Planning.pdf` tính từ thư mục G1. Bộ tài liệu kỹ thuật (Technical Documents) là nguồn chính thức cho yêu cầu, thiết kế, interface và giả lập. Bản đồ cho biết các khối làm gì, nối với nhau ra sao và mở đúng mục của tài liệu. Prototype nằm ở `../src/`.
 
@@ -7,7 +7,7 @@
 Chạy:
 
 ```sh
-python3 spec-web/serve.py
+python3 web/serve.py
 ```
 
 rồi vào http://127.0.0.1:8770/ . `serve.py` chỉ dùng thư viện chuẩn, phục vụ file tĩnh và đọc, ghi
@@ -22,22 +22,23 @@ các file tài liệu `.md`. Mở thẳng `index.html` thì bản đồ vẫn xe
 - Bấm thẻ phần mềm, giả lập hoặc nhãn đường nối để mở mục tương ứng trong tài liệu.
 - Bấm **Tài liệu kỹ thuật** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Trang chủ** đưa về bản đồ tại `home/`.
 - Bấm vùng **Benchmark** để xem báo cáo SIL mới nhất ở `benchmark/`. Nút **Toàn màn hình** mở chế độ toàn màn hình của trình duyệt.
+- Bấm **Mô phỏng** để chạy planner SIL thời gian thực. Tính năng cần `serve.py`, các phụ thuộc Python và thư viện planner đã build; xem `simulation/README.md`. GitHub Pages chỉ phục vụ giao diện tĩnh, không chạy được planner.
 
 ## Chuẩn bị bản tĩnh cho GitHub Pages
 
 Từ thư mục dự án, chạy lệnh sau mỗi khi cần xuất lại web hoặc cập nhật báo cáo.
 
 ```sh
-node spec-web/build-static.cjs
+node web/build-static.cjs
 ```
 
-Lệnh tạo lại `spec-web/dist/` với `index.html`, trang báo cáo, tài nguyên, bản Markdown tiếng Việt và các bản dịch hiện có. Người đọc có thể lưu nháp nhận xét trên trình duyệt.
+Lệnh tạo lại `web/dist/` với `index.html`, trang báo cáo, tài nguyên, bản Markdown tiếng Việt và các bản dịch hiện có. Người đọc có thể lưu nháp nhận xét trên trình duyệt.
 
-`benchmark/run.json` chọn lần chạy trong `research/runs/` được đưa lên web. Khi cập nhật, lưu `conformance.json` cùng lần chạy và tạo hai bản dashboard bằng `python -m eval.report_html research/runs/<run-id> --lang vi` và `python -m eval.report_html research/runs/<run-id> --lang en`. Đổi ID trong `benchmark/run.json` sau khi kiểm tra cả hai bản.
+Web tự chọn benchmark đã hoàn tất mới nhất có dữ liệu và báo cáo trong `build/benchmark/` hoặc `research/runs/`. `python -m eval.run_full` tạo cả hai báo cáo ngay sau khi chạy; không cần cập nhật ID thủ công. Nếu lần chạy cũ chưa có bản tiếng Anh, web dùng tạm bản tiếng Việt. Bản tĩnh chọn benchmark mới nhất tại thời điểm xuất web.
 
-Để xem thử, chạy `python3 -m http.server 8772 --directory spec-web/dist` rồi mở [bản tĩnh cục bộ](http://127.0.0.1:8772/).
+Để xem thử, chạy `python3 -m http.server 8772 --directory web/dist` rồi mở [bản tĩnh cục bộ](http://127.0.0.1:8772/).
 
-GitHub Pages dùng nguồn **GitHub Actions**. Workflow `Deploy GitHub Pages` xuất bản `spec-web/dist/` sau mỗi lần push lên `main`. Có thể chạy lại từ tab **Actions**. [Hướng dẫn cấu hình GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+GitHub Pages dùng nguồn **GitHub Actions**. Workflow `Deploy GitHub Pages` xuất bản `web/dist/` sau mỗi lần push lên `main`. Có thể chạy lại từ tab **Actions**. [Hướng dẫn cấu hình GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
 ## Nhận xét theo đoạn
 
@@ -46,20 +47,20 @@ Bôi chọn văn bản trong báo cáo, bấm **Nhận xét**, rồi nhấn **En
 Mỗi nhận xét có nút **Đã xong** và **Mở lại**. Nhận xét đã xong bị ẩn khỏi trang và khỏi danh sách; số trên nút **Nhận xét (n)** chỉ đếm nhận xét còn mở. Trong danh sách, nút **Xem nhận xét đã xong (n)** hiện lại chúng, kèm ghi chú đã xử lý thế nào nếu có. Agent đánh dấu từ dòng lệnh, qua cùng khoá ghi với web:
 
 ```sh
-python3 spec-web/review_store.py resolve <id-báo-cáo> <số> [<số> ...] --note "Đã xử lý thế nào"
-python3 spec-web/review_store.py reopen <id-báo-cáo> <số>
+python3 web/review_store.py resolve <id-báo-cáo> <số> [<số> ...] --note "Đã xử lý thế nào"
+python3 web/review_store.py reopen <id-báo-cáo> <số>
 ```
 
 Trong file JSON, nhận xét đã xong có `resolved: true`, `resolvedAt` và `resolution` (ghi chú, không bắt buộc). Sau khi sửa `review_store.py`, cần khởi động lại `serve.py`.
 
-Khi chạy cục bộ, `serve.py` lưu tại `spec-web/data/review-comments/<id-báo-cáo>.json`. Các file này đi qua API nhận xét và nằm ngoài phần tài nguyên web phục vụ trực tiếp. Agent có thể đọc trường `reviews` để lấy số nhận xét, nội dung và vị trí. `anchor` chứa ngôn ngữ, đoạn trích, ngữ cảnh trước và sau, vị trí ký tự tính từ 0 trong văn bản hiển thị và SHA-256 nếu có phiên bản đã lưu. Nếu đang chạy phiên cũ của `serve.py`, hãy khởi động lại máy chủ để nạp API nhận xét.
+Khi chạy cục bộ, `serve.py` lưu tại `web/data/review-comments/<id-báo-cáo>.json`. Các file này đi qua API nhận xét và nằm ngoài phần tài nguyên web phục vụ trực tiếp. Agent có thể đọc trường `reviews` để lấy số nhận xét, nội dung và vị trí. `anchor` chứa ngôn ngữ, đoạn trích, ngữ cảnh trước và sau, vị trí ký tự tính từ 0 trong văn bản hiển thị và SHA-256 nếu có phiên bản đã lưu. Nếu đang chạy phiên cũ của `serve.py`, hãy khởi động lại máy chủ để nạp API nhận xét.
 
 Trên GitHub Pages, bấm **Gửi qua GitHub** trong bảng nhận xét để xem trước góp ý, rồi bấm **Mở GitHub Issue**. Người đọc kiểm tra và gửi issue bằng tài khoản GitHub của họ. Với góp ý dài, nút **Sao chép góp ý** cho phép dán toàn bộ nội dung vào issue. Bản xuất chỉ chứa mã web và tài liệu. Các file nhận xét cục bộ nằm ngoài thư mục xuất bản. [Cách GitHub điền sẵn nội dung issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-an-issue#creating-an-issue-from-a-url-query)
 
 Web dùng URL GitHub Pages mặc định để xác định repo nhận góp ý. Với tên miền riêng hoặc repo nhận góp ý khác, đặt đích khi xuất. Bật **Issues** trong repo đích để người đọc có thể gửi.
 
 ```sh
-SPEC_WEB_GITHUB_REPOSITORY=owner/repo node spec-web/build-static.cjs
+SPEC_WEB_GITHUB_REPOSITORY=owner/repo node web/build-static.cjs
 ```
 
 ## Quy trình nội dung song ngữ
@@ -76,7 +77,7 @@ Thẻ và trình xem hiển thị mã phiên bản hiện tại của cả hai f
 Sau khi cập nhật và kiểm tra bản tiếng Anh theo bản tiếng Việt, chạy lệnh sau từ thư mục dự án để ghi nhận cặp mới. Thay `adas-function-specification` bằng ID tài liệu cần xác nhận.
 
 ```sh
-python3 spec-web/confirm-translation.py adas-function-specification
+python3 web/confirm-translation.py adas-function-specification
 ```
 
 Sửa bản Việt sẽ báo **Cần cập nhật EN**. Nếu chỉ sửa bản Anh, web báo **Cần đối chiếu EN** cho đến khi cặp mới được ghi nhận. Trạng thái phản ánh cặp file đã được người biên soạn kiểm tra.

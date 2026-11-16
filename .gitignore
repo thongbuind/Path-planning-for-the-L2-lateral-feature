@@ -15,11 +15,11 @@ venv/
 
 # Local build output
 /build/
-/spec-web/dist/
-/spec-web/.dist-*/
+/web/dist/
+/web/.dist-*/
 
 # Local project files
 /CLAUDE.md
 /docs/reference/
-/spec-web/data/review-comments/
+/web/data/review-comments/
 /tmp_present/

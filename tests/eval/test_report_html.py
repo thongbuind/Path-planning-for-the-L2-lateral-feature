@@ -151,6 +151,27 @@ def test_b0_evidence_is_written(tmp_path):
     assert 'Chưa ghi nhận cho lượt chạy này' in main
 
 
+def test_b6_summary_keeps_full_metrics_and_evidence_in_details(tmp_path):
+    records = [_record("c1", ["B6"]), _record("c2", ["B6"])]
+    records[1]["result"]["targets"][0]["value"] = 0.8
+    records[0]["result"]["targets"].append({"id": "PP-SWR-002", "metric": "a_y", "value": 1.2, "unit": "m/s²"})
+    folder = tmp_path / "s"
+    _suite(folder, records, [_case("c1", "S1"), _case("c2", "S4")])
+    out = report_html.write(folder)
+    main = out.read_text(encoding="utf-8")
+    slide = main.split('<section class="page" id="B6">', 1)[1].split('</section>', 1)[0]
+    details = out.with_name("report-details.html").read_text(encoding="utf-8")
+    assert "2 lượt trong bộ Comfort" in slide and "2 lần đo" in slide and "1 lần đo" in slide
+    assert "0,5 s" in slide and "0,8 s" in slide
+    assert 'report-details.html#b6-data' in slide and 'id="b6-data"' in details
+    assert 'id="run-c2-1"' in details and 'id="run-c1-1"' in details
+
+
+def test_comfort_chart_displays_scenario_name():
+    chart = report_html.comfort_bars([("S17: Tài xế chuyển làn", [0.1, 0.5], 0.5)], "m/s³")
+    assert ">S17: Tài xế chuyển làn</text>" in chart
+
+
 def test_english_report_localizes_legacy_run_data(tmp_path):
     folder = tmp_path / "s"
     case = _case("c1", "S1")

@@ -358,9 +358,9 @@ def run_figure(log, result, path: Path) -> Path:
     axes[3].set_yticks([0, 1, 2, 3], ["NONE", "HWA", "LKA", "ELK"])
     axes[3].set_ylabel("Chức năng")
     axes[4].plot(t_c, cont)
-    axes[4].axhline(metrics.CONTINUITY_LATERAL_M, color="red", linestyle="--", label="ngưỡng PP-SWR-100")
+    axes[4].axhline(1.0, color="red", linestyle="--", label="ngưỡng PP-SWR-100")
     axes[4].legend(fontsize=7)
-    axes[4].set_ylabel("Lệch hai path [m]")
+    axes[4].set_ylabel("Lệch ngang hai path / ngưỡng")
     axes[4].set_xlabel("t [s]")
     # Function changes and fault windows on every panel.
     changes = [t_c[i] for i in range(1, len(func)) if func[i] != func[i - 1]]

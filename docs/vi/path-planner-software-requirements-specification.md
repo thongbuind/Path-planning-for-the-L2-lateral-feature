@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.20 |
+| Phiên bản | 1.22 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-14 |
+| Cập nhật | 2026-11-16 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -228,9 +228,9 @@ Không có mốc cắt thời lượng. Một lần LKA hoặc ELK kết thúc k
 
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
-| PP-SWR-100 | Trong khi `path_valid = true`, lệch ngang giữa hai path liên tiếp phải ≤ 0,05 m | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | đề bài |
-| PP-SWR-101 | Trong khi `path_valid = true`, lệch hướng giữa hai path liên tiếp phải ≤ 0,005 rad | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | đề bài |
-| PP-SWR-102 | Trong khi `path_valid = true`, lệch độ cong giữa hai path liên tiếp phải ≤ 0,0003 1/m | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | đề bài |
+| PP-SWR-100 | Trong khi `path_valid = true`, lệch ngang giữa hai path liên tiếp phải ≤ 0,05 m ở đoạn 0–1 s, ≤ 0,1 m ở đoạn 1–2 s, ≤ 0,2 m sau 2 s của path | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | nhóm tự thống nhất (0–2 s); mentor (sau 2 s) |
+| PP-SWR-101 | Trong khi `path_valid = true`, lệch hướng giữa hai path liên tiếp phải ≤ 0,005 rad ở đoạn 0–1 s, ≤ 0,01 rad ở đoạn 1–2 s, ≤ 0,02 rad sau 2 s của path | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | nhóm tự thống nhất (0–2 s); mentor (sau 2 s) |
+| PP-SWR-102 | Trong khi `path_valid = true`, lệch độ cong giữa hai path liên tiếp phải ≤ 0,0003 1/m ở đoạn 0–1 s, ≤ 0,0006 1/m ở đoạn 1–2 s, ≤ 0,0012 1/m sau 2 s của path | Test: mọi kịch bản, mọi lỗi | Safety, SG-04 | nhóm tự thống nhất (0–2 s); mentor (sau 2 s) |
 | PP-SWR-110 | Trong khi LKA đang lái, a_y của path phải ≤ 3,0 m/s² | Test: S4, S4b | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-111 | Trong khi ELK đang lái, a_y của path phải ≤ 4,0 m/s² | Test: S5, S6, S7, S8, S8b (c, d, e) | Safety, SG-01 | nhóm tự thống nhất |
 | PP-SWR-112 | Trong khi LKA đang lái, a_y thêm vào phải ≤ 1,5 m/s² | Test: S4, S4b | Safety, SG-01 | nhóm tự thống nhất |
@@ -351,3 +351,5 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.18 | 2026-11-14 | Thêm PP-SWR-092: không bắt đầu LKA, ELK vạch về phía có vạch làn mình không đủ tin. Lý do: EU 2021/646 không đòi ELKS khi không có vạch; hệ thống trên xe bán ra không can thiệp về phía không nhận ra vạch; hành vi này trước chỉ có ở Software Detailed Design (PP-PR-038). Ảnh hưởng: Software Qualification Test Specification 5 (F04), 8.1; Software Detailed Design T9; bên chấm |
 | 1.19 | 2026-11-14 | PP-SWR-129, 130: counter nhảy trong MaxDeltaCounter thì dùng message (như không lỗi), quá giới hạn hoặc đứng yên thì như mất message. Lý do: PP-PR-035, câu cũ hiểu được theo hai cách; theo trạng thái của AUTOSAR E2E Profile 5. Ảnh hưởng: Interface Control Document 1.11 mục 3, 4; Software Detailed Design T1; F15 (thêm g); bên chấm |
 | 1.20 | 2026-11-14 | PP-SWR-032: báo COMPLETED trong tối đa 0,5 s sau khi điều kiện giữ đủ `T_end_hold`, thay cho đúng tick. Lý do: PP-TS-018 V1; planner chỉ thấy trạng thái ước lượng nên không báo được đúng tick của chuyển động thật; báo sớm vẫn trượt PP-SWR-090. Ảnh hưởng: PP-SWR-032; S4, S5, S12, S13 |
+| 1.21 | 2026-11-16 | PP-SWR-100 đến 102 nới theo mentor: 0,05 → 0,2 m, 0,005 → 0,02 rad, 0,0003 → 0,0012 1/m (cùng hệ số 4); nguồn đổi từ đề bài sang mentor. Lý do: mentor nới SWR-100 lên 0,2 m, 101 và 102 nới tương ứng. Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Software Qualification Test Specification 8.1, Software Detailed Design T4, Software Architectural Design A.3; PP-SWR-039, 040 (0,05 m) giữ nguyên, không còn trùng ngưỡng với 100 |
+| 1.22 | 2026-11-16 | PP-SWR-100 đến 102 chia ba đoạn theo thời gian trên path: 0–1 s giữ 0,05 m, 0,005 rad, 0,0003 1/m; 1–2 s gấp đôi; sau 2 s theo mentor (SRS 1.21). Lý do: controller nhìn trước trong đoạn đầu (PP-ASM-021); ở 25 m/s, lệch 0,2 m tại 15 m làm a_y nhảy khoảng 1,1 m/s² trong một chu kỳ, 0,05 m khoảng 0,28 m/s² (PP-TS-019). Ảnh hưởng: như 1.21; Software Qualification Test Specification 8.1, Software Detailed Design T4, Software Architectural Design A.3, Mentor Report |

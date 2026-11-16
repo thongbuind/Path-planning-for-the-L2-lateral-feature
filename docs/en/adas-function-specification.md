@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `ADAS-FS` |
-| Version | 1.7 |
+| Version | 1.8 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-12 |
+| Last updated | 2026-11-13 |
 
 ## 1. Purpose and scope {#adas-scope}
 
@@ -86,7 +86,7 @@ v: speed; v_y: lateral velocity at the rear axle center; r: yaw rate; x_f: wheel
 2. Predict longitudinal positions at constant velocity.
 3. Conflict window: [TLC, TLC + `t_conflict`].
 4. The adjacent lane is unsafe if, during the window, an object lies inside the box around the ego vehicle body, extended at each end by `box_margin`.
-5. If the driver signals a lane change, ELK intervenes only when a vehicle approaching from behind cannot brake in time, meaning any of three conditions holds: the other vehicle is alongside (box extended by `abreast_margin` during [TLC, TLC + 1 s]); its TTC to the rear of the ego vehicle is ≤ `ttc_rear`; or it needs a deceleration Δv² / (2·distance) > `decel_rear`. Otherwise, warn only. The Euro NCAP test with the turn indicator active is the alongside case, so it still passes.
+5. If the driver signals a lane change, ELK intervenes only when a vehicle approaching from behind cannot brake in time, meaning any of three conditions holds: the other vehicle is alongside (box extended by `abreast_margin` during [TLC, TLC + 1 s]); its TTC to the rear of the ego vehicle is ≤ `ttc_rear`; or it needs a deceleration Δv² / (2·distance) > `decel_rear`. Evaluate all three conditions every cycle until the front tyre crosses more than 0.3 m beyond the marking (Section 11, row 4), because the gap to a following vehicle can continue to close after marking contact. Otherwise, warn only. The Euro NCAP test with the turn indicator active is the alongside case, so it still passes.
 
 ## 7. Availability conditions {#adas-availability}
 
@@ -309,3 +309,4 @@ Most noise comes from c1 multiplied by speed. With `k_sigma` = 2, confirming the
 | 1.5 | 2026-11-12 | Section 7 adds the HWA lookahead-time condition with a hold period. Section 13 adds `t_view_hwa` and `t_view_hold` |
 | 1.6 | 2026-11-12 | Section 13 sets `t_view_hwa` ≥ 0.7 s under PP-ASM-021, with a sweep range of 0.7–1.5 s |
 | 1.7 | 2026-11-12 | Sections 7 and 13 replace `view_min` (20 m) with `t_view_min` (default 1.0 s, minimum 0.7 s) to give the controller enough observed path at every speed (PP-ASM-021) |
+| 1.8 | 2026-11-13 | Section 6, step 5: evaluate the following-vehicle conditions every cycle until the front tyre has crossed more than 0.3 m beyond the marking (PP-PR-027) |

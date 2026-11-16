@@ -1,7 +1,8 @@
 /*
  * Chuyển Markdown <-> HTML cho trang tài liệu. Chỉ hỗ trợ phần Markdown mà tài liệu dùng:
  * tiêu đề #..###, đoạn văn, danh sách - và 1., bảng kiểu GitHub, **đậm**, *nghiêng*,
- * `code`, [link](url), xuống dòng cứng (hai dấu cách cuối dòng), ký tự thoát \x, ---.
+ * `code`, [link](url), hình PNG từ research/studies, xuống dòng cứng (hai dấu cách cuối dòng
+ * hoặc " <br> " trong ô bảng), ký tự thoát \x, ---.
  * Không dùng thư viện ngoài, để web chạy được khi offline.
  *
  * toHtml(md)  : chuỗi Markdown -> chuỗi HTML (chạy được cả trong Node để kiểm tra).
@@ -23,12 +24,13 @@
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  function inline(src) {
+  function inline(src, tableCell) {
     var slots = [];
     function keep(html) { slots.push(html); return "\u0000" + (slots.length - 1) + "\u0000"; }
     var s = src
       .replace(/\\([\\`*_{}\[\]()#+\-.!|>~])/g, function (_, ch) { return keep(esc(ch)); })
       .replace(/`([^`]+)`/g, function (_, c) { return keep("<code>" + esc(c) + "</code>"); });
+    if (tableCell) s = s.replace(/ <br> /g, function () { return keep("<br data-md-break>"); });
     s = esc(s)
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, t, u) {
         return /^(https?:|mailto:|\.|\/|#)/.test(u) || !/:/.test(u) ? '<a href="' + u + '">' + t + "</a>" : t;
@@ -57,7 +59,7 @@
       return '<span class="tag tag-' + TAGS[key] + '" contenteditable="false" data-md="' + esc(text.trim()) + '">' +
         esc(text.trim().charAt(0).toUpperCase() + text.trim().slice(1)) + "</span>";
     }
-    return inline(text);
+    return inline(text, true);
   }
 
   function paraHtml(lines) {
@@ -70,6 +72,7 @@
   var RE_UL = /^(\s*)[-*+]\s+(.*)$/;
   var RE_OL = /^(\s*)\d+[.)]\s+(.*)$/;
   var RE_SEP = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
+  var RE_STUDY_FIGURE = /^!\[([^\]]+)\]\(\.\.\/\.\.\/(research\/studies\/PP-TS-\d{3}-[a-z0-9-]+\/[a-z0-9][a-z0-9-]*\.png)\)$/i;
 
   function heading(line) {
     var h = /^(#{1,3})\s+(.*?)\s*#*\s*$/.exec(line);
@@ -94,6 +97,13 @@
         continue;
       }
       if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) { out.push("<hr>"); i++; continue; }
+      var figure = RE_STUDY_FIGURE.exec(line.trim());
+      if (figure) {
+        out.push('<p><a data-study-figure href="' + figure[2] + '" target="_blank" rel="noopener" contenteditable="false">' +
+          '<img src="' + figure[2] + '" alt="' + esc(figure[1]) + '" loading="lazy"></a></p>');
+        i++;
+        continue;
+      }
       if (/^\s*\|/.test(line) && i + 1 < lines.length && RE_SEP.test(lines[i + 1])) {
         var head = splitRow(line);
         i += 2;
@@ -171,7 +181,17 @@
       if (n.hasAttribute("data-ui")) return; // phần tử chỉ để hiển thị (ví dụ nút Xem thêm), không ghi vào md
       var t = n.tagName.toLowerCase();
       if (n.classList.contains("tag")) { out += n.getAttribute("data-md") || n.textContent; return; }
-      if (t === "br") { out += ctx.table ? " " : "  \n"; return; }
+      if (t === "br") {
+        if (ctx.table) out += n.hasAttribute("data-md-break") ? " <br> " : " ";
+        else out += "  \n";
+        return;
+      }
+      if (t === "a" && n.hasAttribute("data-study-figure")) {
+        var picture = n.querySelector("img");
+        var md = picture && "![" + picture.getAttribute("alt") + "](../../" + n.getAttribute("href") + ")";
+        if (md && RE_STUDY_FIGURE.test(md)) out += md;
+        return;
+      }
       var inner = inlineMd(n, ctx);
       var st = n.getAttribute("style") || "";
       if (t === "b" || t === "strong" || /font-weight:\s*(bold|[6-9]00)/.test(st)) out += wrap("**", inner);

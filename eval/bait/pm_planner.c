@@ -10,7 +10,7 @@
  * function, phase ACTIVE until the car is back near the centre, then COMPLETED while the
  * request stays. Each PM_xx define adds one fault:
  *
- *   PM_01  0.1 m lateral step added to the path every 40 cycles
+ *   PM_01  0.3 m lateral step added to the path every 40 cycles
  *   PM_02  no a_y limit
  *   PM_03  path_valid stays true when ego-motion is invalid
  *   PM_04  path_valid = false whenever HWA is in REQUEST
@@ -292,7 +292,7 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
                 : 0.0F;
 #ifdef PM_01
             if (s->cycles % 40U == 0U) {
-                p->pose.y += 0.1F;
+                p->pose.y += 0.3F;
             }
 #endif
         }

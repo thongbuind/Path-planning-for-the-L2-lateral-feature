@@ -3,11 +3,11 @@
 | Field | Value |
 |---|---|
 | Document ID | `PP-SDD` |
-| Version | 1.9 |
+| Version | 1.20 |
 | Status | BL1 |
 | Author | thongbui |
 | Reviewer | thongbui |
-| Last updated | 2026-11-13 |
+| Last updated | 2026-11-16 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -53,7 +53,7 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 
 | Step | Action |
 |---|---|
-| 1 | Input check: discard messages with an invalid CRC or repeated counter; record a loss when the counter skips; treat `valid = false` as not received. Input is invalid if it exceeds the timeout, age > 250 ms, or its timestamp is > 10 ms in the future. Log age > 170 ms (PP-SWR-131 to 134). If any LongitudinalPlan point has a `v` or `a` outside the range in Interface Control Document 5.7, including NaN or infinity, discard the entire message. T11 uses the current speed and zero acceleration (PP-SWR-154, 156) |
+| 1 | Input check: the receiving layer checks CAN frames (discard invalid CRCs and repeated counters; record losses when counters skip). Check pub/sub counters per Interface Control Document Section 4; accepted messages replace the retained message, while discarded messages and `valid = false` are treated as lost and the previous message is retained. Input is invalid if it exceeds the timeout, age > 250 ms, or its timestamp is > 10 ms in the future. Log age > 170 ms (PP-SWR-131 to 134). If any LongitudinalPlan point has a `v` or `a` outside the range in Interface Control Document 5.7, including NaN or infinity, discard the entire message. T11 uses the current speed and zero acceleration (PP-SWR-154, 156) |
 | 2 | Take the latest LaneModel with timestamp t_c. Query ego-motion from t_c to t0. If invalid, set `path_valid = false` (PP-SWR-143) |
 | 3 | For each marking and road edge, sample y(x) every 1 m within the visible range. Transform the samples to `base_link` at t0 using p_new = R(−Δψ)·(p_old − [Δx, Δy]). Refit a degree-3 polynomial by least squares and shift the visible range by Δx |
 | 4 | Between camera frames, repeat steps 2–3 with the latest frame. Do not carry over the polynomial transformed in the previous cycle (PP-SWR-128) |
@@ -68,7 +68,7 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 | 1 | Check each boundary for consistency (table below). A boundary is reliable if it satisfies the conditions in Software Requirements Specification Section 4 and is consistent |
 | 2 | If both L1 and R1 are reliable, lane center = (y_L1 + y_R1) / 2. Update w_mem and all o_k using a low-pass filter with time constant `tau_mem`, only when the measured width is within 2.5–5.5 m; reset σ_o,k = `sigma_mem0` |
 | 3 | If only one of L1 and R1 is reliable, lane center = that boundary ∓ w_mem/2. Do not update the stored values |
-| 4 | If neither ego-lane marking is reliable but other reliable boundaries remain, each boundary supplies a candidate center y_k − o_k. Fuse the coefficients using weights 1 / (σ_c0,k² + σ_o,k²). Set the inferred-center flag (PP-SWR-047). Increase σ_o,k² by `q_mem` per second |
+| 4 | If neither ego-lane marking is reliable but other reliable boundaries remain, each boundary supplies a candidate center y_k − o_k. Fuse the coefficients using weights 1 / (σ_c0,k² + σ_o,k²). Set the inferred-center flag (PP-SWR-047). Increase σ_o,k² by `q_mem` per second. If an ego-lane marking was rejected only by the consistency check (not lost and still reliable under SRS Section 4), perform step 5 first and infer the center only after `T_coast` expires |
 | 5 | If no reliable boundary remains, including when the lane model is invalid, follow the previous reference line transformed by ego-motion for up to `T_coast`. Stitch to the previous path through T4. Then set `path_valid = false` |
 | 6 | The reference line's lane boundaries are the lane center ± w/2, used for clearance (T8) and the corridor (T7). Free space on each side = (w − `vehicle_width`) / 2; if below `free_space_min`, set `lane_too_narrow = true` |
 
@@ -77,10 +77,11 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 | Time scale | Check | Inconsistent when |
 |---|---|---|
 | Frame by frame | At x = 0, compare the new boundary with its stored value, transformed by ego-motion each cycle | c0 difference > `k_jump`·√(σ_new² + σ_old²) |
+| Frame by frame: shape | As above, at 50% and 75% of the common view range of the two frames | y(x) difference > `k_jump`·σ(x), where σ(x)² = Σₖ (σ²ₖ,new + σ²ₖ,old)·x²ᵏ over coefficients c0–c3 (PP-TS-001) |
 | Slow: parallelism | Difference between the c1 values of the two ego-lane boundaries, low-pass filtered with `tau_mem` | Difference > `parallel_max`; reject the boundary whose heading changed relative to its own history |
 | Slow: width | Measured lane width against w_mem | Difference > `width_dev_max` for longer than `T_confirm` |
 
-- Reject inconsistent boundaries and retain the stored value. The new position becomes a candidate. Accept it as a genuine change once it remains consistent with itself for `T_confirm`. Keep the previous position for another `T_confirm` and accept an immediate return to it during that period.
+- Reject inconsistent boundaries and retain the stored value. The new position becomes a candidate. Accept it as a genuine change once it remains consistent with itself for `T_confirm`. If a candidate exists and a frame is consistent with the stored boundary, accept the frame and retain the previous stored boundary as the old position as after a change. The stored boundary is transformed only by ego-motion, so the shared view range shrinks and the shape check weakens over time. Keep the old position for another `T_confirm` and accept an immediate return to it during that period.
 
 **Accepting genuine changes to the lane**
 
@@ -102,10 +103,10 @@ Notation: s is the longitudinal coordinate along the reference line, d is the la
 | Step | Action |
 |---|---|
 | 1 | Transform the previous cycle's path into `base_link` at t0 using ego-motion. A path older than the Trajectory timeout (75 ms) is invalid |
-| 2 | Initial state (d, ḋ, d̈) = the previous path's state at t0, expressed relative to the new reference line. If the measured state (T6) differs by more than `stitch_reset`, use it instead. Always use the measured state when LKA or ELK starts (PP-SWR-080) |
-| 3 | T7 generates a candidate path from the initial state |
-| 4 | Project to satisfy the continuity limits. Find the maximum differences in lateral offset Δd, heading Δψ, and curvature Δκ between the candidate and previous paths over their shared time interval. Use only points with x ≤ the reference line's `view_end`, or the entire path when following the previous reference line. λ = min(1, `cont_margin`·0.05/Δd, `cont_margin`·0.005/Δψ, `cont_margin`·0.0003/Δκ). Published path = previous path + λ·(candidate path − previous path) |
-| 5 | Skip step 4 when PP-SWR-031 permits it (LKA or ELK starts after the vehicle has deviated) and when the previous path is invalid |
+| 2 | Initial state (d, ḋ, d̈) = the previous path's state at t0, expressed relative to the new reference line. If the measured state (T6) differs by more than `stitch_reset`, use it instead. Always use the measured state when LKA or ELK starts (PP-SWR-080), during `driver_override`, and on the first cycle after it becomes false (PP-SWR-039, 040). If no FunctionRequests message is usable, retain the value from the last usable message |
+| 3 | T7 generates a candidate path from the initial state. For HWA, T10 step 2 clips the candidate before step 4 |
+| 4 | Project to satisfy the continuity limits. Find the maximum differences in lateral offset Δd, heading Δψ, and curvature Δκ between the candidate and previous paths over their shared time interval. Use only points with x ≤ the reference line's `view_end`, or the entire path when following the previous reference line. λ = min(1, `cont_margin`·0.05/Δd, `cont_margin`·0.005/Δψ, `cont_margin`·0.0003/Δκ), using the strictest PP-SWR-100 to 102 limits (the 0–1 s segment). Published path = previous path + λ·(candidate path − previous path) |
+| 5 | Skip step 4 when PP-SWR-031 permits it (LKA or ELK starts after the vehicle has deviated) when the previous path is invalid, and while `driver_override = true` (PP-TS-017) |
 
 - Step 2 finds the previous path point at t0 with Hermite interpolation using the tangent directions. Chord interpolation cuts inside the curve by κ·L²·f(1−f)/2 and pulls the initial point inward each cycle.
 - Step 4 blends the 31 Cartesian points using the measurement convention in PP-SWR-100 to 102.
@@ -139,13 +140,14 @@ The planner computes the lateral state independently of the ADAS Functions modul
 | Function | Target d | Duration |
 |---|---|---|
 | HWA lane keeping | T8 offset (0 when no large vehicle is present) | `T_hwa` |
-| HWA recentering | 0 | `T_recenter`. Start when HWA is in REQUEST and was not in control on the previous cycle. End when lateral offset is ≤ `recenter_done` or HWA leaves REQUEST |
+| HWA recentering | 0 | `T_recenter`. Start when HWA is in REQUEST and was not in control on the previous cycle, or when driver override ends. End when lateral offset is ≤ `recenter_done` or HWA leaves REQUEST |
+| HWA during driver override | Current vehicle lateral offset: path parallel to the lane without pulling the vehicle back (PP-TS-017) | `T_recenter`. Transition to HWA recentering when override ends |
 | LKA | Point where DLC on the drift side = `dlc_target_lka`, constrained between the lane center and that side | Start from `T_lka` |
 | ELK | Within the corridor defined by the hazard-side boundary, at least `dlc_target_lka` from that boundary if space allows | Start from `T_elk` |
 
-LKA and ELK use technique A in both builds. When T9 selects a new intervention, T7 builds a quintic from the measured state (PP-SWR-080). If the initial path fails the checks, T7 tests durations on the `intervention_T_step` grid. The maximum duration is the time remaining in the 10 s since receiving REQUEST (PP-SWR-083).
+LKA and ELK use technique A in both builds. When T9 selects a new intervention, T7 builds a quintic from the measured state (PP-SWR-080). If the initial path fails the checks, T7 tests durations on the `intervention_T_step` grid up to `intervention_T_max`.
 
-- Evaluate the a_y, added a_y, and jerk limits in PP-SWR-110 to 115. Prefer candidates that meet the limits and reduce front-tire encroachment beyond the corridor. When the vehicle is drifting out, TLC reduces the projected remaining clearance to the boundary. T10 checks the path after blending it with the previous path.
+- Evaluate the a_y, added a_y, and jerk limits in PP-SWR-110 to 115. A candidate meets the limits if T10 step 2 does not clip it; use a clipped candidate only if no other candidate is available. Among these, prefer the candidate that reduces front-tire encroachment beyond the corridor. When the vehicle is drifting out, TLC reduces the projected remaining clearance to the boundary. T10 checks the path after blending it with the previous path.
 - Keep the quintic coefficients and start time throughout the intervention. Each cycle, sample at the elapsed time using the current reference line. After the quintic duration, the lateral samples hold the target with zero lateral velocity until T9 completes or cancels the intervention.
 - For road-edge ELK, construct the reference line from the hazard-side edge and a reliable opposite boundary. If the opposite boundary is lost, reuse the stored lane width if the edge remains MEASURED and matches the previously associated edge after ego-motion compensation. A measured marking outside the ego lane on the same side disqualifies the edge as an ego-lane corridor boundary (PP-SWR-047).
 
@@ -179,7 +181,7 @@ LKA and ELK each retain their phase, time of receipt of REQUEST, side, ELK reaso
 | 1 | Check the FunctionRequests timeout from receipt. After 75 ms, invalidate the path in both PathStatus and Trajectory (PP-SWR-145) |
 | 2 | When a function leaves REQUEST, clear its phase and inhibit flag. On receipt of a new ELK REQUEST, block the request if the front tire has crossed the requested-side marking by more than 0.3 m (PP-SWR-089) |
 | 3 | During an ACTIVE intervention, evaluate completion from the DLC on both sides, v_lat, heading error, and the magnitude of added a_y on the path in use at t0. Extrapolate v_y to t0 linearly from the two latest valid VehicleStateEstimate messages. Set COMPLETED once the conditions hold continuously for `T_end_hold`. Hold the phase until the function leaves REQUEST (PP-SWR-032, 041, 090) |
-| 4 | Select among eligible REQUESTs in order ELK > LKA > HWA. LKA and ELK need reliable boundaries per PP-SWR-047. A new intervention requires valid v_y. If only v_y is lost during an intervention, continue sampling its quintic (PP-SWR-046). Cancel if eligibility is lost or the PP-SWR-083 time limit is reached |
+| 4 | Select among eligible REQUESTs in order ELK > LKA > HWA. LKA and ELK need reliable boundaries per PP-SWR-047. A new LKA or marking-based ELK intervention requires a reliable ego-lane marking on the requested `side`, not rejected by T2, with a reference line that is neither coasting nor inferred (PP-SWR-092). A new intervention requires valid v_y. If only v_y is lost during an intervention, continue sampling its quintic (PP-SWR-046). Cancel if eligibility is lost. There is no duration cutoff |
 | 5 | On completion or cancellation, select the next function in the same cycle. If no candidate remains, report NONE and keep a valid handover path when inputs allow. Road-edge ELK still evaluates the direct-boundary corridor on the tick that receives OFF. Blend with T4 per PP-SWR-031, 036, 037 |
 | 6 | Report NONE when the path is invalid. Block held intervention REQUESTs until the function leaves REQUEST and requests again (PP-SWR-043, 045) |
 
@@ -194,6 +196,7 @@ The result matches the arbitration state table in Software Architectural Design 
 | 3 | Set `lateral_limit_reached` when the maximum required a_y within the visible range is > aysmax + `delta_ay`; clear it when < aysmax − `delta_ay`. The condition must hold on consecutive cycles for `T_flag` / 2 |
 | 4 | For LateralLimits, κ_max is the largest magnitude of κ(s) within the visible range. `v_max` = √(function's a_y limit / κ_max). `distance` is s at κ_max |
 
+- For HWA, step 2 runs twice: on the candidate before T4 step 4 and on the published path afterwards. A convex combination of feasible paths remains feasible, so the second check only encounters effects of speed changes; T10 does not break continuity after blending (PP-TS-003).
 - Step 2 also clips curvature at point 0 while retaining its position. Jerk is clipped at each 0.1 s step, stricter than the requirement's 0.5 s average. Each limit has a relative margin of 10⁻⁶ to prevent the published float32 value from exceeding it.
 - Steps 3 and 4 use the greater curvature of the camera reference line and T5 as a conservative input for the flag and `v_max` sent to the longitudinal module. The path still follows the T5 curvature.
 
@@ -225,6 +228,7 @@ Supplement to Software Architectural Design Section 11; use the same sweep metho
 | `T_hwa` | s | 3.0 | 2.0–4.0 | T7 |
 | `T_max` | s | 5.0 | 4.0–8.0 | T7 |
 | `intervention_T_step` | s | 0.25 | 0.1–0.5 | T7 A |
+| `intervention_T_max` | s | 10.0 | 5.0–10.0 | T7 A |
 | `recenter_done` | m | 0.1 | 0.05–0.2 | T7 |
 | `d_sample_span`, `d_sample_step` | m | 0.3; 0.05 | 0.2–0.5; 0.025–0.1 | T7 B |
 | `T_set` | s | 1.5 to 4.0, in steps of 0.5 | — | T7 B |
@@ -253,3 +257,14 @@ Supplement to Software Architectural Design Section 11; use the same sweep metho
 | 1.7 | 2026-11-12 | T7 uses quintic paths for LKA and ELK in both builds. T9 tracks separate phases, applies PP-SWR-145 at the output, and reselects a function in the same cycle on completion or cancellation |
 | 1.8 | 2026-11-12 | T4 step 4 considers only the path within the view range (Software Requirements Specification 1.9, PP-TS-014). T11 adds `observed_horizon_s` |
 | 1.9 | 2026-11-13 | T1 step 1 rejects out-of-range LongitudinalPlan messages (PP-SWR-156) |
+| 1.10 | 2026-11-13 | T7 searches intervention durations up to `intervention_T_max`; T9 no longer cancels after 10 s (PP-SWR-083 obsolete, PP-TS-016) |
+| 1.11 | 2026-11-13 | T4 uses the measured state during override and on the first cycle after it, and skips blending during override; T7 targets the current offset then recenters (PP-TS-017, PP-PR-032) |
+| 1.12 | 2026-11-14 | LKA/ELK candidates meet limits if T10 does not clip them; T9 references PP-SWR-092 for starting marking-based interventions (PP-PR-041, 038) |
+| 1.13 | 2026-11-14 | T2 checks frame shape at 50% and 75% of common view using coefficient variance (PP-TS-001, F06); affects PP-SWR-121, 122, 125 |
+| 1.14 | 2026-11-14 | T1 checks pub/sub counters per AUTOSAR E2E Profile 5 and retains the last usable message; `valid = false` is treated as lost (PP-PR-035) |
+| 1.15 | 2026-11-14 | HWA clips the candidate in T10 before T4 blending and checks the published path again (PP-TS-003 V0b; PP-PR-005, 006) |
+| 1.16 | 2026-11-14 | While a candidate exists, a frame closer to the candidate than to memory counts toward the candidate (PP-PR-048); superseded by 1.18 |
+| 1.17 | 2026-11-14 | If consistency checking rejects an ego-lane marking, coast on the previous reference line before inferring a center from outer boundaries (PP-PR-052) |
+| 1.18 | 2026-11-14 | Replaced 1.16: accept a frame consistent with memory while a candidate exists and retain the preceding memory as the old position for R2 (PP-PR-055) |
+| 1.19 | 2026-11-16 | T4 used the SRS 1.21 limits and reduced `cont_margin` to 0.225 to retain the previous blend limits; no run yet supports larger blend limits |
+| 1.20 | 2026-11-16 | T4 uses one λ for the whole path based on the SRS 1.22 0–1 s limits; `cont_margin` returns to 0.9, range 0.7–1.0. Supersedes 1.19; segmented blending is PP-TS-019 option V4 |
