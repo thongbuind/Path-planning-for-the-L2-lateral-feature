@@ -108,8 +108,12 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
     *rejected = false;
 
     if (m->previous.valid) {
+        /* The old position is kept while its observed range, moved by ego-motion, still
+         * reaches the car: until then it can be compared with a new frame. A fixed T_confirm
+         * ended it one cycle before the true line came back from a fault of 2 T_confirm
+         * (PP-PR-057). */
         m->previous.age_s += dt;
-        m->previous.valid = m->previous.age_s <= confirm;
+        m->previous.valid = m->previous.view_end > 0.0;
     }
     if (!line_trusted(b, confidence)) {
         m->absent_s += dt;
@@ -277,7 +281,25 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
                                      &out->line_rejected[1]);
     const pp_reference_line_t *measured_ref = NULL;
 
-    if (left_ok && right_ok) {
+    /* Both lines trusted but the width between them outside the lane widths of the ODD: one
+     * of them is not a line of this lane (misread line, widening lane; PP-SWR-060, 122). With
+     * a remembered width and reference line, keep the line that still gives the remembered
+     * centre and use it alone (step 3); the width memory is not updated (PP-PR-057). */
+    bool use_left = left_ok;
+    bool use_right = right_ok;
+    if (left_ok && right_ok && mem->width_valid && mem->ref_valid) {
+        const double heading = atan(0.5 * (left->poly.c[1] + right->poly.c[1]));
+        const double between = (left->poly.c[0] - right->poly.c[0]) * cos(heading);
+        if ((between < PP_LANE_WIDTH_MIN_M) || (between > PP_LANE_WIDTH_MAX_M)) {
+            const double half = 0.5 * mem->width;
+            const double from_left = fabs((left->poly.c[0] - half) - mem->ref_centre.c[0]);
+            const double from_right = fabs((right->poly.c[0] + half) - mem->ref_centre.c[0]);
+            use_left = from_left <= from_right;
+            use_right = !use_left;
+        }
+    }
+
+    if (use_left && use_right) {
         /* Step 2: centre between L1 and R1; width measured across the lane at x = 0. */
         for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
             out->centre.c[k] = 0.5 * (left->poly.c[k] + right->poly.c[k]);
@@ -294,12 +316,12 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
         if (measured >= PP_LANE_WIDTH_MIN_M && measured <= PP_LANE_WIDTH_MAX_M) {
             measured_ref = out;
         }
-    } else if ((left_ok || right_ok) && mem->width_valid) {
+    } else if ((use_left || use_right) && mem->width_valid) {
         /* Step 3: one ego-lane line, centre half the remembered width inside it. */
-        const pp_boundary_t *line = left_ok ? left : right;
+        const pp_boundary_t *line = use_left ? left : right;
         const double half = 0.5 * mem->width;
         out->centre = line->poly;
-        out->centre.c[0] += left_ok ? -half : half;
+        out->centre.c[0] += use_left ? -half : half;
         out->width = mem->width;
         out->view_start = line->view_start;
         out->view_end = line->view_end;

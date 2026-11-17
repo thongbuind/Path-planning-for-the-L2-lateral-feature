@@ -514,6 +514,80 @@ static void test_coast_ends_after_t_coast(void)
     PP_CHECK(!ref.valid);                                   /* PP-SWR-124 */
 }
 
+static void test_return_after_a_long_fault_is_taken_at_once(void)
+{
+    /* PP-PR-057: a wrong shape on every line for 2 T_confirm (F06 d) is taken after T_confirm
+     * (R1). The old position must still be there when the true shape comes back, also one
+     * cycle later than 2 T_confirm (the lane model latency). */
+    const pp_motion_t forward = {0.625, 0.0, 0.0};          /* 25 m/s, one cycle */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    const int fault = (int)lround(2.0 * (double)pp_calibration.T_confirm / DT) + 4;
+    for (int i = 0; i < fault; i++) {
+        lane = two_lines(3.5, 0.0);
+        lane.boundary[PP_LINE_L1].poly.c[2] = 5.0e-4;       /* F06 d: wrong c2 on every line */
+        lane.boundary[PP_LINE_R1].poly.c[2] = 5.0e-4;
+        pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    }
+    PP_CHECK(ref.valid && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[2], 5.0e-4, 1e-12);          /* wrong shape was taken (R1) */
+    lane = two_lines(3.5, 0.0);                              /* fault ends */
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(!ref.line_rejected[0] && !ref.line_rejected[1]);
+    PP_CHECK(ref.valid && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[2], 0.0, 1e-12);
+}
+
+static void test_old_position_ends_when_its_range_is_behind_the_car(void)
+{
+    /* The old position is evidence only for the road it observed: after the car has driven
+     * past its range, the true shape is a new change again and waits for T_confirm. */
+    const pp_motion_t forward = {0.625, 0.0, 0.0};
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    const int fault = (int)lround(80.0 / 0.625) + 8;        /* drives past the 80 m range */
+    for (int i = 0; i < fault; i++) {
+        lane = two_lines(3.5, 0.0);
+        lane.boundary[PP_LINE_L1].poly.c[2] = 5.0e-4;
+        lane.boundary[PP_LINE_R1].poly.c[2] = 5.0e-4;
+        pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    }
+    lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.line_rejected[0] && ref.line_rejected[1]);
+}
+
+static void test_width_outside_the_odd_keeps_the_stable_line(void)
+{
+    /* PP-PR-057: R1 jumps one lane width out and stays (F03, one line). After T_confirm it
+     * is taken (R1), the two lines are 7 m apart: the centre must stay half the remembered
+     * width inside L1, not move to the middle of the two. */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    lane.boundary[PP_LINE_R1].poly.c[0] -= 3.5;
+    const int cycles = (int)lround(2.0 * (double)pp_calibration.T_confirm / DT);
+    for (int i = 0; i < cycles; i++) {
+        pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+        PP_CHECK(ref.valid);
+        PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-9);
+        PP_CHECK_NEAR(ref.width, 3.5, 1e-9);
+    }
+    PP_CHECK(!ref.line_rejected[1]);                        /* the jumped line was taken */
+    PP_CHECK_NEAR(mem.width, 3.5, 1e-12);
+    lane = two_lines(3.5, 0.0);                              /* R1 back */
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-9);
+}
+
 int main(void)
 {
     test_jump_of_one_line_is_rejected();
@@ -523,6 +597,8 @@ int main(void)
     test_flickering_jump_is_never_accepted();
     test_return_after_a_change_is_taken_at_once();
     test_shape_change_cannot_slip_in_while_the_memory_ages();
+    test_return_after_a_long_fault_is_taken_at_once();
+    test_old_position_ends_when_its_range_is_behind_the_car();
     test_noisy_frame_does_not_hold_back_the_next_one();
     test_slow_drift_within_the_check_is_taken();
     test_centre_between_lines();
@@ -532,6 +608,7 @@ int main(void)
     test_inference_needs_a_known_boundary();
     test_rejected_ego_line_coasts_before_inference();
     test_width_memory_filters_and_rejects();
+    test_width_outside_the_odd_keeps_the_stable_line();
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();
     test_walk_curve();

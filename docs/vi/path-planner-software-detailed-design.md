@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.21 |
+| Phiên bản | 1.23 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-16 |
+| Cập nhật | 2026-11-17 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -66,7 +66,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Bước | Việc |
 |---|---|
 | 1 | Kiểm tính nhất quán từng biên (bảng dưới). Biên đủ tin = đạt điều kiện ở Software Requirements Specification mục 4 và nhất quán |
-| 2 | L1 và R1 cùng đủ tin: tâm làn = (y_L1 + y_R1) / 2. Cập nhật w_mem và mọi o_k bằng lọc thông thấp hằng số thời gian `tau_mem`, chỉ khi bề rộng đo trong 2,5–5,5 m; đặt lại σ_o,k = `sigma_mem0` |
+| 2 | L1 và R1 cùng đủ tin: tâm làn = (y_L1 + y_R1) / 2. Cập nhật w_mem và mọi o_k bằng lọc thông thấp hằng số thời gian `tau_mem`, chỉ khi bề rộng đo trong 2,5–5,5 m; đặt lại σ_o,k = `sigma_mem0`. Bề rộng đo ngoài 2,5–5,5 m khi đã có w_mem và reference line của chu kỳ trước: chỉ dùng vạch cho tâm gần tâm cũ hơn, theo bước 3 (PP-SWR-060, 122) |
 | 3 | Chỉ một trong L1, R1 đủ tin: tâm làn = biên đó ∓ w_mem/2. Không cập nhật bộ nhớ |
 | 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây. Nếu vạch làn mình chỉ bị loại ở kiểm nhất quán (không mất, vẫn đủ tin theo SRS 4), làm bước 5 trước; hết `T_coast` mới suy tâm |
 | 5 | Không còn biên nào đủ tin, kể cả khi lane model không hợp lệ: bám reference line cũ đã dời bằng ego-motion tối đa `T_coast`, path nối tiếp path cũ qua T4; rồi `path_valid = false` |
@@ -81,7 +81,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Chậm: song song | Hiệu c1 của hai biên làn mình, lọc thông thấp `tau_mem` | Lệch > `parallel_max`; biên bị loại là biên đổi hướng so với lịch sử của chính nó |
 | Chậm: bề rộng | Bề rộng đo so với w_mem | Lệch > `width_dev_max` giữ quá `T_confirm` |
 
-- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Khi đang có ứng viên mà frame lại nhất quán với bộ nhớ, frame được nhận và bộ nhớ trước đó được giữ làm vị trí cũ như sau một thay đổi: bộ nhớ chỉ được dời theo ego-motion nên đoạn tầm nhìn chung ngắn dần và phép kiểm hình dạng yếu dần. Sau khi nhận, vị trí cũ được giữ thêm `T_confirm`: biên quay về vị trí cũ thì nhận ngay.
+- Biên không nhất quán thì không dùng, bộ nhớ giữ giá trị cũ. Vị trí mới thành ứng viên; ứng viên nhất quán với chính nó suốt `T_confirm` thì nhận là thay đổi thật. Khi đang có ứng viên mà frame lại nhất quán với bộ nhớ, frame được nhận và bộ nhớ trước đó được giữ làm vị trí cũ như sau một thay đổi: bộ nhớ chỉ được dời theo ego-motion nên đoạn tầm nhìn chung ngắn dần và phép kiểm hình dạng yếu dần. Sau khi nhận, vị trí cũ được giữ chừng nào tầm nhìn của nó, dời bằng ego-motion, còn tới vị trí xe: biên quay về vị trí cũ thì nhận ngay.
 
 **Chấp nhận thay đổi thật của làn**
 
@@ -270,3 +270,5 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.19 | 2026-11-16 | T4 bước 4: ngưỡng của λ theo SRS 1.21 (0,2 m, 0,02 rad, 0,0012 1/m); `cont_margin` 0,9 → 0,225, dải 0,2–1,0, giữ giới hạn trộn cũ 0,045 m, 0,0045 rad, 0,00027 1/m. Lý do: mentor nới PP-SWR-100 đến 102; chưa có lần chạy cho giới hạn trộn lớn hơn |
 | 1.20 | 2026-11-16 | T4 bước 4: một λ cho cả path theo ngưỡng đoạn 0–1 s của SRS 1.22; `cont_margin` trở lại 0,9, dải 0,7–1,0. Thay 1.19. Lý do: PP-SWR-100 đến 102 chia ba đoạn; trộn theo từng đoạn là phương án V4 của PP-TS-019 |
 | 1.21 | 2026-11-16 | T4 bước 2: reset mềm, trạng thái đầu trộn path cũ và trạng thái đo theo độ lệch; thêm `stitch_soft_min` (mục 15). T4 bước 4 giữ một λ. Lý do: PP-TS-021 V7 (20261116-1748-study-PP-TS-021-8726b80); reset nhị phân để xe đứng sát dưới `stitch_reset` (PP-PR-056) hoặc làm path đổi qua lại mỗi chu kỳ khi ngưỡng nhỏ. Ảnh hưởng: PP-SWR-100, 051, target 050; PP-ADR-004 |
+| 1.22 | 2026-11-17 | T2: vị trí cũ được giữ tới khi tầm nhìn của nó, dời bằng ego-motion, không còn tới vị trí xe, thay cho `T_confirm`. Lý do: PP-PR-057; với lỗi dài 2 · `T_confirm` vị trí cũ hết hạn một chu kỳ trước khi hình học đúng quay về (F06 d). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
+| 1.23 | 2026-11-17 | T2 bước 2: bề rộng đo ngoài 2,5–5,5 m thì chỉ dùng vạch cho tâm gần tâm cũ hơn. Lý do: PP-PR-057; một vạch nhận nhầm được nhận sau `T_confirm` kéo tâm làn về giữa hai vạch cách nhau 7 m (F03 a dài 2 s). Ảnh hưởng: PP-SWR-060, 122; T2 |
