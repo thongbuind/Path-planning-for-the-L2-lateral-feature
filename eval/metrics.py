@@ -48,7 +48,8 @@ BODY_OVERHANG_M = 1.0  # Software Qualification Test Specification 8.1: car body
 INTERVENTION_FUNCTIONS = (ActiveFunction.LKA, ActiveFunction.ELK)
 INTERVENTION_LIMITS = {ActiveFunction.LKA: (3.0, 1.5, 5.0),
                        ActiveFunction.ELK: (4.0, 3.0, 10.0)}  # PP-SWR-110 to 115
-ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
+ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-080
+ENTRY_KAPPA = 0.0003  # PP-SWR-049 [1/m]
 MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
 EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
 EPS_DELAY_MAX_S = 0.1  # PP-SWR-091
@@ -1409,6 +1410,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
             issue(ISSUE_NOT_JUDGED, "PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
 
     starts = []
+    start_kappa = []
     opposite_dlcs, completed_dlcs = [], []
     dtle_mark, dtle_edge, dtle_lka = [], [], []
     times_to_complete = {f: [] for f in INTERVENTION_FUNCTIONS}
@@ -1431,6 +1433,11 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         edge = req.elk_reason == ElkReason.ROAD_EDGE
         lka = function == ActiveFunction.LKA
         starts.append(_entry_errors(cycles[episode.start], start_us, truth))
+        if _finite_outputs(cycles[episode.start]):
+            # PP-SWR-049: curvature at point 0 against the curvature the car drives, r / v.
+            i_t = truth.index(start_us)
+            car_kappa = truth.log.yaw_rate[i_t] / max(truth.log.speed[i_t], 1.0)
+            start_kappa.append(abs(float(_points(cycles[episode.start].trajectory)[4][0]) - car_kappa))
         elapsed_s = (stop_us - episode.request.rx_us) * 1e-6  # information; no duration limit (PP-TS-016)
         handover_us = _handover_end_us(truth, stop_us, next_us)
         opposite_dlcs.append(_min_dlc(truth, start_us, handover_us, _opposite(req.side)))
@@ -1469,6 +1476,7 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
 
     upper("PP-SWR-080", "Lệch vị trí ngang tại điểm đầu [m]", [d for d, _ in starts], ENTRY_D_M)
     upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
+    upper("PP-SWR-049", "Lệch độ cong điểm đầu so với xe khi LKA, ELK bắt đầu [1/m]", start_kappa, ENTRY_KAPPA)
     upper("PP-SWR-032", "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện", [late_completion] if end_judged else [], 0)
     upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
     lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
@@ -1777,9 +1785,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     for i in range(1, len(cycles)):
         if valid[i - 1] and valid[i] and finite[i - 1] and finite[i]:
             if i in intervention_starts:
-                d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
-                if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
-                    continue  # PP-SWR-031: exception only at the first tick
+                continue  # PP-SWR-031 (SRS 1.23): first cycle of LKA or ELK, judged by 080 and 049
             if i in override_cycles:
                 continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017): not judged while the driver overrides
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):

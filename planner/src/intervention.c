@@ -8,8 +8,6 @@
 #include "pp_math.h"
 
 #define PP_US_PER_S (1.0e6)
-#define PP_ENTRY_D_M (0.1)        /* PP-SWR-031, 080 */
-#define PP_ENTRY_V_LAT (0.1)      /* PP-SWR-031, 080 */
 #define PP_ELK_LATE_M (0.3)       /* PP-SWR-089 */
 #define PP_MARK_DTLE_ALLOW_M (0.3) /* PP-SWR-086 */
 #define PP_CUT_PENALTY (1.0e3)    /* [m] ranks a candidate T10 would cut after every uncut one */
@@ -180,21 +178,6 @@ bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_st
     return fabs(d_front) <= 0.5 * (ref->width - (double)vehicle->vehicle_width)
            && fabs(v_lat) <= (double)cal->v_lat_end && fabs(ego->heading) <= (double)cal->heading_end
            && fabs(ay_add) <= (double)cal->ay_add_end;                    /* PP-SWR-032, 090 */
-}
-
-bool pp_intervention_start_exception(const pp_reference_line_t *ref,
-                                     const pp_lateral_state_t *ego, const pp_old_path_t *old)
-{
-    if (!old->valid) {
-        return true;
-    }
-    pp_path_sample_t sample;
-    (void)pp_stitch_sample_old(old, 0.0, &sample);
-    pp_ref_point_t foot;
-    double d;
-    pp_ref_project(ref, sample.x, sample.y, &foot, &d);
-    const double v_lat = sample.v * sin(sample.yaw - foot.theta);
-    return (fabs(d - ego->d) > PP_ENTRY_D_M) || (fabs(v_lat - ego->d_dot) > PP_ENTRY_V_LAT);
 }
 
 static void sample_profile(const pp_quintic_t *profile, double elapsed, pp_lateral_path_t *out)

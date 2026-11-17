@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-HARA` |
-| Phiên bản | 1.3 |
+| Phiên bản | 1.4 |
 | Trạng thái | Chờ confirmation review |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-17 |
 
 ## 1. Purpose and scope {#safety-scope}
 
@@ -172,7 +172,7 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | Arbitration theo ưu tiên, chỉ xét chức năng ở REQUEST | SG-01 | PP-SWR-030, 047 |
 | Kiểm tính nhất quán của biên làn | SG-01 | PP-SWR-121, 122, 148 |
 | Giữ hỗ trợ khi chạm giới hạn; bám path cũ tối đa 1 s khi mất biên | SG-02 | PP-SWR-005, 006, 037, 124 |
-| Kiểm liên tục giữa hai path liên tiếp mỗi chu kỳ | SG-04 | PP-SWR-031, 100 đến 102, 126 đến 128 |
+| Kiểm liên tục giữa hai path liên tiếp mỗi chu kỳ | SG-04 | PP-SWR-031, 049, 100 đến 102, 126 đến 128 |
 | Input không hợp lệ thì path không hợp lệ trong một chu kỳ | SG-01, SG-04 | PP-SWR-142, 143, 145 |
 | Path bám vị trí xe khi tài xế ghi đè | SG-05 | PP-SWR-039, 040 |
 | Giới hạn DTLE và khoảng cách tới xe ở làn bên | SG-03 | PP-SWR-086, 088 |
@@ -200,3 +200,4 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | 1.1 | 2026-11-10 | Thêm cách tính E theo tần suất; ghi nguồn FTTI của SG-04, SG-05; safe state của SG-01 không thả mô-men đột ngột; tách open points, thêm câu hỏi về S của HE-03, HE-06; sửa lập luận ASIL của HE-05 |
 | 1.2 | 2026-11-11 | TC-07 theo cách dời tâm mới (PP-ADR-008) |
 | 1.3 | 2026-11-13 | Mục 4: bỏ giới hạn thời lượng 10 s của LKA, ELK; R79 5.1.6.1.2.1 chỉ đòi cảnh báo âm thanh khi quá 10 s. Cắt ở 10 s đi ngược SG-02, SG-03 (PP-TS-016) |
+| 1.4 | 2026-11-17 | Safety mechanism liên tục thêm PP-SWR-049: lúc LKA, ELK bắt đầu, độ cong đầu của path khớp xe (PP-PR-062) |

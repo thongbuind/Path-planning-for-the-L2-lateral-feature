@@ -529,11 +529,14 @@ static void plan_intervention(pp_state_t *s, const pp_arbitration_input_t *arb,
     bool blend = true;
     out->ref = *ref;
     if (out->arbitration.starting) {
+        /* PP-SWR-031, 049: the first cycle starts from the measured state, curvature from the
+         * yaw rate (T6), and is not blended with the path of the previous function: that path
+         * follows the car drifting out (PP-PR-062). */
         const pp_intervention_request_t *req = &s->arbitration.intervention[function - 1U];
         const double tlc = (double)arb->requests->requests[function].tlc;
         pp_intervention_begin(&s->intervention_path, req, tlc, arb->t0_us, ref, ego, speed,
                               limits, &s->vehicle, s->cal, elk);                   /* T7 A */
-        blend = !pp_intervention_start_exception(ref, ego, old);                  /* PP-SWR-031 */
+        blend = false;
     }
     pp_lateral_path_t path;
     pp_intervention_sample(&s->intervention_path, arb->t0_us, &path);

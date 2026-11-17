@@ -113,7 +113,7 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang trong ngưỡng",
              "PP-SWR-115": "Jerk path ELK ≤ 10 m/s³", "PP-SWR-005": "Giữ HWA khi cua gắt hơn aysmax",
              "PP-SWR-062": "Đạt mọi requirement trong toàn ODD",
              "PP-SWR-055": "Dời xa xe lớn khi khoảng hở nhỏ", "PP-SWR-058": "Bắt đầu dời trước khi xe lớn ngang hàng",
-             "PP-SWR-080": "LKA, ELK: điểm đầu path khớp xe", "PP-SWR-018": "observed_horizon_s không quá tầm nhìn",
+             "PP-SWR-080": "LKA, ELK: điểm đầu path khớp xe", "PP-SWR-049": "LKA, ELK: độ cong điểm đầu khớp xe", "PP-SWR-018": "observed_horizon_s không quá tầm nhìn",
              "PP-SWR-130": "Counter nhảy, đứng yên, valid sai, CRC sai: output như ca mất message",
              "PP-SWR-142": "IMU, tốc độ, góc lái không hợp lệ: path_valid = false trong ≤ 1 chu kỳ"}
 def srs_text(lang="vi") -> dict[str, str]:

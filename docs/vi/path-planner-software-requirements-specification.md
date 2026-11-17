@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.22 |
+| Phiên bản | 1.23 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-16 |
+| Cập nhật | 2026-11-17 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -157,7 +157,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
 | PP-SWR-030 | Planner phải chọn chức năng đang lái theo thứ tự ELK > LKA > HWA, chỉ xét chức năng có state = REQUEST | Test: S9 (a) | Safety, SG-01 | nhóm tự thống nhất |
-| PP-SWR-031 | Khi chức năng đang lái đổi, path phải thoả PP-SWR-100 đến 102, trừ lúc LKA hoặc ELK bắt đầu mà xe thật đang lệch khỏi path cũ hơn 0,1 m hoặc 0,1 m/s; khi đó áp PP-SWR-080 | Test: S9, S8c (d) | Safety, SG-04 | đề bài |
+| PP-SWR-031 | Khi chức năng đang lái đổi, path phải thoả PP-SWR-100 đến 102, trừ chu kỳ đầu của mỗi lần LKA hoặc ELK bắt đầu; ở chu kỳ đó áp PP-SWR-080 và 049 | Test: S9, S8c (d) | Safety, SG-04 | đề bài; phạm vi ngoại lệ: nhóm tự thống nhất (PP-PR-062) |
 | PP-SWR-032 | Khi điều kiện kết thúc của LKA hoặc ELK đã giữ liên tục `T_end_hold`, planner phải đặt pha của chức năng đó thành COMPLETED trong tối đa 0,5 s | Test: S4, S5 | Functional | nhóm tự thống nhất (PP-TS-018); can thiệp vẫn dưới mốc 10 s của UN R79 5.1.6.1.2.1 |
 | PP-SWR-033 | Sau COMPLETED, planner phải chọn chức năng đang lái theo PP-SWR-030 trong các chức năng còn ở REQUEST, không tính chức năng vừa COMPLETED; không còn chức năng nào thì chọn NONE | Test: S9 (b) | Functional | nhóm tự thống nhất |
 | PP-SWR-034 | Nếu chức năng vừa COMPLETED vẫn giữ REQUEST, thì planner không được bắt đầu lần can thiệp mới cho chức năng đó cho tới khi state rời REQUEST rồi quay lại | Test: S16 (a, b) | Functional | nhóm tự thống nhất |
@@ -175,6 +175,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | PP-SWR-046 | Nếu VehicleStateEstimate không hợp lệ trong lúc LKA hoặc ELK đang can thiệp, thì planner phải tiếp tục path can thiệp đó tới khi kết thúc | Test: F12 (v_y, trong S5) | Safety, SG-03 | nhóm tự thống nhất |
 | PP-SWR-047 | Trong khi tâm làn chỉ suy được từ biên ngoài làn đang chạy, planner không được chọn LKA hoặc ELK. Ngoại lệ cho ELK mép đường khi biên nguy hiểm của làn đang chạy là mép MEASURED với confidence ≥ `conf_edge` và có biên đối diện đủ tin hoặc bề rộng làn đã nhớ | Test: F21 | Safety, SG-01 | mentor, nhóm làm rõ phạm vi ELK mép đường theo PP-TS-007 |
 | PP-SWR-048 | Nếu FunctionRequests có tuổi (t0 trừ `header.stamp_us`) vượt 45 ms, thì planner phải xử lý như chưa nhận được message đó, kể cả cho thời gian timeout của PP-SWR-145 | Test: Q3 | Safety | Interface Control Document 4 (tuổi tối đa 45 ms) |
+| PP-SWR-049 | Ở chu kỳ đầu của mỗi lần LKA hoặc ELK bắt đầu, độ cong tại điểm đầu của path phải lệch độ cong thật của xe (yaw rate chia tốc độ) không quá 0,0003 1/m | Test: S4, S4b, S5, S6, S7, S8, S9, S16 | Safety, SG-04 | đề bài (chuyển chức năng không tạo bước nhảy ở lệnh lái); ngưỡng bằng đoạn 0–1 s của PP-SWR-102, nhóm tự thống nhất |
 
 ### 8.3 HWA: giới hạn a_y {#req-hwa-lateral-limit}
 
@@ -353,3 +354,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.20 | 2026-11-14 | PP-SWR-032: báo COMPLETED trong tối đa 0,5 s sau khi điều kiện giữ đủ `T_end_hold`, thay cho đúng tick. Lý do: PP-TS-018 V1; planner chỉ thấy trạng thái ước lượng nên không báo được đúng tick của chuyển động thật; báo sớm vẫn trượt PP-SWR-090. Ảnh hưởng: PP-SWR-032; S4, S5, S12, S13 |
 | 1.21 | 2026-11-16 | PP-SWR-100 đến 102 nới theo mentor: 0,05 → 0,2 m, 0,005 → 0,02 rad, 0,0003 → 0,0012 1/m (cùng hệ số 4); nguồn đổi từ đề bài sang mentor. Lý do: mentor nới SWR-100 lên 0,2 m, 101 và 102 nới tương ứng. Ảnh hưởng: mọi requirement dựa vào PP-SWR-100 đến 102 (031, 061, 120 đến 128, 135 đến 139, 148, 149), Software Qualification Test Specification 8.1, Software Detailed Design T4, Software Architectural Design A.3; PP-SWR-039, 040 (0,05 m) giữ nguyên, không còn trùng ngưỡng với 100 |
 | 1.22 | 2026-11-16 | PP-SWR-100 đến 102 chia ba đoạn theo thời gian trên path: 0–1 s giữ 0,05 m, 0,005 rad, 0,0003 1/m; 1–2 s gấp đôi; sau 2 s theo mentor (SRS 1.21). Lý do: controller nhìn trước trong đoạn đầu (PP-ASM-021); ở 25 m/s, lệch 0,2 m tại 15 m làm a_y nhảy khoảng 1,1 m/s² trong một chu kỳ, 0,05 m khoảng 0,28 m/s² (PP-TS-019). Ảnh hưởng: như 1.21; Software Qualification Test Specification 8.1, Software Detailed Design T4, Software Architectural Design A.3, Mentor Report |
+| 1.23 | 2026-11-17 | PP-SWR-031: ngoại lệ áp cho chu kỳ đầu của mọi lần LKA, ELK bắt đầu, bỏ điều kiện xe lệch path cũ quá 0,1 m hoặc 0,1 m/s. Thêm PP-SWR-049: độ cong điểm đầu khớp độ cong thật của xe. Lý do: PP-PR-062; path của chức năng trước bám theo xe đang trôi ra, nên khi xe còn trong dung sai, path ELK bị trộn với path hướng ra ngoài và ELK quay vào muộn (DTLE tới −0,54 m). Đề bài chỉ đòi không có bước nhảy ở lệnh lái. Ảnh hưởng: PP-SWR-031, 049, 080, 100 đến 102; Software Qualification Test Specification 8.1; T4, T7 |

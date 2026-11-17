@@ -47,8 +47,6 @@ bool pp_elk_past_marking(const pp_lane_at_t0_t *lane, pp_side_t side,
 bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_state_t *ego,
                              const pp_old_path_t *old, double v, double v_y, double yaw_rate,
                              const pp_vehicle_config_t *vehicle, const pp_calibration_t *cal);
-bool pp_intervention_start_exception(const pp_reference_line_t *ref,
-                                     const pp_lateral_state_t *ego, const pp_old_path_t *old);
 
 void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_request_t *req,
                            double tlc, uint64_t t0_us, const pp_reference_line_t *ref,

@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.10 |
+| Phiên bản | 1.11 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-16 |
+| Cập nhật | 2026-11-17 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -106,7 +106,7 @@ Ba lớp, dùng path của chính planner làm điểm tựa, không lọc lại
 ### 4.2 Trạng thái đầu của path {#design-initial-state}
 
 - Trajectory stitching (PP-ADR-004): path mới bắt đầu từ điểm tương ứng trên path cũ. Xe càng lệch khỏi path cũ thì điểm đầu càng gần trạng thái đo được: chỉ path cũ dưới `stitch_soft_min`, chỉ trạng thái đo từ `stitch_reset`, chuyển dần ở giữa.
-- Lúc LKA hoặc ELK bắt đầu: luôn từ trạng thái đo được (PP-SWR-080); xe đã lệch khỏi path cũ hơn dung sai của PP-SWR-080 thì không nối với path cũ (PP-SWR-031).
+- Lúc LKA hoặc ELK bắt đầu: từ trạng thái đo được, kể cả độ cong của xe (PP-SWR-080, 049); chu kỳ đầu không trộn với path cũ (PP-SWR-031).
 - Trạng thái ngang đo được (d0, góc lệch, v_lat) do planner tự tính từ input của mình (PP-ADR-014). Khối Chức năng ADAS tự tính theo cùng công thức.
 
 ## 5. Arbitration {#design-arbitration}
@@ -188,7 +188,7 @@ Theo R171 5.3.7.1.1.1 (tốc độ phải chỉnh theo độ cong) và 5.3.7.1.3
 
 | Việc | LKA | ELK | Liên quan |
 |---|---|---|---|
-| Điểm bắt đầu | Trạng thái đo được lúc kích hoạt (mục 4.2) | Như LKA | PP-SWR-031, 080 |
+| Điểm bắt đầu | Trạng thái đo được lúc kích hoạt (mục 4.2) | Như LKA | PP-SWR-031, 049, 080 |
 | Thời lượng | Khởi đầu `T_lka`, chọn theo TLC và giới hạn a_y | Khởi đầu `T_elk`, chọn theo TLC và giới hạn a_y | Target 081, 082 |
 | Đích | Trong làn, DLC phía đã trôi ≥ `dlc_target_lka` | Trong làn, không vọt sang phía đối diện | PP-SWR-084, 085 |
 | Siết biên | Không | Biên phía nguy hiểm siết lại để bánh xe không qua vạch phía đó | PP-SWR-086 |
@@ -366,3 +366,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.8 | 2026-11-16 | A.3: ngưỡng PP-SWR-102 là 0,0012 1/m (SRS 1.21). Lý do: mentor nới PP-SWR-100 đến 102 |
 | 1.9 | 2026-11-16 | A.3: so với ngưỡng đoạn 0–1 s của PP-SWR-102 (SRS 1.22) |
 | 1.10 | 2026-11-16 | Mục 4.2: điểm đầu chuyển dần từ path cũ sang trạng thái đo (PP-ADR-004 D). Mục 11: `stitch_reset` 0,2 → 0,1 m, dải 0,05–0,2 m; thêm `stitch_soft_min`. Lý do: PP-TS-021 V7 (20261116-1748-study-PP-TS-021-8726b80) |
+| 1.11 | 2026-11-17 | Mục 4.2, 7: LKA, ELK bắt đầu từ trạng thái đo, chu kỳ đầu không trộn với path cũ (SRS 1.23, PP-PR-062) |
