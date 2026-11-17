@@ -61,3 +61,4 @@ Lượt nháp 2026-11-17, seed 1, VP-0, thư viện build ngoài cây làm việ
 
 | Run ID | Kết quả |
 |---|---|
+| [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | Không có trượt mới do lần sửa này: trượt mới của lần hồi quy đều do reset mềm (PP-PR-062), kết quả các ca đó giống nhau ở 5a38b6e và 9cc3c8e. F08 b, c hết trượt PP-SWR-100 (9 lượt); phần này có cả ảnh hưởng của ngưỡng ba đoạn |

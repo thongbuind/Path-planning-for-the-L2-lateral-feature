@@ -101,3 +101,4 @@ Lượt nháp, seed 1, VP-0, thư viện build ngoài cây làm việc. Trước
 
 | Run ID | Kết quả |
 |---|---|
+| [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | Phương án A, B: F06 d, F03 c trên S1a còn trượt 051 nhưng DLC từ −1,30…−0,96 m lên −0,60…−0,23 m; trên S1c F03 c −0,54…−0,17 m, F06 d −1,15…−0,73 m. F06 d lúc LKA, ELK hết trượt 086 (4 lượt); F06 b, e trên S1c hết trượt. Cơ chế 2 còn mở (PP-TS-022) |

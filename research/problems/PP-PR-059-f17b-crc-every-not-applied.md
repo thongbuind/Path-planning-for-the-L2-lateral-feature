@@ -37,3 +37,4 @@ Lượt nháp sau khi sửa, S1 c + F17 b, seed 1, VP-0: HWA lái 99,9 % thời 
 
 | Run ID | Kết quả |
 |---|---|
+| [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | F17 b trên S1c hết trượt PP-SWR-051 (3 lượt) |
