@@ -7,6 +7,8 @@
 
 #define PP_SAMPLE_STEP_M (1.0)        /* Software Detailed Design 4, step 3 */
 #define PP_MAX_FIT_SAMPLES (256U)     /* Bounds the work per boundary */
+#define PP_MIN_FIT_RANGE_M (3.0)      /* Shorter ranges are not refitted (latency.h) */
+#define PP_RANGE_TOLERANCE_M (1.0e-9)
 
 typedef struct {
     double c[PP_CUBIC_TERMS];
@@ -34,13 +36,18 @@ bool pp_cubic_move(const pp_cubic_t *in, double x_start, double x_end, const pp_
     const double range = x_end - x_start;
     double step = PP_SAMPLE_STEP_M;
     uint32_t samples = PP_MAX_FIT_SAMPLES;
-    const double wanted = floor(range / step) + 1.0;
-    bool ok = (range > 0.0) && (isfinite(range) != 0);
+    const double whole = floor(range / step);
+    /* The last sample is always x_end, so the moved range ends where the observed one does.
+     * Ending at the last whole step lost up to one step per call: 1 m in every cycle while
+     * the car yaws, for a cubic moved cycle after cycle (PP-PR-058). */
+    bool end_sample = false;
+    bool ok = (isfinite(range) != 0) && (range >= (PP_MIN_FIT_RANGE_M - PP_RANGE_TOLERANCE_M));
     if (ok) {
-        if (wanted > (double)PP_MAX_FIT_SAMPLES) {
+        if ((whole + 2.0) > (double)PP_MAX_FIT_SAMPLES) {
             step = range / (double)(PP_MAX_FIT_SAMPLES - 1U);
         } else {
-            samples = (uint32_t)wanted;
+            samples = (uint32_t)whole + 1U;
+            end_sample = (range - (whole * step)) > PP_RANGE_TOLERANCE_M;
         }
 
         const double c = cos(motion->dyaw);
@@ -50,8 +57,9 @@ bool pp_cubic_move(const pp_cubic_t *in, double x_start, double x_end, const pp_
 
         double x_min = INFINITY;
         double x_max = -INFINITY;
-        for (uint32_t i = 0U; i < samples; i++) {
-            const double x = x_start + ((double)i * step);
+        const uint32_t total = samples + (end_sample ? 1U : 0U);
+        for (uint32_t i = 0U; i < total; i++) {
+            const double x = (i < samples) ? (x_start + ((double)i * step)) : x_end;
             const double px = x - motion->dx;
             const double py = pp_cubic_value(in, x) - motion->dy;
             const double xn = (c * px) + (s * py);

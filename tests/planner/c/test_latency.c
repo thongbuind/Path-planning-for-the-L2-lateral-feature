@@ -83,11 +83,43 @@ static void test_short_view_range_is_dropped(void)
     PP_CHECK(!out.boundary[PP_LINE_L1].present);
 }
 
+/* PP-PR-058: a cubic moved cycle after cycle, as the boundary memory of T2 is, loses view
+ * range only by the distance driven, also while the car yaws and for a range that is not
+ * a whole number of sample steps. */
+static void test_repeated_move_keeps_the_view_range(void)
+{
+    const pp_motion_t motion = {0.625, 0.001, 0.0005};   /* 25 m/s, 0.02 rad/s, one 25 ms cycle */
+    pp_cubic_t poly = {{1.75, 0.0, 1.0e-4, 0.0}};
+    double start = 0.0;
+    double end = 79.9;
+    for (unsigned i = 0U; i < 40U; i++) {
+        pp_cubic_t moved;
+        PP_CHECK(pp_cubic_move(&poly, start, end, &motion, &moved, &start, &end));
+        poly = moved;
+    }
+    PP_CHECK_NEAR(end, 79.9 - (40.0 * 0.625), 0.1);
+    PP_CHECK_NEAR(start, -(40.0 * 0.625), 0.1);
+}
+
+static void test_move_under_three_metres_fails(void)
+{
+    const pp_motion_t none = {0.0, 0.0, 0.0};
+    const pp_cubic_t poly = {{1.75, 0.0, 0.0, 0.0}};
+    pp_cubic_t moved;
+    double start;
+    double end;
+    PP_CHECK(!pp_cubic_move(&poly, 0.0, 2.9, &none, &moved, &start, &end));
+    PP_CHECK(pp_cubic_move(&poly, 0.0, 3.0, &none, &moved, &start, &end));
+    PP_CHECK_NEAR(end, 3.0, 1e-12);
+}
+
 int main(void)
 {
     test_no_motion_keeps_line();
     test_translation();
     test_rotation();
     test_short_view_range_is_dropped();
+    test_repeated_move_keeps_the_view_range();
+    test_move_under_three_metres_fails();
     return PP_TEST_RESULT();
 }
