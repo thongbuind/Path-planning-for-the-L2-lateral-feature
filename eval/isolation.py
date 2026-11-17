@@ -26,7 +26,7 @@ if START_METHOD not in START_METHODS:
 # child re-runs its main module as __mp_main__, as with spawn, and the main module must not
 # already be imported (runpy warning, two copies of the module).
 PRELOAD = ["numpy", "scipy.signal", "yaml", "sim.harness", "eval.metrics", "eval.differential",
-           "eval.loader", "eval.labels", "eval.aspects", "eval.conformance"]
+           "eval.loader", "eval.labels", "eval.aspects", "eval.conformance", "eval.case", "eval.checksum"]
 
 _CTX = multiprocessing.get_context(START_METHOD)
 if START_METHOD == "forkserver":

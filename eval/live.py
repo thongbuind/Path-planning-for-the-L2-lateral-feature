@@ -1,25 +1,29 @@
-#!/usr/bin/env python3
-"""Chạy planner thật theo thời gian thực, đẩy từng chu kỳ ra stdout (NDJSON).
+"""Live worker of the workbench: the delivered planner in the SIL, cycle by cycle, paced to the
+wall clock, streamed as NDJSON. Replaces web/simulation/tools/rt_run.py (PP-PR-064).
 
-Chỉ ĐỌC repo (eval/, sim/, adapters/, benchmark/, build/planner). Không ghi file nào.
+    python3 -m eval.live catalog          scenarios, faults and levels, combinations, vehicles
+    python3 -m eval.live run <folder>     the run of <folder>/request.json; control lines on stdin:
+                                          {"cmd":"pause"} {"cmd":"resume"} {"cmd":"rate","value":2}
 
-    rt_run.py catalog                 danh mục: kịch bản, lỗi và mức lỗi, tổ hợp, xe
-    rt_run.py run '<json cấu hình>'   chạy một lượt; lệnh điều khiển đọc từ stdin, mỗi dòng một JSON:
-                                      {"cmd":"pause"} {"cmd":"resume"} {"cmd":"rate","value":2}
+`run` is started by execution.supervisor (workbench/server.py), which owns <folder>: it numbers
+the lines, keeps them as frames.ndjson.gz and finalizes the bundle. This worker writes
+resolved-case.json, evaluation.json, trace.mcap and manifest.json there (eval.run_bundle).
 
-Một lượt chạy là Harness của sim (cùng simulator, cùng mô hình cảm biến, cùng lỗi tiêm như
-eval.runner) với planner là libpp_planner. Harness được kế thừa ngay trong file này: sau mỗi lần
-planner.step() (chu kỳ 25 ms) ta lấy kết quả của chu kỳ đó, chờ cho kịp đồng hồ thật rồi mới gửi đi.
-Nên pp_step() được gọi lần lượt theo thời gian thực, không có gì được tính trước.
+The case is built by eval.case from the web configuration, as eval.runner builds it, and the
+run is the same Harness with an observer: after each planner cycle (25 ms) the observer builds
+the frame of that cycle, waits for the wall clock, then sends it. pp_step() is called in real
+time; nothing is computed ahead. Pacing does not change the simulation (golden set, live path).
 
-Giao thức, mỗi dòng một đối tượng JSON, trường "type":
-    init   thông tin tĩnh của lượt chạy: đường, xe, danh sách lỗi, thời lượng
-    f      một chu kỳ planner: output của planner và ground truth của simulator
-    done   kết luận của evaluator (tiêu chí, chỉ tiêu) sau khi chạy hết
-    error  lỗi
+Lines on stdout, field "type":
+    phase  resolve | simulate | evaluate | write
+    init   static information of the run: road, vehicle, faults, duration
+    f      one planner cycle: planner output and simulator ground truth
+    done   evaluator conclusion (criteria, targets)
+    error  {"class": SUT_EXECUTION | SIM_ERROR | EVAL_ERROR | INFRA, "message": ...}
 """
 
 import bisect
+import faulthandler
 import json
 import math
 import os
@@ -27,17 +31,11 @@ import re
 import sys
 import threading
 import time
-from dataclasses import replace
+import traceback
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[2]
-sys.dont_write_bytecode = True
-sys.path.insert(0, str(REPO))
-os.chdir(REPO)
-
+ROOT = Path(__file__).resolve().parents[1]
 OUT = sys.stdout
-sys.stdout = sys.stderr  # thư viện lỡ in gì thì không lẫn vào giao thức
 
 
 def sanitize(o):
@@ -91,7 +89,7 @@ def catalog():
     from eval import loader, openx
     from sim.vehicle.profiles import PROFILES
 
-    sids = sorted({os.path.basename(p).split(".")[0] for p in glob.glob(str(REPO / "benchmark/scenarios/S*.xosc"))},
+    sids = sorted({os.path.basename(p).split(".")[0] for p in glob.glob(str(ROOT / "benchmark/scenarios/S*.xosc"))},
                   key=lambda s: (int(re.match(r"S(\d+)", s).group(1)), s))
     scenarios = []
     for sid in sids:
@@ -107,7 +105,7 @@ def catalog():
                 w=sc.lane_width, traffic=len(sc.traffic), profile=sc.profile))
 
     faults = []
-    for path in sorted((REPO / "benchmark/faults").glob("F*.xosc")):
+    for path in sorted((ROOT / "benchmark/faults").glob("F*.xosc")):
         if ".anchors" in path.name or ".ranges" in path.name:
             continue
         fid = path.stem
@@ -128,7 +126,7 @@ def catalog():
         faults.append(dict(id=fid, title=title, group=FAULT_GROUP.get(fid, "Khác"), levels=lv))
 
     combos = []
-    for path in sorted((REPO / "benchmark/combinations").glob("*.yaml")):
+    for path in sorted((ROOT / "benchmark/combinations").glob("*.yaml")):
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         combos.append(dict(id=data["id"], title=data["title"], faults=[list(f) for f in data["faults"]],
                            sim=data.get("sim", {}), hosts=[list(h) for h in data["hosts"]]))
@@ -148,45 +146,29 @@ def catalog():
 # Một lượt chạy
 # ---------------------------------------------------------------------------------------
 
-SIM_KEYS = {"road_mu": (0.1, 1.0), "camera_latency_ms": (0.0, 500.0), "perception_noise_scale": (0.0, 10.0)}
 LINE_VI = {0: "trái ngoài (L2)", 1: "trái làn mình (L1)", 2: "phải làn mình (R1)", 3: "phải ngoài (R2)"}
 CH_VI = {"lane_model": "lane model", "object_list": "object list", "imu": "IMU", "steering": "góc lái",
          "speed": "tốc độ", "vehicle_state": "vehicle state", "function_requests": "FunctionRequests",
          "longitudinal_plan": "LongitudinalPlan"}
 
 
-def build_scenario(cfg):
-    from eval import loader
-    sid, v = cfg["scenario"]["sid"], cfg["scenario"]["v"]
-    if not (re.fullmatch(r"S\d+[a-z]?", sid) and re.fullmatch(r"[a-z]", v)):
-        raise ValueError("kịch bản không hợp lệ")
-    sc = loader.load(sid, v)
-    trigger = cfg.get("trigger") or None
-    for fid, level in cfg.get("faults", []):
-        if not (re.fullmatch(r"F\d{2}", fid) and re.fullmatch(r"[a-z]", level)):
-            raise ValueError("lỗi không hợp lệ")
-        sc = loader.with_fault(sc, fid, level, trigger, 0.0)
-    veh = cfg.get("vehicle")
-    if veh:
-        from sim.vehicle.profiles import PROFILES
-        if veh not in PROFILES:
-            raise ValueError("xe không hợp lệ")
-        sc = replace(sc, profile=veh)
-    sim = {}
-    for k, (lo, hi) in SIM_KEYS.items():
-        if cfg.get("sim", {}).get(k) is not None:
-            x = float(cfg["sim"][k])
-            if not lo <= x <= hi:
-                raise ValueError(f"{k} ngoài dải")
-            sim[k] = x
+def recipe_from_config(cfg: dict) -> dict:
+    """eval.case recipe of a web run configuration; faults start at the trigger event (offset 0)."""
+    scenario = cfg.get("scenario") or {}
+    recipe = {"kind": "catalog", "sid": scenario.get("sid"), "v": scenario.get("v")}
+    if cfg.get("faults"):
+        recipe["faults"] = [list(f) for f in cfg["faults"]]
+    if cfg.get("trigger"):
+        recipe["trigger"] = cfg["trigger"]
+        recipe["offset_s"] = 0.0
+    if cfg.get("vehicle"):
+        recipe["vehicle"] = cfg["vehicle"]
+    sim = {k: v for k, v in (cfg.get("sim") or {}).items() if v is not None}
     if sim:
-        sc = replace(sc, **sim)
-    acc = cfg.get("acc") or None
-    if acc:
-        if acc not in ("off", "on", "ignore_limits"):
-            raise ValueError("acc không hợp lệ")
-        sc = replace(sc, acc=acc)
-    return replace(sc, name=f"{sid}{v}")
+        recipe["sim"] = sim
+    if cfg.get("acc"):
+        recipe["acc"] = cfg["acc"]
+    return recipe
 
 
 def fault_items(sc):
@@ -332,150 +314,138 @@ class Pace:
                 self.cv.wait(timeout=left)
 
 
-def run(cfg):
+class LiveView:
+    """Builds the frame of each planner cycle from the harness; reads, never writes. Display
+    only: nothing here is scored (the evaluator runs on the RunLog after the run)."""
+
+    def prepare(self, h):
+        self.items = fault_items(h.scenario)
+        self.s_rear = self.s_front = None
+        self.lm_stamp = None
+        self.ay_n = 0
+        self.zi = self.sos = None
+        self.half_lane = 0.5 * h.road.lane_width
+        self.half_car = 0.5 * h.profile.width_with_mirrors
+        # cùng thứ tự với fault_items: lane, channel (theo kênh), sensor, ego
+        pos = {}
+        self.channel_view = []
+        for f in h.scenario.channel_faults:
+            i = pos.get(f.channel, 0)
+            pos[f.channel] = i + 1
+            self.channel_view.append((f.channel, i))
+
+    def active_flags(self, h, now_us):
+        t = now_us * 1e-6
+        flags = [int(f.active(t)) for f in h.lane_faults.faults]
+        flags += [int(h._injectors[ch].faults[i].active(now_us)) for ch, i in self.channel_view]
+        flags += [int(f.active(now_us)) for f in h.sensor_errors.faults[:len(h.scenario.sensor_faults)]]
+        flags += [int(h.ego_faults.invalid(now_us))] * len(h.scenario.ego_motion_faults)
+        return flags
+
+    def lane_model_points(self, h, msg):
+        """Vạch và mép đường mà lane model báo cho planner, chuyển sang toạ độ thế giới.
+
+        Lane model ở khung base_link tại lúc camera chụp (stamp), nên đặt theo tư thế xe lúc đó.
+        Đa thức y = c0 + c1 x + c2 x^2 + c3 x^3 trong đoạn tầm nhìn; bỏ vạch LOST."""
+        log = h.log
+        i = min(max(bisect.bisect_left(log.t_us, msg.header.stamp_us), 0), len(log.t_us) - 1)
+        rx, ry, yaw = log.rear[i]
+        c, s = math.cos(yaw), math.sin(yaw)
+        out = []
+        for idx, ln in enumerate((*msg.lines, *msg.road_edges)):   # L2, L1, R1, R2, mép trái, mép phải
+            if int(ln.status) == 2:
+                continue
+            a, b = max(0.0, ln.view_range_start), min(ln.view_range_end, 126.0)
+            if not b > a:
+                continue
+            n = max(2, int((b - a) / 4.0) + 1)
+            pts = []
+            for j in range(n):
+                x = a + (b - a) * j / (n - 1)
+                y = ln.c0 + x * (ln.c1 + x * (ln.c2 + x * ln.c3))
+                pts += [round(rx + x * c - y * s, 2), round(ry + x * s + y * c, 2)]
+            # D đứt, S liền, B kép, U chưa rõ; mép đường: E gờ liền (CURB, BARRIER, GUARDRAIL, WALL), G cỏ sỏi hoặc chưa rõ
+            kind = ("G" if int(ln.type) in (1, 5) else "E") if idx >= 4 else "DSBU"[int(ln.type)]
+            out.append(dict(i=idx, p=int(int(ln.status) == 1), t=kind, pts=pts))
+        return dict(ls=out)
+
+    def frame(self, h, cyc, now_us):
+        import numpy as np
+        from scipy.signal import butter, sosfilt, sosfilt_zi
+        from eval import metrics
+        from sim.logging import run_log as RL
+        log = h.log
+        i = len(log.t_us) - 1
+        rear, front = log.rear[i], log.front[i]
+        pr = h.road.project(rear[0], rear[1], self.s_rear)
+        pf = h.road.project(front[0], front[1], self.s_front)
+        self.s_rear, self.s_front = pr.s, pf.s
+        chunk = np.asarray(log.a_y[self.ay_n:i + 1], dtype=float)
+        if self.sos is None:
+            fs = 1e6 / max(1, (log.t_us[1] - log.t_us[0]) if len(log.t_us) > 1 else 1000)
+            self.sos = butter(metrics.R79_FILTER_ORDER, metrics.R79_FILTER_HZ, btype="low", fs=fs, output="sos")
+            self.zi = sosfilt_zi(self.sos) * chunk[0]
+        filtered, self.zi = sosfilt(self.sos, chunk, zi=self.zi)
+        self.ay_n = i + 1
+
+        ps = RL._plain(cyc.path_status) if cyc.path_status is not None else {}
+        tr = cyc.trajectory
+        lm = cyc.lateral_limits
+        fr = RL._plain(cyc.function_requests.message) if cyc.function_requests is not None else None
+        lv = cyc.lane_view
+        traj = []
+        if tr is not None:
+            for p in tr.points:
+                traj += [round(p.pose.x * 100), round(p.pose.y * 100)]
+        if len(traj) != 62:
+            traj = [0] * 62
+        lmodel = None
+        rx = h._planner_view("lane_model", h.ch["lane_model"].latest)
+        if rx is not None and rx.message.header.stamp_us != self.lm_stamp:   # chỉ gửi khi có frame camera mới
+            self.lm_stamp = rx.message.header.stamp_us
+            lmodel = self.lane_model_points(h, rx.message)
+        objs = []
+        for st in h.traffic.at(now_us * 1e-6):
+            objs += [round(st.x, 2), round(st.y, 2), round(st.heading, 4)]
+        steering_angle = round(h.eps.angle, 5)
+        system_share = h.eps.system_steering_share
+        if system_share == 1 and h.eps.controlling and h.eps.driver_torque:
+            # Driver torque is present, but the EPS stand-in has no motor torque to compare it with.
+            system_share = 0.5
+        elif not (system_share or h.eps.driver_torque or steering_angle or round(h.eps.driver_angle, 5)):
+            system_share = None
+        return dict(
+            type="f", t=round(now_us * 1e-6, 3),
+            x=round(rear[0], 2), y=round(rear[1], 2), yaw=round(rear[2], 4),
+            v=round(log.speed[i], 2), ay=round(log.a_y[i], 3), ayf=round(float(filtered[-1]), 3),
+            whl=round(log.wheel_angle[i], 5), off=round(pr.d, 3),
+            steering_angle=steering_angle, steering_system_share=system_share,
+            dl=round(self.half_lane - pf.d - self.half_car, 3), dr=round(self.half_lane + pf.d - self.half_car, 3),
+            fn=ps.get("active_function", "NONE"), lk=ps.get("lka_phase", "NONE"), el=ps.get("elk_phase", "NONE"),
+            pv=int(bool(ps.get("path_valid"))), tv=int(bool(tr is not None and tr.header.valid)),
+            lim=int(bool(ps.get("lateral_limit_reached"))), nar=int(bool(ps.get("lane_too_narrow"))),
+            vmax=round(lm.v_max, 2) if lm is not None else None,
+            dist=round(lm.distance, 1) if lm is not None else None,
+            hor=round(tr.observed_horizon_s, 2) if tr is not None else 0.0,
+            cms=round(cyc.compute_ns * 1e-6, 3),
+            view=round(lv[1], 1) if lv else None,
+            age=round(now_us / 1e3 - lv[0] / 1e3, 1) if lv else None,
+            rq=[r["state"] for r in fr["requests"]] if fr else ["OFF", "OFF", "OFF"],
+            tlc=[r["tlc"] for r in fr["requests"][1:]] if fr else [None, None],
+            ovr=int(bool(fr and fr.get("driver_override"))),
+            traj=traj, tr=objs, fa=self.active_flags(h, now_us), lm=lmodel)
+
+
+def init_message(h, cfg, planner, seed):
     import numpy as np
-    from scipy.signal import butter, sosfilt, sosfilt_zi
     from adapters.sil.sil_planner import library_version
-    from eval import differential, metrics, planner_choice
-    from sim.harness import Harness
-    from sim.logging import run_log as RL
-
-    sc = build_scenario(cfg)
-    seed = int(cfg.get("seed", 1))
-    planner = planner_choice.resolve(None)
-    pace = Pace(float(cfg.get("rate", 1)))
-    threading.Thread(target=control_loop, args=(pace,), daemon=True).start()
-
-    class Live(Harness):
-        def _planner(self, now_us):
-            super()._planner(now_us)
-            frame = self.frame(self.log.cycles[-1], now_us)
-            pace.wait(now_us * 1e-6)
-            send(frame)
-
-        def prepare(self):
-            self.items = fault_items(self.scenario)
-            self.s_rear = self.s_front = None
-            self.lm_stamp = None
-            self.ay_n = 0
-            self.zi = self.sos = None
-            self.half_lane = 0.5 * self.road.lane_width
-            self.half_car = 0.5 * self.profile.width_with_mirrors
-            sc_ = self.scenario
-            # cùng thứ tự với fault_items: lane, channel (theo kênh), sensor, ego
-            pos = {}
-            self.channel_view = []
-            for f in sc_.channel_faults:
-                i = pos.get(f.channel, 0)
-                pos[f.channel] = i + 1
-                self.channel_view.append((f.channel, i))
-
-        def active_flags(self, now_us):
-            t = now_us * 1e-6
-            flags = [int(f.active(t)) for f in self.lane_faults.faults]
-            flags += [int(self._injectors[ch].faults[i].active(now_us)) for ch, i in self.channel_view]
-            flags += [int(f.active(now_us)) for f in self.sensor_errors.faults[:len(self.scenario.sensor_faults)]]
-            flags += [int(self.ego_faults.invalid(now_us))] * len(self.scenario.ego_motion_faults)
-            return flags
-
-        def lane_model_points(self, msg):
-            """Vạch và mép đường mà lane model báo cho planner, chuyển sang toạ độ thế giới.
-
-            Lane model ở khung base_link tại lúc camera chụp (stamp), nên đặt theo tư thế xe lúc đó.
-            Đa thức y = c0 + c1 x + c2 x^2 + c3 x^3 trong đoạn tầm nhìn; bỏ vạch LOST."""
-            log = self.log
-            i = min(max(bisect.bisect_left(log.t_us, msg.header.stamp_us), 0), len(log.t_us) - 1)
-            rx, ry, yaw = log.rear[i]
-            c, s = math.cos(yaw), math.sin(yaw)
-            out = []
-            for idx, ln in enumerate((*msg.lines, *msg.road_edges)):   # L2, L1, R1, R2, mép trái, mép phải
-                if int(ln.status) == 2:
-                    continue
-                a, b = max(0.0, ln.view_range_start), min(ln.view_range_end, 126.0)
-                if not b > a:
-                    continue
-                n = max(2, int((b - a) / 4.0) + 1)
-                pts = []
-                for j in range(n):
-                    x = a + (b - a) * j / (n - 1)
-                    y = ln.c0 + x * (ln.c1 + x * (ln.c2 + x * ln.c3))
-                    pts += [round(rx + x * c - y * s, 2), round(ry + x * s + y * c, 2)]
-                # D đứt, S liền, B kép, U chưa rõ; mép đường: E gờ liền (CURB, BARRIER, GUARDRAIL, WALL), G cỏ sỏi hoặc chưa rõ
-                kind = ("G" if int(ln.type) in (1, 5) else "E") if idx >= 4 else "DSBU"[int(ln.type)]
-                out.append(dict(i=idx, p=int(int(ln.status) == 1), t=kind, pts=pts))
-            return dict(ls=out)
-
-        def frame(self, cyc, now_us):
-            log = self.log
-            i = len(log.t_us) - 1
-            rear, front = log.rear[i], log.front[i]
-            pr = self.road.project(rear[0], rear[1], self.s_rear)
-            pf = self.road.project(front[0], front[1], self.s_front)
-            self.s_rear, self.s_front = pr.s, pf.s
-            chunk = np.asarray(log.a_y[self.ay_n:i + 1], dtype=float)
-            if self.sos is None:
-                fs = 1e6 / max(1, (log.t_us[1] - log.t_us[0]) if len(log.t_us) > 1 else 1000)
-                self.sos = butter(metrics.R79_FILTER_ORDER, metrics.R79_FILTER_HZ, btype="low", fs=fs, output="sos")
-                self.zi = sosfilt_zi(self.sos) * chunk[0]
-            filtered, self.zi = sosfilt(self.sos, chunk, zi=self.zi)
-            self.ay_n = i + 1
-
-            ps = RL._plain(cyc.path_status) if cyc.path_status is not None else {}
-            tr = cyc.trajectory
-            lm = cyc.lateral_limits
-            fr = RL._plain(cyc.function_requests.message) if cyc.function_requests is not None else None
-            lv = cyc.lane_view
-            traj = []
-            if tr is not None:
-                for p in tr.points:
-                    traj += [round(p.pose.x * 100), round(p.pose.y * 100)]
-            if len(traj) != 62:
-                traj = [0] * 62
-            lmodel = None
-            rx = self._planner_view("lane_model", self.ch["lane_model"].latest)
-            if rx is not None and rx.message.header.stamp_us != self.lm_stamp:   # chỉ gửi khi có frame camera mới
-                self.lm_stamp = rx.message.header.stamp_us
-                lmodel = self.lane_model_points(rx.message)
-            objs = []
-            for st in self.traffic.at(now_us * 1e-6):
-                objs += [round(st.x, 2), round(st.y, 2), round(st.heading, 4)]
-            steering_angle = round(self.eps.angle, 5)
-            system_share = self.eps.system_steering_share
-            if system_share == 1 and self.eps.controlling and self.eps.driver_torque:
-                # Driver torque is present, but the EPS stand-in has no motor torque to compare it with.
-                system_share = 0.5
-            elif not (system_share or self.eps.driver_torque or steering_angle or round(self.eps.driver_angle, 5)):
-                system_share = None
-            return dict(
-                type="f", t=round(now_us * 1e-6, 3),
-                x=round(rear[0], 2), y=round(rear[1], 2), yaw=round(rear[2], 4),
-                v=round(log.speed[i], 2), ay=round(log.a_y[i], 3), ayf=round(float(filtered[-1]), 3),
-                whl=round(log.wheel_angle[i], 5), off=round(pr.d, 3),
-                steering_angle=steering_angle, steering_system_share=system_share,
-                dl=round(self.half_lane - pf.d - self.half_car, 3), dr=round(self.half_lane + pf.d - self.half_car, 3),
-                fn=ps.get("active_function", "NONE"), lk=ps.get("lka_phase", "NONE"), el=ps.get("elk_phase", "NONE"),
-                pv=int(bool(ps.get("path_valid"))), tv=int(bool(tr is not None and tr.header.valid)),
-                lim=int(bool(ps.get("lateral_limit_reached"))), nar=int(bool(ps.get("lane_too_narrow"))),
-                vmax=round(lm.v_max, 2) if lm is not None else None,
-                dist=round(lm.distance, 1) if lm is not None else None,
-                hor=round(tr.observed_horizon_s, 2) if tr is not None else 0.0,
-                cms=round(cyc.compute_ns * 1e-6, 3),
-                view=round(lv[1], 1) if lv else None,
-                age=round(now_us / 1e3 - lv[0] / 1e3, 1) if lv else None,
-                rq=[r["state"] for r in fr["requests"]] if fr else ["OFF", "OFF", "OFF"],
-                tlc=[r["tlc"] for r in fr["requests"][1:]] if fr else [None, None],
-                ovr=int(bool(fr and fr.get("driver_override"))),
-                traj=traj, tr=objs, fa=self.active_flags(now_us), lm=lmodel)
-
-    h = Live(sc, planner, seed)
-    h.prepare()
+    from sim.vehicle.profiles import STEERING_RATIO
+    sc = h.scenario
     road = h.road
     lay = road.layout
     step = 10
     prof = h.profile
-    from sim.vehicle.profiles import STEERING_RATIO
-    items = h.items
-    send(dict(
+    return dict(
         type="init", name=sc.name, desc=(sc.notes or {}).get("description", ""), dur=sc.duration_s, dt=0.025, seed=seed,
         pp=library_version(planner.path),
         veh=dict(name=prof.name, wb=prof.wheelbase, w=prof.width_with_mirrors, lr=prof.lr, mass=prof.mass, sr=STEERING_RATIO),
@@ -485,36 +455,112 @@ def run(cfg):
                   lines=road_lines(road), ext=road_extent(road),
                   edges=[None if e is None else dict(o=round(e.offset_m, 3), t=e.type.name) for e in lay.edges]),
         tr=dict(dims=[[sp.length, sp.width] for sp in sc.traffic]),
-        faults=items, conds=sim_conditions(sc),
+        faults=fault_items(sc), conds=sim_conditions(sc),
         env=dict(rain=bool(sc.road_mu < 1.0 or sc.perception_noise_scale > 1.0)),
-        acc=sc.acc, trigger=cfg.get("trigger") or None))
+        acc=sc.acc, trigger=cfg.get("trigger") or None)
 
-    log = h.run()
-    result = metrics.evaluate(log)
-    result.criteria.extend(differential.criteria(h.scenario, log, planner, seed))
+
+def done_message(result):
     r = result.to_dict()
     info = r["info"]
     keep = ("first_hwa_s", "hwa_share_after_request", "vehicle_offset_max_m", "free_space_each_side_m", "speed_min_mps",
             "decel_max_mps2", "ay_vehicle_r79_max", "jerk_vehicle_r79_max", "ay_vehicle_r79_over_sustained_s",
             "ay_vehicle_r79_limits")
-    send(dict(type="done", res=dict(
+    return dict(type="done", res=dict(
         passed=bool(r["passed"]),
         criteria=[dict(id=c["id"], metric=c["metric"], value=c["value"], limit=c["limit"], passed=bool(c["passed"]))
                   for c in r["criteria"] if c["applicable"]],
         targets=[dict(id=c["id"], metric=c["metric"], value=c["value"], unit=c["unit"]) for c in r["targets"]],
         info={k: info.get(k) for k in keep}, failures=list(r.get("case_failures", []))),
-        lim_ay=info.get("ay_vehicle_r79_limits") if info.get("ay_vehicle_r79_max") is not None else None))
+        lim_ay=info.get("ay_vehicle_r79_limits") if info.get("ay_vehicle_r79_max") is not None else None)
 
 
-def control_loop(pace):
-    for line in sys.stdin:
-        try:
-            pace.command(json.loads(line))
-        except Exception:  # noqa: BLE001
-            pass
+def make_harness(scenario, planner, seed, emit=None, pace=None):
+    """Harness with the LiveView observer: after each cycle the frame is built, the wall clock
+    waited for (pace), then the frame sent (emit). Without emit and pace frames are dropped."""
+    from sim.harness import Harness
+    view = LiveView()
+
+    def observer(h, now_us):
+        frame = view.frame(h, h.log.cycles[-1], now_us)
+        if pace is not None:
+            pace.wait(now_us * 1e-6)
+        if emit is not None:
+            emit(frame)
+
+    h = Harness(scenario, planner, seed, observer=observer)
+    view.prepare(h)
+    return h
+
+
+def simulate(scenario, planner, seed):
+    """The run as the live web runs it, at full speed, frames dropped (golden set, live path)."""
+    return make_harness(scenario, planner, seed).run()
+
+
+class Failure(Exception):
+    def __init__(self, cls, message):
+        super().__init__(message)
+        self.cls = cls
+
+
+def _blames_sut(error: BaseException) -> bool:
+    return any("adapters" in f.filename and "sil" in f.filename for f in traceback.extract_tb(error.__traceback__))
+
+
+def run(folder: Path) -> None:
+    from eval import case, differential, metrics, planner_choice, run_bundle
+    request = json.loads((folder / "request.json").read_text(encoding="utf-8"))
+    cfg = request.get("config") or {}
+    seed = int(cfg.get("seed", 1))
+
+    send(dict(type="phase", phase="resolve"))
+    try:
+        recipe = request.get("recipe") or recipe_from_config(cfg)
+        scenario = case.resolve(recipe)
+        doc = case.document(recipe, scenario)
+        from execution import bundle
+        bundle.write_json(folder / "resolved-case.json", doc)  # identity kept even if the run fails
+        planner = planner_choice.resolve(None)
+    except SystemExit as error:
+        raise Failure("INFRA", str(error)) from error
+    except Exception as error:  # noqa: BLE001  invalid request: no test result
+        raise Failure("INFRA", f"{type(error).__name__}: {error}") from error
+
+    # T_timeout: 6 x the simulated duration + 30 s, wall clock without pauses (slowest rate 0.5x).
+    send(dict(type="budget", timeout_s=6 * scenario.duration_s + 30))
+    pace = Pace(float(cfg.get("rate", 1)))
+    threading.Thread(target=lambda: [pace.command(json.loads(line)) for line in sys.stdin if line.strip()],
+                     daemon=True).start()
+    try:
+        h = make_harness(scenario, planner, seed, emit=send, pace=pace)
+        send(init_message(h, cfg, planner, seed))
+        send(dict(type="phase", phase="simulate"))
+        log = h.run()
+    except Exception as error:  # noqa: BLE001
+        raise Failure("SUT_EXECUTION" if _blames_sut(error) else "SIM_ERROR",
+                      f"{type(error).__name__}: {error}") from error
+
+    send(dict(type="phase", phase="evaluate"))
+    try:
+        result = metrics.evaluate(log)
+        result.criteria.extend(differential.criteria(h.scenario, log, planner, seed))
+    except Exception as error:  # noqa: BLE001
+        raise Failure("EVAL_ERROR", f"{type(error).__name__}: {error}") from error
+
+    send(dict(type="phase", phase="write"))
+    try:
+        run_bundle.write(folder, run_id=request["run_id"], parent=request.get("parent_run_id"), kind="live",
+                         doc=doc, planner=planner, seed=seed, log=log, result=result)
+    except Exception as error:  # noqa: BLE001
+        raise Failure("INFRA", f"{type(error).__name__}: {error}") from error
+    send(done_message(result))
 
 
 def main():
+    global OUT
+    OUT = sys.stdout
+    sys.stdout = sys.stderr  # thư viện lỡ in gì thì không lẫn vào giao thức
     if len(sys.argv) >= 2 and sys.argv[1] == "catalog":
         try:
             send(catalog())
@@ -522,14 +568,15 @@ def main():
             send(dict(type="error", message=f"{type(e).__name__}: {e}"))
         return
     if len(sys.argv) == 3 and sys.argv[1] == "run":
+        faulthandler.enable(sys.stderr)  # a native crash leaves its Python stack in worker.log
         try:
-            run(json.loads(sys.argv[2]))
+            run(Path(sys.argv[2]))
         except BrokenPipeError:
             pass
-        except SystemExit as e:
-            send(dict(type="error", message=str(e)))
-        except Exception as e:  # noqa: BLE001
-            send(dict(type="error", message=f"{type(e).__name__}: {e}"))
+        except Failure as error:
+            traceback.print_exc()
+            send(dict(type="error", **{"class": error.cls}, message=str(error)))
+            raise SystemExit(3)
         return
     raise SystemExit(__doc__)
 

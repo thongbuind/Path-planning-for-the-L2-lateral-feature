@@ -21,6 +21,7 @@ only eval/ knows which planner it is.
 
 import time
 from bisect import bisect_left
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from math import atan2, cos, sin, tan
 
@@ -237,9 +238,13 @@ def _fresh(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int | 
 
 
 class Harness:
-    def __init__(self, scenario: Scenario, planner_factory: PlannerFactory, seed: int) -> None:
+    def __init__(self, scenario: Scenario, planner_factory: PlannerFactory, seed: int,
+                 observer: Callable[["Harness", int], None] | None = None) -> None:
+        """`observer(harness, now_us)` is called after every planner cycle has been logged: it
+        reads, never writes, and adds nothing to the measured compute time."""
         self.scenario = scenario
         self.seed = seed
+        self.observer = observer
         self.rngs = spawn_streams(seed)
         self.road = Road(list(scenario.segments), scenario.lane_width, scenario.road_layout)
         self.profile = PROFILES[scenario.profile]
@@ -744,6 +749,10 @@ class Harness:
                                             inputs.longitudinal_plan))
         if self.scenario.loop == "open":
             self._open_loop_path(now_us)
+        if self.observer is not None:
+            # Read-only view after the cycle, outside the timed planner call; may block (live
+            # pacing) without changing simulation time.
+            self.observer(self, now_us)
 
     def _driver_event(self, event: str, now_us: int) -> None:
         spec = self._driver_spec

@@ -56,12 +56,13 @@ def rerun_command(path, seed, planner) -> str:
 
 
 def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
-    from eval import metrics
+    from eval import case as resolved, checksum, metrics
     from sim.harness import Harness
     from sim.logging import run_log
     path = directory / case['file']
     scenario = replace(loader.load_file(path), name=case['id'])
     log = Harness(scenario, planner, seed).run()
+    identity = {'case_hash': resolved.case_hash(scenario), 'behavior_checksum': checksum.behavior_checksum(log)}
     result = metrics.evaluate(log)
     from eval import differential
     result.criteria.extend(differential.criteria(scenario, log, planner, seed))
@@ -74,7 +75,7 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
               'failed': result.case_failures + [key for key in failed if key in scope],
               'failed_out_of_scope': [key for key in failed if key not in scope],
               'scope': sorted(scope), 'rerun': rerun_command(path, seed, planner),
-              'result': result.to_dict(), 'mcap': None}
+              **identity, 'result': result.to_dict(), 'mcap': None}
     if mcap_dir is not None and mcap != 'none' and (mcap == 'all' or record['failed']):
         record['mcap'] = str(run_log.write(log, Path(mcap_dir) / f"{case['id']}_seed{seed}.mcap",
                                            {'rerun': record['rerun']}))

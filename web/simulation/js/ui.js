@@ -29,6 +29,7 @@
   // phase: idle, connecting, running, paused, finishing, done, stopped, error
   const S = {
     phase: 'idle', cat: null, d: null, rate: 1, review: null, ac: null, runId: 0, lastK: -1, dirty: true, err: '',
+    run: null, seq: 0, ended: false,   // lượt chạy trên server (run_id), seq của sự kiện cuối đã nhận
     fnFilter: '', q: '',
     sel: { scen: 'S1/c', faults: { F01: 'c', F04: 'a' }, trigger: '', env: { mu: true, cam: true, noise: false }, veh: 'VP-0', seed: 1, acc: '' },
   };
@@ -36,7 +37,15 @@
   const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp' };
 
   // ---------- Gọi server ----------
+  // Lượt chạy thuộc về server, không thuộc về tab: đóng tab không dừng lượt chạy; mở lại thì nối tiếp.
   const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }).catch(() => null);
+  const runApi = (tail) => 'api/runs/' + S.run + tail;
+  const control = (body) => (S.run ? post(runApi('/control'), body) : null);
+  const ACTIVE = ['QUEUED', 'RUNNING', 'PAUSED'];
+  const RUN_KEY = 'pp-sim-run';
+  function remember() { try { localStorage.setItem(RUN_KEY, JSON.stringify({ run: S.run, sel: S.sel })); } catch (err) { /* không lưu được */ } }
+  function forget() { try { localStorage.removeItem(RUN_KEY); } catch (err) { /* không lưu được */ } }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function config() {
     const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
@@ -416,7 +425,7 @@
       $('scrub').value = '0';
       S.lastK = -1;
       setPhase('running');
-      if (S.rate !== config().rate) post('api/control', { cmd: 'rate', value: S.rate });
+      if (S.rate !== config().rate) control({ cmd: 'rate', value: S.rate });
     } else if (m.type === 'f') {
       if (S.d) pushFrame(m);
     } else if (m.type === 'done') {
@@ -430,7 +439,21 @@
       setPhase('done');
     } else if (m.type === 'error') {
       setPhase('error', m.message);
+    } else if (m.type === 'state') {
+      onState(m);
     }
+  }
+
+  // Trạng thái thực thi do server báo; kết luận đánh giá đến riêng trong 'done'.
+  function onState(m) {
+    if (m.state === 'PAUSED' && S.phase === 'running') setPhase('paused');
+    else if (m.state === 'RUNNING' && S.phase === 'paused') setPhase('running');
+    if (ACTIVE.includes(m.state)) return;
+    S.ended = true;
+    forget();
+    if (m.state === 'FAILED') setPhase('error', 'Lượt chạy lỗi (' + m.failure + ')' + (m.message ? ': ' + m.message : ''));
+    else if (m.state === 'TIMED_OUT') setPhase('error', 'Lượt chạy quá thời gian cho phép');
+    else if (m.state === 'CANCELLED' && !['stopped', 'idle'].includes(S.phase)) setPhase(S.d && S.d.n ? 'stopped' : 'idle');
   }
 
   async function start() {
@@ -441,47 +464,81 @@
     PP.charts.reset(); PP.scene.clear(); resetPanels();
     $('crumb').textContent = '';
     setPhase('connecting');
-    const ac = (S.ac = new AbortController());
     let res;
     try {
-      res = await fetch('api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config()), signal: ac.signal });
+      res = await fetch('api/runs', {
+        method: 'POST', body: JSON.stringify({ config: config() }),
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': Date.now() + '-' + Math.random().toString(16).slice(2) },
+      });
     } catch (e) {
-      if (id === S.runId) setPhase('error', 'Không kết nối được server. Mô phỏng cần máy chủ cục bộ. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      if (id === S.runId) setPhase('error', 'Không kết nối được server. Mô phỏng cần máy chủ cục bộ. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       return;
     }
-    if (!res.ok) { if (id === S.runId) setPhase('error', 'Server từ chối yêu cầu (' + res.status + ')'); return; }
-    const reader = res.body.getReader(), dec = new TextDecoder();
-    let buf = '';
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        let i;
-        while ((i = buf.indexOf('\n')) >= 0) {
-          const line = buf.slice(0, i);
-          buf = buf.slice(i + 1);
-          if (line) onMsg(JSON.parse(line), id);
-        }
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json()).error || ''; } catch (err) { /* không phải JSON */ }
+      if (id === S.runId) setPhase('error', detail || 'Server từ chối yêu cầu (' + res.status + ')');
+      return;
+    }
+    S.run = (await res.json()).run_id;
+    S.seq = 0; S.ended = false;
+    remember();
+    follow(id);
+  }
+
+  // Đọc luồng sự kiện của lượt chạy từ seq đã nhận; mất kết nối thì nối lại, không chạy lại.
+  async function follow(id) {
+    for (let attempt = 0; attempt < 6 && id === S.runId && !S.ended; attempt++) {
+      const ac = (S.ac = new AbortController());
+      let res;
+      try {
+        res = await fetch(runApi('/events?from=' + S.seq), { signal: ac.signal });
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        await sleep(1000);
+        continue;
       }
-    } catch (e) {
-      if (id === S.runId && !ac.signal.aborted) setPhase('error', 'Mất kết nối với server giữa chừng');
-      return;
+      if (!res.ok) { if (id === S.runId) setPhase('error', 'Server từ chối yêu cầu (' + res.status + ')'); return; }
+      const reader = res.body.getReader(), dec = new TextDecoder();
+      let buf = '';
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let i;
+          while ((i = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, i);
+            buf = buf.slice(i + 1);
+            if (!line) continue;          // giữ kết nối
+            const m = JSON.parse(line);
+            if (m.seq) S.seq = m.seq;
+            onMsg(m, id);
+          }
+        }
+        attempt = -1;                     // nhận được dữ liệu: đếm lại số lần thử
+      } catch (e) {
+        if (ac.signal.aborted) return;
+      }
+      if (!S.ended) await sleep(500);
     }
-    if (id === S.runId && ['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) setPhase('error', 'Lượt chạy kết thúc đột ngột');
+    if (id === S.runId && !S.ended && ['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) {
+      setPhase('error', 'Mất kết nối với server giữa chừng');
+    }
   }
 
   function stop() {
     if (!['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) return;
     S.runId++;
     if (S.ac) S.ac.abort();
-    post('api/stop');
+    if (S.run) post(runApi('/cancel'));
+    forget();
     if (S.d && S.d.n) { S.review = null; setPhase('stopped'); } else setPhase('idle');
   }
 
   function togglePause() {
-    if (S.phase === 'running') { post('api/control', { cmd: 'pause' }); setPhase('paused'); }
-    else if (S.phase === 'paused') { S.review = null; post('api/control', { cmd: 'resume' }); setPhase('running'); }
+    if (S.phase === 'running') { control({ cmd: 'pause' }); setPhase('paused'); }
+    else if (S.phase === 'paused') { S.review = null; control({ cmd: 'resume' }); setPhase('running'); }
   }
 
   // Xem lại khung k: chỉ khi không chạy trực tiếp
@@ -720,7 +777,7 @@
     if (!b) return;
     S.rate = parseFloat(b.dataset.r);
     [...$('rate').children].forEach((x) => x.setAttribute('aria-checked', String(x === b)));
-    if (S.phase === 'running' || S.phase === 'paused') post('api/control', { cmd: 'rate', value: S.rate });
+    if (S.phase === 'running' || S.phase === 'paused') control({ cmd: 'rate', value: S.rate });
     setRunState();
     if (e.detail) b.blur();
   });
@@ -778,7 +835,7 @@
     PP.scene.clear();
     requestAnimationFrame(loop);
     if (location.protocol === 'file:') {
-      setPhase('error', 'Trang cần server để chạy planner thật. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      setPhase('error', 'Trang cần server để chạy planner thật. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       $('run').disabled = true;
       return;
     }
@@ -811,14 +868,31 @@
         });
       }
     } catch (e) {
-      setPhase('error', 'Không đọc được danh mục từ server (' + e.message + '). Mô phỏng cần máy chủ cục bộ. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      setPhase('error', 'Không đọc được danh mục từ server (' + e.message + '). Mô phỏng cần máy chủ cục bộ. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       $('run').disabled = true;
       return;
     }
     buildMenu(S.cat);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); } catch (err) { /* không đọc được */ }
+    if (saved && saved.sel) S.sel = saved.sel;
     filterScen();
     syncMenu(true);
     setPhase('idle');
+    if (saved && saved.run) resume(saved.run);
+  }
+
+  // Tab mở lại khi lượt chạy cũ còn chạy trên server: nối tiếp từ đầu luồng sự kiện.
+  async function resume(runId) {
+    try {
+      const r = await fetch('api/runs/' + runId);
+      const st = r.ok ? await r.json() : null;
+      if (!st || !ACTIVE.includes(st.state)) { forget(); return; }
+    } catch (err) { return; }
+    S.run = runId; S.seq = 0; S.ended = false;
+    const id = ++S.runId;
+    setPhase('connecting');
+    follow(id);
   }
   boot();
 })();

@@ -26,6 +26,8 @@ Framework chạy thư viện planner trong môi trường Software-in-the-Loop (
 - **SIL adapter.** Nạp thư viện chia sẻ bằng `ctypes` và chuyển đổi dữ liệu giữa simulator Python và C API của planner. [`adapters/sil/`](adapters/sil/)
 - **Simulator.** Mô phỏng đường, xe, cảm biến, thời gian truyền tín hiệu và các khối ADAS, ACC, điều khiển ngang, EPS. Bộ mô phỏng dùng seed để lặp lại điều kiện chạy và có thể đưa lỗi vào cảm biến hoặc kênh truyền. [`sim/`](sim/)
 - **Evaluator.** Đọc dữ liệu benchmark, sinh ca cụ thể, chạy từng ca với thư viện đã chọn, rồi tính chỉ số và xuất kết quả đạt/trượt cùng dashboard. [`eval/`](eval/)
+- **Lõi thực thi.** Dùng chung cho mọi hệ thống được kiểm, không biết path planner: định danh run, bundle kết quả (ghi tạm rồi đổi tên, `SHA256SUMS`), vòng đời run trong tiến trình riêng, phân loại lỗi. Chỉ dùng thư viện chuẩn. [`execution/`](execution/)
+- **Workbench.** Server cục bộ của web mô phỏng: lượt chạy thuộc về server, không thuộc về tab; mỗi lượt để lại bundle ở `build/runs/<run_id>/`. Chạy `python3 -m workbench.server`. [`workbench/`](workbench/) · [Web mô phỏng](web/simulation/README.md)
 
 ## Path Planner
 
@@ -89,6 +91,8 @@ Chạy đủ bộ `smoke` hoặc `full` với planner trong repo. Dùng thư m�
 python -m eval.run_full --suite smoke --mcap none --out build/benchmark/planner-smoke
 python -m eval.run_full --suite full --jobs 4 --out build/benchmark/planner-full
 ```
+
+Kiểm hành vi của simulator sau mỗi thay đổi công cụ bằng golden set: `python -m eval.golden record` trước khi sửa, `python -m eval.golden check --paths runner,suite,live` sau khi sửa; checksum phải giữ nguyên. [Golden set](benchmark/suites/golden.yaml)
 
 Mặc định, `eval.run_full` ghi log MCAP cho các lượt có tiêu chí trượt. Sau khi sửa dữ liệu benchmark, kiểm tra XML bằng `python -m eval.validate benchmark`. Dùng `python -m eval.fetch_schemas` nếu cần tải các XSD ASAM còn thiếu và kiểm tra SHA-256.
 

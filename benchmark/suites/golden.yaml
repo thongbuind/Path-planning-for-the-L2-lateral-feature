@@ -1,0 +1,54 @@
+# Golden set of the simulation platform: fixed cases whose behaviour checksums guard every
+# change that must keep behaviour (refactor of the runner, the web worker, the observer hook).
+# Run with python3 -m eval.golden. Not a benchmark suite: it judges the tool, not the planner.
+#
+# recipe: eval.case recipe. smoke: id prefix of the same case in the generated smoke suite,
+# for the suite path (eval.suite reads the generated .xosc file). IDs fixed, never reused.
+id: golden
+cases:
+  - id: G-01
+    purpose: HWA danh định
+    recipe: {kind: catalog, sid: S1, v: a}
+    smoke: S1-a-VP-0
+  - id: G-02
+    purpose: Lỗi đồng hồ F14
+    recipe: {kind: catalog, sid: S1, v: c, faults: [[F14, a]]}
+  - id: G-03
+    purpose: Lỗi kênh, CRC sai F17
+    recipe: {kind: catalog, sid: S1, v: c, faults: [[F17, a]]}
+  - id: G-04
+    purpose: LKA, lỗi camera bắt đầu lúc LKA can thiệp
+    recipe: {kind: catalog, sid: S4, v: a, faults: [[F04, a]], trigger: lka_active, offset_s: 0.0}
+    smoke: F04-a-S4a_at_lka_activep0-VP-0
+  - id: G-05
+    purpose: ELK
+    recipe: {kind: catalog, sid: S5, v: a}
+    smoke: S5-a-VP-0
+  - id: G-06
+    purpose: Làn ego mở rộng trong cua
+    recipe: {kind: catalog, sid: S6b, v: d}
+    smoke: S6b-d-VP-0
+  - id: G-07
+    purpose: Xe lớn ở làn bên
+    recipe: {kind: catalog, sid: S7, v: a}
+    smoke: S7-a-VP-0
+  - id: G-08
+    purpose: Nhiễu cảm biến, nhiều seed
+    recipe: {kind: catalog, sid: S12, v: c}
+    seeds: [1, 2]
+    smoke: S12-c-VP-0
+  - id: G-09
+    purpose: Profile khác VP-0
+    recipe: {kind: catalog, sid: S1, v: b, vehicle: VP-4}
+  - id: G-10
+    purpose: Đổi làn
+    recipe: {kind: catalog, sid: S17, v: a}
+    smoke: S17-a-VP-0
+  - id: G-11
+    purpose: Tổ hợp lỗi G01 (đêm mưa)
+    recipe: {kind: catalog, sid: S1, v: c, faults: [[F01, c], [F04, a]], sim: {road_mu: 0.5, camera_latency_ms: 150.0}}
+    smoke: G01-S1c-VP-0
+  - id: G-12
+    purpose: Ca đang trượt (lỗi lane model kéo dài)
+    recipe: {kind: catalog, sid: S1, v: a, faults: [[F06, d]]}
+    smoke: F06-d-S1a-VP-0

@@ -8,17 +8,17 @@
 
 The planner is any library built against interfaces/c/pp_planner.h (--planner); default
 build/planner/libpp_planner (see README). Writes build/runs/<scenario>_seed<n>.json, the
-MCAP log <scenario>_seed<n>.mcap and manifest.json; prints the conclusion of Software
+MCAP log <scenario>_seed<n>.mcap and manifest.json, and the run bundle <out>/<run_id>/
+(execution.bundle, eval.run_bundle); prints the conclusion of Software
 Qualification Test Specification 8.4 for this run first (scope of P1 for a scenario id,
 every criterion for a .xosc file). B0 is not run here: see eval.conformance.
 --record makes it an official run (research/README.md).
 """
 
 import argparse
-from dataclasses import replace
 from pathlib import Path
 
-from eval import conclusion, labels, loader, matrix, metrics, planner_choice, provenance, report
+from eval import case, conclusion, labels, matrix, metrics, planner_choice, provenance, report
 from interfaces.planner import PlannerFactory
 from sim.harness import Harness, RunLog
 from sim.scenario import Scenario
@@ -85,23 +85,25 @@ def main() -> None:
     manifest["libraries"] = [provenance.library_info(planner.path, external=args.planner is not None)]
     if args.record:
         provenance.preflight(manifest)
-    scenario = loader.load_file(Path(args.scenario)) if is_file else loader.load(args.scenario, args.variant)
-    if is_file:
-        from eval import openx
-        scenario_path = Path(args.scenario).resolve()
-        scenario = replace(scenario, name=scenario_path.stem)
-        resolved, _ = openx.resolve(openx.parse(scenario_path))
-        road_path = scenario_path.parent / resolved.find("./RoadNetwork/LogicFile").attrib["filepath"]
-        manifest["concrete_inputs"] = {str(p): provenance.sha256(p) for p in (scenario_path, road_path)}
-    for fault_id, level in faults:
-        scenario = loader.with_fault(scenario, fault_id, level, trigger, offset_s)
+    # The same recipe as the web and reruns (eval.case): same Scenario, same case_hash.
+    recipe = ({"kind": "file", "path": str(Path(args.scenario).resolve())} if is_file
+              else {"kind": "catalog", "sid": args.scenario, "v": args.variant})
+    if faults:
+        recipe["faults"] = [list(f) for f in faults]
+    if trigger:
+        recipe["trigger"], recipe["offset_s"] = trigger, offset_s
     if args.acc:
-        scenario = replace(scenario, acc=args.acc, name=f"{scenario.name}_acc-{args.acc}")
+        recipe["acc"] = args.acc
     if args.adas_mode:
-        if scenario.adas_mode == "scripted":
-            parser.error("--adas-mode applies to scenarios configured for the stand-in")
-        scenario = replace(scenario, adas_mode=args.adas_mode, name=f"{scenario.name}_adas-{args.adas_mode}")
+        recipe["adas_mode"] = args.adas_mode
         manifest["adas_mode"] = args.adas_mode
+    try:
+        scenario = case.resolve(recipe)
+    except ValueError as error:
+        parser.error(str(error))
+    doc = case.document(recipe, scenario)
+    if is_file:
+        manifest["concrete_inputs"] = doc["inputs"]
     from sim.logging import run_log
     log = run(scenario, args.seed, planner)
     result = metrics.evaluate(log)
@@ -122,7 +124,17 @@ def main() -> None:
     provenance.write(manifest, args.out, path.stem + ".manifest.json")
     from eval import presentation
     figure = presentation.run_figure(log, result, args.out / f"{result.scenario}_seed{result.seed}.png")
-    print(f"\nJSON: {path}\nMCAP: {mcap}\nHình: {figure}")
+    # Run bundle v1 next to the files above (execution.bundle): same content as a web run.
+    from eval import run_bundle
+    from execution import bundle
+    folder = bundle.Bundle.create(args.out)
+    folder.write_json("request.json", {"run_id": folder.run_id, "recipe": recipe, "seed": args.seed,
+                                       "command": command})
+    bundle_manifest = run_bundle.write(folder.tmp, run_id=folder.run_id, parent=None, kind="run", doc=doc,
+                                       planner=planner, seed=args.seed, log=log, result=result, command=command)
+    final = folder.finalize({"state": "COMPLETED", "failure": None, "message": ""})
+    print(f"\nJSON: {path}\nMCAP: {mcap}\nHình: {figure}\nBundle: {final}"
+          f"\ncase_hash {doc['case_hash'][:12]}, behavior_checksum {bundle_manifest['bundle']['behavior_checksum'][:16]}")
     if args.record:
         failed = result.case_failures + [c.id for c in result.criteria if c.applicable and not c.passed]
         dest = provenance.record(manifest, {"results.json": path},

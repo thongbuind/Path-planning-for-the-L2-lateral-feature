@@ -36,6 +36,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1607-study-PP-TS-020-d1d50de: V2 loại; chờ PP-TS-021 trước khi chọn V1a hay V1b | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
 | PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã quyết 2026-11-16 theo 20261116-1748-study-PP-TS-021-8726b80; hồi quy 20261117-0908-suite-regression-c56f0bf có trượt mới ở ELK (PP-PR-062) | V7: reset mềm 0,02–0,1 m | [study](studies/PP-TS-021-stitch-start/study.md) |
 | PP-TS-022 | T4 bước 4: mỗi điểm của path so với ngưỡng nào khi tính λ (path quay về chậm ở F06 d, F03 c) | Đã quyết 2026-11-17 theo 20261117-1315-study-PP-TS-022-d2e7d27 (V1 trượt 2 / 3, V0 4 / 5; V1 sửa F06 d, không sửa F03 c, S14 e; lệch tâm xấu hơn ở 19 / 36 lượt); chờ hồi quy | V1: mỗi điểm so với ngưỡng của đoạn mình, một λ | [study](studies/PP-TS-022-blend-limit/study.md) |
+| PP-TS-023 | Dải đặc tính lái (K, steering ratio, actuator delay) của vehicle profile cho phép chấm flexibility | Mở; chờ nguồn cho dải | — | [study](studies/PP-TS-023-profile-steering-dynamics/study.md) |
 
 ## Problem reports
 
@@ -104,3 +105,9 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-061 | Thời gian tính đo bằng đồng hồ thật khi chạy 4 tiến trình: 0,27 % chu kỳ vượt 5 ms do máy | Mở; lỗi phía đánh giá | PP-SWR-015, 016 | [report](problems/PP-PR-061-compute-time-wall-clock-under-load.md) |
 | PP-PR-062 | Reset mềm của T4 (PP-TS-021 V7) làm ELK bắt đầu muộn ở v_lat cao: S13 a, c, S5 Euro NCAP 0,6 m/s, DTLE −0,33 đến −0,54 m | Đã sửa (fecdbb0): PP-SWR-031 đổi, PP-SWR-049 mới (SRS 1.23). Hồi quy 20261117-1217-suite-regression-d2e7d27: 16 nhóm hết trượt, 7 nhóm trượt mới ở ELK lặp (PP-PR-063) | PP-SWR-085, 086, 091, 090, 100 đến 102, 031; PP-TS-021 | [report](problems/PP-PR-062-soft-reset-elk-start.md) |
 | PP-PR-063 | ELK kích hoạt lặp 4–6 lần ở VP-3, VP-4, VP-5 với trôi 0,6 m/s: yêu cầu bị rút khoảng 1 s khi xe còn 0,47 m/s, xe vọt sang phía đối diện | Mở; mô tả xong, nguyên nhân chưa phân tích hết (20261117-1217-suite-regression-d2e7d27) | PP-SWR-085, 086, 091, 035, 039, 090; PP-TS-008, 010 | [report](problems/PP-PR-063-elk-ping-pong.md) |
+| PP-PR-064 | Web live: run gắn với tab, một run toàn cục, không ghi bằng chứng, mất stderr của worker | Mở; đang sửa (lõi thực thi chung, workbench); hành vi mô phỏng của web bằng CLI trên 13 lượt golden | Công cụ kiểm thử | [report](problems/PP-PR-064-web-run-lifecycle.md) |
+| PP-PR-065 | HUD web: khoảng hở dùng nửa bề rộng làn cố định, lệch tới 1,425 m ở S6b d | Mở | Chỉ hiển thị | [report](problems/PP-PR-065-hud-clearance-fixed-lane-width.md) |
+| PP-PR-066 | HUD web: tỉ lệ đóng góp lái gán 0,5 khi có lực tài xế | Mở | Chỉ hiển thị | [report](problems/PP-PR-066-steering-share-fixed-half.md) |
+| PP-PR-067 | Overlay lane model trên web tra tư thế bằng stamp đồng hồ camera; tới 2,5 cm dưới F14 | Mở; độ lớn nhỏ | Chỉ hiển thị | [report](problems/PP-PR-067-lane-overlay-clock-domain.md) |
+| PP-PR-068 | SQTS 4.1 mô tả chế độ thời gian thực (python-can `udp_multicast`) chưa có trong code | Mở; chờ quyết định A, B, C | SQTS 4.1 | [report](problems/PP-PR-068-realtime-mode-not-implemented.md) |
+| PP-PR-069 | Lỗi gắn trigger không được bơm nhưng ca vẫn được chấm như đã bơm | Mở; chờ quyết định cách sửa | SQTS 6, 8.4 | [report](problems/PP-PR-069-uninjected-fault-still-judged.md) |

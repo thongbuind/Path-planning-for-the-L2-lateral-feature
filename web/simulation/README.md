@@ -5,10 +5,12 @@ Web một khung để present Path Planner. Mỗi lần bấm **Chạy planner**
 ## Chạy
 
 ```bash
-python3 web/serve.py
+python3 -m workbench.server
 ```
 
-Mở http://127.0.0.1:8770/simulation/ (đổi cổng bằng `--port`). Cần Python có numpy, scipy, pyyaml (đã đủ nếu chạy được benchmark của repo) và `build/planner/libpp_planner.dylib` đã build. Trang không chạy khi mở thẳng file `index.html`, vì cần server.
+Chạy từ thư mục gốc của repo, rồi mở http://127.0.0.1:8793/ (đổi cổng bằng `--port`). Cần Python có numpy, scipy, pyyaml (đã đủ nếu chạy được benchmark của repo) và `build/planner/libpp_planner.dylib` đã build. Trang không chạy khi mở thẳng file `index.html`, vì cần server.
+
+Trang mô phỏng trong web tài liệu (`python3 web/serve.py`, http://127.0.0.1:8770/simulation/) dùng cùng workbench: `serve.py` chuyển tiếp `/simulation/api/*` qua HTTP, nên workbench phải đang chạy.
 
 Nếu thiếu thư viện Python, cài các phụ thuộc dự án bằng `python3 -m pip install -r requirements.txt` trong môi trường Python sử dụng để chạy server.
 
@@ -26,9 +28,11 @@ Màn hình 2D nhìn từ trên xuống, xe hướng sang phải. Quỹ đạo 31
 
 ## Cách hoạt động
 
-- `server.py`: tệp tĩnh và API (`/api/catalog`, `/api/run`, `/api/control`, `/api/stop`). Chỉ nghe ở 127.0.0.1. Một lượt chạy tại một thời điểm; bấm Chạy lần nữa, Dừng hoặc đóng tab thì lượt cũ bị dừng.
-- `tools/rt_run.py`: kế thừa `Harness` của `sim/` trong file này (không sửa repo), sau mỗi `planner.step()` lấy kết quả của chu kỳ, chờ cho kịp đồng hồ thật rồi gửi một dòng JSON. Hết lượt chạy thì chạy `eval.metrics` để có kết luận. Lệnh `catalog` đọc danh mục từ benchmark.
-- Mô phỏng tất định theo seed: cùng cấu hình và seed thì cho cùng kết quả như `eval.runner`. Riêng thời gian tính là đồng hồ thật của máy lúc chạy, nên có thể giật khi máy bận.
-- Chỉ ĐỌC repo; mã web nằm trong `web/simulation/`.
+- `workbench/server.py`: tệp tĩnh của thư mục này và API lượt chạy (`/api/catalog`, `/api/runs`, `/api/runs/<id>/events`, `/control`, `/cancel`, `/files/<tên>`). Chỉ nghe ở 127.0.0.1.
+- Lượt chạy thuộc về server, không thuộc về tab: đóng tab không dừng lượt chạy; mở lại trang thì nối tiếp lượt đang chạy. Dừng là hủy đúng lượt đó. Tối đa 2 lượt cùng lúc, lượt sau chờ.
+- `eval/live.py`: worker của mỗi lượt. Dựng ca bằng `eval.case` như `eval.runner`, chạy `Harness` với observer: sau mỗi chu kỳ 25 ms lấy kết quả, chờ cho kịp đồng hồ thật rồi gửi một dòng JSON. Hết lượt chạy thì chấm bằng `eval.metrics`. Lệnh `catalog` đọc danh mục từ benchmark.
+- Mỗi lượt để lại một bundle ở `build/runs/<run_id>/`: manifest, ca đã resolve, kết quả chấm, MCAP, luồng khung hình, log của worker, SHA256SUMS. Lượt lỗi vẫn để lại bundle, ghi trạng thái và lớp lỗi.
+- Mô phỏng tất định theo seed: cùng cấu hình và seed thì cùng behaviour checksum như `eval.runner`, ở mọi tốc độ phát, kể cả khi tạm dừng. Riêng thời gian tính là đồng hồ thật của máy lúc chạy, nên có thể giật khi máy bận.
+- Mã web nằm trong `web/simulation/` và không đọc mã nguồn; mọi thứ đi qua HTTP.
 
 Ca trượt hiển thị đúng như evaluator chấm (ví dụ ELK vạch liền với nhiễu ×2,5 khi ELK can thiệp trượt PP-SWR-032). Ca ngoài benchmark (chồng nhiều lỗi tuỳ ý) vẫn được chấm theo các tiêu chí áp dụng, nhưng không thuộc bộ kiểm chính thức.

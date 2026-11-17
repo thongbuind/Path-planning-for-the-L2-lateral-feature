@@ -11,16 +11,19 @@ PUT /api/docs/<id>  thân là md mới. Gửi If-Match là ETag lúc web tải; 
                     ngoài sau đó thì trả 409 và không ghi đè.
 
 GET/POST/PUT /api/reviews/<id> đọc, tạo và sửa nhận xét trong web/data/review-comments/<id>.json.
+/simulation/api/* chuyển tiếp qua HTTP tới workbench (python3 -m workbench.server, mặc định
+http://127.0.0.1:8793, đổi bằng PP_WORKBENCH_URL). Web không nạp mã nguồn của simulator.
 Chỉ nghe trên 127.0.0.1 và dùng thư viện chuẩn.
 """
 import argparse
-import importlib.util
+import http.client
 import json
 import os
 import re
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from review_store import ReviewError, read_reviews, save_review
 from latest_benchmark import latest_benchmark
@@ -34,9 +37,9 @@ MAX_BODY = 2 * 1024 * 1024
 MAX_REVIEW_BODY = 64 * 1024
 STATIC_ROOT = Path(ROOT).resolve()
 STUDY_FIGURE = "research/studies/PP-TS-013-comfort-line/sample-r171-sbend.png"
-simulation_spec = importlib.util.spec_from_file_location("simulation_server", STATIC_ROOT / "simulation" / "server.py")
-simulation_server = importlib.util.module_from_spec(simulation_spec)
-simulation_spec.loader.exec_module(simulation_server)
+WORKBENCH = urlsplit(os.environ.get("PP_WORKBENCH_URL", "http://127.0.0.1:8793"))
+WORKBENCH_DOWN = ("Workbench chưa chạy. Chạy: python3 -m workbench.server "
+                  "(hoặc mở thẳng http://127.0.0.1:8793/)")
 STATIC_PATHS = {
     "index.html", "report.html", "style.css", "reviews.css",
     "app.js", "cards.js", "docmd.js", "diagrams.js", "reviews.js",
@@ -72,9 +75,54 @@ def etag(p):
     return '"%d"' % os.stat(p).st_mtime_ns
 
 
-class Handler(simulation_server.Handler):
-    def __init__(self, *args, **kwargs):
-        SimpleHTTPRequestHandler.__init__(self, *args, **kwargs)
+class Handler(SimpleHTTPRequestHandler):
+    def _origin_ok(self):
+        origin = self.headers.get("Origin")
+        port = self.server.server_port
+        return origin is None or origin in (f"http://127.0.0.1:{port}", f"http://localhost:{port}")
+
+    def proxy(self, method):
+        """/simulation/api/* -> workbench /api/*, streamed line by line (events of a run)."""
+        if method == "POST" and not self._origin_ok():
+            return self.send_json(403, {"error": "origin không được phép"})
+        body = None
+        if method == "POST":
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > MAX_REVIEW_BODY:
+                return self.send_json(413, {"error": "yêu cầu quá lớn"})
+            body = self.rfile.read(length)
+        headers = {k: self.headers[k] for k in ("Content-Type", "Idempotency-Key") if self.headers.get(k)}
+        conn = http.client.HTTPConnection(WORKBENCH.hostname, WORKBENCH.port or 80, timeout=None)
+        try:
+            conn.request(method, self.path[len("/simulation"):], body, headers)
+            resp = conn.getresponse()
+        except OSError:
+            conn.close()
+            return self.send_json(503, {"error": WORKBENCH_DOWN})
+        try:
+            self.send_response(resp.status)
+            for name in ("Content-Type", "Content-Length", "Content-Disposition"):
+                if resp.getheader(name):
+                    self.send_header(name, resp.getheader(name))
+            self.end_headers()
+            while True:
+                chunk = resp.read1(65536)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            pass  # the tab left; the run goes on in the workbench
+        finally:
+            conn.close()
+
+    def send_json(self, status, obj):
+        data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def translate_path(self, path):
         path_without_query = path.partition("?")[0]
@@ -129,9 +177,8 @@ class Handler(simulation_server.Handler):
         super().log_message(fmt, *args)
 
     def do_GET(self):
-        if self.path == "/simulation/api/catalog":
-            self.path = "/api/catalog"
-            return simulation_server.Handler.do_GET(self)
+        if self.path.startswith("/simulation/api/"):
+            return self.proxy("GET")
         if self.path.startswith("/api/reviews/"):
             return self.handle_reviews("GET")
         if not self.path.startswith("/api/"):
@@ -184,9 +231,8 @@ class Handler(simulation_server.Handler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path in {"/simulation/api/run", "/simulation/api/control", "/simulation/api/stop"}:
-            self.path = self.path[len("/simulation"):]
-            return simulation_server.Handler.do_POST(self)
+        if self.path.startswith("/simulation/api/"):
+            return self.proxy("POST")
         if self.path.startswith("/api/reviews/"):
             return self.handle_reviews("POST")
         self.send_error(404)
@@ -235,7 +281,6 @@ def main():
     try:
         server.serve_forever()
     finally:
-        simulation_server.kill_current()
         server.server_close()
 
 
