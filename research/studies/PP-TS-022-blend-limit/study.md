@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Đã quyết: V1; chờ hồi quy |
 | Mở ngày | 2026-11-17 |
 | Khóa ngày | 2026-11-17 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-17 |
 | Liên quan | PP-SWR-100, 101, 102, 051, 121, 122, 125; PP-PR-057, 058; PP-TS-019, 021; Software Detailed Design mục 7 (T4 bước 4); `cont_margin` |
 
 ## 1. Câu hỏi
@@ -64,6 +64,7 @@ Người dùng duyệt 2026-11-17:
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261117-1315-study-PP-TS-022-d2e7d27](../../runs/20261117-1315-study-PP-TS-022-d2e7d27/summary.md) | V0, V1 | Theo plan khóa 2026-11-17; 50 lượt mỗi phương án (chỉnh 20, kiểm 30). Chạy trong git worktree sạch ở d2e7d27 (cây chính có thay đổi của phiên khác); 1,5 phút, 2 tiến trình |
 
 ## 5. Kết quả
 
@@ -88,12 +89,45 @@ Người dùng duyệt 2026-11-17:
 - Không thấy lỗi cài đặt: không ca nào trượt PP-SWR-100 đến 102, lệch giữa hai path dừng ở 0,90–0,92 ngưỡng, đúng `cont_margin`.
 - Hai mặt đúng như mục 1: F06 d hết trượt nhưng chỉ còn 0,03 m; ca nhiễu mất 0,03 m DLC và vô lăng quay nhiều hơn khoảng 25–30 %; F03 c không tốt lên.
 
+Lần chạy chính thức [20261117-1315-study-PP-TS-022-d2e7d27](../../runs/20261117-1315-study-PP-TS-022-d2e7d27/summary.md). Số lượt trượt (chỉnh / kiểm): V0 4 / 5; **V1 2 / 3**. Không ca nào chạy đủ cả hai phương án mà V1 trượt thêm.
+
+| Ca (2 seed mỗi ô) | V0 | V1 |
+|---|---|---|
+| S1 a + F06 d (chỉnh) | Trượt PP-SWR-051; lệch tâm 1,08 m | Đạt; 0,75 m |
+| S1 c + F06 d (kiểm) | Trượt 051; 1,69 m | Đạt; 0,77 m |
+| S1 a + F03 c (chỉnh) | Trượt 051; 1,04 m | Trượt 051; 1,08 m |
+| S1 c + F03 c (kiểm) | Trượt 051; 1,03 m | Trượt 051; 1,15 m |
+| S14 e, ACC đọc LateralLimits (kiểm) | Trượt 051 | Trượt 051 |
+| Mọi ca còn lại | Đạt | Đạt |
+
+Cái giá của V1, trên các lượt có chỉ số của cả hai phương án:
+
+| Chỉ số | Kết quả của V1 so với V0 |
+|---|---|
+| PP-SWR-050 (lệch tâm làn, nên nhỏ) | Xấu hơn hơn 0,005 m ở 19 / 36 lượt, tốt hơn ở 6, ngang ở 11. Xấu nhất +0,12 m (S1 c + F03 c), +0,10 m (S1 c + F06 e). Tốt nhất −0,92 m (F06 d) |
+| Cùng ca không lỗi hoặc nhiễu | S1 a + F06 a +0,06 m; S1 c + F01 c +0,03 đến +0,08 m; S12 a +0,03 m; S1 a + F02 b +0,01 m; S1 f −0,01 đến −0,03 m |
+| PP-SWR-004 (tốc độ quay vô lăng RMS, nên nhỏ) | Trung vị tăng 4 % trên 14 lượt; tới +36 % ở S1 c + F01 c (VP-5): 0,041 → 0,055 rad/s |
+| PP-SWR-125 (theo c2 sai, nên nhỏ) | Xấu hơn ở F06 d (+0,12 và +0,24) và F06 a (+0,05) |
+| PP-SWR-003 (jerk ngang) | Tăng 0,03 đến 0,5 m/s³ ở các ca F06, F03; dưới giới hạn 5 m/s³ |
+
+- V1 chỉ sửa được một nhóm: F06 d, 4 lượt trên 50. F03 c vẫn trượt và hơi xấu đi; S14 e không đổi.
+- Cái giá trải rộng hơn lợi ích: path theo lane model mới nhanh hơn ở cả ca lỗi ngắn (F06 a, e), nhiễu (F01 c, S12 a) lẫn ca sạch có đổi nhỏ, nên lệch tâm và tốc độ quay vô lăng tăng ở ca đó.
+- Giới hạn của kết quả: bộ chạy không có ca ELK nên ELK lặp (PP-PR-063) không ảnh hưởng; không có hồi quy cả bộ cho V1. Bộ kiểm dùng ca chủ S1 c, nên ca F06 d trên S1 a chỉ có ở bộ chỉnh.
+
 ## 6. Đề xuất
+
+2026-11-17, sau lần chạy [20261117-1315-study-PP-TS-022-d2e7d27](../../runs/20261117-1315-study-PP-TS-022-d2e7d27/summary.md), chờ người dùng quyết định (bước 7):
+
+- Theo thứ tự ưu tiên của Software Qualification Test Specification mục 9 (an toàn, quy định, cảm nhận người lái), V1 đứng đầu: ít lượt trượt hơn ở cả bộ chỉnh lẫn bộ kiểm, không trượt thêm.
+- Tôi nghiêng về chọn V1, nhưng lợi ích mỏng: một nhóm lỗi (F06 d), trong khi F03 c, S14 e cần cách khác; DLC của F06 d chỉ vừa qua ngưỡng ở lượt dò nháp (khoảng 0,03 m).
+- Cái giá nằm ở ca thường gặp: nhiễu đêm, mưa (F01 c, S12 a) lệch tâm tăng 0,03–0,08 m và vô lăng quay nhiều hơn tới 36 %.
+- Phương án khác: giữ V0 và sửa gốc ở T2 (PP-PR-057, PP-TS-005 V3: nhận theo bằng chứng); khi đó V1 có thể không còn cần. Chỉ nên chọn cách này nếu chấp nhận F06 d trượt trong thời gian chờ.
+- Khi đưa V1 vào (bước 8): đổi `PP_T4_BLEND` mặc định sang `banded`, cập nhật Software Detailed Design mục 7 (T4 bước 4) và Architecture Decision Records, bỏ nhánh `single`, chạy hồi quy.
 
 ## 7. Quyết định
 
-- Người quyết, ngày:
-- Chọn:
-- Lý do:
-- Đưa vào:
-- Hồi quy:
+- Người quyết, ngày: thongbui, 2026-11-17.
+- Chọn: V1. T4 bước 4 so mỗi điểm với ngưỡng của đoạn thời gian chứa nó (0–1 s, 1–2 s, sau 2 s), vẫn một λ cho cả path.
+- Lý do: theo đề xuất ở mục 6, lần chạy 20261117-1315-study-PP-TS-022-d2e7d27: ít lượt trượt hơn ở cả bộ chỉnh và bộ kiểm, không trượt thêm; sửa F06 d. Cái giá (lệch tâm và tốc độ quay vô lăng ở ca nhiễu) được chấp nhận, theo dõi ở hồi quy.
+- Đưa vào: Software Detailed Design 1.25 (T4 bước 4); code giao (`stitching.c`, `stitching.h`); bỏ tuỳ chọn build `PP_T4_BLEND` và nhánh `single` (git giữ lại ở d2e7d27).
+- Hồi quy: chờ.

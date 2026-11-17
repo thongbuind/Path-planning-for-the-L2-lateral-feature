@@ -102,3 +102,4 @@ Lượt nháp, seed 1, VP-0, thư viện build ngoài cây làm việc. Trước
 | Run ID | Kết quả |
 |---|---|
 | [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | Phương án A, B: F06 d, F03 c trên S1a còn trượt 051 nhưng DLC từ −1,30…−0,96 m lên −0,60…−0,23 m; trên S1c F03 c −0,54…−0,17 m, F06 d −1,15…−0,73 m. F06 d lúc LKA, ELK hết trượt 086 (4 lượt); F06 b, e trên S1c hết trượt. Cơ chế 2 còn mở (PP-TS-022) |
+| [20261117-1315-study-PP-TS-022-d2e7d27](../runs/20261117-1315-study-PP-TS-022-d2e7d27/summary.md) | Cơ chế 2 (PP-TS-022): V1 (trộn theo ngưỡng từng đoạn) sửa F06 d trên S1 a, S1 c (4 lượt, lệch 1,08 / 1,69 → 0,75 / 0,77 m); F03 c vẫn trượt; cái giá ở ca nhiễu (lệch tâm +0,03 đến +0,08 m). Quyết định chờ |

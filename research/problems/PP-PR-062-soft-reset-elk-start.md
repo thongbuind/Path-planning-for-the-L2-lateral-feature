@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã sửa trong cây làm việc 2026-11-17 (SRS 1.23, PP-SWR-031, 049); chờ hồi quy chính thức |
+| Trạng thái | Đã sửa (fecdbb0, SRS 1.23); hồi quy 20261117-1217-suite-regression-d2e7d27: 16 nhóm trượt hết, 7 nhóm trượt mới ở ELK lặp (PP-PR-063) |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | PP-SWR-085, 086, 091, 090, 100 đến 102; PP-SWR-031, 080; PP-TS-021 |
 | Tái hiện | [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md): S13 a, c (ELK), S5 lưới Euro NCAP vạch liền 0,6 m/s, F01 c lúc ELK, S5 a |
@@ -93,3 +93,4 @@ Khoanh vùng bằng lượt nháp 2026-11-17: cùng file ca và seed của lần
 
 | Run ID | Kết quả |
 |---|---|
+| [20261117-1217-suite-regression-d2e7d27](../runs/20261117-1217-suite-regression-d2e7d27/report.md) | 16 nhóm hết trượt: S13 a, c ELK, lưới Euro NCAP vạch liền 0,6 m/s, F01 c lúc ELK, S5 a (086, 085, 091, 100–102, 090). 7 nhóm trượt mới: S13 b ELK VP-3, S6 b VP-4, VP-5, S5 c VP-5, cả bốn ca có ELK kích hoạt lặp lại (PP-PR-063). S16 d 030 1 → 2 lượt, F01 c lúc ELK 032 1 → 2 lượt. BLOCKER 58 → 51; trượt 93 → 90 |
