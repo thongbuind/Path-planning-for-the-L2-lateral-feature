@@ -50,7 +50,7 @@
       <h2>Tình huống <em id="n-scen"></em></h2>
       <input class="search" id="q" type="search" placeholder="Tìm: S1, cua, xe tải, xi-nhan…" aria-label="Tìm tình huống" autocomplete="off">
       <div class="chips" id="fn-chips" role="radiogroup" aria-label="Lọc theo chức năng"></div>
-      <div class="slist" id="m-scen" role="radiogroup" aria-label="Tình huống"></div>
+      <div class="slist" id="m-scen" role="group" aria-label="Tình huống"></div>
     </section>
 
     <section class="msec">
@@ -101,6 +101,13 @@
       </div>
       <div class="hud hud-tr"><canvas id="minimap" width="190" height="104" aria-label="Bản đồ lộ trình"></canvas></div>
       <div class="hud hud-bl">
+        <svg class="steering-wheel" id="hud-steering" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Vô lăng">
+          <g id="hud-steering-rotor" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+            <circle cx="24" cy="24" r="19"/>
+            <path d="M7 16l12 6m22-6-12 6m-5 7v14"/>
+            <circle cx="24" cy="24" r="5"/>
+          </g>
+        </svg>
         <div class="speed"><span id="hud-v">0</span><small>km/h</small></div>
       </div>
       <div class="hud hud-br" id="hud-br"></div>
@@ -135,6 +142,10 @@
   </main>
 
   <aside class="panel" aria-label="Thông số">
+    <section class="scenario-description" id="scenario-description" aria-labelledby="scenario-description-title" aria-live="polite" aria-atomic="true" hidden>
+      <h2 id="scenario-description-title"><span>Bài thử đã chọn</span><span id="scenario-description-code"></span></h2>
+      <p id="scenario-description-text"></p>
+    </section>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tab-live" aria-selected="true" aria-controls="pane-live">Thông số</button>
       <button type="button" role="tab" id="tab-res" aria-selected="false" aria-controls="pane-res">Kết quả</button>

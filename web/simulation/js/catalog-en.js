@@ -493,3 +493,487 @@ Object.assign(window.PP_METRICS_EN, {
 'observed_horizon_s trừ thời điểm ra khỏi tầm nhìn, lớn nhất [s]':'Maximum observed_horizon_s minus time of leaving view range [s]',
 'Chu kỳ output khác ca tham chiếu cùng seed':'Cycles with output different from the reference case with the same seed'
 });
+
+// Mô tả song ngữ về hành vi mong đợi của từng biến thể, theo ID từ api/catalog.
+window.PP_SCENARIO_DESCRIPTIONS = {
+  'S1/a': {
+    vi: 'Vào cua R = 1.000 m qua đoạn chuyển tiếp. HWA cần giữ xe gần tâm làn và tăng gia tốc ngang từ từ.',
+    en: 'On the transition into a 1,000 m curve, HWA should keep the car near lane center and build lateral acceleration gradually.',
+  },
+  'S1/b': {
+    vi: 'Ở 90 km/h, HWA cần bám tâm làn từ đoạn thẳng vào cua R = 500 m và giữ lốp trong vạch.',
+    en: 'At 90 km/h, HWA should track lane center from the straight into the 500 m curve and keep the tyres inside the markings.',
+  },
+  'S1/c': {
+    vi: 'Bám tâm cua R = 250 m ở 90 km/h đòi đúng 2,5 m/s². HWA cần giữ xe trong làn và giữ gia tốc ngang của quỹ đạo trong giới hạn này.',
+    en: 'Tracking a 250 m curve at 90 km/h requires exactly 2.5 m/s² of lateral acceleration. HWA should stay in lane and keep the path within that limit.',
+  },
+  'S1/d': {
+    vi: 'Qua cua chữ S bán kính 500 m, HWA cần đổi hướng đánh lái êm giữa hai cung và giữ xe trong làn suốt đoạn cua.',
+    en: 'In the 500 m S-bend, HWA should reverse steering smoothly between arcs and keep the car in lane throughout.',
+  },
+  'S1/e': {
+    vi: 'Xe vào cua R = 1.000 m ở 130 km/h. HWA cần giữ độ lệch tâm nhỏ cả ở đoạn chuyển tiếp lẫn trên cung tròn.',
+    en: 'The car enters a 1,000 m curve at 130 km/h. HWA should keep lane-center error small through both the transition and the arc.',
+  },
+  'S1/f': {
+    vi: 'Bài thử bám cua chữ S theo R171, gồm hai cung 787 m và 374 m. HWA cần đổi hướng đánh lái êm và giữ lốp trong vạch ở cả hai cung.',
+    en: 'This R171 test uses an S-bend with 787 m and 374 m arcs. HWA should reverse steering smoothly and keep the tyres inside the markings on both arcs.',
+  },
+  'S1/g': {
+    vi: 'Cua R = 300 m ở 90 km/h cần khoảng 83% giới hạn gia tốc ngang của HWA. Xe cần qua cua trong làn khi giữ nguyên tốc độ.',
+    en: 'At 90 km/h, the 300 m curve requires about 83% of HWA’s lateral acceleration limit. The car should stay in lane at constant speed.',
+  },
+  'S1b/a': {
+    vi: 'Vào cua R = 200 m ở 90 km/h cần gia tốc ngang vượt giới hạn HWA. HWA phải tiếp tục hỗ trợ trong giới hạn và báo khi chạm giới hạn ngang.',
+    en: 'At 90 km/h, the 200 m curve requires more lateral acceleration than HWA allows. HWA must continue assisting within its limit and flag when it reaches that limit.',
+  },
+  'S1b/b': {
+    vi: 'Cua R = 150 m ở 90 km/h đòi khoảng 4,2 m/s². HWA phải tiếp tục hỗ trợ, với gia tốc ngang của quỹ đạo không vượt 2,5 m/s².',
+    en: 'The 150 m curve at 90 km/h requires about 4.2 m/s². HWA must continue assisting with path lateral acceleration capped at 2.5 m/s².',
+  },
+  'S1b/c': {
+    vi: 'Ở 110 km/h, cua R = 300 m vượt giới hạn gia tốc ngang của HWA. Planner phải giữ quỹ đạo hợp lệ và cần báo sớm giới hạn ngang.',
+    en: 'At 110 km/h, the 300 m curve exceeds HWA’s lateral acceleration limit. The planner must keep the path valid and should flag the limit early.',
+  },
+  'S1b/d': {
+    vi: 'Camera chỉ quan sát được 40 m khi xe vào cua R = 200 m. HWA phải tiếp tục hỗ trợ trong giới hạn và báo khi phát hiện cua vượt khả năng bám làn.',
+    en: 'The camera sees only 40 m on the approach to a 200 m curve. HWA must continue assisting within its limit and flag the curve once it detects the excess demand.',
+  },
+  'S1b/e': {
+    vi: 'Độ cong tăng nhanh trên đoạn chuyển tiếp 60 m vào cua R = 200 m. HWA phải giữ hỗ trợ trong giới hạn gia tốc ngang và báo khi chạm giới hạn.',
+    en: 'Curvature builds quickly over the 60 m transition into the 200 m curve. HWA must keep assisting within its lateral acceleration limit and flag when it reaches that limit.',
+  },
+  'S1b/f': {
+    vi: 'Cua R = 230 m chỉ vừa vượt giới hạn HWA. HWA phải tiếp tục hỗ trợ. Nếu lốp trước chạm vạch, cờ giới hạn ngang phải đã bật lúc đó.',
+    en: 'The 230 m curve is just beyond HWA’s limit. HWA must continue assisting. If a front tyre touches a marking, the lateral limit flag must already be on.',
+  },
+  'S2/a': {
+    vi: 'HWA bắt đầu lái khi xe song song với làn và lệch tâm 20 cm. HWA phải duy trì hỗ trợ trong lúc đưa xe về gần tâm làn.',
+    en: 'HWA takes control with the car parallel to the lane and 20 cm off center. It must stay active as it steers the car back toward lane center.',
+  },
+  'S2/b': {
+    vi: 'Xe lệch tâm 40 cm và hướng nhẹ về giữa làn khi HWA bắt đầu lái. HWA cần đưa xe về gần tâm mà không đổi hướng đột ngột.',
+    en: 'When HWA takes control, the car is 40 cm off center and pointed slightly inward. HWA should bring it near lane center without an abrupt change in direction.',
+  },
+  'S2/c': {
+    vi: 'Khi HWA bắt đầu lái, xe lệch tâm 50 cm và hướng ra ngoài 2°. HWA phải duy trì hỗ trợ khi chỉnh hướng xe về tâm làn.',
+    en: 'At engagement, the car is 50 cm off center and points 2° outward. HWA must stay active as it corrects the car’s heading toward lane center.',
+  },
+  'S2/d': {
+    vi: 'Xe lệch tâm 40 cm về phía ngoài cua trái R = 500 m. HWA cần đưa xe về gần tâm làn trong khi vẫn bám theo cung cua.',
+    en: 'The car is 40 cm off center toward the outside of a 500 m left curve. HWA should recenter it while following the curve.',
+  },
+  'S2/e': {
+    vi: 'HWA bắt đầu lái ở 130 km/h khi xe lệch tâm 50 cm. Xe cần về gần tâm làn mà không đánh lái đột ngột.',
+    en: 'HWA engages at 130 km/h with the car 50 cm off center. The car should return toward lane center without abrupt steering.',
+  },
+  'S3/a': {
+    vi: 'Xe thử vượt xe tải ở làn phải chậm hơn 5 m/s. HWA cần dịch quỹ đạo sang trái trước khi hai xe ngang hàng và đưa xe về gần tâm sau khi vượt.',
+    en: 'The test car passes a truck in the right lane that is 5 m/s slower. HWA should shift left before drawing alongside and recenter after the pass.',
+  },
+  'S3/b': {
+    vi: 'Xe thử vượt xe tải với chênh lệch tốc độ 2 m/s nên hai xe đi ngang hàng lâu hơn. HWA cần duy trì khoảng hở ngang suốt đoạn vượt.',
+    en: 'With a speed difference of 2 m/s, the car spends longer alongside the truck. HWA should maintain lateral clearance throughout the pass.',
+  },
+  'S3/c': {
+    vi: 'Xe thử áp sát xe tải với chênh lệch tốc độ 10 m/s. HWA cần dịch quỹ đạo trước khi hai xe ngang hàng và đưa xe về gần tâm sau khi vượt.',
+    en: 'The test car closes on the truck at 10 m/s. HWA should shift the path before the vehicles draw alongside and recenter after the pass.',
+  },
+  'S3/d': {
+    vi: 'Xe tải ở làn phải chỉ cách vạch 10 cm. Khi vượt, HWA cần dịch quỹ đạo sang trái để tăng khoảng hở mà vẫn giữ xe trong làn.',
+    en: 'The truck in the right lane is only 10 cm from the marking. HWA should shift left for clearance while keeping the car in its lane.',
+  },
+  'S3/e': {
+    vi: 'Xe tải lấn 30 cm vào làn xe thử. HWA cần dịch quỹ đạo ra xa xe tải và giữ lốp trong vạch phía đối diện.',
+    en: 'The truck intrudes 30 cm into the test car’s lane. HWA should shift the path away from the truck and keep the tyres inside the opposite marking.',
+  },
+  'S3b/a': {
+    vi: 'Xe tải vượt từ phía sau bên phải, làn trái trống. HWA cần tạo khoảng hở ngang với xe tải khi hai xe ngang hàng.',
+    en: 'A truck overtakes on the right while the left lane is clear. HWA should leave lateral clearance as the truck draws alongside.',
+  },
+  'S3b/b': {
+    vi: 'Xe tải vượt bên phải lúc có xe con ở làn trái. HWA cần điều chỉnh vị trí trong làn để duy trì khoảng hở với cả hai xe.',
+    en: 'A truck passes on the right while a car is alongside on the left. HWA should adjust its position within the lane to maintain clearance to both.',
+  },
+  'S3b/c': {
+    vi: 'Xe tải vượt bên phải khi đã có xe tải bên trái. Nếu khoảng hở xuống dưới ngưỡng, HWA không được dịch quỹ đạo về phía xe tải gần hơn.',
+    en: 'A truck passes on the right with another truck on the left. When clearance falls below the threshold, HWA must not shift toward the closer truck.',
+  },
+  'S3b/d': {
+    vi: 'Xe tải vượt bên phải khi làn xe thử chỉ rộng 3 m. HWA cần chừa khoảng hở với xe tải trong phạm vi làn.',
+    en: 'A truck passes on the right while the test car’s lane is only 3 m wide. HWA should leave clearance to the truck within the available lane width.',
+  },
+  'S3b/e': {
+    vi: 'Hai xe tải đi cạnh xe thử trên làn 2,75 m. Nếu khoảng hở xuống dưới ngưỡng, HWA không được dịch quỹ đạo về phía xe tải gần hơn.',
+    en: 'Two trucks flank the test car in a 2.75 m lane. When clearance falls below the threshold, HWA must not shift toward the closer truck.',
+  },
+  'S4/a': {
+    vi: 'Xe trôi chậm về vạch đứt ở 72 km/h. Khi LKA kết thúc can thiệp, lốp xe phải nằm phía trong vạch mà xe đã trôi về.',
+    en: 'The car drifts slowly toward a dashed marking at 72 km/h. When LKA completes, the tyres must be inside the marking on the drift side.',
+  },
+  'S4/b': {
+    vi: 'Xe trôi về vạch liền ở 72 km/h. LKA phải đưa xe trở lại trong làn, đồng thời không để xe vượt vạch đối diện sau can thiệp.',
+    en: 'The car drifts toward a solid marking at 72 km/h. LKA must bring it back inside the lane without crossing the opposite marking after correction.',
+  },
+  'S4/c': {
+    vi: 'Ở 90 km/h, xe trôi ngang 0,6 m/s về vạch đứt. LKA phải can thiệp để lốp không vượt vạch quá 30 cm.',
+    en: 'At 90 km/h, the car drifts toward a dashed marking at 0.6 m/s. LKA must intervene and limit tyre crossing to 30 cm.',
+  },
+  'S4/d': {
+    vi: 'Gió ngang đẩy xe sang phải. LKA cần can thiệp để đưa xe trở lại phía trong vạch phải.',
+    en: 'A crosswind pushes the car to the right. LKA should intervene and bring it back inside the right marking.',
+  },
+  'S4/e': {
+    vi: 'Mặt đường nghiêng làm xe trôi sang trái. Khi LKA báo hoàn tất, xe phải ở phía trong vạch trái.',
+    en: 'Road camber causes a leftward drift. When LKA reports completion, the car must be inside the left marking.',
+  },
+  'S4b/a': {
+    vi: 'Xe trôi về phía ngoài cua R = 1.000 m. LKA cần chỉnh lái để đưa xe trở lại trong làn trên cung cua.',
+    en: 'The car drifts toward the outside of a 1,000 m curve. LKA should steer it back inside the lane while following the curve.',
+  },
+  'S4b/b': {
+    vi: 'Xe trôi về vạch ngoài của cua R = 500 m. LKA cần chỉnh hướng về phía trong làn và không được để xe vượt vạch trong sau can thiệp.',
+    en: 'The car drifts toward the outer marking of a 500 m curve. LKA should steer it back into the lane without crossing the inner marking after correction.',
+  },
+  'S4b/c': {
+    vi: 'Xe trôi về vạch trong của cua R = 500 m. LKA cần chỉnh xe ra xa vạch trong và giữ xe phía trong vạch ngoài sau can thiệp.',
+    en: 'The car drifts toward the inner marking of a 500 m curve. LKA should steer it away from that marking and keep it inside the outer marking after correction.',
+  },
+  'S4b/d': {
+    vi: 'Cua R = 250 m chỉ còn khoảng 0,5 m/s² gia tốc ngang để LKA chỉnh đà trôi ra ngoài. LKA cần đưa xe vào làn trong giới hạn đó.',
+    en: 'The 250 m curve leaves about 0.5 m/s² of lateral acceleration for LKA to correct outward drift. LKA should steer the car into the lane within that margin.',
+  },
+  'S4b/e': {
+    vi: 'Xe trôi ra ngoài ở đoạn chuyển tiếp vào cua. LKA cần chỉnh hướng khi độ cong thay đổi và giữ xe trong vạch đối diện sau can thiệp.',
+    en: 'The car drifts outward on the transition into a curve. LKA should correct as curvature changes and keep the car inside the opposite marking after correction.',
+  },
+  'S5/a': {
+    vi: 'Xe trôi chậm về vạch liền ở 72 km/h khi LKA tắt. ELK phải can thiệp và đưa xe trở lại trong làn.',
+    en: 'The car drifts slowly toward a solid marking at 72 km/h with LKA off. ELK must intervene and steer it back into the lane.',
+  },
+  'S5/b': {
+    vi: 'Xe trôi ngang 0,4 m/s về vạch liền. ELK phải can thiệp và không để lốp vượt vạch quá 30 cm.',
+    en: 'The car drifts toward a solid marking at 0.4 m/s. ELK must intervene and keep the tyres from crossing more than 30 cm past the marking.',
+  },
+  'S5/c': {
+    vi: 'Xe trôi ngang 0,6 m/s về vạch liền. ELK phải can thiệp để lốp không vượt vạch quá 30 cm và xe không vượt vạch đối diện sau can thiệp.',
+    en: 'The car drifts toward a solid marking at 0.6 m/s. ELK must limit tyre crossing to 30 cm and keep the car inside the opposite marking after correction.',
+  },
+  'S5/d': {
+    vi: 'Ở 90 km/h, xe trôi ngang 0,4 m/s về vạch liền. ELK phải chỉnh hướng và chỉ được báo hoàn tất khi xe đã ổn định trong làn.',
+    en: 'At 90 km/h, the car drifts toward a solid marking at 0.4 m/s. ELK must correct the drift and may report completion only once the car has settled in lane.',
+  },
+  'S5/e': {
+    vi: 'Xe trôi về phía vạch kép. ELK phải can thiệp, đưa xe trở lại trong làn và không để xe vượt vạch đối diện.',
+    en: 'The car drifts toward a double marking. ELK must intervene, return the car to the lane and keep it inside the opposite marking.',
+  },
+  'S5/f': {
+    vi: 'Xe chạy 72 km/h và trôi ngang 0,5 m/s về vạch liền. ELK phải can thiệp để lốp không vượt vạch quá 30 cm.',
+    en: 'At 72 km/h, the car drifts toward a solid marking at 0.5 m/s. ELK must intervene and limit tyre crossing to 30 cm.',
+  },
+  'S6/a': {
+    vi: 'Xe trôi chậm về mép đường không có vạch sơn. ELK phải can thiệp theo mép đường để đưa xe trở lại phần mặt đường.',
+    en: 'The car drifts slowly toward an unmarked road edge. ELK must use the road edge to steer it back onto the road.',
+  },
+  'S6/b': {
+    vi: 'Xe trôi ngang 0,6 m/s về mép đường không có vạch. ELK phải can thiệp để lốp không vượt mép đường quá 10 cm.',
+    en: 'The car drifts toward an unmarked road edge at 0.6 m/s. ELK must intervene and limit tyre crossing past the road edge to 10 cm.',
+  },
+  'S6/c': {
+    vi: 'Giữa đường có vạch đứt, còn phía xe trôi chỉ có mép đường. ELK phải chỉnh xe khỏi mép đường và không để xe vượt vạch giữa.',
+    en: 'There is a dashed center line and only a road edge on the drift side. ELK must steer the car away from the road edge without crossing the center line.',
+  },
+  'S6/d': {
+    vi: 'Rào chắn nằm ở mép đường phía xe đang trôi. ELK phải can thiệp để đưa xe ra xa rào và trở lại phần mặt đường.',
+    en: 'A barrier defines the road edge on the drift side. ELK must intervene to steer the car away from the barrier and back onto the road.',
+  },
+  'S6/e': {
+    vi: 'Ở 90 km/h, xe trôi về mép đường không có vạch sơn. ELK phải chỉnh hướng để lốp không vượt mép đường quá 10 cm.',
+    en: 'At 90 km/h, the car drifts toward an unmarked road edge. ELK must correct the drift and limit tyre crossing past the edge to 10 cm.',
+  },
+  'S6b/a': {
+    vi: 'Làn dừng khẩn cấp mở rộng dần về bên phải. HWA phải giữ xe trong làn đang chạy, không lấn sang làn dừng khẩn cấp.',
+    en: 'The emergency lane widens to the right. HWA must keep the car in its current lane and out of the emergency lane.',
+  },
+  'S6b/b': {
+    vi: 'Làn lối ra tách dần khỏi làn chính. HWA phải bám làn chính và không được lái xe theo nhánh lối ra.',
+    en: 'The exit lane diverges from the main lane. HWA must stay in the main lane and must not steer into the exit.',
+  },
+  'S6b/c': {
+    vi: 'Một làn mới mở dần ở bên trái. HWA phải giữ xe trong làn hiện tại khi vạch phân làn mới xuất hiện.',
+    en: 'A lane opens gradually on the left. HWA must keep the car in its current lane as the new marking appears.',
+  },
+  'S6b/d': {
+    vi: 'Biên phải mở rộng giữa cua R = 500 m. HWA cần tiếp tục bám cua và không được để lốp vượt biên làn thật phía phải.',
+    en: 'The right boundary widens mid-curve on a 500 m arc. HWA should keep following the curve and must keep the tyres inside the true right boundary.',
+  },
+  'S6b/e': {
+    vi: 'Xe tải đi ngang bên trái khi làn mở rộng về bên phải. HWA cần chừa khoảng hở với xe tải và không để lốp vượt biên phải.',
+    en: 'A truck is alongside on the left as the lane widens to the right. HWA should leave clearance to the truck and keep the tyres inside the right boundary.',
+  },
+  'S7/a': {
+    vi: 'Cả hai xe chạy 72 km/h khi xe thử trôi chậm về vạch giữa. ELK phải can thiệp và giữ khoảng hở ngang ít nhất 30 cm khi hai xe ngang hàng.',
+    en: 'Both cars travel at 72 km/h as the test car drifts slowly toward the center line. ELK must intervene and keep at least 30 cm of lateral clearance as they pass.',
+  },
+  'S7/b': {
+    vi: 'Xe thử trôi ngang 0,4 m/s về phía xe ngược chiều. ELK phải chỉnh hướng để còn ít nhất 30 cm khoảng hở ngang khi hai xe ngang hàng.',
+    en: 'The test car drifts toward oncoming traffic at 0.4 m/s. ELK must correct the drift to leave at least 30 cm of lateral clearance as the cars pass.',
+  },
+  'S7/c': {
+    vi: 'Xe thử trôi ngang nhanh 0,6 m/s về phía xe ngược chiều. ELK phải giữ khoảng hở khi hai xe đi qua nhau và không để xe vượt vạch đối diện sau can thiệp.',
+    en: 'The test car drifts quickly toward oncoming traffic at 0.6 m/s. ELK must preserve clearance as the cars pass and avoid crossing the opposite marking after correction.',
+  },
+  'S7/d': {
+    vi: 'Xe ngược chiều chạy 90 km/h nên hai xe gặp nhau sớm hơn. ELK phải giữ khoảng hở ngang ít nhất 30 cm khi hai xe đi qua nhau.',
+    en: 'The oncoming car travels at 90 km/h, leaving less time to react. ELK must preserve at least 30 cm of lateral clearance as the cars pass.',
+  },
+  'S7/e': {
+    vi: 'Xe thử trôi về vạch giữa khi gặp xe ngược chiều trong cua R = 500 m. ELK phải chỉnh lái theo cung cua và giữ khoảng hở khi hai xe ngang hàng.',
+    en: 'The test car drifts toward the center line as oncoming traffic approaches in a 500 m curve. ELK must correct along the curve and preserve lateral clearance as they pass.',
+  },
+  'S8/a': {
+    vi: 'Xe thử trôi chậm về phía xe đang vượt ở 80 km/h. Khi hai xe ngang hàng, ELK phải giữ khoảng hở ngang ít nhất 30 cm.',
+    en: 'The test car drifts slowly toward a car overtaking at 80 km/h. ELK must preserve at least 30 cm of lateral clearance when they are alongside.',
+  },
+  'S8/b': {
+    vi: 'Hai xe cùng chạy 72 km/h và xe thử trôi ngang 0,4 m/s. ELK phải chỉnh hướng để giữ ít nhất 30 cm khoảng hở ngang khi hai xe ngang hàng.',
+    en: 'Both cars travel at 72 km/h and the test car drifts at 0.4 m/s. ELK must correct the drift and leave at least 30 cm of lateral clearance alongside.',
+  },
+  'S8/c': {
+    vi: 'Tài xế bật xi-nhan rồi dịch ngang 0,5 m/s về làn có xe đang vượt. ELK vẫn phải can thiệp khi có nguy cơ va chạm.',
+    en: 'The driver signals and moves laterally at 0.5 m/s toward the lane with an overtaking car. ELK must still intervene when there is a collision risk.',
+  },
+  'S8/d': {
+    vi: 'Sau khi bật xi-nhan, xe dịch ngang 0,7 m/s về làn có xe đang vượt. ELK phải chỉnh hướng và không để xe vượt vạch đối diện sau can thiệp.',
+    en: 'After signalling, the car moves toward the lane with an overtaking vehicle at 0.7 m/s. ELK must steer it back without crossing the opposite marking after correction.',
+  },
+  'S8/e': {
+    vi: 'Xe làn bên vượt ở 100 km/h khi xe thử trôi ngang 0,4 m/s. ELK phải giữ khoảng hở ngang ít nhất 30 cm lúc hai xe ngang hàng.',
+    en: 'A car overtakes at 100 km/h while the test car drifts at 0.4 m/s. ELK must keep at least 30 cm of lateral clearance as the cars draw alongside.',
+  },
+  'S8b/a': {
+    vi: 'Tài xế bật xi-nhan trái để chuyển làn. Xe phía sau cách 20 m và nhanh hơn 2,2 m/s. LKA và ELK không được phép can thiệp.',
+    en: 'The driver signals left for a lane change. A car is 20 m behind and closing at 2.2 m/s. Neither LKA nor ELK may intervene.',
+  },
+  'S8b/b': {
+    vi: 'Tài xế chuyển làn có xi-nhan. Dù xe phía sau chỉ cách 10 m, chênh lệch tốc độ là 2,2 m/s. LKA và ELK không được phép can thiệp.',
+    en: 'The driver signals for a lane change. The car behind is only 10 m back but closes at 2.2 m/s. Neither LKA nor ELK may intervene.',
+  },
+  'S8b/c': {
+    vi: 'Khi chuyển làn có xi-nhan, thời gian tới va chạm dự báo còn 1,1 s lúc lốp qua vạch 30 cm. ELK phải can thiệp.',
+    en: 'In this signalled lane change, predicted time to collision drops to 1.1 s when the tyre is 30 cm past the line. ELK must intervene.',
+  },
+  'S8b/d': {
+    vi: 'Tài xế bật xi-nhan để đổi làn khi xe phía sau cách 12 m và nhanh hơn 10 m/s. ELK phải can thiệp để duy trì khoảng hở với xe đó.',
+    en: 'The driver signals for a lane change with a car 12 m behind and closing at 10 m/s. ELK must intervene to maintain clearance.',
+  },
+  'S8b/e': {
+    vi: 'Khi tài xế chuyển làn có xi-nhan, khoảng cách 30 m giảm nhanh vì xe phía sau nhanh hơn 14 m/s. ELK phải can thiệp.',
+    en: 'During a signalled lane change, the 30 m gap closes quickly because the car behind is 14 m/s faster. ELK must intervene.',
+  },
+  'S8b/f': {
+    vi: 'Khi đổi làn có xi-nhan, thời gian tới va chạm dự báo vẫn là 3,6 s lúc lốp qua vạch 30 cm. LKA và ELK không được phép can thiệp.',
+    en: 'During a signalled lane change, predicted time to collision is still 3.6 s when the tyre is 30 cm past the line. Neither LKA nor ELK may intervene.',
+  },
+  'S8c/a': {
+    vi: 'Tài xế đánh lái sang trái để tránh vật cản, với vận tốc ngang 1,2 m/s và không bật xi-nhan. LKA và ELK không được phép can thiệp.',
+    en: 'The driver steers left at a lateral speed of 1.2 m/s to avoid an obstacle without signalling. Neither LKA nor ELK may intervene.',
+  },
+  'S8c/b': {
+    vi: 'Tài xế đánh lái gấp để tránh vật cản, đạt vận tốc ngang 1,5 m/s. LKA và ELK không được phép can thiệp.',
+    en: 'The driver steers sharply to avoid an obstacle, reaching a lateral speed of 1.5 m/s. Neither LKA nor ELK may intervene.',
+  },
+  'S8c/c': {
+    vi: 'Tài xế đánh lái sang trái để tránh vật cản rồi đánh lái ngược lại ngay. LKA và ELK không được phép can thiệp trong cả hai nhịp đánh lái.',
+    en: 'The driver steers left to avoid an obstacle and immediately steers back. Neither LKA nor ELK may intervene during either movement.',
+  },
+  'S8c/d': {
+    vi: 'Tài xế đánh lái gấp sau khi LKA can thiệp được 0,2 s. Khi yêu cầu LKA bị hủy và không còn chức năng đủ điều kiện, planner phải kết thúc can thiệp và báo NONE.',
+    en: 'The driver steers sharply 0.2 s after LKA starts. If the LKA request is cancelled and no other function qualifies, the planner must end the intervention and report NONE.',
+  },
+  'S9/a': {
+    vi: 'Khi LKA đang can thiệp, ELK nhận yêu cầu vì xe trôi về vạch liền. Planner phải chuyển quyền lái sang ELK mà không làm quỹ đạo đổi đột ngột.',
+    en: 'Solid-line ELK is requested during an LKA intervention. The planner must switch control to ELK without an abrupt change in the path.',
+  },
+  'S9/b': {
+    vi: 'HWA vẫn ở trạng thái REQUEST khi ELK hoàn tất. Planner phải chuyển quyền lái về HWA và nối quỹ đạo giữ làn êm.',
+    en: 'HWA remains in REQUEST when ELK completes. The planner must hand control back to HWA and transition smoothly to its lane-keeping path.',
+  },
+  'S9/c': {
+    vi: 'Tài xế đánh lái để giành quyền điều khiển rồi trả quyền cho HWA. Khi tiếp quản, điểm đầu quỹ đạo HWA phải khớp vị trí ngang hiện tại của xe.',
+    en: 'The driver overrides HWA and then hands control back. When HWA resumes, its path must start at the car’s current lateral position.',
+  },
+  'S9/d': {
+    vi: 'Bật xi-nhan trái làm hủy yêu cầu LKA giữa lúc can thiệp. Nếu không còn chức năng đủ điều kiện, planner phải báo NONE và giữ cờ quỹ đạo hợp lệ.',
+    en: 'The left turn signal cancels an ongoing LKA request. If no other function qualifies, the planner must report NONE and keep the path valid.',
+  },
+  'S9/e': {
+    vi: 'Tài xế tắt HWA giữa cua R = 500 m. Planner phải ngừng hỗ trợ lái, báo NONE và giữ cờ quỹ đạo hợp lệ.',
+    en: 'The driver switches off HWA in a 500 m curve. The planner must end steering assistance, report NONE and keep the path valid.',
+  },
+  'S10/a': {
+    vi: 'Xe chạy ổn định cách vạch trái 20 cm, gần như không dịch ngang. LKA và ELK không được phép can thiệp.',
+    en: 'The car holds a steady course 20 cm from the left line with almost no lateral motion. Neither LKA nor ELK may intervene.',
+  },
+  'S10/b': {
+    vi: 'Xe tiếp tục chạy cách vạch trái 40 cm, không có xu hướng vượt vạch. LKA và ELK không được phép can thiệp.',
+    en: 'The car maintains 40 cm of clearance from the left line with no drift toward it. Neither LKA nor ELK may intervene.',
+  },
+  'S10/c': {
+    vi: 'Xe chạy cách vạch phía trong cua R = 500 m khoảng 20 cm và giữ hướng trong làn. LKA và ELK không được phép can thiệp.',
+    en: 'The car holds its course 20 cm from the inside marking of a 500 m curve. Neither LKA nor ELK may intervene.',
+  },
+  'S10/d': {
+    vi: 'Xe chạy lệch trái ổn định để chừa khoảng hở với xe tải bên phải. LKA và ELK không được phép can thiệp.',
+    en: 'The car holds a steady offset to the left to leave room for a truck on the right. Neither LKA nor ELK may intervene.',
+  },
+  'S10/e': {
+    vi: 'Xe chạy ổn định sát vạch trái ban đêm. Dù dữ liệu camera có nhiễu, LKA và ELK không được phép can thiệp.',
+    en: 'The car holds a steady course near the left line at night. Neither LKA nor ELK may intervene despite noisy camera data.',
+  },
+  'S11/a': {
+    vi: 'ACC bám xe phía trước trong dải 0–30 km/h. HWA phải duy trì quỹ đạo hợp lệ kể cả khi xe chạy rất chậm hoặc dừng.',
+    en: 'ACC follows the lead car from 0 to 30 km/h. HWA must keep the path valid at low speed and at a standstill.',
+  },
+  'S11/b': {
+    vi: 'Xe phía trước thay đổi tốc độ trong dải 0–60 km/h. HWA phải duy trì quỹ đạo hợp lệ trong suốt quá trình ACC điều chỉnh tốc độ.',
+    en: 'The lead car varies its speed from 0 to 60 km/h. HWA must keep the path valid throughout the ACC speed changes.',
+  },
+  'S11/c': {
+    vi: 'Xe phía trước dừng 10 giây rồi chạy tiếp. HWA phải tiếp tục gửi quỹ đạo hợp lệ cả khi dừng chờ lẫn khi lăn bánh lại.',
+    en: 'The lead car stops for 10 seconds and then moves off. HWA must continue providing a valid path through the stop and restart.',
+  },
+  'S11/d': {
+    vi: 'Một xe chạy 20 km/h nhập làn ngay phía trước. HWA phải duy trì quỹ đạo giữ làn hợp lệ trong lúc ACC phản ứng với xe mới.',
+    en: 'A car travelling at 20 km/h cuts in ahead. HWA must keep a valid lane-keeping path while ACC responds to the new lead car.',
+  },
+  'S12/a': {
+    vi: 'Xe vào cua R = 250 m trên đường ướt với dữ liệu cảm biến nhiễu. HWA cần bám làn và giữ gia tốc ngang của quỹ đạo không quá 2,5 m/s².',
+    en: 'The car enters a wet 250 m curve with noisy sensor data. HWA should track the lane and must keep path lateral acceleration at or below 2.5 m/s².',
+  },
+  'S12/b': {
+    vi: 'Trong mưa, xe trôi về vạch đứt ở 90 km/h. LKA cần đưa xe trở lại trong làn khi độ bám giảm và dữ liệu vạch nhiễu hơn.',
+    en: 'The car drifts toward a dashed marking in rain at 90 km/h. LKA should bring it back into the lane despite reduced grip and noisier lane data.',
+  },
+  'S12/c': {
+    vi: 'Trên đường ướt, xe trôi về phía xe ngược chiều. ELK phải can thiệp để giữ khoảng hở ngang ít nhất 30 cm khi hai xe đi qua nhau.',
+    en: 'On a wet road, the car drifts toward oncoming traffic. ELK must intervene to keep at least 30 cm of lateral clearance as the cars pass.',
+  },
+  'S12/d': {
+    vi: 'Xe trôi ra ngoài cua R = 250 m trên đường ướt. LKA cần đưa xe vào làn trong giới hạn gia tốc ngang và không để xe vượt vạch đối diện.',
+    en: 'The car drifts outward on a wet 250 m curve. LKA should steer it back into the lane within its lateral acceleration limit and keep it inside the opposite marking.',
+  },
+  'S13/a': {
+    vi: 'Trợ lực lái điện (EPS) phản hồi trễ 75 ms khi LKA can thiệp. Trong lúc chỉnh lái, lốp không được vượt vạch quá 30 cm.',
+    en: 'Electric power steering (EPS) responds with a 75 ms delay during an LKA intervention. The tyres must not cross more than 30 cm past the marking.',
+  },
+  'S13/b': {
+    vi: 'EPS phản hồi trễ 100 ms, đúng ngưỡng kiểm tra. LKA vẫn phải can thiệp sao cho lốp không vượt vạch quá 30 cm.',
+    en: 'EPS responds with a 100 ms delay, at the specified test limit. LKA must still keep the tyres from crossing more than 30 cm past the marking.',
+  },
+  'S13/c': {
+    vi: 'EPS phản hồi trễ 150 ms để thử độ dự phòng của LKA. Ca này đo mức lốp vượt vạch khi LKA chỉnh xe trở lại làn.',
+    en: 'A 150 ms EPS delay tests LKA’s margin. This case measures how far the tyres cross the marking as LKA steers the car back into the lane.',
+  },
+  'S14/a': {
+    vi: 'Ở 90 km/h, xe sắp vào cua R = 200 m. Planner phải gửi giới hạn tốc độ và khoảng cách tới điểm có độ cong lớn nhất để ACC tính mức giảm tốc.',
+    en: 'At 90 km/h, the car approaches a 200 m curve. The planner must report the speed limit and distance to the point of maximum curvature so ACC can calculate how much to slow.',
+  },
+  'S14/b': {
+    vi: 'Xe con lấn 50 cm vào làn xe thử trên đường thẳng. HWA phải duy trì quỹ đạo hợp lệ và lấy tốc độ, gia tốc dọc từ LongitudinalPlan.',
+    en: 'A car intrudes 50 cm into the test car’s lane on a straight. HWA must keep the path valid and take its longitudinal speed and acceleration from LongitudinalPlan.',
+  },
+  'S14/c': {
+    vi: 'Xe con lấn 50 cm vào làn xe thử ở cua R = 200 m. Planner phải duy trì quỹ đạo hợp lệ và gửi giới hạn tốc độ theo độ cong phía trước.',
+    en: 'A car intrudes 50 cm into the test car’s lane in a 200 m curve. The planner must keep the path valid and report the speed limit for the curvature ahead.',
+  },
+  'S14/d': {
+    vi: 'Tín hiệu LongitudinalPlan gián đoạn 2 giây khi vào cua. Planner phải giữ quỹ đạo hợp lệ và dùng tốc độ hiện tại với gia tốc dọc bằng 0.',
+    en: 'LongitudinalPlan drops out for 2 seconds at curve entry. The planner must keep the path valid and use the current speed with zero longitudinal acceleration.',
+  },
+  'S14/e': {
+    vi: 'Xe vào cua chữ S ở 130 km/h. Khi dùng LateralLimits, ACC cần giảm tốc trước cung R = 374 m để tránh vượt giới hạn gia tốc ngang.',
+    en: 'The car enters an S-bend at 130 km/h. With LateralLimits enabled, ACC should slow before the 374 m arc to stay within the lateral acceleration limit.',
+  },
+  'S15/a': {
+    vi: 'Hai xe tải chạy ngang hàng hai bên xe thử. Khi khoảng hở xuống dưới ngưỡng, HWA không được dịch quỹ đạo về phía xe tải gần hơn.',
+    en: 'Trucks are alongside on both sides of the test car. When clearance falls below the threshold, HWA must not shift the path toward the closer truck.',
+  },
+  'S15/b': {
+    vi: 'Xe tải bên trái và rào chắn bên phải. HWA cần tạo khoảng hở với xe tải và giữ khoảng cách tới rào chắn.',
+    en: 'A truck is on the left and a barrier is on the right. HWA should leave room for the truck while keeping clearance to the barrier.',
+  },
+  'S15/c': {
+    vi: 'Xe tải bên phải và xe con bên trái cùng đi ngang xe thử. HWA cần tạo khoảng hở với xe tải mà vẫn giữ khoảng cách tới xe con.',
+    en: 'A truck on the right and a car on the left are both alongside. HWA should leave room for the truck while keeping clearance to the car.',
+  },
+  'S15/d': {
+    vi: 'Hai xe tải đi ngang trên đoạn làn xe thử rộng 3 m. HWA không được dịch quỹ đạo về phía xe tải có khoảng hở nhỏ hơn nếu khoảng hở đó dưới ngưỡng.',
+    en: 'Two trucks flank the test car in a 3 m lane. HWA must not shift the path toward the closer truck if that clearance is below the threshold.',
+  },
+  'S15/e': {
+    vi: 'Rào chắn cố định ở cả hai bên. HWA cần giữ quỹ đạo ổn định qua đoạn hẹp và duy trì khoảng hở tới cả hai rào.',
+    en: 'Fixed barriers run along both sides. HWA should keep the path stable through the narrow section and maintain clearance to both barriers.',
+  },
+  'S16/a': {
+    vi: 'LKA đã báo COMPLETED, nhưng yêu cầu can thiệp vẫn giữ thêm 1 giây. Planner phải giữ pha COMPLETED và không được khởi động can thiệp mới.',
+    en: 'LKA has reported COMPLETED, but the request remains active for another second. The planner must hold COMPLETED and must not start another intervention.',
+  },
+  'S16/b': {
+    vi: 'Sau khi LKA báo COMPLETED, yêu cầu can thiệp ngắt trong 0,2 s rồi bật lại. Planner phải giữ COMPLETED đến lúc ngắt và xử lý lần bật lại như yêu cầu mới.',
+    en: 'After LKA reports COMPLETED, the request clears for 0.2 s and returns. The planner must hold COMPLETED until the request clears and treat its return as a new request.',
+  },
+  'S16/c': {
+    vi: 'Xe trôi sang trái ba lần, mỗi lần lặp bắt đầu 2 giây sau khi LKA báo COMPLETED. LKA phải áp dụng cùng giới hạn cho cả ba lần can thiệp.',
+    en: 'The car drifts left three times, with each repeat starting 2 seconds after LKA reports COMPLETED. LKA must apply the same limits to all three interventions.',
+  },
+  'S16/d': {
+    vi: 'Xe trôi về vạch liền ba lần liên tiếp. ELK phải can thiệp từng lần với cùng giới hạn chỉnh lái.',
+    en: 'The car drifts toward a solid marking three times. ELK must intervene each time under the same steering limits.',
+  },
+  'S16/e': {
+    vi: 'Lần can thiệp LKA thứ hai bắt đầu 0,2 s sau COMPLETED. Planner phải áp dụng cùng giới hạn can thiệp như lần đầu.',
+    en: 'The second LKA intervention starts 0.2 s after COMPLETED. The planner must apply the same intervention limits as on the first attempt.',
+  },
+  'S17/a': {
+    vi: 'Tài xế chuyển làn trái trong 4 giây khi HWA vẫn ở REQUEST. Lúc HWA tiếp quản, điểm đầu quỹ đạo phải khớp vị trí ngang hiện tại của xe.',
+    en: 'The driver moves left over 4 seconds while HWA remains in REQUEST. When HWA resumes, its path must start at the car’s current lateral position.',
+  },
+  'S17/b': {
+    vi: 'Tài xế chuyển làn trái trong 2,5 giây. Khi HWA tiếp quản, quỹ đạo phải nối êm từ vị trí hiện tại của xe sang tâm làn mới.',
+    en: 'The driver changes lanes to the left in 2.5 seconds. When HWA resumes, its path must transition smoothly from the car’s current position toward the new lane center.',
+  },
+  'S17/c': {
+    vi: 'Tài xế chuyển làn giữa cua R = 500 m. HWA cần tiếp quản êm và bám theo độ cong của làn mới.',
+    en: 'The driver changes lanes in a 500 m curve. HWA should resume smoothly and follow the curvature of the new lane.',
+  },
+  'S17/d': {
+    vi: 'Tài xế chuyển làn hai lần theo hai hướng ngược nhau. Sau mỗi lần, HWA phải tiếp quản từ vị trí hiện tại của xe và bám làn mới.',
+    en: 'The driver changes lanes twice in opposite directions. After each change, HWA must resume from the car’s current position and follow the newly entered lane.',
+  },
+  'S17/e': {
+    vi: 'Cờ chuyển làn đến trễ một khung dữ liệu. Quỹ đạo HWA phải giữ liên tục khi mô hình làn chuyển sang làn mới.',
+    en: 'The lane-change flag arrives one data frame late. HWA’s path must remain continuous as the lane model switches to the new lane.',
+  },
+  'S19/a': {
+    vi: 'Xe cấu hình VP-1 chạy trên làn 2,5 m từ đường thẳng vào cua R = 500 m. HWA cần giữ xe gần tâm và giữ lốp trong biên làn.',
+    en: 'The VP-1 vehicle goes from a straight into a 500 m curve in a 2.5 m lane. HWA should stay near center and keep the tyres inside the lane boundaries.',
+  },
+  'S19/b': {
+    vi: 'Xe cấu hình VP-5 rộng bằng làn 2,5 m. Khi khoảng trống hai bên thấp hơn ngưỡng, planner phải bật cờ làn quá hẹp.',
+    en: 'The VP-5 vehicle is as wide as the 2.5 m lane. The planner must flag the lane as too narrow when side clearance falls below the threshold.',
+  },
+  'S19/c': {
+    vi: 'Xe cấu hình VP-2 chạy trên làn rộng 5,5 m. HWA cần giữ xe gần tâm làn cả trên đoạn thẳng và trong cua R = 500 m.',
+    en: 'The VP-2 vehicle runs in a wide 5.5 m lane. HWA should stay near center on both the straight and the 500 m curve.',
+  },
+  'S19/d': {
+    vi: 'Xe cấu hình VP-4 chạy trên làn rộng 3 m và vượt một xe tải bên cạnh. HWA cần chừa khoảng hở ngang khi vượt qua đoạn thẳng rồi vào cua.',
+    en: 'The VP-4 vehicle passes an adjacent truck in a 3 m lane. HWA should leave lateral clearance during the pass from the straight into the curve.',
+  },
+  'S19/e': {
+    vi: 'Xe cấu hình VP-4 chạy trong làn 3 m, có xe tải ngang hàng ở cả hai bên. HWA cần duy trì khoảng hở hai bên khi vào cua.',
+    en: 'The VP-4 vehicle runs in a 3 m lane with a truck alongside on each side. HWA should maintain clearance on both sides through curve entry.',
+  },
+};

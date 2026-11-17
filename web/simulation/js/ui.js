@@ -51,29 +51,153 @@
   }
 
   // ---------- Menu ----------
-  function buildMenu(cat) {
-    // tình huống
-    const fns = ['Tất cả', ...['HWA', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => cat.scenarios.some((s) => s.fn === f))];
+  const scenarioGroups = new Map();
+  let openGroup = null;
+  let hoverTimer;
+
+  function closeScenarioOptions(restoreFocus = false) {
+    clearTimeout(hoverTimer);
+    if (!openGroup) return;
+    const { trigger, panel } = openGroup;
+    openGroup = null;
+    trigger.setAttribute('aria-expanded', 'false');
+    panel.hidePopover();
+    if (restoreFocus) trigger.focus({ preventScroll: true });
+  }
+
+  function positionScenarioOptions() {
+    const { trigger, panel } = openGroup;
+    const rect = trigger.getBoundingClientRect();
+    const listRect = $('m-scen').getBoundingClientRect();
+    const menuBottom = trigger.closest('.menu').getBoundingClientRect().bottom;
+    const { clientWidth, clientHeight } = document.documentElement;
+    const top = Math.max(listRect.top, document.querySelector('.runbox').getBoundingClientRect().bottom, 0);
+    const bottom = Math.min(listRect.bottom, menuBottom, clientHeight);
+    if (rect.bottom <= top || rect.top >= bottom) {
+      closeScenarioOptions();
+      return;
+    }
+
+    const edge = 8;
+    const rightSpace = clientWidth - rect.right - edge;
+    const beside = rightSpace >= 264;
+    const width = Math.min(336, beside ? rightSpace : clientWidth - 2 * edge);
+    const above = Math.max(rect.top, top) - edge;
+    const below = clientHeight - Math.min(rect.bottom, bottom) - edge;
+    const belowRow = below >= 220 || below >= above;
+    const height = beside ? clientHeight - 2 * edge : (belowRow ? below : above);
+    panel.style.width = width + 'px';
+    panel.style.maxHeight = Math.min(360, height) + 'px';
+    panel.style.left = (beside ? rect.right : Math.max(edge, Math.min(rect.left, clientWidth - width - edge))) + 'px';
+    const y = beside ? Math.min(Math.max(rect.top, top), clientHeight - panel.offsetHeight - edge) :
+      (belowRow ? Math.min(rect.bottom, bottom) : Math.max(rect.top, top) - panel.offsetHeight);
+    panel.style.top = Math.max(edge, y) + 'px';
+  }
+
+  function openScenarioOptions(group) {
+    clearTimeout(hoverTimer);
+    if (openGroup === group) return;
+    closeScenarioOptions();
+    openGroup = group;
+    group.trigger.setAttribute('aria-expanded', 'true');
+    group.panel.showPopover();
+    group.panel.scrollTop = 0;
+    positionScenarioOptions();
+  }
+
+  function buildScenarioMenu(scenarios) {
+    const fns = ['Tất cả', ...['HWA', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => scenarios.some((s) => s.fn === f))];
     const chips = $('fn-chips');
     fns.forEach((f) => {
       const b = h('button', { type: 'button', role: 'radio', 'aria-checked': String(f === 'Tất cả'), 'data-f': f === 'Tất cả' ? '' : f, text: f });
       b.addEventListener('click', (e) => { S.fnFilter = b.dataset.f; filterScen(); [...chips.children].forEach((c) => c.setAttribute('aria-checked', String(c === b))); if (e.detail) b.blur(); });
       chips.appendChild(b);
     });
+
+    const bySid = new Map();
+    scenarios.forEach((s) => {
+      if (!bySid.has(s.sid)) bySid.set(s.sid, []);
+      bySid.get(s.sid).push(s);
+    });
     const list = $('m-scen');
     const dotCls = { HWA: 'hwa', LKA: 'lka', ELK: 'elk', 'LKA+ELK': 'mix' };
-    const frag = document.createDocumentFragment();
-    cat.scenarios.forEach((s) => {
-      const b = h('button', {
-        class: 'srow', type: 'button', role: 'radio', 'aria-checked': 'false', 'data-id': s.id, 'data-fn': s.fn,
-        'data-q': norm(s.code + ' ' + s.desc + ' ' + s.fn),
-        title: s.code + ' · ' + s.desc + ' · ' + s.speed + ' km/h, ' + PP.f(s.dur, 0) + ' s' + (s.traffic ? ', ' + s.traffic + ' xe khác' : ''),
-      }, h('i', { class: 'dot ' + (dotCls[s.fn] || '') }), h('span', { class: 'code', text: s.code }), h('span', { class: 'desc', text: PP.vn(s.desc) }));
-      b.addEventListener('click', (e) => { S.sel.scen = s.id; syncMenu(); if (e.detail) b.blur(); });
-      frag.appendChild(b);
+    bySid.forEach((variants, sid) => {
+      const base = variants.find((s) => s.v === 'a') || variants[0];
+      const id = 'scen-options-' + sid;
+      const trigger = h('button', { class: 'srow', type: 'button', 'aria-controls': id, 'aria-expanded': 'false' },
+        h('i', { class: 'dot ' + (dotCls[base.fn] || ''), 'aria-hidden': 'true' }),
+        h('span', { class: 'code', text: sid }), h('span', { class: 'desc', text: PP.vn(base.desc) }));
+      const panel = h('section', { class: 'scen-options', id, popover: 'manual', 'aria-labelledby': id + '-title' },
+        h('h3', { id: id + '-title' }, h('b', { text: sid }), h('span', { text: 'Biến thể' })));
+      const row = h('div', { class: 'sgroup' }, trigger, panel);
+      const options = variants.map((s) => {
+        const desc = PP.vn(s.desc);
+        const meta = PP.f(s.speed, 0) + ' km/h · ' + PP.f(s.dur, 0) + ' s' + (s.traffic ? ' · ' + s.traffic + ' xe khác' : '');
+        const button = h('button', { class: 'soption', type: 'button', 'aria-pressed': 'false' },
+          h('span', { class: 'code', text: s.code }),
+          h('span', { class: 'desc', text: desc }),
+          h('span', { class: 'smeta', text: meta }));
+        button.addEventListener('click', () => {
+          S.sel.scen = s.id;
+          closeScenarioOptions(panel.contains(document.activeElement));
+          syncMenu();
+        });
+        panel.appendChild(button);
+        return { scenario: s, button, query: norm([s.code, s.sid + s.v, s.id, desc, s.fn].join(' ')) };
+      });
+      const group = { row, trigger, panel, options };
+      scenarioGroups.set(sid, group);
+
+      // Khoảng chờ ngắn để con trỏ đi từ hàng sang bảng.
+      const leave = () => {
+        if (openGroup !== group) return;
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(() => {
+          if (openGroup === group && !panel.contains(document.activeElement)) closeScenarioOptions();
+        }, 180);
+      };
+      trigger.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'touch') return;
+        clearTimeout(hoverTimer);
+        if (!openGroup) openScenarioOptions(group);
+        else if (openGroup !== group) {
+          hoverTimer = setTimeout(() => {
+            if (!openGroup || openGroup.panel.contains(document.activeElement)) return;
+            if (trigger.matches(':hover')) openScenarioOptions(group);
+            else if (!openGroup.row.matches(':hover')) closeScenarioOptions();
+          }, 220);
+        }
+      });
+      trigger.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') leave(); });
+      panel.addEventListener('pointerenter', () => clearTimeout(hoverTimer));
+      panel.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') leave(); });
+      trigger.addEventListener('click', (e) => {
+        openScenarioOptions(group);
+        if (!e.detail && openGroup === group) panel.querySelector('.soption:not([hidden])')?.focus();
+      });
+      row.addEventListener('focusout', (e) => {
+        if (openGroup === group && e.relatedTarget && !row.contains(e.relatedTarget)) closeScenarioOptions();
+      });
+      list.appendChild(row);
     });
-    list.appendChild(frag);
+
     $('q').addEventListener('input', (e) => { S.q = norm(e.target.value.trim()); filterScen(); });
+    document.addEventListener('pointerdown', (e) => {
+      if (openGroup && !openGroup.row.contains(e.target)) closeScenarioOptions();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !openGroup) return;
+      e.preventDefault();
+      closeScenarioOptions(openGroup.row.contains(document.activeElement));
+    });
+    window.addEventListener('resize', () => { if (openGroup) positionScenarioOptions(); });
+    window.addEventListener('scroll', (e) => {
+      if (openGroup && e.target !== openGroup.panel) positionScenarioOptions();
+    }, true);
+  }
+
+  function buildMenu(cat) {
+    buildScenarioMenu(cat.scenarios);
 
     // lỗi
     const mf = $('m-faults');
@@ -135,13 +259,16 @@
   }
 
   function filterScen() {
+    closeScenarioOptions();
     let n = 0;
-    $('m-scen').querySelectorAll('.srow').forEach((b) => {
-      const ok = (!S.fnFilter || b.dataset.fn === S.fnFilter) && (!S.q || b.dataset.q.includes(S.q));
-      b.hidden = !ok;
-      if (ok) n++;
+    scenarioGroups.forEach(({ row, options }) => {
+      options.forEach(({ scenario, button, query }) => {
+        button.hidden = Boolean((S.fnFilter && scenario.fn !== S.fnFilter) || (S.q && !query.includes(S.q)));
+      });
+      row.hidden = options.every(({ button }) => button.hidden);
+      if (!row.hidden) n++;
     });
-    $('n-scen').textContent = n + ' / ' + S.cat.scenarios.length;
+    $('n-scen').textContent = n + ' / ' + scenarioGroups.size;
   }
 
   function applyCombo(c) {
@@ -150,13 +277,17 @@
     const sim = c.sim || {};
     S.sel.env = { mu: (sim.road_mu ?? 1) < 1, cam: (sim.camera_latency_ms ?? 100) !== 100, noise: (sim.perception_noise_scale ?? 1) > 1 };
     if (!c.hosts.some(([a, b]) => a + '/' + b === S.sel.scen)) S.sel.scen = c.hosts[0][0] + '/' + c.hosts[0][1];
-    syncMenu();
+    syncMenu(true);
   }
 
-  function syncMenu() {
-    $('m-scen').querySelectorAll('.srow').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.id === S.sel.scen)));
-    const sel = $('m-scen').querySelector('.srow[aria-checked="true"]');
-    if (sel && !sel.hidden) sel.scrollIntoView({ block: 'nearest' });
+  function syncMenu(revealScenario = false) {
+    scenarioGroups.forEach(({ row, trigger, options }) => {
+      const selected = options.some(({ scenario }) => scenario.id === S.sel.scen);
+      trigger.toggleAttribute('data-selected', selected);
+      options.forEach(({ scenario, button }) => button.setAttribute('aria-pressed', String(scenario.id === S.sel.scen)));
+      if (revealScenario && selected && !row.hidden) row.scrollIntoView({ block: 'nearest' });
+    });
+    syncScenarioDescription();
     let nf = 0;
     S.cat.faults.forEach((f) => {
       const lvl = S.sel.faults[f.id];
@@ -178,6 +309,17 @@
     document.querySelectorAll('#m-combo .combo:not(.ghost)').forEach((b, i) => b.classList.toggle('on', !!combo && S.cat.combos[i] === combo));
     $('trigger').closest('label').hidden = !nf;
     if (S.phase === 'idle') setRunState();
+  }
+
+  function syncScenarioDescription() {
+    const scenario = S.cat.scenarios.find((s) => s.id === S.sel.scen);
+    const description = window.PP_SCENARIO_DESCRIPTIONS?.[scenario?.id]?.[document.documentElement.lang];
+    $('scenario-description').hidden = !description;
+    if (!description) return;
+    const code = $('scenario-description-code');
+    if (code.textContent === scenario.code) return;
+    code.textContent = scenario.code;
+    $('scenario-description-text').textContent = description;
   }
 
   // ---------- Pha và nút ----------
@@ -227,6 +369,7 @@
       tr: { dims: m.tr.dims, pos: [] }, faults: m.faults.map((f) => Object.assign({}, f, { t0: null, t1: null })),
       conds: m.conds, env: m.env, acc: m.acc, trigger: m.trigger,
       n: 0, t: [], ego: { x: [], y: [], yaw: [] }, v: [], ay: [], ayf: [], whl: [], off: [], dl: [], dr: [], fn: [], lk: [], el: [],
+      steeringAngle: [], steeringSystemShare: [],
       pv: [], tv: [], lim: [], nar: [], vmax: [], dist: [], hor: [], cms: [], view: [], age: [], rq: [], tlc: [], ovr: [], traj: [], fa: [], lm: [], lmk: [],
       enums: { phase: ['NONE'], rq: ['OFF'] }, pre: { off: [], dlc: [], ay: [], cms: [] }, run: { mo: 0, md: Infinity, ma: 0, mc: 0 },
       res: null, lim_ay: null,
@@ -238,6 +381,8 @@
     const d = S.d;
     d.t.push(m.t); d.ego.x.push(m.x); d.ego.y.push(m.y); d.ego.yaw.push(m.yaw);
     d.v.push(m.v); d.ay.push(m.ay); d.ayf.push(m.ayf); d.whl.push(m.whl); d.off.push(m.off); d.dl.push(m.dl); d.dr.push(m.dr);
+    d.steeringAngle.push(m.steering_angle ?? m.whl * (d.veh.sr || 15));
+    d.steeringSystemShare.push(m.steering_system_share);
     d.fn.push(Math.max(0, PP.FN.indexOf(m.fn))); d.lk.push(idx(d.enums.phase, m.lk)); d.el.push(idx(d.enums.phase, m.el));
     d.pv.push(m.pv); d.tv.push(m.tv); d.lim.push(m.lim); d.nar.push(m.nar); d.vmax.push(m.vmax); d.dist.push(m.dist);
     d.hor.push(m.hor); d.cms.push(m.cms); d.view.push(m.view); d.age.push(m.age);
@@ -518,6 +663,11 @@
     setT($('chip-path-t'), d.pv[k] ? 'Path hợp lệ' : 'Path không hợp lệ');
     $('chip-path').classList.toggle('warn', !d.pv[k]);
     setT($('hud-v'), PP.f(d.v[k] * 3.6, 0));
+    // Mô hình lấy chiều trái là dương; SVG xoay theo chiều kim đồng hồ khi góc dương.
+    $('hud-steering-rotor').setAttribute('transform', `rotate(${-d.steeringAngle[k] * 180 / Math.PI} 24 24)`);
+    const systemShare = d.steeringSystemShare[k];
+    $('hud-steering').style.color = systemShare == null ? '' :
+      `color-mix(in srgb, var(--scr-steering-driver), var(--scr-steering-system) ${systemShare * 100}%)`;
     const act = [];
     for (let i = 0; i < nf; i++) if (d.fa[k * nf + i]) act.push(d.faults[i].short);
     $('fault-flag').classList.toggle('on', act.length > 0);
@@ -667,7 +817,7 @@
     }
     buildMenu(S.cat);
     filterScen();
-    syncMenu();
+    syncMenu(true);
     setPhase('idle');
   }
   boot();

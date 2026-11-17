@@ -439,11 +439,19 @@ def run(cfg):
             objs = []
             for st in self.traffic.at(now_us * 1e-6):
                 objs += [round(st.x, 2), round(st.y, 2), round(st.heading, 4)]
+            steering_angle = round(self.eps.angle, 5)
+            system_share = self.eps.system_steering_share
+            if system_share == 1 and self.eps.controlling and self.eps.driver_torque:
+                # Driver torque is present, but the EPS stand-in has no motor torque to compare it with.
+                system_share = 0.5
+            elif not (system_share or self.eps.driver_torque or steering_angle or round(self.eps.driver_angle, 5)):
+                system_share = None
             return dict(
                 type="f", t=round(now_us * 1e-6, 3),
                 x=round(rear[0], 2), y=round(rear[1], 2), yaw=round(rear[2], 4),
                 v=round(log.speed[i], 2), ay=round(log.a_y[i], 3), ayf=round(float(filtered[-1]), 3),
                 whl=round(log.wheel_angle[i], 5), off=round(pr.d, 3),
+                steering_angle=steering_angle, steering_system_share=system_share,
                 dl=round(self.half_lane - pf.d - self.half_car, 3), dr=round(self.half_lane + pf.d - self.half_car, 3),
                 fn=ps.get("active_function", "NONE"), lk=ps.get("lka_phase", "NONE"), el=ps.get("elk_phase", "NONE"),
                 pv=int(bool(ps.get("path_valid"))), tv=int(bool(tr is not None and tr.header.valid)),

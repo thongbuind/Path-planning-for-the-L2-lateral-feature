@@ -45,11 +45,33 @@ def test_moving_driver_target_has_handover_only_after_controller_releases():
     eps.driver_angle = 0.1
     eps.step(1_000, 0.001)
     assert eps.angle > 0.0
+    assert eps.system_steering_share == 0.0
     eps.on_request(SteeringRequest(2_000, 0.2, True), 2_000)
     eps.step(2_000, 0.001)
+    assert eps.system_steering_share == 1.0
     before = eps.angle
     eps.on_request(SteeringRequest(3_000, 0.2, False), 3_000)
     eps.step(3_000, 0.001)
     assert not eps.controlling and eps.angle == before
+    assert eps.system_steering_share == 1.0
+    eps.step(253_000, 0.001)
+    assert eps.system_steering_share == 0.75
     eps.step(1_003_000, 0.001)
     assert eps.angle > before
+    assert eps.system_steering_share == 0.0
+
+
+def test_driver_override_has_no_system_share_even_after_command_is_withdrawn():
+    eps = Eps(VEHICLE, actuator_delay_s=0.002)
+    eps.on_request(SteeringRequest(1_000, 0.2, True), 1_000)
+    eps.step(2_000, 0.001)
+    assert eps.system_steering_share == 0.0
+    eps.step(3_000, 0.001)
+    assert eps.system_steering_share == 1.0
+
+    eps.driver_torque = -3.0
+    eps.step(4_000, 0.001)
+    assert eps.controlling and eps.system_steering_share == 0.0
+    eps.on_request(SteeringRequest(4_000, 0.2, False), 4_000)
+    eps.step(6_000, 0.001)
+    assert not eps.controlling and eps.system_steering_share == 0.0
