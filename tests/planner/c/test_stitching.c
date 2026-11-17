@@ -167,8 +167,8 @@ static void test_blend_limits_the_jump(void)
     PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, same.points), 1.0, 1e-9);
 }
 
-/* PP-TS-022: a candidate that leaves the old path only far ahead. single: the far end is
- * held to the 0-1 s limit. banded: every point to the limit of its own band, one lambda. */
+/* PP-TS-022 V1: a candidate that leaves the old path only far ahead. Every point counts
+ * against the limit of its own time band; the path sent is still one lambda. */
 static void test_blend_limit_of_a_far_change(void)
 {
     pp_previous_path_t prev = straight_path(0.0, 0.0);
@@ -184,12 +184,8 @@ static void test_blend_limit_of_a_far_change(void)
     const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
     /* The old path, one cycle older, ends before the point at 3 s: the last point both
      * paths describe is 2.9 s, 0.95 m. */
-#ifdef PP_T4_BLEND_BANDED
     /* Binding point: 2 s, 0.5 m against 0.1 m (2.9 s: 0.95 m against 0.2 m is looser). */
     PP_CHECK_NEAR(lambda, margin * PP_CONT_BAND_1_2_S * PP_CONT_LATERAL_M / 0.5, 1e-6);
-#else
-    PP_CHECK_NEAR(lambda, margin * PP_CONT_LATERAL_M / 0.95, 1e-6);
-#endif
     /* One lambda: the sent path is old + lambda (candidate - old) at every point. */
     PP_CHECK_NEAR(cand.points[20].pose.y, lambda * 0.5, 1e-5);
     PP_CHECK_NEAR(cand.points[30].pose.y, lambda * 1.0, 1e-5);

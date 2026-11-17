@@ -17,12 +17,13 @@
 #include "reference_line.h"
 
 /* Continuity limits between two consecutive paths: the 0-1 s band, the tightest of
-   PP-SWR-100 to 102. T4 blends the whole path with one lambda, so it uses these. */
+   PP-SWR-100 to 102. T4 blends the whole path with one lambda; the 1-2 s band and the part
+   after 2 s count against these limits divided by the factors below (PP-TS-022 V1). */
 #define PP_CONT_LATERAL_M (0.05)       /* PP-SWR-100, 0-1 s */
 #define PP_CONT_HEADING_RAD (0.005)    /* PP-SWR-101, 0-1 s */
 #define PP_CONT_CURVATURE (0.0003)     /* PP-SWR-102, 0-1 s */
-/* PP-TS-022 V1 (PP_T4_BLEND=banded, study only): limits of the 1-2 s band and after 2 s
-   over the 0-1 s limits; the same factor for PP-SWR-100, 101 and 102. */
+/* Limits of the 1-2 s band and after 2 s over the 0-1 s limits (PP-SWR-100 to 102, SRS 1.22);
+   the same factor for 100, 101 and 102. */
 #define PP_CONT_BAND_1_2_S (2.0)
 #define PP_CONT_BAND_AFTER_2_S (4.0)
 

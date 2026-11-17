@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.24 |
+| Phiên bản | 1.25 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -105,11 +105,11 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | 1 | Đưa path chu kỳ trước về `base_link` tại t0 bằng ego-motion. Path cũ hơn timeout của Trajectory (75 ms) coi như không hợp lệ |
 | 2 | Trạng thái đầu (d, ḋ, d̈, góc lệch) = S_cũ + w·(S_đo − S_cũ): S_cũ là trạng thái của path cũ tại t0, tính theo reference line mới; S_đo là trạng thái đo (T6); w = clamp((trị tuyệt đối của d_cũ − d_đo − `stitch_soft_min`) / (`stitch_reset` − `stitch_soft_min`), 0, 1). Khi `stitch_reset` ≤ `stitch_soft_min`, w = 0 tới `stitch_reset` và 1 khi vượt (PP-TS-021). Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080). Trong khi `driver_override` và ở chu kỳ đầu sau khi về false, dùng trạng thái đo (PP-SWR-039, 040); khi không có FunctionRequests dùng được thì giữ giá trị của message dùng được gần nhất |
 | 3 | T7 sinh path ứng viên từ trạng thái đầu. Với HWA, T10 bước 2 cắt path ứng viên trước bước 4 |
-| 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ, ngưỡng chặt nhất của PP-SWR-100 đến 102 (đoạn 0–1 s)). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
+| 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. Lệch của mỗi điểm chia cho hệ số của đoạn chứa điểm đó trước khi lấy giá trị lớn nhất: 1 cho 0–1 s, 2 cho 1–2 s, 4 sau 2 s (điểm đúng 1 s, 2 s thuộc đoạn trước; PP-TS-022 V1). λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ, ngưỡng chặt nhất của PP-SWR-100 đến 102 (đoạn 0–1 s)). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
 | 5 | Bỏ bước 4 ở chu kỳ đầu của mỗi lần LKA, ELK bắt đầu (PP-SWR-031, 049), khi path cũ không hợp lệ, và trong khi `driver_override = true` (PP-TS-017) |
 
 - Bước 2 lấy điểm của path cũ tại t0 bằng nội suy Hermite theo hướng tiếp tuyến. Nội suy dây cung lệch vào trong cua κ·L²·f(1−f)/2 và kéo điểm đầu vào trong mỗi chu kỳ.
-- Bước 4 trộn trên 31 điểm Cartesian, cùng cách đo của PP-SWR-100 đến 102.
+- Bước 4 trộn trên 31 điểm Cartesian, cùng cách đo và cùng ba đoạn của PP-SWR-100 đến 102. Vẫn một λ cho cả path nên path gửi là tổ hợp lồi của hai path.
 - Tổ hợp lồi của hai path đều nằm trong giới hạn a_y, jerk (ràng buộc tuyến tính theo d̈ và d⃛) thì vẫn nằm trong giới hạn.
 - c0 jump: T2 loại biên nhảy nên reference line không nhảy. Nếu là thay đổi thật, bước 4 đưa path tới vị trí mới qua nhiều chu kỳ (PP-SWR-121).
 
@@ -273,3 +273,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.22 | 2026-11-17 | T2: vị trí cũ được giữ tới khi tầm nhìn của nó, dời bằng ego-motion, không còn tới vị trí xe, thay cho `T_confirm`. Lý do: PP-PR-057; với lỗi dài 2 · `T_confirm` vị trí cũ hết hạn một chu kỳ trước khi hình học đúng quay về (F06 d). Ảnh hưởng: PP-SWR-121, 122, 125; T2 |
 | 1.23 | 2026-11-17 | T2 bước 2: bề rộng đo ngoài 2,5–5,5 m thì chỉ dùng vạch cho tâm gần tâm cũ hơn. Lý do: PP-PR-057; một vạch nhận nhầm được nhận sau `T_confirm` kéo tâm làn về giữa hai vạch cách nhau 7 m (F03 a dài 2 s). Ảnh hưởng: PP-SWR-060, 122; T2 |
 | 1.24 | 2026-11-17 | T4 bước 5: bỏ trộn ở chu kỳ đầu của mọi lần LKA, ELK bắt đầu; trạng thái đầu là trạng thái đo, độ cong từ yaw rate (T6). Lý do: PP-PR-062, SRS 1.23. Ảnh hưởng: T4, T7, T9 |
+| 1.25 | 2026-11-17 | T4 bước 4: lệch của mỗi điểm chia cho hệ số của đoạn thời gian chứa nó (1, 2, 4) trước khi tính λ; vẫn một λ cho cả path. Lý do: PP-TS-022 V1 (20261117-1315-study-PP-TS-022-d2e7d27); path quay về từ xa chậm ở F06 d vì phần xa bị giữ theo ngưỡng 0–1 s. Ảnh hưởng: PP-SWR-100 đến 102, 051; T4 |

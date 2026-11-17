@@ -43,16 +43,6 @@ option(PP_REF_SAMPLED "PP-TS-005: read the reference line through sampled nodes"
 if(PP_REF_SAMPLED)
     list(APPEND PP_T7_DEFINES PP_REF_SAMPLED)
 endif()
-# PP-TS-022, study only: limit of the T4 blend. single: every point against the 0-1 s
-# limit of PP-SWR-100 to 102 (the delivered design). banded: every point against the limit
-# of its own time band, still one lambda for the whole path.
-set(PP_T4_BLEND "single" CACHE STRING "T4 blend limit: single or banded")
-set_property(CACHE PP_T4_BLEND PROPERTY STRINGS single banded)
-if(PP_T4_BLEND STREQUAL "banded")
-    list(APPEND PP_T7_DEFINES PP_T4_BLEND_BANDED)
-elseif(NOT PP_T4_BLEND STREQUAL "single")
-    message(FATAL_ERROR "PP_T4_BLEND must be single or banded, got ${PP_T4_BLEND}")
-endif()
 
 # Identification of the build for pp_version(): version, source commit, calibration data
 # set. Regenerated at every build (the commit can change without any file changing here).

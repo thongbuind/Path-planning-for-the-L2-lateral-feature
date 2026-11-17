@@ -179,7 +179,6 @@ static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, dou
     c->front_wheel_angle_rad = (float)atan(wheelbase * kappa);
 }
 
-#ifdef PP_T4_BLEND_BANDED
 /* PP-TS-022 V1: limit of the time band of point k over the 0-1 s limit (SRS, PP-SWR-100 to
  * 102: 0-1 s, 1-2 s, after 2 s; a point at exactly 1 s or 2 s belongs to the earlier band). */
 static double band_factor(uint32_t k)
@@ -187,7 +186,6 @@ static double band_factor(uint32_t k)
     const uint32_t per_second = (uint32_t)lround(1.0 / PP_GRID_STEP_S);
     return (k <= per_second) ? 1.0 : ((k <= (2U * per_second)) ? PP_CONT_BAND_1_2_S : PP_CONT_BAND_AFTER_2_S);
 }
-#endif
 
 double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, double wheelbase,
                        double x_limit, pp_trajectory_point_t points[PP_TRAJECTORY_POINTS])
@@ -210,11 +208,7 @@ double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, do
                 const double yaw = (double)c->pose.yaw;
                 const double ex = o->x - (double)c->pose.x;
                 const double ey = o->y - (double)c->pose.y;
-#ifdef PP_T4_BLEND_BANDED
                 const double band = band_factor(k);
-#else
-                const double band = 1.0;       /* every point against the 0-1 s limit */
-#endif
                 lateral = fmax(lateral, fabs((-sin(yaw) * ex) + (cos(yaw) * ey)) / band);
                 heading = fmax(heading, fabs(wrap_angle(yaw - o->yaw)) / band);
                 curvature = fmax(curvature, fabs((double)c->curvature - o->kappa) / band);
