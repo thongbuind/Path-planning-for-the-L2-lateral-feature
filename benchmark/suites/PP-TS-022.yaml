@@ -1,0 +1,59 @@
+# Tuning and test runs of PP-TS-022 (research/studies/PP-TS-022-blend-limit). Locked
+# 2026-11-17 with the plan. Cases where the path has to come back from far away after a
+# lane-model fault longer than T_confirm (F06 d, F03 c, F02 e; PP-PR-057), plus the cases
+# where a faster blend could hurt: lane-model noise at aysmax (S1 c + F01, S12 a), a fault
+# shorter than T_confirm (F06 a, e), c0 jump (F02 b), recentering (S2), S-bend (S1 f,
+# S14 e), the R79 Annex 8 3.2.2 test (S1b), and the nominal S1 cases.
+# S1 a + F06 d and S1 a + F03 c, seed 1, were seen in draft runs before this suite was
+# written: they are tuning runs. The test set uses host S1 c and seeds 3, 4.
+# The last element of a run may set simulator values (ACC mode, vehicle profile).
+id: PP-TS-022
+title: Giới hạn trộn của T4 khi path phải quay về từ xa
+
+proposed: [PP-TS-020/R79-5.6.2.1.1]
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116, PP-SWR-117,
+           PP-TS-020/R79-5.6.2.1.1]
+  S1: [PP-SWR-001, PP-SWR-003, PP-SWR-004, PP-SWR-051, PP-SWR-050]
+  S1b: [PP-SWR-001, PP-SWR-003, PP-SWR-005, PP-SWR-006, PP-SWR-007, PP-SWR-064]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S12: [PP-SWR-001, PP-SWR-051, PP-SWR-050]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151, PP-SWR-051]
+  F01: [PP-SWR-003, PP-SWR-004, PP-SWR-051, PP-SWR-050]
+  F02: [PP-SWR-051, PP-SWR-050, PP-SWR-121]
+  F03: [PP-SWR-051, PP-SWR-050]
+  F06: [PP-SWR-051, PP-SWR-050, PP-SWR-125]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, c]
+    - [S1, a, F06, d]
+    - [S1, a, F03, c]
+    - [S1, a, F06, a]
+    - [S1, c, F01, c]
+    - [S1, a, F02, b]
+    - [S2, b]
+    - [S12, a]
+    - [S1b, a, {acc: "ignore_limits"}]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S1, g]
+    - [S1, c, F06, d]
+    - [S1, c, F03, c]
+    - [S1, a, F02, e]
+    - [S1, c, F06, e]
+    - [S1, c, F06, a]
+    - [S1, c, F01, b]
+    - [S1, c, F01, c, {profile: VP-5}]
+    - [S1, c, F02, b]
+    - [S2, a]
+    - [S2, d]
+    - [S14, e, {acc: "on"}]
+    - [S1b, a, {acc: "ignore_limits"}]
+    - [S1b, c, {acc: "ignore_limits"}]
