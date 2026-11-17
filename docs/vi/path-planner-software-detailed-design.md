@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.20 |
+| Phiên bản | 1.21 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -103,7 +103,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | Bước | Việc |
 |---|---|
 | 1 | Đưa path chu kỳ trước về `base_link` tại t0 bằng ego-motion. Path cũ hơn timeout của Trajectory (75 ms) coi như không hợp lệ |
-| 2 | Trạng thái đầu (d, ḋ, d̈) = trạng thái của path cũ tại t0, tính theo reference line mới. Nếu trạng thái đo (T6) lệch quá `stitch_reset` thì dùng trạng thái đo. Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080). Trong khi `driver_override` và ở chu kỳ đầu sau khi về false, dùng trạng thái đo (PP-SWR-039, 040); khi không có FunctionRequests dùng được thì giữ giá trị của message dùng được gần nhất |
+| 2 | Trạng thái đầu (d, ḋ, d̈, góc lệch) = S_cũ + w·(S_đo − S_cũ): S_cũ là trạng thái của path cũ tại t0, tính theo reference line mới; S_đo là trạng thái đo (T6); w = clamp((trị tuyệt đối của d_cũ − d_đo − `stitch_soft_min`) / (`stitch_reset` − `stitch_soft_min`), 0, 1). Khi `stitch_reset` ≤ `stitch_soft_min`, w = 0 tới `stitch_reset` và 1 khi vượt (PP-TS-021). Khi LKA, ELK bắt đầu luôn dùng trạng thái đo (PP-SWR-080). Trong khi `driver_override` và ở chu kỳ đầu sau khi về false, dùng trạng thái đo (PP-SWR-039, 040); khi không có FunctionRequests dùng được thì giữ giá trị của message dùng được gần nhất |
 | 3 | T7 sinh path ứng viên từ trạng thái đầu. Với HWA, T10 bước 2 cắt path ứng viên trước bước 4 |
 | 4 | Chiếu về ngưỡng liên tục: tính lệch lớn nhất giữa path ứng viên và path cũ trên đoạn thời gian chung, chỉ ở các điểm có x ≤ `view_end` của reference line (cả path khi bám reference line cũ), cho lệch ngang Δd, hướng Δψ, độ cong Δκ. λ = min(1, `cont_margin`·0,05/Δd, `cont_margin`·0,005/Δψ, `cont_margin`·0,0003/Δκ, ngưỡng chặt nhất của PP-SWR-100 đến 102 (đoạn 0–1 s)). Path gửi = path cũ + λ·(path ứng viên − path cũ) |
 | 5 | Bỏ bước 4 khi PP-SWR-031 cho phép (LKA, ELK bắt đầu lúc xe đã lệch), khi path cũ không hợp lệ, và trong khi `driver_override = true` (PP-TS-017) |
@@ -222,6 +222,7 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | `parallel_max` | rad | 0,008 | 0,005–0,015 | T2 |
 | `width_dev_max` | m | 0,3 | 0,2–0,5 | T2 |
 | `cont_margin` | — | 0,9 | 0,7–1,0 | T4 |
+| `stitch_soft_min` | m | 0,02 | 0–0,05 | T4 |
 | `q_kappa` | 1/m³ | 1·10⁻⁹ | 1·10⁻¹⁰–1·10⁻⁸ | T5 |
 | `sigma_r` | rad/s | 0,002 | 0,001–0,005 | T5 |
 | `sigma_kappa_min` | 1/m | 1·10⁻⁴ | 5·10⁻⁵–5·10⁻⁴ | T5 |
@@ -268,3 +269,4 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | 1.18 | 2026-11-14 | T2: thay quy tắc của 1.16. Frame nhất quán với bộ nhớ trong lúc có ứng viên được nhận, bộ nhớ trước đó giữ làm vị trí cũ cho R2. Lý do: PP-PR-055; quy tắc 1.16 loại cả frame nhất quán khi nhiễu tương quan theo thời gian, ELK bắt đầu trễ 0,8 s (S12 c). Ảnh hưởng: PP-SWR-121, 122, 125, 088; T2 |
 | 1.19 | 2026-11-16 | T4 bước 4: ngưỡng của λ theo SRS 1.21 (0,2 m, 0,02 rad, 0,0012 1/m); `cont_margin` 0,9 → 0,225, dải 0,2–1,0, giữ giới hạn trộn cũ 0,045 m, 0,0045 rad, 0,00027 1/m. Lý do: mentor nới PP-SWR-100 đến 102; chưa có lần chạy cho giới hạn trộn lớn hơn |
 | 1.20 | 2026-11-16 | T4 bước 4: một λ cho cả path theo ngưỡng đoạn 0–1 s của SRS 1.22; `cont_margin` trở lại 0,9, dải 0,7–1,0. Thay 1.19. Lý do: PP-SWR-100 đến 102 chia ba đoạn; trộn theo từng đoạn là phương án V4 của PP-TS-019 |
+| 1.21 | 2026-11-16 | T4 bước 2: reset mềm, trạng thái đầu trộn path cũ và trạng thái đo theo độ lệch; thêm `stitch_soft_min` (mục 15). T4 bước 4 giữ một λ. Lý do: PP-TS-021 V7 (20261116-1748-study-PP-TS-021-8726b80); reset nhị phân để xe đứng sát dưới `stitch_reset` (PP-PR-056) hoặc làm path đổi qua lại mỗi chu kỳ khi ngưỡng nhỏ. Ảnh hưởng: PP-SWR-100, 051, target 050; PP-ADR-004 |

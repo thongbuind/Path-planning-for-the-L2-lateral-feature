@@ -145,6 +145,119 @@ static void test_walk_curve(void)
     PP_CHECK_NEAR(p.dkappa, 0.0, 1e-12);
 }
 
+/* PP-TS-005 preparation step: the sampled line gives the same geometry as its cubic. */
+static pp_reference_line_t curved_ref(void)
+{
+    pp_reference_line_t ref;
+    (void)memset(&ref, 0, sizeof(ref));
+    ref.valid = true;
+    ref.centre.c[0] = 0.3;
+    ref.centre.c[1] = 0.01;
+    ref.centre.c[2] = 1.0 / (2.0 * 300.0);
+    ref.centre.c[3] = 2.0e-6;                             /* curvature grows 1.2e-5 1/m per m */
+    ref.view_end = 80.0;
+    return ref;
+}
+
+/* Arc length along the cubic from x0 to x, integrated finely: the reference of the test. */
+static double fine_arc_length(const pp_cubic_t *p, double x0, double x)
+{
+    const uint32_t steps = 200000U;
+    const double dx = (x - x0) / (double)steps;
+    double s = 0.0;
+    for (uint32_t i = 0U; i < steps; i++) {
+        const double slope = pp_cubic_slope(p, x0 + (((double)i + 0.5) * dx));
+        s += dx * sqrt(1.0 + (slope * slope));
+    }
+    return s;
+}
+
+static void test_sampled_walk_matches_cubic(void)
+{
+    const pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled = curved_ref();
+    pp_ref_walker_t wc;
+    pp_ref_walker_t ws;
+    pp_ref_point_t pc;
+    pp_ref_point_t ps;
+    pp_ref_sample_cubic(&sampled);
+    PP_CHECK(sampled.sampled);
+    PP_CHECK(sampled.nodes.n <= PP_REF_NODES);
+    PP_CHECK_NEAR(sampled.nodes.s[sampled.nodes.origin], 0.0, 1e-12);
+    pp_ref_walk_begin(&wc, &cubic, &pc);
+    pp_ref_walk_begin(&ws, &sampled, &ps);
+    PP_CHECK_NEAR(ps.x, pc.x, 1e-9);
+    PP_CHECK_NEAR(ps.y, pc.y, 1e-9);
+    const double x0 = pc.x;
+
+    /* Against the cubic itself, at x between and on the nodes, behind and ahead. */
+    for (double x = -75.0; x <= 79.5; x += 3.3) {
+        const double s = fine_arc_length(&cubic.centre, x0, x);
+        const double d1 = pp_cubic_slope(&cubic.centre, x);
+        const double g = 1.0 + (d1 * d1);
+        pp_ref_walk_to(&ws, s, &ps);
+        /* 5 um: arc length by the midpoint rule in 0.25 m steps, as in the cubic walker. */
+        PP_CHECK_NEAR(ps.x, x, 5e-6);
+        PP_CHECK_NEAR(ps.y, pp_cubic_value(&cubic.centre, x), 5e-6);
+        PP_CHECK_NEAR(ps.theta, atan(d1), 1e-7);
+        PP_CHECK_NEAR(ps.kappa, pp_cubic_bend(&cubic.centre, x) / (g * sqrt(g)), 1e-8);
+    }
+
+    /* Against the cubic walker, also past the range end (arc). The walker adds a small
+     * arc-length error at every call inside a step, so the tolerance is wider here. */
+    for (double s = 0.0; s <= 110.0; s += 0.7) {
+        pp_ref_walk_to(&wc, s, &pc);
+        pp_ref_walk_to(&ws, s, &ps);
+        PP_CHECK_NEAR(ps.x, pc.x, 5e-4);
+        PP_CHECK_NEAR(ps.y, pc.y, 5e-4);
+        PP_CHECK_NEAR(ps.theta, pc.theta, 5e-6);
+        PP_CHECK_NEAR(ps.kappa, pc.kappa, 1e-7);
+        PP_CHECK_NEAR(ps.dkappa, pc.dkappa, 1e-7);
+    }
+}
+
+static void test_sampled_project_matches_cubic(void)
+{
+    const pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled = curved_ref();
+    const double points[][2] = {{0.0, 0.0}, {2.9, 0.0}, {25.0, 1.5}, {60.0, -3.0}, {79.0, 9.0},
+                                {-4.0, 0.2}, {-30.0, 2.0}, {-70.0, -1.0}};
+    pp_ref_sample_cubic(&sampled);
+    for (size_t i = 0U; i < (sizeof(points) / sizeof(points[0])); i++) {
+        pp_ref_point_t fc;
+        pp_ref_point_t fs;
+        double dc = 0.0;
+        double ds = 0.0;
+        pp_ref_project(&cubic, points[i][0], points[i][1], &fc, &dc);
+        pp_ref_project(&sampled, points[i][0], points[i][1], &fs, &ds);
+        PP_CHECK_NEAR(ds, dc, 1e-5);
+        PP_CHECK_NEAR(fs.x, fc.x, 1e-4);
+        PP_CHECK_NEAR(fs.kappa, fc.kappa, 1e-8);
+    }
+}
+
+static void test_sampled_line_without_range_ahead(void)
+{
+    /* Range end behind the car: only the arc from s = 0, as on the cubic path. */
+    pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled;
+    pp_ref_walker_t wc;
+    pp_ref_walker_t ws;
+    pp_ref_point_t pc;
+    pp_ref_point_t ps;
+    cubic.view_end = -5.0;
+    sampled = cubic;
+    pp_ref_sample_cubic(&sampled);
+    PP_CHECK(sampled.nodes.n == (sampled.nodes.origin + 1U));
+    pp_ref_walk_begin(&wc, &cubic, &pc);
+    pp_ref_walk_begin(&ws, &sampled, &ps);
+    pp_ref_walk_to(&wc, 30.0, &pc);
+    pp_ref_walk_to(&ws, 30.0, &ps);
+    PP_CHECK_NEAR(ps.x, pc.x, 1e-9);
+    PP_CHECK_NEAR(ps.y, pc.y, 1e-9);
+    PP_CHECK_NEAR(ps.dkappa, 0.0, 1e-12);
+}
+
 static const pp_motion_t STILL = {0.0, 0.0, 0.0};
 
 static void test_inferred_centre_uses_remembered_offsets(void)
@@ -422,5 +535,8 @@ int main(void)
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();
     test_walk_curve();
+    test_sampled_walk_matches_cubic();
+    test_sampled_project_matches_cubic();
+    test_sampled_line_without_range_ahead();
     return PP_TEST_RESULT();
 }

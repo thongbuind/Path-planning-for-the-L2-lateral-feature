@@ -456,6 +456,9 @@ static void fuse_curvature(pp_state_t *s, const pp_usable_inputs_t *in, double d
         ref->centre.c[3] = c3;
         s->ref_mem.ref_centre.c[2] = c2;        /* coasting continues on the fused line */
         s->ref_mem.ref_centre.c[3] = c3;
+#ifdef PP_REF_SAMPLED
+        pp_ref_sample_cubic(ref);
+#endif
     }
 }
 

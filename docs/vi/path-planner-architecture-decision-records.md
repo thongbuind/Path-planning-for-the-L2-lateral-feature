@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ADR` |
-| Phiên bản | 1.4 |
+| Phiên bản | 1.5 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-12 |
+| Cập nhật | 2026-11-16 |
 
 ## 1. Purpose and scope {#adr-scope}
 
@@ -39,7 +39,7 @@
 | PP-ADR-001 | Tách khối ngang và dọc, trao đổi ràng buộc |
 | PP-ADR-002 | Bù trễ theo stamp lúc chụp |
 | PP-ADR-003 | Hai ngưỡng tuổi dữ liệu: theo dõi và loại bỏ |
-| PP-ADR-004 | Trajectory stitching, quay về trạng thái đo khi lệch xa |
+| PP-ADR-004 | Trajectory stitching, chuyển dần về trạng thái đo khi lệch xa |
 | PP-ADR-005 | Dùng chung một hàm tính trạng thái ngang với khối Chức năng ADAS |
 | PP-ADR-006 | Planner tự kiểm tính nhất quán của đường biên |
 | PP-ADR-007 | Ba lớp chống nhiễu dựa trên path cũ |
@@ -84,15 +84,15 @@
 | Hệ quả | Được: không mất chức năng khi trễ thật lớn hơn giả định một chút; log cho biết trễ thật. Mất: có số đo trễ thật lớn hơn thì phải đặt lại ngưỡng loại bỏ |
 | Liên quan | PP-SWR-131 đến 134; PP-ASM-001, 002; Software Architectural Design Appendix A.2 |
 
-### PP-ADR-004 Trajectory stitching, quay về trạng thái đo khi lệch xa {#adr-004}
+### PP-ADR-004 Trajectory stitching, chuyển dần về trạng thái đo khi lệch xa {#adr-004}
 
 | Mục | Nội dung |
 |---|---|
 | Bối cảnh | Path bắt đầu từ trạng thái đo thì nhiễu đi thẳng vào path; bắt đầu từ path cũ thì sai khi xe đã lệch |
-| Phương án | A) Từ trạng thái đo mỗi chu kỳ. B) Từ điểm tương ứng trên path cũ. C) B khi xe gần path cũ, A khi lệch quá `stitch_reset` |
-| Quyết định | C, như trajectory stitching của Apollo. Lúc LKA, ELK bắt đầu luôn dùng A |
-| Hệ quả | Được: liên tục khi bình thường, đúng khi lệch lớn. Mất: lúc chuyển từ B sang A có thể có bước nhỏ; khi LKA, ELK bắt đầu lúc xe đã lệch, PP-SWR-080 được ưu tiên hơn PP-SWR-031 |
-| Liên quan | PP-SWR-031, 080; Software Architectural Design mục 4.2 |
+| Phương án | A) Từ trạng thái đo mỗi chu kỳ. B) Từ điểm tương ứng trên path cũ. C) B khi xe gần path cũ, A khi lệch quá `stitch_reset`. D) Trộn B và A theo độ lệch: chỉ B dưới `stitch_soft_min`, chỉ A từ `stitch_reset`, tuyến tính ở giữa |
+| Quyết định | D (PP-TS-021, 2026-11-16; trước đó C, như trajectory stitching của Apollo). Lúc LKA, ELK bắt đầu luôn dùng A |
+| Hệ quả | Được: liên tục khi bình thường, đúng khi lệch lớn, không đổi qua lại giữa A và B quanh ngưỡng. Mất: khi xe lệch path cũ, path mang một phần sai số của lane model (cua chữ S, PP-PR-004); khi LKA, ELK bắt đầu lúc xe đã lệch, PP-SWR-080 được ưu tiên hơn PP-SWR-031 |
+| Liên quan | PP-SWR-031, 080, 100; Software Architectural Design mục 4.2; PP-TS-021 |
 
 ### PP-ADR-005 Dùng chung một hàm tính trạng thái ngang với khối Chức năng ADAS {#adr-005}
 
@@ -213,3 +213,4 @@
 | 1.2 | 2026-11-10 | Thêm PP-ADR-014: planner tự tính trạng thái ngang; PP-ADR-005 bị thay |
 | 1.3 | 2026-11-11 | PP-ADR-008 chọn C thay B: dời theo khoảng hở tới xe lớn so với `gap_truck_min` |
 | 1.4 | 2026-11-12 | Thêm PP-ADR-015 về pha riêng cho LKA và ELK trong PathStatus |
+| 1.5 | 2026-11-16 | PP-ADR-004 chọn D thay C: trộn path cũ và trạng thái đo theo độ lệch. Lý do: PP-TS-021 (20261116-1748-study-PP-TS-021-8726b80); với C, xe đứng sát dưới `stitch_reset` và controller kéo thêm a_y (PP-PR-056); ngưỡng nhỏ thì path đổi qua lại mỗi chu kỳ |

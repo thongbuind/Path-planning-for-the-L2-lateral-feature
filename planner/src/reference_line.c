@@ -9,6 +9,8 @@
 #define PP_FOOT_ITERATIONS (3U)       /* Newton steps for the perpendicular foot */
 #define PP_FOOT_MAX_M (5.0)           /* Foot stays near the origin */
 #define PP_STRAIGHT_KAPPA (1.0e-9)    /* Below this the arc continuation is a line */
+#define PP_NODE_FOOT_ITERATIONS (4U)  /* Newton steps for the foot on a sampled line */
+#define PP_NODE_FOOT_MIN_SCALE (0.1)  /* 1 - kappa d below this: plain step along the tangent */
 
 /* Software Requirements Specification 4, "Biên làn đủ tin". */
 static bool line_trusted(const pp_boundary_t *b, double confidence)
@@ -335,6 +337,9 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
         /* Step 6: free space each side (PP-SWR-063). */
         const double free_space = 0.5 * (out->width - vehicle_width);
         out->lane_too_narrow = free_space < (double)cal->free_space_min;
+#ifdef PP_REF_SAMPLED
+        pp_ref_sample_cubic(out);
+#endif
     }
 }
 
@@ -367,21 +372,229 @@ static double foot_x(const pp_cubic_t *p, double px, double py)
     return x;
 }
 
+static void point_on_arc(const pp_ref_point_t *a, double length, pp_ref_point_t *out);
+
+/* ---- Sampled reference line (PP-TS-005, preparation step) ---- */
+
+static void set_node(pp_ref_nodes_t *nd, uint32_t i, double s, const pp_cubic_t *p, double x)
+{
+    pp_ref_point_t point;
+    point_on_cubic(p, x, &point);
+    nd->s[i] = s;
+    nd->x[i] = point.x;
+    nd->y[i] = point.y;
+    nd->theta[i] = point.theta;
+    nd->kappa[i] = point.kappa;
+    nd->dkappa[i] = point.dkappa;
+}
+
+/* x where the arc length from x reaches `length` (signed) inside one walk step: the slope
+ * is taken at the middle of the part walked, not of the whole step. */
+static double partial_step(const pp_cubic_t *p, double x, double length, double stretch)
+{
+    double part = length / stretch;
+    for (uint32_t i = 0U; i < 2U; i++) {
+        const double slope = pp_cubic_slope(p, x + (0.5 * part));
+        part = length / sqrt(1.0 + (slope * slope));
+    }
+    return x + part;
+}
+
+void pp_ref_sample_cubic(pp_reference_line_t *ref)
+{
+    const pp_cubic_t *p = &ref->centre;
+    pp_ref_nodes_t *nd = &ref->nodes;
+    const uint32_t back = (uint32_t)lround(PP_REF_BACK_M / PP_REF_STEP_M);
+    const double x0 = foot_x(p, 0.0, 0.0);
+    const double x_end = fmax(ref->view_end, x0);
+
+    nd->origin = back;
+    set_node(nd, back, 0.0, p, x0);
+
+    /* Behind s = 0, with the arc-length steps of the cubic walker. */
+    {
+        double x = x0;
+        double s = 0.0;
+        uint32_t k = 1U;
+        while (k <= back) {
+            const double x_next = x - PP_WALK_STEP_M;
+            const double slope = pp_cubic_slope(p, 0.5 * (x + x_next));
+            const double stretch = sqrt(1.0 + (slope * slope));
+            const double ds = PP_WALK_STEP_M * stretch;
+            while ((k <= back) && ((s + ds) >= ((double)k * PP_REF_STEP_M))) {
+                const double target = (double)k * PP_REF_STEP_M;
+                set_node(nd, back - k, -target, p, partial_step(p, x, -(target - s), stretch));
+                k++;
+            }
+            x = x_next;
+            s += ds;
+        }
+    }
+
+    /* Ahead, up to the end of the observed range; one node is kept for that end. */
+    {
+        double x = x0;
+        double s = 0.0;
+        uint32_t i = back + 1U;
+        uint32_t k = 1U;
+        while ((x < x_end) && (i < (PP_REF_NODES - 1U))) {
+            const double x_next = fmin(x + PP_WALK_STEP_M, x_end);
+            const double slope = pp_cubic_slope(p, 0.5 * (x + x_next));
+            const double stretch = sqrt(1.0 + (slope * slope));
+            const double ds = (x_next - x) * stretch;
+            while ((i < (PP_REF_NODES - 1U)) && ((s + ds) >= ((double)k * PP_REF_STEP_M))) {
+                const double target = (double)k * PP_REF_STEP_M;
+                set_node(nd, i, target, p, partial_step(p, x, target - s, stretch));
+                i++;
+                k++;
+            }
+            x = x_next;
+            s += ds;
+        }
+        if ((x >= x_end) && (s > (nd->s[i - 1U] + 1.0e-9))) {
+            set_node(nd, i, s, p, x_end);
+            i++;
+        }
+        nd->n = i;
+    }
+    ref->sampled = true;
+}
+
+static void node_point(const pp_ref_nodes_t *nd, uint32_t i, pp_ref_point_t *out)
+{
+    out->x = nd->x[i];
+    out->y = nd->y[i];
+    out->theta = nd->theta[i];
+    out->kappa = nd->kappa[i];
+    out->dkappa = nd->dkappa[i];
+}
+
+/* Point at an arc length: Hermite between two nodes (position from the headings, curvature
+ * from its derivatives), circular arc outside the nodes. */
+static void nodes_point_at(const pp_ref_nodes_t *nd, double s, pp_ref_point_t *out)
+{
+    if (nd->n == 0U) {
+        (void)memset(out, 0, sizeof(*out));
+        out->x = s;                                 /* no geometry: the x axis */
+    } else if ((nd->n == 1U) || (s >= nd->s[nd->n - 1U])) {
+        pp_ref_point_t last;
+        node_point(nd, nd->n - 1U, &last);
+        point_on_arc(&last, s - nd->s[nd->n - 1U], out);
+    } else if (s <= nd->s[0]) {
+        pp_ref_point_t first;
+        node_point(nd, 0U, &first);
+        point_on_arc(&first, s - nd->s[0], out);
+    } else {
+        uint32_t i = (uint32_t)floor((s - nd->s[0]) / PP_REF_STEP_M);
+        if (i > (nd->n - 2U)) {
+            i = nd->n - 2U;
+        }
+        while ((i > 0U) && (s < nd->s[i])) {
+            i--;
+        }
+        const uint32_t j = i + 1U;
+        const double h = nd->s[j] - nd->s[i];
+        const double t = s - nd->s[i];
+        const double u = t / h;
+        const double u2 = u * u;
+        const double u3 = u2 * u;
+        const double h00 = (2.0 * u3) - (3.0 * u2) + 1.0;
+        const double h10 = u3 - (2.0 * u2) + u;
+        const double h01 = (3.0 * u2) - (2.0 * u3);
+        const double h11 = u3 - u2;
+        const double u4 = u3 * u;
+        const double ki = nd->kappa[i];
+        const double kj = nd->kappa[j];
+        const double gi = h * nd->dkappa[i];
+        const double gj = h * nd->dkappa[j];
+        /* Heading: integral of the Hermite curvature, closed onto the heading of node j. */
+        const double turn = h * ((ki * ((0.5 * u4) - u3 + u))
+                                 + (gi * ((0.25 * u4) - ((2.0 / 3.0) * u3) + (0.5 * u2)))
+                                 + (kj * (u3 - (0.5 * u4)))
+                                 + (gj * ((0.25 * u4) - (u3 / 3.0))));
+        const double closure = nd->theta[j] - nd->theta[i]
+                               - (h * ((0.5 * (ki + kj)) + ((gi - gj) / 12.0)));
+        out->x = (h00 * nd->x[i]) + (h10 * h * cos(nd->theta[i]))
+                 + (h01 * nd->x[j]) + (h11 * h * cos(nd->theta[j]));
+        out->y = (h00 * nd->y[i]) + (h10 * h * sin(nd->theta[i]))
+                 + (h01 * nd->y[j]) + (h11 * h * sin(nd->theta[j]));
+        out->theta = nd->theta[i] + turn + (u * closure);
+        out->kappa = (h00 * ki) + (h10 * gi) + (h01 * kj) + (h11 * gj);
+        out->dkappa = nd->dkappa[i] + (u * (nd->dkappa[j] - nd->dkappa[i]));
+    }
+}
+
+/* Arc length whose node x is px: start of the search for the foot. x grows with s. */
+static double nodes_s_at_x(const pp_ref_nodes_t *nd, double px)
+{
+    double s = px;
+    if (nd->n > 0U) {
+        const uint32_t last = nd->n - 1U;
+        if (px <= nd->x[0]) {
+            s = nd->s[0] + (px - nd->x[0]);
+        } else if (px >= nd->x[last]) {
+            s = nd->s[last] + (px - nd->x[last]);
+        } else {
+            uint32_t lo = 0U;
+            uint32_t hi = last;
+            while ((hi - lo) > 1U) {
+                const uint32_t mid = lo + ((hi - lo) / 2U);
+                if (nd->x[mid] <= px) {
+                    lo = mid;
+                } else {
+                    hi = mid;
+                }
+            }
+            const double dx = nd->x[hi] - nd->x[lo];
+            const double f = (dx > 0.0) ? ((px - nd->x[lo]) / dx) : 0.0;
+            s = nd->s[lo] + (f * (nd->s[hi] - nd->s[lo]));
+        }
+    }
+    return s;
+}
+
+static void nodes_project(const pp_ref_nodes_t *nd, double px, double py,
+                          pp_ref_point_t *foot, double *d)
+{
+    const double s_start = nodes_s_at_x(nd, px);
+    double s = s_start;
+    for (uint32_t i = 0U; i < PP_NODE_FOOT_ITERATIONS; i++) {
+        nodes_point_at(nd, s, foot);
+        const double c = cos(foot->theta);
+        const double sn = sin(foot->theta);
+        const double along = ((px - foot->x) * c) + ((py - foot->y) * sn);
+        const double across = (-(px - foot->x) * sn) + ((py - foot->y) * c);
+        const double scale = 1.0 - (foot->kappa * across);
+        const double step = (scale > PP_NODE_FOOT_MIN_SCALE) ? (along / scale) : along;
+        s = pp_clamp(s + step, s_start - PP_FOOT_MAX_M, s_start + PP_FOOT_MAX_M);
+    }
+    nodes_point_at(nd, s, foot);
+    *d = (-(px - foot->x) * sin(foot->theta)) + ((py - foot->y) * cos(foot->theta));
+}
+
 void pp_ref_project(const pp_reference_line_t *ref, double px, double py,
                     pp_ref_point_t *foot, double *d)
 {
-    point_on_cubic(&ref->centre, foot_x(&ref->centre, px, py), foot);
-    *d = (-(px - foot->x) * sin(foot->theta)) + ((py - foot->y) * cos(foot->theta));
+    if (ref->sampled) {
+        nodes_project(&ref->nodes, px, py, foot, d);
+    } else {
+        point_on_cubic(&ref->centre, foot_x(&ref->centre, px, py), foot);
+        *d = (-(px - foot->x) * sin(foot->theta)) + ((py - foot->y) * cos(foot->theta));
+    }
 }
 
 void pp_ref_walk_begin(pp_ref_walker_t *walker, const pp_reference_line_t *ref,
                        pp_ref_point_t *start)
 {
     const pp_cubic_t *p = &ref->centre;
-    const double x = foot_x(p, 0.0, 0.0);
 
     (void)memset(walker, 0, sizeof(*walker));
     walker->ref = ref;
+    if (ref->sampled) {
+        nodes_point_at(&ref->nodes, 0.0, start);
+        return;
+    }
+    const double x = foot_x(p, 0.0, 0.0);
     walker->x = x;
     walker->x_end = fmax(ref->view_end, x);
     point_on_cubic(p, x, start);
@@ -410,6 +623,11 @@ static void point_on_arc(const pp_ref_point_t *a, double length, pp_ref_point_t 
 void pp_ref_walk_to(pp_ref_walker_t *walker, double s, pp_ref_point_t *point)
 {
     const pp_cubic_t *p = &walker->ref->centre;
+
+    if (walker->ref->sampled) {
+        nodes_point_at(&walker->ref->nodes, s, point);
+        return;
+    }
 
     while ((!walker->on_arc) && (walker->s < s)) {
         const double x_next = fmin(walker->x + PP_WALK_STEP_M, walker->x_end);

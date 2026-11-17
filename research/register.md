@@ -17,7 +17,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-001 | T2 xử lý lane model nhảy: J0, J1, J2, J3 | Đã quyết 2026-11-14 theo 20261114-1857-study-PP-TS-001-13913da; J1 còn mở | J0 kiểm hình dạng | [study](studies/PP-TS-001-lane-jumps/study.md) |
 | PP-TS-002 | Khoảng nới a_y 40 % trong 2 s cho PP-SWR-001 | Chờ quyết định; S1b d đã chạy, vẫn đề xuất A | Đề xuất A (giữ nguyên) | [study](studies/PP-TS-002-ay-grace/study.md) |
 | PP-TS-003 | Kỹ thuật tạo path HWA: quintic hay QP hợp nhất có cắt cua | Đã quyết 2026-11-14 theo 20261114-1934-study-PP-TS-003-272a711 | V0b: quintic, T10 trước T4 | [study](studies/PP-TS-003-path-generator/study.md) |
-| PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở; plan nháp chờ duyệt; cài sau PP-PR-030 | — | [study](studies/PP-TS-005-lane-fit-error/study.md) |
+| PP-TS-005 | Sai số khớp đa thức của lane model ở hai đầu cửa sổ | Mở; plan nháp chờ duyệt, thêm V3 (ước lượng chung) và bước đổi reference line sang mảng mẫu 2026-11-16 | V1 bỏ; cài V3 chính, V2 đối chứng sau bước chuẩn bị | [study](studies/PP-TS-005-lane-fit-error/study.md) |
 | PP-TS-004 | Calibration T2, T5, cờ giới hạn (sweep P1) | Mở, cần chạy lại | — | [study](studies/PP-TS-004-p1-calibration/study.md) |
 | PP-TS-006 | T7 tạo path can thiệp LKA, ELK bằng quintic hay QP | Mở | Tích hợp V1 trước | [study](studies/PP-TS-006-intervention-path/study.md) |
 | PP-TS-007 | Điều kiện cho phép ELK ở mép đường không có vạch | Đã quyết | V1 | [study](studies/PP-TS-007-road-edge-eligibility/study.md) |
@@ -32,9 +32,9 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-016 | Chức năng đang lái sau giới hạn 10 s của PP-SWR-083 (mâu thuẫn với 030) | Đã quyết; đã đưa vào; hồi quy 20261113-1803-suite-regression-3c31309 có trượt 030 chưa phân tích | V4 (theo R79, EU 2021/646) | [study](studies/PP-TS-016-function-after-intervention-limit/study.md) |
 | PP-TS-017 | Path HWA trong lúc tài xế ghi đè: V0–V4 | Đóng; hồi quy 20261113-2255-suite-regression-e99cf08 | V2b, không chấm liên tục khi ghi đè | [study](studies/PP-TS-017-path-during-driver-override/study.md) |
 | PP-TS-018 | Khoảng thời gian báo COMPLETED theo trạng thái thật | V1 phía requirement đã áp dụng (SRS 1.20); phía planner cần plan mới | — | [study](studies/PP-TS-018-intervention-completion-window/study.md) |
-| PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Mở; phần T4 chuyển sang PP-TS-021 | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22) | [study](studies/PP-TS-019-continuity-scope/study.md) |
+| PP-TS-019 | Phạm vi của PP-SWR-100 đến 102 và giới hạn trộn của T4 (đoạn gần, phần xa) | Đóng 2026-11-16; phần T4 quyết ở PP-TS-021 | Ba đoạn 0–1 s, 1–2 s, sau 2 s: 0,05 / 0,1 / 0,2 m (SRS 1.22); T4 một λ | [study](studies/PP-TS-019-continuity-scope/study.md) |
 | PP-TS-020 | Trần a_y của path HWA so với aysmax khai báo (mức liên tục, R79 5.6.2.1.1) | Đang chạy; 20261116-1607-study-PP-TS-020-d1d50de: V2 loại; chờ PP-TS-021 trước khi chọn V1a hay V1b | — | [study](studies/PP-TS-020-path-ay-ceiling/study.md) |
-| PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đang chạy; 20261116-1724-study-PP-TS-021-0a1d8c9: loại V1, V3, V4; V5, V6 dao động theo chu kỳ quanh ngưỡng reset (chẩn đoán). Đề xuất reset mềm | — | [study](studies/PP-TS-021-stitch-start/study.md) |
+| PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã quyết 2026-11-16 theo 20261116-1748-study-PP-TS-021-8726b80; chờ hồi quy | V7: reset mềm 0,02–0,1 m | [study](studies/PP-TS-021-stitch-start/study.md) |
 
 ## Problem reports
 

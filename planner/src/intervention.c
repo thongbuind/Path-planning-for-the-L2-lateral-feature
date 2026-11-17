@@ -120,6 +120,9 @@ void pp_road_edge_references(pp_edge_memory_t *mem, const pp_lane_at_t0_t *lane,
             mem->edge[side] = *edge;
             mem->width[side] = ref->width;
             ref->lane_too_narrow = (0.5 * (ref->width - (double)vehicle->vehicle_width)) < (double)cal->free_space_min;
+#ifdef PP_REF_SAMPLED
+            pp_ref_sample_cubic(ref);
+#endif
         } else {
             mem->edge[side].present = false;
         }

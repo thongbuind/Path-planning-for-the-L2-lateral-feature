@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.9 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -105,7 +105,7 @@ Ba lớp, dùng path của chính planner làm điểm tựa, không lọc lại
 
 ### 4.2 Trạng thái đầu của path {#design-initial-state}
 
-- Trajectory stitching (PP-ADR-004): path mới bắt đầu từ điểm tương ứng trên path cũ. Xe lệch khỏi path cũ hơn `stitch_reset` thì bắt đầu từ trạng thái đo được.
+- Trajectory stitching (PP-ADR-004): path mới bắt đầu từ điểm tương ứng trên path cũ. Xe càng lệch khỏi path cũ thì điểm đầu càng gần trạng thái đo được: chỉ path cũ dưới `stitch_soft_min`, chỉ trạng thái đo từ `stitch_reset`, chuyển dần ở giữa.
 - Lúc LKA hoặc ELK bắt đầu: luôn từ trạng thái đo được (PP-SWR-080); xe đã lệch khỏi path cũ hơn dung sai của PP-SWR-080 thì không nối với path cũ (PP-SWR-031).
 - Trạng thái ngang đo được (d0, góc lệch, v_lat) do planner tự tính từ input của mình (PP-ADR-014). Khối Chức năng ADAS tự tính theo cùng công thức.
 
@@ -298,7 +298,8 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,5 (PP-SWR-001) | Target 002, 053, 059 |
 | `jerk_target_hwa` | m/s³ | 2,5 | 1,5–5,0 | ≤ 5 (PP-SWR-003) | Target 004 |
 | `ref_rate` | m/s | 0,1 | 0,05–0,3 | ≥ 0 | Target 050; PP-SWR-120 |
-| `stitch_reset` | m | 0,2 | 0,1–0,4 | ≥ 0 | Target 050; PP-SWR-100 |
+| `stitch_reset` | m | 0,1 | 0,05–0,2 | ≥ 0 | Target 050; PP-SWR-100 |
+| `stitch_soft_min` | m | 0,02 | 0–0,05 | ≥ 0 | Target 050; PP-SWR-100 |
 | `k_jump` | σ | 3 | 2–5 | ≥ 0 | PP-SWR-121, 122 |
 | `T_confirm` | s | 1,0 | 0,5–2,0 | ≥ 0 | PP-SWR-060, 061 |
 | `offset_max` | m | 0,3 | 0–0,5 | ≥ 0 | PP-SWR-055; target 057 |
@@ -364,3 +365,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.7 | 2026-11-13 | Mục LKA, ELK: dòng Thời lượng tối đa thay bằng điều kiện kết thúc; giới hạn của `T_lka`, `T_elk` bỏ ≤ 10 s (PP-SWR-083 obsolete, PP-TS-016) |
 | 1.8 | 2026-11-16 | A.3: ngưỡng PP-SWR-102 là 0,0012 1/m (SRS 1.21). Lý do: mentor nới PP-SWR-100 đến 102 |
 | 1.9 | 2026-11-16 | A.3: so với ngưỡng đoạn 0–1 s của PP-SWR-102 (SRS 1.22) |
+| 1.10 | 2026-11-16 | Mục 4.2: điểm đầu chuyển dần từ path cũ sang trạng thái đo (PP-ADR-004 D). Mục 11: `stitch_reset` 0,2 → 0,1 m, dải 0,05–0,2 m; thêm `stitch_soft_min`. Lý do: PP-TS-021 V7 (20261116-1748-study-PP-TS-021-8726b80) |

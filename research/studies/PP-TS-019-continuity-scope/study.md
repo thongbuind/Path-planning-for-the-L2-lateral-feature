@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; phạm vi requirement đã quyết, giới hạn trộn của T4 chuyển sang PP-TS-021 |
+| Trạng thái | Đóng; phạm vi requirement đã quyết; giới hạn trộn của T4 quyết ở PP-TS-021 (V3, một λ) |
 | Mở ngày | 2026-11-14 |
 | Khóa ngày | — |
 | Quyết định ngày | 2026-11-16 (phạm vi và ngưỡng của PP-SWR-100 đến 102) |
@@ -83,3 +83,4 @@ Chưa khóa. Hướng đề xuất:
 - Đã áp: SRS 1.22, Software Qualification Test Specification 1.44, Software Detailed Design 1.20, Software Architectural Design 1.9, Mentor Report 1.6; `eval/metrics.py`.
 - V2 bỏ. Giới hạn trộn của T4 (V3 hay V4) còn mở.
 - 2026-11-16, người dùng duyệt: phần T4 (V3 hay V4) chuyển sang [PP-TS-021](../PP-TS-021-stitch-start/study.md), ở đó là V0 và V3. Study này không chạy riêng phần T4; đóng khi PP-TS-021 quyết định.
+- 2026-11-16: PP-TS-021 chọn V7, giữ trộn một λ (V3 ở đây); trộn theo đoạn (V4 ở đây) bị loại ở 20261116-1748-study-PP-TS-021-8726b80. Study đóng.
