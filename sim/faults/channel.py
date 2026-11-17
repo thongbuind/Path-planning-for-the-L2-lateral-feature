@@ -17,8 +17,8 @@ messages the fault made unusable (PP-SWR-130).
 | counter_repeat | every `every`-th message delivered twice, the copy `value` ms later |
 | counter_jump | every `every`-th message: counter + `count`; later messages keep the offset, as a sender that skipped values |
 | counter_stuck | counter held at the value before the window |
-| invalid | header.valid = false; on a CAN frame qualifier FAULT (F16) |
-| crc | CAN frame with a wrong CRC (F17) |
+| invalid | every `every`-th message: header.valid = false; on a CAN frame qualifier FAULT (F16) |
+| crc | every `every`-th CAN frame with a wrong CRC (F17) |
 | drop_listed | the messages with index in `indices` are not delivered (loss-equivalent) |
 | out_of_range | LongitudinalPlan only: `field` (v or a) of points `indices` (all when empty) set to `value` (F23) |
 
@@ -132,10 +132,10 @@ class ChannelFaultInjector:
             elif kind == "counter_stuck" and last_counter is not None:
                 out = [(d, _with_counter(m, last_counter)) for d, m in out]
                 st.hit.append(index)
-            elif kind == "invalid":
+            elif kind == "invalid" and pick:
                 out = [(d, _with_valid(m, False)) for d, m in out]
                 st.hit.append(index)
-            elif kind == "crc":
+            elif kind == "crc" and pick:
                 out = [(d, m.with_bad_crc()) for d, m in out]
                 st.hit.append(index)
             elif kind == "out_of_range":
