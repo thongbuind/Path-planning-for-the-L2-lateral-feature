@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; chờ quyết định cách sửa |
+| Trạng thái | Đóng (f819db1); xác nhận ở 20261118-1546-suite-regression-edb02b8 |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Mọi requirement chấm trên ca có lỗi bơm theo sự kiện (SQTS 6, `--at`) |
 | Tái hiện | Đọc code `eval/metrics.py` tại sim-up-g0; ví dụ dựng được: lỗi gắn `lka_active` trên kịch bản không có LKA |
@@ -25,3 +25,4 @@ Một ca như vậy có thể được tính là "đạt dưới lỗi" dù plan
 
 | Run ID | Kết quả |
 |---|---|
+| 20261118-1546-suite-regression-edb02b8 | Ca có lỗi không được bơm thành không được chấm. 155 lượt có lỗi theo sự kiện, 0 lượt lỗi không được bơm |

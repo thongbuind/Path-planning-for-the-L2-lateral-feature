@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; đang sửa |
+| Trạng thái | Đóng; lõi thực thi và workbench đã thay luồng cũ, kiểm lại trên hai planner |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Không có requirement của planner; lỗi của công cụ kiểm thử |
 | Tái hiện | `web/simulation/server.py` tại sim-up-g0 (91e70fc): bấm Chạy hai lần, hoặc đóng tab giữa run |
@@ -30,3 +30,4 @@ Hành vi mô phỏng của web không khác CLI: lần chạy nháp 2026-11-17 v
 
 | Run ID | Kết quả |
 |---|---|
+| 40cc22b, eb73eee; `tests/execution`, `tests/eval/test_live_worker.py` | Run thuộc server, đóng tab không dừng run, nhiều run đồng thời, có bundle và `worker.log` |

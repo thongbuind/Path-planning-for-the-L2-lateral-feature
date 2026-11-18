@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng (eb73eee) |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Không; chỉ hiển thị, không vào chấm |
 | Tái hiện | Lần chạy nháp 2026-11-17, seed 1: S1 a, S6b a, S6b d |
@@ -29,3 +29,4 @@ HUD lấy khoảng hở bằng cùng hàm hình học với evaluator, không t�
 
 | Run ID | Kết quả |
 |---|---|
+| eb73eee; `tests/eval/test_live_view.py` | Khoảng hở theo biên làn thật tại bánh trước, kể cả làn đổi bề rộng |

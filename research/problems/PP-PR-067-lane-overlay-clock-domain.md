@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; độ lớn nhỏ |
+| Trạng thái | Đóng (eb73eee) |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Không; chỉ hiển thị |
 | Tái hiện | Lần chạy nháp 2026-11-17, seed 1: S1 c, S1 c + F14 a, b, c |
@@ -28,3 +28,4 @@ Overlay lane model đặt theo tư thế xe tại thời điểm trên trục th
 
 | Run ID | Kết quả |
 |---|---|
+| eb73eee; `tests/eval/test_live_view.py` | Stamp camera đổi về thời gian toàn cục trước khi tra tư thế xe |

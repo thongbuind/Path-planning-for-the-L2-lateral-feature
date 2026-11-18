@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng (eb73eee) |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Không; chỉ hiển thị |
 | Tái hiện | Đọc code `web/simulation/tools/rt_run.py` tại sim-up-g0 |
@@ -23,3 +23,4 @@ Chỉ hiển thị đại lượng có định nghĩa vật lý trong mô hình 
 
 | Run ID | Kết quả |
 |---|---|
+| eb73eee; `tests/eval/test_live_view.py` | Không còn gán 0,5; không có đại lượng vật lý thì không hiện tỉ lệ |
