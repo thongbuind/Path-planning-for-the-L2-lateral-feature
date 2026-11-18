@@ -163,18 +163,29 @@ static void test_keep_conditions_while_following(void)
     PP_CHECK_NEAR(r.st.distance_m, 0.0, 1e-12);
 }
 
-static void test_lead_that_changes_clears_the_trail(void)
+static void test_trail_survives_bad_frames_and_follows_the_acc_target(void)
 {
     pp_reference_line_t ref;
     rig_t r;
     rig_init(&r);
     pp_follow_input_t in = run(&r, 5U, 40U);
-    PP_CHECK(r.st.n > 4U);
-    r.lead.header.valid = false;                      /* PP-SWR-176 */
+    const uint32_t kept = r.st.n;
+    PP_CHECK(kept > 4U);
+    r.lead.header.valid = false;                      /* PP-SWR-176: no following on a lost frame */
     in.lead = NULL;
     pp_follow_observe(&r.st, &in, &pp_calibration);
-    PP_CHECK(r.st.n == 0U);
+    PP_CHECK(r.st.n == kept);                         /* ... but the trail is still that vehicle's */
     PP_CHECK(!candidate(&r, &in, &ref));
+    r.lead.header.valid = true;
+    in.lead = &r.lead;
+    r.lead.id = 9U;                                   /* One frame names another vehicle */
+    r.lead.header.stamp_us += 50000U;
+    pp_follow_observe(&r.st, &in, &pp_calibration);
+    PP_CHECK(r.st.n == kept);
+    r.plan.target_id = 9U;                            /* The ACC target really changed */
+    r.lead.header.stamp_us += 50000U;
+    pp_follow_observe(&r.st, &in, &pp_calibration);
+    PP_CHECK(r.st.n <= 1U);
 }
 
 static void test_path_within_the_limit_of_the_original_centre(void)
@@ -200,7 +211,7 @@ int main(void)
     test_each_entry_condition_blocks();
     test_no_follow_without_original_centre_or_trail();
     test_keep_conditions_while_following();
-    test_lead_that_changes_clears_the_trail();
+    test_trail_survives_bad_frames_and_follows_the_acc_target();
     test_path_within_the_limit_of_the_original_centre();
     return PP_TEST_RESULT();
 }

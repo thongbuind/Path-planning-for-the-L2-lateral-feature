@@ -111,14 +111,14 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
         }
         st->n = kept;
     }
-    /* V5 (the lead is the ACC target) is an entry condition; the trail records any usable car or truck,
-     * so a one-cycle gap of the ACC target does not throw the trail away (M6 keeps the id). */
-    const bool recordable = lead_usable(in->lead, cal) && lead_class_ok(in->lead);
-    if (!recordable) {
-        st->n = 0U;
-        st->has_stamp = false;
-        st->trail_id = 0U;
-        st->vn_count = 0U;
+    /* The trail belongs to one vehicle. A frame that is lost, or that reports something else than
+     * the ACC target (a wrong id or class for a moment), adds nothing and does not erase it. */
+    if (!lead_usable(in->lead, cal) || !lead_class_ok(in->lead)) {
+        return;
+    }
+    const bool other_than_target = (in->plan != NULL) && (in->plan->target_id != 0U)
+                                   && (in->lead->id != in->plan->target_id);
+    if (other_than_target && (st->n > 0U) && (st->trail_id == in->plan->target_id)) {
         return;
     }
     if ((in->lead->id != st->trail_id) || !st->has_stamp) {
