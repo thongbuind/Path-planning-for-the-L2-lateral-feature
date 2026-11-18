@@ -135,7 +135,7 @@ static pp_reference_line_t lane_of(double centre_y, double width)
 }
 
 /* PP-SWR-093, 094, PP-ADR-019: a hazard-side edge that jumps away waits T_confirm and then
- * slides at ref_rate; one that moves toward the car is taken at once. */
+ * slides at ref_rate; one that stays nearer the car for corridor_toward is taken at once. */
 static void test_corridor_holds_a_jump_away_and_takes_one_toward_the_car(void)
 {
     const double dt = 0.025;
@@ -163,14 +163,47 @@ static void test_corridor_holds_a_jump_away_and_takes_one_toward_the_car(void)
 
     live = lane_of(-0.2, 3.1);                                        /* left edge moved to +1.35: toward the car */
     ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
+    PP_CHECK(ref->width > 3.1 + 0.01);                                /* one frame may be noise */
+    for (unsigned k = 0U; k < 6U; k++) {                              /* corridor_toward = 0.15 s */
+        ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
+    }
     PP_CHECK_NEAR(ref->width, 3.1, 1e-9);
     PP_CHECK(!c.pending);
+}
+
+/* PP-TS-026: an outward start is arrested first, then the car returns slowly to the centre. */
+static void test_outward_start_is_arrested_then_returns_slowly(void)
+{
+    const pp_reference_line_t ref = {.valid = true, .width = 3.5, .view_end = 100.0};
+    const pp_lateral_state_t start = {.d = 0.3, .d_dot = 0.5};
+    const pp_function_limits_t limits = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA};
+    const pp_intervention_request_t request = {.received_us = 1000000U, .side = PP_SIDE_LEFT};
+    pp_speed_profile_t speed;
+    pp_speed_profile(NULL, request.received_us, 20.0, &speed);
+    pp_intervention_path_t path;
+    pp_intervention_begin(&path, &request, 2.0, request.received_us, &ref, &start, &speed,
+                          &limits, &VP0, &pp_calibration, false);
+    PP_CHECK(path.two_phase);
+    const double arrest = path.profile.duration;
+    PP_CHECK_NEAR(path.back.duration, (double)pp_calibration.T_return, 1.0e-9);
+    pp_lateral_path_t lateral;
+    pp_intervention_sample(&path, request.received_us + (uint64_t)(arrest * 1.0e6), &lateral);
+    const double peak = start.d + (0.4 * start.d_dot * arrest);
+    PP_CHECK_NEAR(lateral.d[0], peak, 1.0e-6);
+    PP_CHECK_NEAR(lateral.d_dot[0], 0.0, 1.0e-6);
+    double smallest = lateral.d[0];
+    for (uint32_t k = 0U; k < 8U; k++) {
+        pp_intervention_sample(&path, request.received_us + (uint64_t)((arrest + (double)k) * 1.0e6), &lateral);
+        smallest = (lateral.d[0] < smallest) ? lateral.d[0] : smallest;
+    }
+    PP_CHECK(smallest >= -1.0e-6);                                    /* no overshoot of the centre */
 }
 
 int main(void)
 {
     test_end_condition_needs_the_car_near_the_centre();
     test_corridor_holds_a_jump_away_and_takes_one_toward_the_car();
+    test_outward_start_is_arrested_then_returns_slowly();
     test_measured_edge_needs_association_with_ego_lane();
     test_profile_advances_from_original_start_time();
     test_chosen_candidate_is_not_cut_by_t10();

@@ -90,4 +90,6 @@ parameters:
   exist_min:        {value: 0.5, unit: "-", min: 0, max: 1, source: "nhóm tự thống nhất; ICD 5.9"}
   # Intervention corridor (Software Detailed Design 12 step 7; PP-ADR-019): hazard-side edge
   # differences up to this are the same edge, 3 sigma of c0 by day (PP-ASM-011) plus margin.
+  corridor_tau:     {value: 0.5, unit: s, min: 0, source: "nhóm tự thống nhất; PP-SWR-094, lane model noise during an intervention"}
+  corridor_toward:  {value: 0.15, unit: s, min: 0, source: "nhóm tự thống nhất; three camera frames, PP-SWR-094"}
   corridor_tol:     {value: 0.15, unit: m, gt: 0, source: "nhóm tự thống nhất; PP-SWR-093, 094"}

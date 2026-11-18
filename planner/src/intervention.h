@@ -40,7 +40,7 @@ typedef struct {
     pp_reference_line_t ref;
     bool pending;                  /* A hazard-side edge that moved away is waiting */
     double pending_s;
-    double candidate_edge;         /* [m] y of the edge being confirmed, at the front axle */
+    double toward_s;               /* [s] the hazard edge has been reported nearer the car */
 } pp_corridor_t;
 
 void pp_corridor_reset(pp_corridor_t *c);

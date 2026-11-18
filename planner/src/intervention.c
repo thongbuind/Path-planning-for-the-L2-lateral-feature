@@ -312,8 +312,23 @@ static void adopt(pp_corridor_t *c, const pp_reference_line_t *live)
 {
     c->ref = *live;
     c->valid = true;
+    c->toward_s = 0.0;
     c->pending = false;
     c->pending_s = 0.0;
+}
+
+/* Lane model noise must not steer the car: a consistent frame corrects the moved corridor
+ * little by little (time constant corridor_tau) instead of replacing it. */
+static void correct(pp_corridor_t *c, const pp_reference_line_t *live, double alpha)
+{
+    pp_reference_line_t blended = *live;
+    for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
+        blended.centre.c[k] = c->ref.centre.c[k] + (alpha * (live->centre.c[k] - c->ref.centre.c[k]));
+    }
+    blended.width = c->ref.width + (alpha * (live->width - c->ref.width));
+    const double toward_s = c->toward_s;
+    adopt(c, &blended);
+    c->toward_s = toward_s;
 }
 
 const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_reference_line_t *live,
@@ -345,17 +360,17 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
     const double away = sign * (hazard_edge_y(live, sign, x) - hazard_edge_y(&c->ref, sign, x));
     const double opposite = fabs(hazard_edge_y(live, -sign, x) - hazard_edge_y(&c->ref, -sign, x));
 
-    if (away <= tol) {
-        adopt(c, live);       /* Consistent, or the edge moved toward the car: taken at once */
+    const double alpha = fmin(1.0, dt / fmax(dt, (double)cal->corridor_tau));
+    c->toward_s = (away < -tol) ? (c->toward_s + dt) : 0.0;
+    if (c->toward_s >= (double)cal->corridor_toward) {
+        adopt(c, live);       /* The edge really moved toward the car: taken at once */
+    } else if (away <= tol) {
+        correct(c, live, alpha);   /* Consistent, or one noisy frame toward the car */
     } else {
-        const double edge_now = hazard_edge_y(live, sign, x);
-        if (!c->pending || (fabs(edge_now - c->candidate_edge) > tol)) {
-            c->pending = true;                           /* New candidate position */
-            c->pending_s = 0.0;
-            c->candidate_edge = edge_now;
-        } else {
-            c->pending_s += dt;
-        }
+        /* The hazard edge is reported farther out: held until that has lasted T_confirm, also
+         * when its position moves meanwhile, so noise cannot keep a wrong corridor alive. */
+        c->pending_s = c->pending ? (c->pending_s + dt) : 0.0;
+        c->pending = true;
         if (c->pending_s >= (double)cal->T_confirm) {
             if (opposite > tol) {
                 adopt(c, live);                          /* The whole lane moved: not a jump */
