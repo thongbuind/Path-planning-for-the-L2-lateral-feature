@@ -121,7 +121,8 @@ static void plan_lkaelk(pp_lkaelk_state_t *s, uint64_t t0_us, const pp_usable_in
     (void)memset(out, 0, sizeof(*out));
     pp_selection_input_t sel = {
         .requests = in->function_requests, .t0_us = t0_us, .requests_rx_us = in->requests_rx_us,
-        .hold_s = (double)s->core.cal->T_end_hold,
+        /* The hold is counted on estimates: T_end_margin keeps COMPLETED after the true hold. */
+        .hold_s = (double)s->core.cal->T_end_hold + (double)s->core.cal->T_end_margin,
     };
     pp_core_frame(&s->core, in, t0_us, ego_motion, context, &f);
     if (!f.forward) {

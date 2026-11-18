@@ -358,7 +358,16 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     if (ok) {
         out->follow_distance = follow ? s->follow.distance_m : 0.0;
         if (follow) {
-            s->core.ref_mem.coast_s = 0.0;       /* PP-SWR-173: T_coast counts from leaving FOLLOW */
+            /* PP-SWR-173: leaving FOLLOW coasts on the line followed, T_coast from that moment,
+             * also when the memory of the lane had already run out before this FOLLOW. */
+            pp_reference_memory_t *mem = &s->core.ref_mem;
+            mem->ref_valid = true;
+            mem->ref_inferred = false;
+            mem->ref_centre = virtual_ref.centre;
+            mem->ref_width = virtual_ref.width;
+            mem->ref_view_start = virtual_ref.view_start;
+            mem->ref_view_end = virtual_ref.view_end;
+            mem->coast_s = 0.0;
         }
         out->mode = !goal.requested ? PP_LCC_MODE_NONE
                     : follow ? PP_LCC_MODE_FOLLOW

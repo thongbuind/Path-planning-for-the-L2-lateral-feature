@@ -21,9 +21,10 @@ parameters:
   heading_end:      {value: 0.5, unit: deg, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   ay_add_end:       {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   T_end_hold:       {value: 0.5, unit: s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
-  T_lka:            {value: 3.0, unit: s, gt: 0, source: "Limits of PP-SWR-110, 112, 114"}
-  T_elk:            {value: 2.0, unit: s, gt: 0, source: "Limits of PP-SWR-111, 113, 115"}
-  T_return:         {value: 0.0, unit: s, min: 0, source: "PP-TS-026; 0: one quintic to the lane centre"}
+  T_end_margin:     {value: 0.1, unit: s, min: 0, max: 0.4, source: "PP-SWR-032, 090; difference between the estimate and the true state"}
+  T_lka:            {value: 1.5, unit: s, gt: 0, source: "PP-TS-026 V3; limits of PP-SWR-110, 112, 114"}
+  T_elk:            {value: 1.0, unit: s, gt: 0, source: "PP-TS-026 V3; limits of PP-SWR-111, 113, 115"}
+  T_return:         {value: 4.0, unit: s, gt: 0, source: "PP-TS-026 V3; PP-SWR-094"}
   intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
   intervention_T_max: {value: 10.0, unit: s, gt_param: intervention_T_step, source: "Software Detailed Design 15; T7 A (PP-TS-016)"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}

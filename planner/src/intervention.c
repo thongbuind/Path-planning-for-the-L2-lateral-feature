@@ -193,15 +193,14 @@ static void sample_profile(const pp_intervention_path_t *path, double elapsed, p
     }
 }
 
-/* One quintic to the centre, or (T_return > 0, car still moving outward) an arrest in `duration`
- * that ends with zero speed, acceleration and jerk, then a slow return in T_return (PP-TS-026). */
+/* Car moving outward: an arrest in `duration` that ends with zero speed, acceleration and jerk,
+ * then a slow return in T_return, so the car does not swing through the centre (PP-TS-026).
+ * Car already moving back: the return alone. */
 static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *start, double sign,
                        double target, double duration, double t_return)
 {
     path->two_phase = false;
-    if (t_return <= 0.0) {
-        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, duration, &path->profile);
-    } else if ((sign * start->d_dot) <= 0.0) {
+    if ((sign * start->d_dot) <= 0.0) {
         (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_return, &path->profile);
     } else {
         const double peak = start->d + (0.4 * start->d_dot * duration)

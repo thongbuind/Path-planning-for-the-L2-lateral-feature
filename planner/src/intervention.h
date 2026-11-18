@@ -16,8 +16,8 @@ typedef struct {
 } pp_edge_memory_t;
 
 typedef struct {
-    pp_quintic_t profile;         /* Whole path, or the arrest of the outward motion */
-    pp_quintic_t back;            /* Return to the lane centre after `profile` (T_return > 0) */
+    pp_quintic_t profile;         /* Arrest of the outward motion, or the whole return */
+    pp_quintic_t back;            /* Return to the lane centre after the arrest */
     bool two_phase;
     uint64_t start_us;
 } pp_intervention_path_t;
