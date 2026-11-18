@@ -2478,6 +2478,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         failed = [c.id for c in result.criteria if c.applicable and not c.passed] + list(result.case_failures)
         result.criteria.append(Criterion("PP-SWR-062", "Requirement trượt ở biên ODD", float(len(failed)), "= 0",
                                          not failed))
+    # A fault that never started says nothing about the planner under that fault (PP-PR-069).
+    # Criteria stay scored: a planner that never entered ACTIVE still fails the intervention ones.
+    if result.info.get("faults_not_injected"):
+        add_issue(result, ISSUE_NOT_JUDGED,
+                  "Lỗi chưa được bơm: sự kiện " + ", ".join(result.info["faults_not_injected"]) + " không xảy ra")
     if getattr(log.scenario, "loop", "closed") == "open":
         for c in result.criteria:
             if c.id in VEHICLE_CRITERIA:

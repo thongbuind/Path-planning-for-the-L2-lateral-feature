@@ -88,6 +88,18 @@ def test_follow_coast_times_from_exit(invalid_at, passed):
     assert check.applicable and check.passed == passed
 
 
+def test_fault_never_injected_is_not_judged_as_passed():
+    log = _log()
+    log.fault_events = {"lka_active": None}
+    result = evaluate(log)
+    assert result.info["faults_not_injected"] == ["lka_active"]
+    assert [i["kind"] for i in result.issues if "chưa được bơm" in i["text"]] == ["not_judged"]
+    assert result.passed is not True
+
+    log.fault_events = {"lka_active": BEGIN}
+    assert not [i for i in evaluate(log).issues if "chưa được bơm" in i["text"]]
+
+
 def test_f24_requires_a_changed_frame_seen_during_active_intervention():
     log = _log()
     log.scenario = replace(log.scenario, name="F24-a")

@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.48 |
+| Phiên bản | 1.49 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -375,7 +375,7 @@ Mỗi lỗi bơm ở ba thời điểm. Lỗi theo thời điểm chụp của f
 | Lúc LKA hoặc ELK kích hoạt | Chu kỳ đầu tiên InterventionStatus báo pha ACTIVE của chức năng đó | S4 (a), S5 (a) |
 | Giữa lúc can thiệp | 0,2 s sau thời điểm trên (nhóm tự thống nhất) | S4 (a), S5 (a) |
 
-- Thời điểm đọc từ output của planner, như bên chấm thấy. Planner không vào pha ACTIVE thì lỗi không được bơm; báo cáo ghi rõ, ca vẫn chấm requirement về can thiệp.
+- Thời điểm đọc từ output của planner, như bên chấm thấy. Planner không vào pha ACTIVE thì lỗi không được bơm; ca vẫn chấm requirement về can thiệp, báo cáo ghi "không được chấm" và không tính là đạt dưới lỗi.
 - Lỗi kéo dài suốt ca (F13, F14, F18) không có thời điểm.
 
 | Mã | Nhóm | Lỗi | Mức hoặc dạng | Yêu cầu |
@@ -726,3 +726,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.46 | 2026-11-17 | Mục 8.1: cách chấm PP-SWR-031 theo SRS 1.23 và phép đo PP-SWR-049 (PP-PR-062) |
 | 1.47 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 4: arbitrator chạy thử, mô hình cảm biến LeadTarget, stand-in bám xe. Mục 5: thêm S20 (ELK trong cua), S21 (trôi khi làn bên có xe), S22, S23 (bám xe trước); S3, S9 đổi theo luật dời 10 cm và arbitrator chạy thử. Mục 6: thêm F24 (biên nhảy lúc can thiệp), F25 (lỗi LeadTarget). Mục 8.1: chỉ số COMPLETED theo `d_end`, đảo chiều DLC, bám xe, dời tâm khi làn bên kia có xe; cặp path theo từng planner. PM-04 trỏ PP-SWR-067. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: kịch bản, bộ chạy, planner mồi, adapter trong `benchmark/`, `eval/`, `sim/` cần cập nhật; baseline cũ không so trực tiếp được |
 | 1.48 | 2026-11-18 | S9a thêm lượt độc lập cho LCC và LKA/ELK. S22b kéo dài đoạn mất vạch để chấm PP-SWR-173. F24 mở rộng ca chủ và xác nhận frame có lỗi đã tới planner. F25 bơm sau khi vào FOLLOW. |
+| 1.49 | 2026-11-18 | Mục 6: ca có lỗi theo sự kiện mà lỗi không được bơm thì không tính là đạt dưới lỗi (PP-PR-069). |
