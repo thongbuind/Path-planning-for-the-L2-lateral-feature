@@ -26,6 +26,26 @@ Nếu thiếu thư viện Python, cài các phụ thuộc dự án bằng `pytho
 
 Màn hình 2D nhìn từ trên xuống, xe hướng sang phải. Quỹ đạo 31 điểm (3 s) của planner đổi màu theo chức năng đang lái (HWA xanh, LKA cam, ELK lục). Vạch thật của đường vẽ xám, đúng kiểu sơn (liền, đứt 4 m vạch 8 m trống, kép, mép gờ liền, mép cỏ sỏi chấm thưa, và hình học riêng khi làn đổi bề rộng); vạch và mép đường mà lane model báo cho planner vẽ trắng, theo đúng `type` lane model báo (liền, đứt, kép, chưa rõ) và đứt cùng pha với vạch thật, đặt theo tư thế xe lúc camera chụp, nên thấy ngay nhiễu, mất vạch và dữ liệu cũ do lỗi tiêm gây ra. Tab **Kết quả** có số liệu đến thời điểm hiện tại, rồi tiêu chí và chỉ tiêu hiệu năng của evaluator khi lượt chạy kết thúc.
 
+## Màn hình của workbench
+
+Thanh bên chia theo không gian làm việc; địa chỉ theo hash, mở thẳng được.
+
+| Nhóm | Màn | Địa chỉ | Trạng thái |
+|---|---|---|---|
+| Thực thi | Chạy mới (trang mô phỏng ở trên) | `#/chay` | Đã có |
+| Thực thi | Danh sách run: lọc theo thực thi, tìm, cột Kết luận riêng | `#/runs` | Đã có |
+| Thực thi | Chi tiết run: danh tính, tiêu chí, phạm vi kết luận, thư viện SUT, tệp bundle và SHA256SUMS, ghim | `#/runs/<id>` | Đã có |
+| Thực thi | Run con: đổi đúng một thứ, diff cấu hình, so với run cha | `#/runs/<id>/con` | Đã có; bảng giả thuyết chờ |
+| Thực thi | Điều tra (phát lại, mở lại, first_fail_s) | `#/runs/<id>/dieu-tra` | Chờ GĐ 3 |
+| Đánh giá | Suite và regression, đọc `conclusion.json` | `#/suite` | Một phần: nút Mở lại chờ GĐ 3 |
+| Đánh giá | So sánh và campaign | `#/review` | Chờ GĐ 5 |
+| Bằng chứng | Độ tin cậy: golden set, kiểm bên chấm | `#/tincay` | Một phần: verification, Handbook chờ GĐ 4 |
+| Bằng chứng | Nền tảng: sơ đồ lớp, CI | `#/nentang` | Một phần |
+
+Phần chưa dựng hiện màn hình chờ nói rõ sẽ có gì và hôm nay dùng được gì. Giao diện không tự tính kết luận; mọi số lấy từ bundle hoặc từ `conclusion.json`.
+
+API chỉ đọc thêm cho các màn này: `GET /api/suites`, `/api/suites/<id>`, `/api/suites/<id>/report`, `/api/golden`, `/api/runs/<id>/bundle`; `/api/runs` kèm nguồn, kết luận, cờ ghim và giới hạn. `POST /api/runs/<id>/pin` ghim run (run ghim không bị dọn).
+
 ## Cách hoạt động
 
 - `workbench/server.py`: tệp tĩnh của thư mục này và API lượt chạy (`/api/catalog`, `/api/runs`, `/api/runs/<id>/events`, `/control`, `/cancel`, `/files/<tên>`). Chỉ nghe ở 127.0.0.1.

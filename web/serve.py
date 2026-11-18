@@ -161,7 +161,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not target.is_relative_to(STATIC_ROOT):
             return self.send_error(404)
         parts = target.relative_to(STATIC_ROOT).parts
-        simulation_files = {"simulation", "simulation/index.html", "simulation/app.css", "simulation/js/i18n.js", "simulation/js/catalog-en.js", "simulation/js/core.js", "simulation/js/scene.js", "simulation/js/charts.js", "simulation/js/ui.js"}
+        simulation_files = {"simulation", "simulation/index.html", "simulation/app.css", "simulation/js/i18n.js", "simulation/js/catalog-en.js", "simulation/js/core.js", "simulation/js/scene.js", "simulation/js/charts.js", "simulation/js/ui.js", "simulation/wb.css", "simulation/js/wb.js", "simulation/js/wb-runs.js", "simulation/js/wb-evidence.js"}
         if parts and parts[0] not in {"en", "dist"} and "/".join(parts) not in STATIC_PATHS | simulation_files:
             return self.send_error(404)
         return super().send_head()

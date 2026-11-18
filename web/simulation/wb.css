@@ -1,0 +1,269 @@
+/* Workbench: sidebar theo không gian làm việc và các màn Run, Suite, Độ tin cậy, Nền tảng.
+   Dùng lại token của app.css (--ink, --grid, --inset, --fill...). Chỉ thêm token trạng thái chữ
+   và vùng cảnh báo. Mọi trạng thái đi kèm icon và chữ, không chỉ màu. */
+
+:root {
+  --wb-nav: #F5F5F7;
+  --wb-crit-ink: #B0000F;
+  --wb-crit-bg: #FDECEE;
+  --wb-crit-line: #F3C7CB;
+  --wb-ok-bg: #E9F4EC;
+  --wb-ok-ink: #1E5A2E;
+  --wb-warn-bg: #FFF6E5;
+  --wb-warn-line: #F3DDB0;
+  --wb-warn-ink: #6B4100;
+  --wb-wait-bg: #FAFAFC;
+  --wb-link: #4C2FEA;
+  --wb-sel-bg: #EFEBFE;
+  --wb-sel-line: #CFC4FC;
+  --wb-sel-ink: #3B22C9;
+  --wb-truth: #48484A;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wb-nav: #111113;
+    --wb-crit-ink: #FF6A60;
+    --wb-crit-bg: #2A1214;
+    --wb-crit-line: #5A2226;
+    --wb-ok-bg: #11251A;
+    --wb-ok-ink: #7FDB98;
+    --wb-warn-bg: #2A2008;
+    --wb-warn-line: #5C4714;
+    --wb-warn-ink: #F5C76B;
+    --wb-wait-bg: #0A0A0B;
+    --wb-link: #A898FF;
+    --wb-sel-bg: #241F46;
+    --wb-sel-line: #4A3FA0;
+    --wb-sel-ink: #C9BFFF;
+  }
+}
+:root[data-theme="dark"] {
+  --wb-nav: #111113;
+  --wb-crit-ink: #FF6A60;
+  --wb-crit-bg: #2A1214;
+  --wb-crit-line: #5A2226;
+  --wb-ok-bg: #11251A;
+  --wb-ok-ink: #7FDB98;
+  --wb-warn-bg: #2A2008;
+  --wb-warn-line: #5C4714;
+  --wb-warn-ink: #F5C76B;
+  --wb-wait-bg: #0A0A0B;
+  --wb-link: #A898FF;
+  --wb-sel-bg: #241F46;
+  --wb-sel-line: #4A3FA0;
+  --wb-sel-ink: #C9BFFF;
+}
+
+.wb-skip { position: absolute; left: -9999px; top: 0; z-index: 50; background: var(--fill); color: var(--on-fill); padding: 8px 12px; border-radius: 0 0 8px 0; }
+.wb-skip:focus { left: 0; }
+
+/* ---------- Khung ---------- */
+.wb { height: 100%; display: grid; grid-template-columns: 232px minmax(0, 1fr); background: var(--surface); }
+.wb-main { min-width: 0; min-height: 0; outline: none; }
+.view { height: 100%; min-height: 0; }
+.view[hidden] { display: none; }
+.wb-page { overflow: auto; }
+.wb-mono { font-family: var(--font-mono); font-size: .92em; }
+
+/* ---------- Sidebar ---------- */
+.wb-nav {
+  background: var(--wb-nav); border-right: 1px solid var(--grid);
+  display: flex; flex-direction: column; gap: 22px; padding: 20px 12px 16px; overflow: auto; min-height: 0;
+}
+.wb-brand { display: flex; gap: 10px; align-items: flex-start; padding: 0 8px; }
+.wb-brand svg { flex: none; margin-top: 1px; color: var(--violet); }
+.wb-brand div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wb-brand b { font-size: 14px; font-weight: 650; letter-spacing: -.01em; }
+.wb-brand span { font-size: 11px; color: var(--ink-3); }
+.wb-groups { display: flex; flex-direction: column; gap: 18px; flex: 1; }
+.wb-group { display: flex; flex-direction: column; gap: 2px; }
+.wb-group h2 { margin: 0; padding: 0 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.wb-item {
+  display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 8px;
+  color: var(--ink-2); font-size: 13.5px; font-weight: 500; text-decoration: none;
+}
+.wb-item:hover { background: var(--hover); color: var(--ink); }
+.wb-item[aria-current="page"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--grid), 0 1px 2px #0000000F; }
+.wb-item svg { width: 14px; height: 14px; flex: none; }
+.wb-item .st-done { color: var(--good); }
+.wb-item .st-part { color: var(--ink-2); }
+.wb-item .st-wait { color: var(--ink-3); }
+.wb-item span.t { flex: 1; min-width: 0; }
+.wb-item small { font-size: 11px; font-weight: 500; color: var(--ink-3); }
+.wb-foot { display: flex; flex-direction: column; gap: 8px; padding: 14px 10px 0; border-top: 1px solid var(--grid); position: relative; }
+.wb-foot .icon-btn { position: absolute; right: 4px; top: 10px; }
+.wb-srv { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); padding-right: 32px; }
+.wb-led { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); flex: none; }
+.wb-led.on { background: var(--good); }
+.wb-led.off { background: var(--crit); }
+.wb-srv-sub { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+.wb-legend { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; font-size: 11.5px; color: var(--ink-2); }
+.wb-legend span { display: flex; align-items: flex-start; gap: 8px; }
+.wb-legend svg { width: 12px; height: 12px; flex: none; margin-top: 2px; }
+.wb-legend span:nth-child(1) svg { color: var(--good); }
+.wb-legend span:nth-child(3) svg { color: var(--ink-3); }
+
+/* ---------- Trang ---------- */
+.wb-col { display: flex; flex-direction: column; gap: 20px; padding: 24px 28px 40px; min-width: 0; max-width: 1480px; }
+.wb-col.tight { gap: 16px; }
+.wb-crumb { font-size: 12.5px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.wb-crumb a { color: var(--ink-2); }
+.wb-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; }
+.wb-head > div:first-child { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.wb h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.015em; line-height: 1.25; overflow-wrap: anywhere; }
+.wb-sub { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+.wb a { color: var(--wb-link); }
+.wb a:hover { text-decoration: underline; }
+.wb-lbl { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+
+.wb-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--base); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap;
+}
+.wb a.wb-btn { color: var(--ink); text-decoration: none; }
+.wb-btn:hover { background: var(--hover); }
+.wb-btn.primary, .wb a.wb-btn.primary { background: var(--fill); border-color: var(--fill); color: var(--on-fill); font-weight: 600; border-radius: 10px; }
+.wb-btn.primary:hover { background: var(--fill-hover); }
+.wb-btn[disabled], .wb-btn[aria-disabled="true"] { color: var(--ink-3); border-style: dashed; background: var(--wb-wait-bg); cursor: not-allowed; }
+.wb-btn[disabled]:hover { background: var(--wb-wait-bg); }
+.wb-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.wb-tag, .wb-wait { font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 4px; white-space: nowrap; line-height: 1.5; }
+.wb-tag { background: var(--inset); color: var(--ink-2); border: 1px solid var(--grid); }
+.wb-wait { background: var(--wb-wait-bg); color: var(--ink-2); border: 1px dashed var(--wash-line); }
+
+.wb-chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 16px; cursor: pointer;
+  border: 1px solid var(--base); background: var(--surface); font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+}
+.wb-chip[aria-checked="true"] { background: var(--wb-sel-bg); border-color: var(--wb-sel-line); color: var(--wb-sel-ink); font-weight: 600; }
+.wb-chip:hover { background: var(--hover); }
+.wb-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wb-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.wb-input, .wb-select {
+  height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--base); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px;
+}
+.wb-input { flex: 1 1 260px; max-width: 360px; }
+.wb-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-2); }
+
+.wb-card { border: 1px solid var(--grid); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; min-width: 0; background: var(--surface); }
+.wb-card.warn { border-color: var(--wb-warn-line); background: var(--wb-warn-bg); }
+.wb-card.dash { border: 1px dashed var(--wash-line); background: var(--wb-wait-bg); }
+.wb-card > .wb-lbl { padding-bottom: 6px; }
+.wb-cols { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+.wb-cols > .a { flex: 3 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.wb-cols > .b { flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.wb-kv { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 13px; padding: 8px 0; border-top: 1px solid var(--grid); }
+.wb-kv > :first-child { color: var(--ink-2); flex: none; }
+.wb-kv > :last-child { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.wb-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; background: var(--wb-warn-bg); color: var(--wb-warn-ink); font-size: 13px; line-height: 1.5; }
+.wb-note svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.wb-small { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
+
+/* ---------- Bảng ---------- */
+.wb-table { border: 1px solid var(--grid); border-radius: 12px; overflow-x: auto; }
+.wb-table > div { min-width: 960px; }
+.wb-row {
+  display: grid; gap: 16px; align-items: center; padding: 0 16px; min-height: 52px; border-top: 1px solid var(--grid);
+  color: var(--ink); font-size: 13px; text-decoration: none;
+}
+.wb a.wb-row { color: var(--ink); }
+.wb a.wb-row:hover { background: var(--hover); text-decoration: none; }
+.wb-row.h { min-height: 38px; border-top: 0; background: var(--inset); font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.wb-row.runs { grid-template-columns: minmax(190px, 1.2fr) minmax(220px, 1.6fr) 60px 150px 200px 76px 112px; }
+.wb-row.fails { grid-template-columns: 96px 56px minmax(230px, 1.6fr) 52px 40px 84px 130px 150px; min-height: 48px; gap: 12px; }
+.wb-row.crit { grid-template-columns: 96px minmax(0, 1fr) 150px 70px; gap: 12px; min-height: 0; padding: 9px 0; align-items: start; }
+.wb-row.gold { grid-template-columns: 56px minmax(220px, 1fr) 44px 92px 64px 64px 64px; gap: 12px; min-height: 40px; }
+.wb-ico { display: inline-flex; align-items: center; gap: 6px; }
+.wb-ico svg { width: 13px; height: 13px; flex: none; }
+.good { color: var(--good-ink); }
+.bad { color: var(--wb-crit-ink); }
+.dim { color: var(--ink-3); }
+.ok-ico { color: var(--good); }
+.bad-ico { color: var(--crit); }
+
+/* ---------- Tab ---------- */
+.wb-tabs { display: flex; flex-wrap: wrap; gap: 4px 24px; border-bottom: 1px solid var(--grid); }
+.wb-tabs a { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); border-bottom: 2px solid transparent; text-decoration: none; }
+.wb a.wb-tabs-a, .wb-tabs a { color: var(--ink-2); }
+.wb-tabs a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--violet); }
+
+/* ---------- Kết luận ---------- */
+.wb-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.wb-pill { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 30px; padding: 4px 12px; border-radius: 8px; background: var(--inset); font-size: 12.5px; }
+.wb-pill.pass { background: var(--wb-ok-bg); color: var(--wb-ok-ink); }
+.wb-pill.pass b { color: var(--good-ink); }
+.wb-pill.fail { background: var(--wb-crit-bg); color: var(--wb-crit-ink); }
+.wb-pill svg { width: 12px; height: 12px; flex: none; }
+.wb-verdict { display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center; padding: 20px 22px; border-radius: 14px; border: 1px solid var(--wb-crit-line); background: var(--wb-crit-bg); }
+.wb-verdict.pass { border-color: var(--wb-ok-bg); background: var(--wb-ok-bg); }
+.wb-verdict .big { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; }
+.wb-verdict .big svg { width: 34px; height: 34px; flex: none; }
+.wb-verdict .big b { font-size: 24px; font-weight: 650; display: block; }
+.wb-stat { display: flex; flex-direction: column; gap: 2px; min-width: 96px; }
+.wb-stat b { font-size: 22px; font-weight: 600; font-family: var(--font-mono); }
+.wb-stat span { font-size: 12px; color: var(--ink-2); }
+.wb-bars { display: flex; flex-direction: column; gap: 10px; }
+.wb-bar { display: grid; grid-template-columns: 92px 46px minmax(0, 1fr) 36px; gap: 10px; align-items: center; font-size: 12.5px; }
+.wb-bar i { display: block; height: 10px; border-radius: 5px; background: var(--inset); overflow: hidden; }
+.wb-bar i b { display: block; height: 100%; background: var(--crit); border-radius: 5px; }
+.wb-bar em { font-style: normal; text-align: right; }
+
+/* ---------- Chờ giai đoạn sau ---------- */
+.wb-cho { border: 1.5px dashed var(--wash-line); border-radius: 14px; background: var(--wb-wait-bg); padding: 28px; display: flex; flex-direction: column; gap: 22px; }
+.wb-cho .hd { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.wb-cho .badge { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 14px; border: 1px dashed var(--ink-3); background: var(--surface); font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.wb-cho .badge svg { width: 13px; height: 13px; }
+.wb-cho h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.wb-cho .two { display: flex; flex-wrap: wrap; gap: 16px; }
+.wb-cho .two > div { flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--grid); border-radius: 12px; padding: 16px 18px; }
+.wb-li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-top: 1px solid var(--grid); font-size: 13.5px; line-height: 1.45; }
+.wb-li svg { width: 14px; height: 14px; flex: none; margin-top: 2px; }
+.wb-li .ref { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.wb-li code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); display: block; overflow-wrap: anywhere; }
+.wb-ghost { display: flex; flex-direction: column; gap: 10px; }
+.wb-ghost .g { background: var(--inset); border-radius: 8px; }
+
+/* ---------- Run con ---------- */
+.wb-opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--grid); font-size: 13px; line-height: 1.4; cursor: pointer; }
+.wb-opt input { margin: 2px 0 0; accent-color: var(--violet); }
+.wb-opt small { display: block; color: var(--ink-3); font-size: 12px; }
+.wb-opt.off { color: var(--ink-3); border-style: dashed; cursor: not-allowed; }
+.wb-opt .sel { margin-top: 6px; }
+.wb-diff { font-family: var(--font-mono); font-size: 12px; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 8px; background: var(--inset); overflow-wrap: anywhere; }
+.wb-diff .m { color: var(--wb-crit-ink); }
+.wb-diff .p { color: var(--good-ink); }
+.wb-diff .k { color: var(--ink-3); }
+.wb-cmp { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.wb-cmp th { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+.wb-cmp td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; line-height: 1.45; overflow-wrap: anywhere; }
+
+/* ---------- Nền tảng ---------- */
+.wb-band { border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--grid); }
+.wb-band.web { background: var(--inset); }
+.wb-band.core { background: var(--wb-sel-bg); border-color: var(--wb-sel-line); }
+.wb-band.sut { background: var(--wb-ok-bg); border-color: var(--grid); }
+.wb-mods { display: flex; flex-wrap: wrap; gap: 8px; }
+.wb-mod { flex: 1 1 150px; min-width: 0; background: var(--surface); border: 1px solid var(--base); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+.wb-mod b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; }
+.wb-mod span { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
+.wb-link { display: flex; align-items: center; gap: 8px; padding: 2px 16px; font-size: 12px; color: var(--ink-2); }
+
+.wb-loading, .wb-err { padding: 28px; color: var(--ink-3); font-size: 13.5px; }
+.wb-err { color: var(--wb-crit-ink); }
+
+/* ---------- Thu hẹp ---------- */
+@media (max-width: 1180px) {
+  .wb { height: auto; min-height: 100%; }
+  .view { height: auto; }
+  .wb-page { overflow: visible; }
+}
+@media (max-width: 900px) {
+  .wb { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; }
+  .wb-nav { border-right: 0; border-bottom: 1px solid var(--grid); flex-direction: column; gap: 12px; padding: 12px 16px; overflow: visible; }
+  .wb-groups { flex-direction: row; flex-wrap: wrap; gap: 4px 16px; }
+  .wb-group { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 2px 4px; }
+  .wb-group h2 { padding: 0 6px 0 0; }
+  .wb-legend { display: none; }
+  .wb-col { padding: 18px 16px 32px; }
+}

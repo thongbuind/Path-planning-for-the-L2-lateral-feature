@@ -16,6 +16,12 @@ API
     POST /api/runs/<id>/control               {"cmd": "pause" | "resume"} or {"cmd": "rate", "value": 2}
     POST /api/runs/<id>/cancel                cancel this run only
     GET  /api/runs/<id>/files/<name>          one file of a finished bundle
+    GET  /api/runs/<id>/bundle                files of a finished bundle with sizes and the SHA256SUMS check
+    POST /api/runs/<id>/pin                   {"on": true | false}: a pinned run is never pruned
+    GET  /api/suites                          suite runs found under build/benchmark (read-only)
+    GET  /api/suites/<id>                     conclusion digest of one suite run
+    GET  /api/suites/<id>/report              the HTML report of that suite run
+    GET  /api/golden                          golden baseline, by case and path (read-only)
 """
 
 import argparse
@@ -32,7 +38,9 @@ import threading
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+from execution import bundle as bundles
 from execution.supervisor import Settings, Supervisor
+from workbench import evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "web" / "simulation"
@@ -42,10 +50,11 @@ PORT = int(os.environ.get("PP_PORT", "8793"))
 WORKER = [sys.executable, "-u", "-m", "eval.live", "run"]
 CATALOG = [sys.executable, "-m", "eval.live", "catalog"]
 STATIC_FILES = {"index.html", "app.css", "js/i18n.js", "js/catalog-en.js", "js/core.js", "js/scene.js",
-                "js/charts.js", "js/ui.js"}
+                "js/charts.js", "js/ui.js", "wb.css", "js/wb.js", "js/wb-runs.js", "js/wb-evidence.js"}
 BUNDLE_FILES = {"manifest.json", "resolved-case.json", "execution.json", "evaluation.json", "request.json",
                 "trace.mcap", "frames.ndjson.gz", "worker.log", "SHA256SUMS"}
-RUN_PATH = re.compile(r"^/api/runs/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/events|/control|/cancel|/files/[A-Za-z0-9._-]+)?$")
+RUN_PATH = re.compile(r"^/api/runs/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/events|/control|/cancel|/bundle|/pin|/files/[A-Za-z0-9._-]+)?$")
+SUITE_PATH = re.compile(r"^/api/suites/([A-Za-z0-9][A-Za-z0-9._-]{0,80})(/report)?$")
 MAX_BODY = 65536
 
 
@@ -133,13 +142,38 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if url.path == "/api/catalog":
             return self._json(*self.app.catalog())
         if url.path == "/api/runs":
-            return self._json(200, {"runs": self.app.supervisor.runs()})
+            st = self.app.supervisor.s
+            return self._json(200, {"runs": self._runs(), "limits": {"max_running": st.max_running, "keep": st.keep,
+                                                                    "max_bytes": st.max_bytes}})
+        if url.path == "/api/suites":
+            return self._json(200, {"suites": evidence.suites()})
+        if url.path == "/api/golden":
+            return self._json(200, evidence.golden())
+        ms = SUITE_PATH.match(url.path)
+        if ms:
+            try:
+                if ms.group(2):
+                    body = evidence.suite_report(ms.group(1))
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    return self.wfile.write(body)
+                return self._json(200, evidence.suite(ms.group(1)))
+            except KeyError:
+                return self._json(404, {"error": "không có suite này"})
         m = RUN_PATH.match(url.path)
         if m:
             run_id, tail = m.group(1), m.group(2) or ""
             try:
                 if not tail:
-                    return self._json(200, self.app.supervisor.status(run_id))
+                    return self._json(200, {**self.app.supervisor.status(run_id),
+                                            "pinned": run_id in self.app.supervisor.pinned()})
+                if tail == "/bundle":
+                    folder = self.app.supervisor.s.root / run_id
+                    if not (folder / "execution.json").is_file():
+                        raise KeyError(run_id)
+                    return self._json(200, evidence.bundle_files(folder, bundles.verify))
                 if tail == "/events":
                     after = int(parse_qs(url.query).get("from", ["0"])[0])
                     return self._events(run_id, after)
@@ -154,6 +188,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if name not in STATIC_FILES:
             return self.send_error(404)
         return super().do_GET()
+
+    def _runs(self) -> list[dict]:
+        """GET /api/runs: the supervisor's list plus pinned flag, source, verdict, duration of finished runs."""
+        sup = self.app.supervisor
+        pinned = set(sup.pinned())
+        out = []
+        for r in sup.runs():
+            folder = sup.s.root / r["run_id"]
+            row = {**r, "pinned": r["run_id"] in pinned}
+            if (folder / "execution.json").is_file():
+                row.update(evidence.run_summary(folder))
+            out.append(row)
+        return out
 
     def _events(self, run_id: str, after: int) -> None:
         stream = self.app.supervisor.events(run_id, after)
@@ -208,6 +255,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 return self._json(503, {"error": str(error)})
             return self._json(201, {"run_id": run_id})
         m = RUN_PATH.match(url.path)
+        if m and m.group(2) == "/pin":
+            if not (sup.s.root / m.group(1) / "execution.json").is_file():
+                return self._json(404, {"error": "không có run này (chỉ ghim run đã xong)"})
+            sup.pin(m.group(1), bool(body.get("on", True)))
+            return self._json(200, {"pinned": m.group(1) in sup.pinned()})
         if m and m.group(2) in ("/control", "/cancel"):
             try:
                 if m.group(2) == "/cancel":
