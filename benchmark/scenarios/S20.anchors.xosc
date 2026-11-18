@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-18T00:00:00Z" description="S20" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S20.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="scenario_id" value="S20" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S20a.xodr" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="protocol" value="" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200.0" />
+            <ParameterAssignment parameterRef="departure_boundary" value="marking" />
+            <ParameterAssignment parameterRef="departure_target" value="none" />
+            <ParameterAssignment parameterRef="steer_start_s" value="2.0" />
+            <ParameterAssignment parameterRef="driver_torque_nm" value="1.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.0" />
+            <ParameterAssignment parameterRef="indicated" value="false" />
+            <ParameterAssignment parameterRef="passive_hands_on" value="true" />
+            <ParameterAssignment parameterRef="late_request" value="false" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Vạch liền, R = 500 m, trôi ra ngoài 0,4 m/s" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="scenario_id" value="S20" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S20a.xodr" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="protocol" value="" />
+            <ParameterAssignment parameterRef="departure_side" value="left" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200.0" />
+            <ParameterAssignment parameterRef="departure_boundary" value="marking" />
+            <ParameterAssignment parameterRef="departure_target" value="none" />
+            <ParameterAssignment parameterRef="steer_start_s" value="2.0" />
+            <ParameterAssignment parameterRef="driver_torque_nm" value="1.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.0" />
+            <ParameterAssignment parameterRef="indicated" value="false" />
+            <ParameterAssignment parameterRef="passive_hands_on" value="true" />
+            <ParameterAssignment parameterRef="late_request" value="false" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Vạch liền, R = 500 m, trôi vào trong" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="scenario_id" value="S20" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S20c.xodr" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="protocol" value="" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200.0" />
+            <ParameterAssignment parameterRef="departure_boundary" value="marking" />
+            <ParameterAssignment parameterRef="departure_target" value="none" />
+            <ParameterAssignment parameterRef="steer_start_s" value="2.0" />
+            <ParameterAssignment parameterRef="driver_torque_nm" value="1.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.0" />
+            <ParameterAssignment parameterRef="indicated" value="false" />
+            <ParameterAssignment parameterRef="passive_hands_on" value="true" />
+            <ParameterAssignment parameterRef="late_request" value="false" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Vạch liền, R = 250 m, trôi ra ngoài (a_y cần 2,5 m/s²)" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="scenario_id" value="S20" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S20d.xodr" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="protocol" value="" />
+            <ParameterAssignment parameterRef="departure_side" value="right" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200.0" />
+            <ParameterAssignment parameterRef="departure_boundary" value="edge" />
+            <ParameterAssignment parameterRef="departure_target" value="none" />
+            <ParameterAssignment parameterRef="steer_start_s" value="2.0" />
+            <ParameterAssignment parameterRef="driver_torque_nm" value="1.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.0" />
+            <ParameterAssignment parameterRef="indicated" value="false" />
+            <ParameterAssignment parameterRef="passive_hands_on" value="true" />
+            <ParameterAssignment parameterRef="late_request" value="false" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Mép đường phía ngoài cua, R = 500 m, trôi ra ngoài" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="scenario_id" value="S20" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S20d.xodr" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="25.0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="duration_s" value="17.0" />
+            <ParameterAssignment parameterRef="start_s_m" value="100.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="off" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="adas_mode" value="B" />
+            <ParameterAssignment parameterRef="lka_enabled" value="false" />
+            <ParameterAssignment parameterRef="elk_enabled" value="true" />
+            <ParameterAssignment parameterRef="expect_intervention" value="ELK" />
+            <ParameterAssignment parameterRef="protocol" value="" />
+            <ParameterAssignment parameterRef="departure_side" value="left" />
+            <ParameterAssignment parameterRef="departure_radius_m" value="1200.0" />
+            <ParameterAssignment parameterRef="departure_boundary" value="edge" />
+            <ParameterAssignment parameterRef="departure_target" value="none" />
+            <ParameterAssignment parameterRef="steer_start_s" value="2.0" />
+            <ParameterAssignment parameterRef="driver_torque_nm" value="1.0" />
+            <ParameterAssignment parameterRef="wind_force_n" value="0.0" />
+            <ParameterAssignment parameterRef="bank_grade" value="0.0" />
+            <ParameterAssignment parameterRef="indicated" value="false" />
+            <ParameterAssignment parameterRef="passive_hands_on" value="true" />
+            <ParameterAssignment parameterRef="late_request" value="false" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Mép đường phía trong cua, R = 500 m, trôi vào trong" />
+            <ParameterAssignment parameterRef="departure_v_lat_mps" value="0.4" />
+            <ParameterAssignment parameterRef="departure_gap_m" value="0.8" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

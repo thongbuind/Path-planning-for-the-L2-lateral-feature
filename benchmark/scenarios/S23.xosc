@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-18T00:00:00Z" description="Mất hai vạch, xe trước cách 25 m, là xe máy" revMajor="1" revMinor="3" />
+  <ParameterDeclarations>
+    <ParameterDeclaration name="lane_width_m" parameterType="double" value="3.5" />
+    <ParameterDeclaration name="profile" parameterType="string" value="VP-0" />
+    <ParameterDeclaration name="speed_mps" parameterType="double" value="13.88888888888889" />
+    <ParameterDeclaration name="hwa_request_s" parameterType="double" value="0.5" />
+    <ParameterDeclaration name="hold_until_hwa" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="start_s_m" parameterType="double" value="10.0" />
+    <ParameterDeclaration name="start_offset_m" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="start_heading_rad" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="duration_s" parameterType="double" value="8.0" />
+    <ParameterDeclaration name="acc" parameterType="string" value="on" />
+    <ParameterDeclaration name="curvature_scale" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="direction" parameterType="double" value="1.0" />
+    <ParameterDeclaration name="scenario_id" parameterType="string" value="S23" />
+    <ParameterDeclaration name="variant" parameterType="string" value="a" />
+    <ParameterDeclaration name="description" parameterType="string" value="Mất hai vạch, xe trước cách 25 m, là xe máy" />
+    <ParameterDeclaration name="road_file" parameterType="string" value="../roads/S22a.xodr" />
+    <ParameterDeclaration name="lead_s_m" parameterType="double" value="39.9" />
+    <ParameterDeclaration name="lead_t_m" parameterType="double" value="0.0" />
+    <ParameterDeclaration name="lead_speed_mps" parameterType="double" value="13.88888888888889" />
+    <ParameterDeclaration name="lead_length_m" parameterType="double" value="2.0" />
+    <ParameterDeclaration name="lead_width_m" parameterType="double" value="0.8" />
+    <ParameterDeclaration name="lead_category" parameterType="string" value="motorbike" />
+    <ParameterDeclaration name="loss_start_s" parameterType="double" value="3.0" />
+    <ParameterDeclaration name="loss_duration_s" parameterType="double" value="2.0" />
+    <ParameterDeclaration name="lead_lat_enabled" parameterType="boolean" value="false" />
+    <ParameterDeclaration name="lead_lat_start_s" parameterType="double" value="3.2" />
+    <ParameterDeclaration name="lead_lat_duration_s" parameterType="double" value="2.1" />
+    <ParameterDeclaration name="lead_lat_target_m" parameterType="double" value="0.9" />
+    <ParameterDeclaration name="expected_outcome" parameterType="string" value="refuse" />
+  </ParameterDeclarations>
+  <CatalogLocations />
+  <RoadNetwork>
+    <LogicFile filepath="$road_file" />
+  </RoadNetwork>
+  <Entities>
+    <ScenarioObject name="Ego">
+      <Vehicle name="Ego" vehicleCategory="car">
+        <BoundingBox>
+          <Center x="1.45" y="0" z="0.75" />
+          <Dimensions width="1.9" length="4.9" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.61" wheelDiameter="0.65" trackWidth="1.6" positionX="2.9" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+        <Properties>
+          <Property name="pp:adapter" value="single-ego-v1" />
+          <Property name="pp:profile" value="$profile" />
+          <Property name="pp:acc" value="$acc" />
+          <Property name="pp:hwa_request_s" value="$hwa_request_s" />
+          <Property name="pp:hold_until_hwa" value="$hold_until_hwa" />
+          <Property name="pp:expected_outcome" value="$expected_outcome" />
+        </Properties>
+      </Vehicle>
+    </ScenarioObject>
+    <ScenarioObject name="Lead">
+      <Vehicle name="Lead" vehicleCategory="$lead_category">
+        <BoundingBox>
+          <Center x="0" y="0" z="0.75" />
+          <Dimensions width="$lead_width_m" length="$lead_length_m" height="1.5" />
+        </BoundingBox>
+        <Performance maxSpeed="60" maxAcceleration="10" maxDeceleration="10" />
+        <Axles>
+          <FrontAxle maxSteering="0.6" wheelDiameter="0.65" trackWidth="1.6" positionX="2.8" positionZ="0.325" />
+          <RearAxle maxSteering="0" wheelDiameter="0.65" trackWidth="1.6" positionX="0" positionZ="0.325" />
+        </Axles>
+      </Vehicle>
+    </ScenarioObject>
+  </Entities>
+  <Storyboard>
+    <Init>
+      <Actions>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:lane_fault:v1">{"kind":"lose_line","start_s":$loss_start_s,"duration_s":$loss_duration_s,"lines":[0,1,2,3],"value":0.0,"sigma_c0":0.0,"sigma_c1":0.0,"edges":[0,1]}</CustomCommandAction>
+        </UserDefinedAction>
+        <UserDefinedAction>
+          <CustomCommandAction type="pp:traffic_lateral:v1">{"entity":"Lead","start_s":$lead_lat_start_s,"duration_s":$lead_lat_duration_s,"target_offset_m":$lead_lat_target_m,"enabled":$lead_lat_enabled}</CustomCommandAction>
+        </UserDefinedAction>
+        <Private entityRef="Ego">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$start_s_m" t="$start_offset_m">
+                  <Orientation type="relative" h="$start_heading_rad" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+        <Private entityRef="Lead">
+          <PrivateAction>
+            <TeleportAction>
+              <Position>
+                <RoadPosition roadId="1" s="$lead_s_m" t="$lead_t_m">
+                  <Orientation type="relative" h="0" />
+                </RoadPosition>
+              </Position>
+            </TeleportAction>
+          </PrivateAction>
+          <PrivateAction>
+            <LongitudinalAction>
+              <SpeedAction>
+                <SpeedActionDynamics dynamicsShape="step" dynamicsDimension="time" value="0" />
+                <SpeedActionTarget>
+                  <AbsoluteTargetSpeed value="$lead_speed_mps" />
+                </SpeedActionTarget>
+              </SpeedAction>
+            </LongitudinalAction>
+          </PrivateAction>
+        </Private>
+      </Actions>
+    </Init>
+    <StopTrigger>
+      <ConditionGroup>
+        <Condition name="end" delay="0" conditionEdge="none">
+          <ByValueCondition>
+            <SimulationTimeCondition value="$duration_s" rule="greaterOrEqual" />
+          </ByValueCondition>
+        </Condition>
+      </ConditionGroup>
+    </StopTrigger>
+  </Storyboard>
+</OpenSCENARIO>

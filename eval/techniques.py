@@ -1,7 +1,7 @@
 """Technique comparison within one planner (Software Qualification Test Specification 9.1, 10).
 
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner/libpp_planner.dylib --out build/suites/reg-quintic
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner-qp/libpp_planner.dylib --out build/suites/reg-qp
+    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner --out build/suites/reg-quintic
+    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner-qp --out build/suites/reg-qp
     python3 -m eval.techniques build/suites/reg-quintic build/suites/reg-qp --name quintic --name qp [--out DIR]
 
 One eval.suite output folder per technique, each built with the best calibration of that

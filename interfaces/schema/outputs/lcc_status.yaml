@@ -1,0 +1,17 @@
+# Interface Control Document 6.2 (#path-status). LCC planner -> ADAS function block, arbitrator.
+icd: "6.2"
+constants:
+  LCC_STATUS_TIMEOUT_US: {type: uint64, value: 75000}
+enums:
+  LccMode:
+    doc: "How the LCC path is built (PP-SWR-177)"
+    values: {NONE: 0, LANE: 1, INFERRED: 2, FOLLOW: 3, COAST: 4}
+structs:
+  LccStatus:
+    fields:
+      - {name: header, type: BasicHeader}
+      - {name: path_valid, type: bool}
+      - {name: lcc_mode, type: LccMode, doc: "NONE when LCC is not in REQUEST or path_valid is false"}
+      - {name: follow_distance, type: float32, unit: m, doc: "Distance driven since FOLLOW began; 0 outside FOLLOW; log and display only"}
+      - {name: lateral_limit_reached, type: bool}
+      - {name: lane_too_narrow, type: bool}

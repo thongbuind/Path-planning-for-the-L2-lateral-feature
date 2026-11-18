@@ -176,6 +176,7 @@ bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_st
     pp_ref_project(ref, applied.x, applied.y, &ref_at_path, &d_path);
     const double ay_add = applied.v * applied.v * (applied.kappa - ref_at_path.kappa);
     return fabs(d_front) <= 0.5 * (ref->width - (double)vehicle->vehicle_width)
+           && fabs(ego->d) <= (double)cal->d_end                          /* PP-SWR-032, PP-ASM-028 */
            && fabs(v_lat) <= (double)cal->v_lat_end && fabs(ego->heading) <= (double)cal->heading_end
            && fabs(ay_add) <= (double)cal->ay_add_end;                    /* PP-SWR-032, 090 */
 }
@@ -235,7 +236,7 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
 {
     const double sign = (req->side == PP_SIDE_LEFT) ? 1.0 : -1.0;
     const double half = 0.5 * (ref->width - (double)vehicle->vehicle_width);
-    const double target = sign * fmax(0.0, half - (double)cal->dlc_target_lka);
+    const double target = 0.0;                                         /* Lane centre (PP-SWR-084) */
     const double max_duration = (double)cal->intervention_T_max;      /* Software Detailed Design 15 */
     const double step = (double)cal->intervention_T_step;
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
@@ -270,4 +271,80 @@ void pp_intervention_sample(const pp_intervention_path_t *path, uint64_t t0_us,
 {
     const double elapsed = (t0_us >= path->start_us) ? (double)(t0_us - path->start_us) / PP_US_PER_S : 0.0;
     sample_profile(&path->profile, elapsed, out);
+}
+
+void pp_corridor_reset(pp_corridor_t *c)
+{
+    (void)memset(c, 0, sizeof(*c));
+}
+
+/* y of the hazard-side edge of a reference line at x. */
+static double hazard_edge_y(const pp_reference_line_t *ref, double sign, double x)
+{
+    return pp_cubic_value(&ref->centre, x)
+           + (sign * 0.5 * ref->width * hypot(1.0, pp_cubic_slope(&ref->centre, x)));
+}
+
+static void adopt(pp_corridor_t *c, const pp_reference_line_t *live)
+{
+    c->ref = *live;
+    c->valid = true;
+    c->pending = false;
+    c->pending_s = 0.0;
+}
+
+const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_reference_line_t *live,
+                                              const pp_motion_t *motion, bool started,
+                                              pp_side_t side, double front_x,
+                                              const pp_calibration_t *cal, double dt)
+{
+    const double sign = (side == PP_SIDE_LEFT) ? 1.0 : -1.0;
+    bool moved = c->valid && !started && (motion != NULL) && live->valid && !live->coasting
+                 && !c->ref.coasting;
+    if (moved) {
+        pp_cubic_t centre;
+        double lo = 0.0;
+        double hi = 0.0;
+        moved = pp_cubic_move(&c->ref.centre, c->ref.view_start, c->ref.view_end, motion, &centre, &lo, &hi);
+        if (moved) {
+            c->ref.centre = centre;
+            c->ref.view_start = lo;
+            c->ref.view_end = hi;
+        }
+    }
+    if (!moved || !live->valid || live->coasting) {
+        adopt(c, live);                                  /* Start, or nothing to compare with */
+        return &c->ref;
+    }
+    const double x = pp_clamp(front_x, fmax(c->ref.view_start, live->view_start),
+                              fmin(c->ref.view_end, live->view_end));
+    const double tol = (double)cal->corridor_tol;
+    const double away = sign * (hazard_edge_y(live, sign, x) - hazard_edge_y(&c->ref, sign, x));
+    const double opposite = fabs(hazard_edge_y(live, -sign, x) - hazard_edge_y(&c->ref, -sign, x));
+
+    if (away <= tol) {
+        adopt(c, live);       /* Consistent, or the edge moved toward the car: taken at once */
+    } else {
+        const double edge_now = hazard_edge_y(live, sign, x);
+        if (!c->pending || (fabs(edge_now - c->candidate_edge) > tol)) {
+            c->pending = true;                           /* New candidate position */
+            c->pending_s = 0.0;
+            c->candidate_edge = edge_now;
+        } else {
+            c->pending_s += dt;
+        }
+        if (c->pending_s >= (double)cal->T_confirm) {
+            if (opposite > tol) {
+                adopt(c, live);                          /* The whole lane moved: not a jump */
+            } else {
+                const double shift = fmin(away, (double)cal->ref_rate * dt);
+                c->ref.centre.c[0] += sign * 0.5 * shift;        /* Hazard edge only slides */
+                c->ref.width += shift;
+            }
+        }
+    }
+#ifdef PP_REF_SAMPLED
+    pp_ref_sample_cubic(&c->ref);
+#endif
+    return &c->ref;
 }

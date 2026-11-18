@@ -21,11 +21,12 @@ def write(folder: Path, *, run_id: str, parent: str | None, kind: str, doc: dict
           log, result, command: str | None = None) -> dict:
     """Writes the four files into `folder`; returns the manifest."""
     folder = Path(folder)
-    lib = provenance.library_info(planner.path, external=True)
-    manifest = provenance.make(kind, doc["annotations"]["name"], {"seed": seed})
+    libraries = provenance.library_infos(planner, external=True)
+    lib = libraries[0]
+    manifest = provenance.make(kind, doc["annotations"]["name"], {"seed": seed, "planner_only": planner.only})
     manifest["provenance_run_id"] = manifest["run_id"]
     manifest["run_id"] = run_id
-    manifest["libraries"] = [lib]
+    manifest["libraries"] = libraries
     behaviour = checksum.behavior_checksum(log)
     manifest["bundle"] = {"schema": bundle.SCHEMA, "parent_run_id": parent, "case_hash": doc["case_hash"],
                           "behavior_checksum": behaviour, "checksum_version": checksum.VERSION,

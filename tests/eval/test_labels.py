@@ -9,7 +9,9 @@ from eval import aspects, labels, loader, metrics
 from sim.harness import PlannerCycle
 from sim.world.road import Road, RoadEdgeSpec, RoadLayout, Segment
 
-A, F = I.ActiveFunction, I.InterventionPhase
+from sim.stand_ins.arbitrator import ActiveFunction, SystemStatus
+
+A, F = ActiveFunction, I.InterventionPhase
 
 
 @pytest.mark.parametrize("scenario, variant, level, expected", [
@@ -48,12 +50,12 @@ def test_aspects_filter_by_labels():
 OK = {k: True for k in ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state", "function_requests")}
 
 
-def _cycle(k, active=A.HWA, valid=True, hwa=I.RequestState.REQUEST, lka=I.RequestState.STANDBY,
+def _cycle(k, active=A.LCC, valid=True, hwa=I.RequestState.REQUEST, lka=I.RequestState.STANDBY,
            lka_phase=F.NONE, inputs=OK):
     points = tuple(I.TrajectoryPoint(0.1 * i, I.Pose2D(0.0, 0.0, 0.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
                    for i in range(I.TRAJECTORY_POINTS))
-    traj = I.Trajectory(I.Header(k, 0, True, I.FrameId.BASE_LINK), points, 0.0)
-    status = I.PathStatus(I.BasicHeader(k, 0, True), valid, active if valid else A.NONE, lka_phase, F.NONE, False, False)
+    traj = I.Trajectory(I.Header(k, 0, True, I.FrameId.BASE_LINK), points, 0.0, I.PlannerId.LCC)
+    status = SystemStatus(I.BasicHeader(k, 0, True), valid, active if valid else A.NONE, lka_phase, F.NONE, False, False)
     reqs = tuple(I.FunctionRequest(s, I.Side.NONE, 0.0, I.ElkReason.NONE, I.CancelReason.NONE)
                  for s in (hwa, lka, I.RequestState.STANDBY))
     fr = I.Received(I.FunctionRequests(I.BasicHeader(k, 0, True), reqs, False), k)
@@ -83,10 +85,10 @@ def test_lost_input_and_one_second_after_are_not_counted():
 def test_started_intervention_must_continue_until_completed():
     lka = I.RequestState.REQUEST
     cycles = ([_cycle(k) for k in range(20)]
-              + [_cycle(k, active=A.HWA, lka=lka) for k in range(20, 25)]           # not started: judged per case
+              + [_cycle(k, active=A.LCC, lka=lka) for k in range(20, 25)]           # not started: judged per case
               + [_cycle(k, active=A.LKA, lka=lka, lka_phase=F.ACTIVE) for k in range(25, 50)]
-              + [_cycle(k, active=A.HWA, lka=lka, lka_phase=F.ACTIVE) for k in range(50, 55)]  # dropped: wrong
-              + [_cycle(k, active=A.HWA, lka=lka, lka_phase=F.COMPLETED) for k in range(55, 70)])
+              + [_cycle(k, active=A.LCC, lka=lka, lka_phase=F.ACTIVE) for k in range(50, 55)]  # dropped: wrong
+              + [_cycle(k, active=A.LCC, lka=lka, lka_phase=F.COMPLETED) for k in range(55, 70)])
     c = _score(cycles)
     assert c.value == 5 and c.first_fail_s == pytest.approx(50 * 0.025)
 
@@ -144,7 +146,7 @@ def test_requests_timeout_needs_none_and_invalid_and_043():
     c = _ids(metrics.fault_reaction_criteria(cycles, 1.0))["PP-SWR-145"]
     # Timeout once t0 - rx > 75 ms: cycle 13 on; from the second such cycle the path must end.
     assert c.value == 2
-    status = I.PathStatus(I.BasicHeader(0, 0, True), False, A.HWA, F.NONE, F.NONE, False, False)
+    status = SystemStatus(I.BasicHeader(0, 0, True), False, A.LCC, F.NONE, F.NONE, False, False)
     bad = replace(_fc(3), path_status=status)
     assert not _ids(metrics.fault_reaction_criteria([_fc(0), bad], 1.0))["PP-SWR-043"].passed
 

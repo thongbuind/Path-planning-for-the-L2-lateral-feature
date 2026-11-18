@@ -6,12 +6,13 @@ from math import inf
 
 import pytest
 
-from eval.metrics import evaluate
+from eval.metrics import Criterion, Result, _Truth, _follow_coast, _score_fault_exposure, evaluate
 from interfaces import (
-    ActiveFunction, BasicHeader, CancelReason, ElkReason, FrameId, FunctionRequest,
-    FunctionRequests, Header, InterventionPhase, LateralLimits, PathStatus, Pose2D,
-    Received, RequestState, Side, Trajectory, TrajectoryPoint,
+    BasicHeader, CancelReason, ElkReason, FrameId, FunctionRequest,
+    FunctionRequests, Header, InterventionPhase, LateralLimits, LccMode, LccStatus, LineStatus,
+    PlannerId, Pose2D, Received, RequestState, Side, Trajectory, TrajectoryPoint,
 )
+from sim.stand_ins.arbitrator import ActiveFunction, SystemStatus
 from sim.harness import PlannerCycle, RunLog
 from sim.scenario import Scenario
 from sim.world.road import Road, Segment
@@ -58,11 +59,11 @@ def _log(expect="LKA", *, requested=LKA, active=LKA, end_us=END, completes=True,
             phase[int(steering) - 2] = InterventionPhase.ACTIVE
         elif completes and active != NONE and t == end_us:
             phase[int(active) - 2] = InterventionPhase.COMPLETED
-        status = PathStatus(hdr, True, steering, *phase, False, False)
+        status = SystemStatus(hdr, True, steering, *phase, False, False)
         points = tuple(TrajectoryPoint(i / 10, Pose2D(2.0 * i, 0.0, 0.0), 20.0, 0.0, 0.0,
                                        20.0 * curvature, curvature, 0.0, 0.0)
                        for i in range(31))
-        trajectory = Trajectory(Header(t, counter, True, FrameId.BASE_LINK), points, 3.0)
+        trajectory = Trajectory(Header(t, counter, True, FrameId.BASE_LINK), points, 3.0, PlannerId.LCC)
         limits = LateralLimits(hdr, 20.0, 0.0, False)
         log.cycles.append(PlannerCycle(t, trajectory, status, limits, 0, function_requests=message))
     return log
@@ -70,6 +71,38 @@ def _log(expect="LKA", *, requested=LKA, active=LKA, end_us=END, completes=True,
 
 def _criteria(result, number):
     return [c for c in result.criteria if c.id == f"PP-SWR-{number:03d}" and c.applicable]
+
+
+@pytest.mark.parametrize("invalid_at, passed", [(1_200_000, True), (1_100_000, False), (1_400_000, False)])
+def test_follow_coast_times_from_exit(invalid_at, passed):
+    log = _log(requested=NONE, active=NONE)
+    following = []
+    for c in log.cycles:
+        follow = c.t0_us < 200_000
+        c.inputs_ok = {"lane_model": True}
+        c.lane_boundaries = ((LineStatus.LOST, 0.0),) * 6
+        c.lcc_status = LccStatus(c.path_status.header, c.t0_us < invalid_at,
+                                 LccMode.FOLLOW if follow else LccMode.COAST, 0.0, False, False)
+        following.append(follow)
+    check = _follow_coast(log, _Truth(log), log.cycles, following, {"T_coast": 1.0})
+    assert check.applicable and check.passed == passed
+
+
+def test_f24_requires_a_changed_frame_seen_during_active_intervention():
+    log = _log()
+    log.scenario = replace(log.scenario, name="F24-a")
+    result = Result(log.scenario.name, 1, [Criterion("PP-SWR-085", "", 0, ">= 0", True),
+                                          Criterion("PP-SWR-086", "", -0.4, ">= -0.3", False)], [])
+    _score_fault_exposure(result, log)
+    assert result.issues[0]["kind"] == "not_judged"
+    assert not _criteria(result, 93)
+
+    frame = log.cycles[3]
+    frame.input_times = {"lane_model": (1, 2, True)}
+    log.fault_frames = {"lane_model": [1]}
+    _score_fault_exposure(result, log)
+    assert not _criteria(result, 93)[0].passed
+    assert result.info["fault_exposure_s"] == pytest.approx(frame.t0_us * 1e-6)
 
 
 @pytest.mark.parametrize("requested, step", [(NONE, "thiếu REQUEST"), (LKA, "thiếu path")])

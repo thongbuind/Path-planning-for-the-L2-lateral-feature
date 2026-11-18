@@ -13,11 +13,13 @@ from interfaces._validate import check_uint
 from interfaces.inputs.chassis_signals import ImuSignals, SpeedSignals, SteeringSignals
 from interfaces.inputs.function_requests import FunctionRequests
 from interfaces.inputs.lane_model import LaneModel
+from interfaces.inputs.lead_target import LeadTarget
 from interfaces.inputs.longitudinal_plan import LongitudinalPlan
 from interfaces.inputs.object_list import ObjectList
 from interfaces.inputs.vehicle_state import VehicleStateEstimate
+from interfaces.outputs.intervention_status import InterventionStatus
 from interfaces.outputs.lateral_limits import LateralLimits
-from interfaces.outputs.path_status import PathStatus
+from interfaces.outputs.lcc_status import LccStatus
 from interfaces.outputs.trajectory import Trajectory
 
 
@@ -25,7 +27,7 @@ PLANNER_PERIOD_US = 25000
 
 
 class InitResult(IntEnum):
-    """Result of pp_init"""
+    """Result of pp_<planner>_init"""
 
     OK = 0
     BAD_ARGUMENT = 1
@@ -48,12 +50,13 @@ class Received(Generic[T]):
 
 
 @dataclass(frozen=True, slots=True)
-class PlannerInputs:
-    """Newest message of each input with its receive time (rx_us), or not received yet"""
+class LccInputs:
+    """LCC planner: newest message of each input with its receive time (rx_us), or not received yet"""
 
     t0_us: int  # [us]; Cycle tick
     lane_model: Received[LaneModel] | None = None
     object_list: Received[ObjectList] | None = None
+    lead_target: Received[LeadTarget] | None = None
     imu: Received[ImuSignals] | None = None
     steering: Received[SteeringSignals] | None = None
     speed: Received[SpeedSignals] | None = None
@@ -66,9 +69,34 @@ class PlannerInputs:
 
 
 @dataclass(frozen=True, slots=True)
-class PlannerOutputs:
-    """Outputs of one cycle; each with a flag whether it is sent"""
+class LccOutputs:
+    """Outputs of one LCC planner cycle; each with a flag whether it is sent"""
 
     trajectory: Trajectory | None = None
-    path_status: PathStatus | None = None
+    lcc_status: LccStatus | None = None
     lateral_limits: LateralLimits | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LkaElkInputs:
+    """LKA/ELK planner: newest message of each input with its receive time (rx_us), or not received yet"""
+
+    t0_us: int  # [us]; Cycle tick
+    lane_model: Received[LaneModel] | None = None
+    imu: Received[ImuSignals] | None = None
+    steering: Received[SteeringSignals] | None = None
+    speed: Received[SpeedSignals] | None = None
+    vehicle_state: Received[VehicleStateEstimate] | None = None
+    function_requests: Received[FunctionRequests] | None = None
+    longitudinal_plan: Received[LongitudinalPlan] | None = None
+
+    def __post_init__(self) -> None:
+        check_uint(self.t0_us, 64, "t0_us")
+
+
+@dataclass(frozen=True, slots=True)
+class LkaElkOutputs:
+    """Outputs of one LKA/ELK planner cycle; each with a flag whether it is sent"""
+
+    trajectory: Trajectory | None = None
+    intervention_status: InterventionStatus | None = None

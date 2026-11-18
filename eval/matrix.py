@@ -214,14 +214,14 @@ def main() -> None:
     args = parser.parse_args()
     planner = planner_choice.from_args(args)
     manifest = provenance.make("matrix", args.suite, {"jobs": args.jobs, "start_method": isolation.START_METHOD})
-    manifest["libraries"] = [provenance.library_info(planner.path, external=args.planner is not None)]
+    manifest["libraries"] = provenance.library_infos(planner, external=args.planner is not None)
     if args.record:
         provenance.preflight(manifest)
     suite = yaml.safe_load((sweep.SUITE_DIR / f"{args.suite}.yaml").read_text(encoding="utf-8"))
     jobs = expand(suite)
     out = OUT_DIR / args.suite
     out.mkdir(parents=True, exist_ok=True)
-    b0 = conformance.run(planner.path)
+    b0 = conformance.run(planner)
     (out / "conformance.json").write_text(json.dumps(b0, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"B0: {'bị chặn' if b0['blocked'] else 'đạt C1, C2'}; {len(jobs)} runs", flush=True)
     tasks = [(args.suite, job, planner, out / "mcap") for job in jobs]

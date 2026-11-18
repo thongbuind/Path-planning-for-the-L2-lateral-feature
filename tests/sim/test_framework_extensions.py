@@ -5,8 +5,10 @@ traffic speed profiles, repeated driver steering, lane re-indexing on a lane cha
 import pytest
 
 from interfaces import (
-    ActiveFunction, BasicHeader, InitResult, InterventionPhase, PathStatus, PlannerOutputs, Side,
+    BasicHeader, InitResult, InterventionFunction, InterventionPhase, InterventionStatus, LkaElkOutputs, Side,
 )
+from sim.stand_ins.arbitrator import ActiveFunction, SystemStatus
+from tests.sim import fakes
 from sim.faults.channel import ChannelFault
 from sim.faults.lane import LaneFault, LaneFaultInjector
 from sim.faults.trigger import NEVER_S
@@ -33,11 +35,11 @@ class _LkaAfterHalfSecond:
     def step(self, inputs, _ego_motion):
         active = inputs.t0_us >= LKA_FROM_S * 1e6
         phase = InterventionPhase.ACTIVE if active else InterventionPhase.NONE
-        status = PathStatus(BasicHeader(inputs.t0_us, self.counter % 256, True), True,
-                            ActiveFunction.LKA if active else ActiveFunction.NONE, phase,
-                            InterventionPhase.NONE, False, False)
+        status = InterventionStatus(BasicHeader(inputs.t0_us, self.counter % 256, True), True,
+                                    InterventionFunction.LKA if active else InterventionFunction.NONE, phase,
+                                    InterventionPhase.NONE, False)
         self.counter += 1
-        return PlannerOutputs(path_status=status)
+        return LkaElkOutputs(intervention_status=status)
 
 
 def _scenario(**kw):
@@ -47,7 +49,7 @@ def _scenario(**kw):
 
 def test_triggered_fault_starts_after_the_event_and_is_logged():
     fault = LaneFault("lose_line", start_s=0.2, duration_s=0.3, lines=(1,), trigger="lka_active")
-    log = Harness(_scenario(lane_faults=(fault,)), _LkaAfterHalfSecond, seed=1).run()
+    log = Harness(_scenario(lane_faults=(fault,)), fakes.planner_set(_LkaAfterHalfSecond), seed=1).run()
     t_event = log.fault_events["lka_active"]
     assert LKA_FROM_S * 1e6 <= t_event < LKA_FROM_S * 1e6 + 25_000
     injected = log.scenario.lane_faults[0]
@@ -58,7 +60,7 @@ def test_triggered_fault_starts_after_the_event_and_is_logged():
 
 def test_triggered_fault_without_its_event_is_never_injected():
     fault = ChannelFault("stop", "imu", start_s=0.0, duration_s=0.5, trigger="elk_active")
-    log = Harness(_scenario(channel_faults=(fault,)), _LkaAfterHalfSecond, seed=1).run()
+    log = Harness(_scenario(channel_faults=(fault,)), fakes.planner_set(_LkaAfterHalfSecond), seed=1).run()
     assert log.fault_events == {"elk_active": None}
     assert log.scenario.channel_faults[0].start_s == NEVER_S
 
@@ -149,7 +151,7 @@ def test_event_counter_counts_each_start_of_a_phase():
     counter = EventCounter()
 
     def status(lka):
-        return PathStatus(BasicHeader(0, 0, True), True, ActiveFunction.LKA, lka, InterventionPhase.NONE, False, False)
+        return SystemStatus(BasicHeader(0, 0, True), True, ActiveFunction.LKA, lka, InterventionPhase.NONE, False, False)
     seq = [InterventionPhase.ACTIVE, InterventionPhase.ACTIVE, InterventionPhase.COMPLETED,
            InterventionPhase.NONE, InterventionPhase.ACTIVE, InterventionPhase.COMPLETED]
     for t, phase in enumerate(seq):
@@ -173,11 +175,11 @@ class _LkaCycles:
                 phase = InterventionPhase.ACTIVE
             elif b <= t < b + 0.2:
                 phase = InterventionPhase.COMPLETED
-        status = PathStatus(BasicHeader(inputs.t0_us, self.counter % 256, True), True,
-                            ActiveFunction.LKA if phase else ActiveFunction.NONE, phase,
-                            InterventionPhase.NONE, False, False)
+        status = InterventionStatus(BasicHeader(inputs.t0_us, self.counter % 256, True), True,
+                                    InterventionFunction.LKA if phase else InterventionFunction.NONE, phase,
+                                    InterventionPhase.NONE, False)
         self.counter += 1
-        return PlannerOutputs(path_status=status)
+        return LkaElkOutputs(intervention_status=status)
 
 
 def test_driver_repeats_and_scripted_requests_wait_for_their_event():
@@ -189,7 +191,7 @@ def test_driver_repeats_and_scripted_requests_wait_for_their_event():
     driver = DriverSpec(steer_start_s=0.1, steer_release_s=0.2, drift_curvature=1e-3,
                         repeats=((0.1, 1.0), (0.1, -2.0)), repeat_trigger="lka_completed")
     events = (RequestEvent(0, (off, lka, off)), RequestEvent(300_000, (off, off, off), trigger="lka_completed"))
-    harness = Harness(_scenario(duration_s=3.0, driver=driver, request_events=events), _LkaCycles, seed=1)
+    harness = Harness(_scenario(duration_s=3.0, driver=driver, request_events=events), fakes.planner_set(_LkaCycles), seed=1)
     log = harness.run()
     done = log.events["lka_completed"]
     assert [r for r in harness._driver_spec.repeats] == [

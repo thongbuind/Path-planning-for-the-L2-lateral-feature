@@ -12,11 +12,12 @@ Blocks and rates (4.1, 4.2):
 | State estimator | 20 ms | VehicleStateEstimate |
 | ADAS function stand-in or scripted inputs | 25 ms | FunctionRequests |
 | Longitudinal block: scripted, or stand-in ACC (4.7) | 25 ms | LongitudinalPlan |
-| Planner | 25 ms | Trajectory, PathStatus |
+| LCC planner, LKA/ELK planner | 25 ms | Trajectory, LccStatus, LateralLimits; Trajectory, InterventionStatus |
+| Arbitrator stand-in (PP-ASM-022) | 25 ms | chosen Trajectory, SystemStatus |
 | Lateral Controller | 10 ms | SteeringRequest |
 
-Each block starts at a random phase from the seed. The planner is given from outside;
-only eval/ knows which planner it is.
+Each block starts at a random phase from the seed. The planners are given from outside;
+only eval/ knows which planners they are.
 """
 
 import time
@@ -31,13 +32,19 @@ from interfaces import (
     FrameId,
     Header,
     InterventionPhase,
+    InterventionStatus,
+    LccInputs,
+    LccMode,
+    LccOutputs,
+    LccStatus,
+    LeadTarget,
+    LkaElkInputs,
+    LkaElkOutputs,
     Pose2D,
     TrajectoryPoint,
     FUNCTION_REQUESTS_MAX_AGE_US,
     FUNCTION_REQUESTS_TIMEOUT_US,
     PLANNER_PERIOD_US,
-    PATH_STATUS_TIMEOUT_US,
-    ActiveFunction,
     EgoMotionRequest,
     EgoMotionResponse,
     FunctionRequest,
@@ -46,15 +53,15 @@ from interfaces import (
     LateralLimits,
     LineStatus,
     ObjectList,
-    PathStatus,
     PlannerFactory,
-    PlannerInputs,
+    PlannerId,
     Received,
     Trajectory,
 )
 from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, STEERING_TIMEOUT_US, Direction
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
 from interfaces.inputs.object_list import OBJECT_LIST_MAX_AGE_US, OBJECT_LIST_TIMEOUT_US
+from interfaces.inputs.lead_target import LEAD_TARGET_MAX_AGE_US, LEAD_TARGET_TIMEOUT_US
 from interfaces.inputs.vehicle_state import VEHICLE_STATE_MAX_AGE_US, VEHICLE_STATE_TIMEOUT_US
 from interfaces.inputs.longitudinal_plan import (LONGITUDINAL_PLAN_A_MAX_MPS2, LONGITUDINAL_PLAN_MAX_AGE_US,
                                                  LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_V_MAX_MPS,
@@ -64,7 +71,7 @@ import numpy as np
 from sim.can.frames import CanReceiver, CanSender
 from sim.faults.channel import ChannelFaultInjector
 from sim.faults.ego_motion import EgoMotionFaults
-from sim.faults.lane import LaneFaultInjector
+from sim.faults.lane import LaneFaultInjector, resolve_side
 from sim.faults import trigger as fault_trigger
 from sim.faults import sensor as sensor_faults
 from sim.runtime.clock import clocks
@@ -79,15 +86,17 @@ from sim.sensors.ego_motion import EgoMotion
 from sim.sensors.lane_camera import CameraPose, LaneCamera
 from sim.sensors import object_sensor
 from sim.sensors.object_sensor import ObjectSensor
+from sim.sensors.lead_sensor import LeadSensor
 from sim.world.traffic import Traffic
 from sim.sensors.state_estimator import StateEstimator
 from sim.stand_ins import scripted
 from sim.stand_ins.adas_function import AdasFunction, AdasInputs, PathFeedback
 from sim.stand_ins.adas_observation import VehicleMotion
+from sim.stand_ins.arbitrator import PATH_STATUS_TIMEOUT_US, ActiveFunction, Arbitrator, SystemStatus
 from sim.stand_ins.eps import Eps
 from sim.stand_ins.hwa_view_gate import HwaViewGate
 from sim.stand_ins.lateral_controller import CONTROLLER_PERIOD_US, EgoState, LateralController
-from sim.stand_ins.acc import Acc, LeadSelector, LongitudinalActuator
+from sim.stand_ins.acc import EGO_LENGTH_M, Acc, LeadSelector, LongitudinalActuator
 from sim.stand_ins.scripted import ScriptedFunctionRequests, ScriptedLongitudinal
 from sim.vehicle.bicycle import Bicycle, BicycleState, steady_cornering
 from sim.vehicle.profiles import PROFILES
@@ -103,10 +112,10 @@ PRIORITY = {"function_requests": 0, "longitudinal": 1, "planner": 2, "controller
 @dataclass
 class PlannerCycle:
     t0_us: int
-    trajectory: Trajectory | None
-    path_status: PathStatus | None
-    lateral_limits: LateralLimits | None
-    compute_ns: int  # Wall clock of planner.step, adapter included
+    trajectory: Trajectory | None  # Chosen by the arbitrator stand-in (PP-ASM-022)
+    path_status: SystemStatus | None  # What the chosen path and its function look like from outside
+    lateral_limits: LateralLimits | None  # LCC planner
+    compute_ns: int  # Wall clock of the slower planner.step, adapter included (each has its own budget)
     # Lane model given to the planner: capture stamp and the range end of the boundaries the camera
     # really observed [m], before faults (Software Requirements Specification 4)
     lane_view: tuple[int, float] | None = None
@@ -123,6 +132,14 @@ class PlannerCycle:
     # planner, for "biên làn đủ tin" (Software Requirements Specification 4); None: no lane model
     lane_boundaries: tuple[tuple[LineStatus, float], ...] | None = None
     longitudinal_plan: Received[LongitudinalPlan] | None = None  # As the planner got it (PP-SWR-153, 154)
+    # Outputs of each planner as sent (PP-SWR-019, 180, 181)
+    lcc_trajectory: Trajectory | None = None
+    lcc_status: LccStatus | None = None
+    ka_trajectory: Trajectory | None = None
+    intervention_status: InterventionStatus | None = None
+    compute_lcc_ns: int = 0
+    compute_ka_ns: int = 0
+    lead_target: Received[LeadTarget] | None = None  # As the LCC planner got it
 
 
 FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132: a stamp up to 10 ms ahead stays usable
@@ -153,7 +170,7 @@ def plan_in_range(plan: LongitudinalPlan) -> bool:
                        & (np.abs(a) <= np.float32(LONGITUDINAL_PLAN_A_MAX_MPS2))))
 
 
-def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
+def inputs_usable(inputs: LccInputs) -> dict[str, bool]:
     now = inputs.t0_us
     _fresh = _usable
     lane = _fresh(inputs.lane_model, now, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
@@ -161,6 +178,7 @@ def inputs_usable(inputs: PlannerInputs) -> dict[str, bool]:
     return {
         "lane_model": lane is not None,  # received, valid, in time; boundaries judged by eval
         "object_list": _fresh(inputs.object_list, now, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US) is not None,
+        "lead_target": _fresh(inputs.lead_target, now, LEAD_TARGET_TIMEOUT_US, LEAD_TARGET_MAX_AGE_US) is not None,
         "imu": _fresh(inputs.imu, now, IMU_TIMEOUT_US) is not None,
         "steering": _fresh(inputs.steering, now, STEERING_TIMEOUT_US) is not None,
         "speed": _fresh(inputs.speed, now, SPEED_TIMEOUT_US) is not None,
@@ -218,6 +236,8 @@ class RunLog:
     lane_index_changes: list[tuple[int, int]] = field(default_factory=list)
     # Every occurrence of the planner-output events of sim.faults.trigger: event -> t0 [us]
     events: dict[str, list[int]] = field(default_factory=dict)
+    planner_only: str | None = None
+    fault_frames: dict[str, list[int]] = field(default_factory=dict)
 
 
 def _lane_view_end(lane: LaneModel) -> float | None:
@@ -249,7 +269,11 @@ class Harness:
         self.road = Road(list(scenario.segments), scenario.lane_width, scenario.road_layout)
         self.profile = PROFILES[scenario.profile]
         self.vehicle_config = self.profile.vehicle_config()
-        self.planner = planner_factory(self.vehicle_config)
+        self.planners = planner_factory(self.vehicle_config)  # LCC planner and LKA/ELK planner (PP-ADR-016)
+        if self.planners.lcc is None and self.planners.lka_elk is None:
+            raise ValueError("at least one planner is required")
+        self.arbitrator = Arbitrator()
+        self._lcc_following = False  # lcc_mode of the last cycle was FOLLOW (ADAS Function Specification 7)
 
         # Car on the road, rear axle at start_s, aligned with the lane plus the given offset.
         # In a curve the fake driver is already steering it: steady-state cornering.
@@ -278,9 +302,14 @@ class Harness:
         self.controller = LateralController(self.vehicle_config, self.profile.understeer_gradient)
         self.camera = LaneCamera(self.road, view_end_m=scenario.camera_view_m,
                                  view_start_m=scenario.camera_view_start_m)
-        self.lane_faults = LaneFaultInjector(scenario.lane_faults, self.rngs["lane_camera"])
+        drift = scenario.driver.drift_curvature if scenario.driver is not None else None
+        self.lane_faults = LaneFaultInjector(tuple(resolve_side(f, drift) for f in scenario.lane_faults),
+                                             self.rngs["lane_camera"])
         self.traffic = Traffic(self.road, scenario.traffic)
         self.objects = ObjectSensor(self.rngs["perception"], scenario.perception_noise_scale)
+        self.lead_sensor = LeadSensor(np.random.default_rng(self.rngs["perception"].integers(0, 2**63)),
+                                      self.vehicle_config.wheelbase / 2 + EGO_LENGTH_M / 2,
+                                      scenario.perception_noise_scale)
         self.chassis = ChassisSensors()
         self.estimator = StateEstimator()
         self.ego_motion = EgoMotion()
@@ -350,6 +379,9 @@ class Harness:
                                   rng=self.rngs["latency"], on_deliver=_receive_valid, faults=faults("lane_model")),
             "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
                                    rng=self.rngs["latency"], faults=faults("object_list")),
+            "lead_target": Channel("lead_target", latency_us=camera_us, jitter_us=jitter_us,
+                                   rng=self.rngs["latency"], on_deliver=_receive_valid,   # valid = false: as lost (ICD 4)
+                                   faults=faults("lead_target")),
             "imu": Channel("imu", on_deliver=receive_chassis, faults=faults("imu")),
             "steering": Channel("steering", on_deliver=receive_chassis, faults=faults("steering")),
             "speed": Channel("speed", on_deliver=receive_chassis, faults=faults("speed")),
@@ -364,6 +396,7 @@ class Harness:
             "trajectory": Channel("trajectory"),
             "lateral_limits": Channel("lateral_limits"),
             "path_status": Channel("path_status"),
+            "intervention_status": Channel("intervention_status"),
             "steering_request": Channel("steering_request"),
         }
         # Ego-motion integrates the valid chassis signals and v_y as received (4.5).
@@ -381,7 +414,7 @@ class Harness:
         self.ch["steering_request"].subscribers.append(self.eps.on_request)
         if self.acc is not None:
             self.ch["lateral_limits"].subscribers.append(self.acc.on_lateral_limits)
-        self.ch["path_status"].subscribers.append(self._release_on_hwa)
+        self.ch["path_status"].subscribers.append(self._release_on_lcc)
         # Faults that wait for an event of the planner output: inactive until it happens.
         self._pending: list[tuple[object, int, object]] = []
         self._fault_events: dict[str, int | None] = {}
@@ -408,8 +441,11 @@ class Harness:
             max_wheel_angle=self.vehicle_config.max_wheel_angle,
             max_steering_wheel_rate=self.vehicle_config.max_steering_wheel_rate,
             steering_ratio=self.vehicle_config.steering_ratio,
-            init_result=int(self.planner.init_result),
+            init_result=next((int(p.init_result) for p in (self.planners.lcc, self.planners.lka_elk)
+                              if p is not None and p.init_result), 0),
             actuator_delay_s=self.vehicle_config.actuator_delay,
+            planner_only=("lkaelk" if self.planners.lcc is None else
+                          "lcc" if self.planners.lka_elk is None else None),
         )
         self.scheduler = self._build_scheduler()
 
@@ -423,11 +459,15 @@ class Harness:
             return random_phase_us(phases, period_us, STEP_US)
 
         sched.add_physics(self._physics)
-        sched.add_sensor("lane_camera", lane_camera.PERIOD_US, self._camera, phase(lane_camera.PERIOD_US))
+        camera_phase = phase(lane_camera.PERIOD_US)
+        sched.add_sensor("lane_camera", lane_camera.PERIOD_US, self._camera, camera_phase)
         sched.add_sensor("imu", chassis.IMU_PERIOD_US, self._imu, phase(chassis.IMU_PERIOD_US))
         if self.scenario.traffic or self._adas_modes is not None:
             sched.add_sensor("object_sensor", object_sensor.PERIOD_US, self._objects,
                              phase(object_sensor.PERIOD_US))
+        elif self.scenario.object_list_on_empty_road:
+            sched.add_sensor("object_sensor", object_sensor.PERIOD_US, self._objects,
+                             camera_phase % object_sensor.PERIOD_US)
         sched.add_sensor("steering", chassis.STEERING_PERIOD_US, self._steering,
                          phase(chassis.STEERING_PERIOD_US))
         sched.add_sensor("speed", chassis.SPEED_PERIOD_US, self._speed, phase(chassis.SPEED_PERIOD_US))
@@ -463,8 +503,8 @@ class Harness:
                                           v_y - sc.speed_mps * tan(sc.start_heading_rad), r)
         self.eps.hold_driver_angle(delta * self.vehicle_config.steering_ratio)
 
-    def _release_on_hwa(self, status: PathStatus, _rx_us: int) -> None:
-        if self._holding and status.path_valid and status.active_function == ActiveFunction.HWA:
+    def _release_on_lcc(self, status: SystemStatus, _rx_us: int) -> None:
+        if self._holding and status.path_valid and status.active_function == ActiveFunction.LCC:
             self._holding = False
             st = self.vehicle.state
             self.vehicle.state = BicycleState(st.x, st.y, st.psi, self._held_v_y, st.r)
@@ -512,7 +552,11 @@ class Harness:
         msg = self.camera.capture(now_us, pose, self.lane_faults.view_limits(now_us))
         if self.camera.lane_index != before:
             self.log.lane_index_changes.append((now_us, self.camera.lane_index))
-        sent = self._camera_stamp(self.lane_faults.apply(msg))
+        faulted = self.lane_faults.apply(msg)
+        sent = self._camera_stamp(faulted)
+        if any(before.status != LineStatus.LOST and before.c0 != after.c0
+               for before, after in zip((*msg.lines, *msg.road_edges), (*faulted.lines, *faulted.road_edges))):
+            self.log.fault_frames.setdefault("lane_model", []).append(sent.header.stamp_us)
         self._observed_view[sent.header.stamp_us] = _lane_view_end(msg)
         for stamp in [t for t in self._observed_view if t < sent.header.stamp_us - 1_000_000]:
             del self._observed_view[stamp]
@@ -525,6 +569,9 @@ class Harness:
         traffic = self.traffic.at(now_us * 1e-6)
         msg = self.objects.capture(now_us, pose, speed, traffic)
         self.ch["object_list"].publish(self._camera_stamp(msg), now_us)
+        lead = self.lead_sensor.capture(now_us, pose, (speed, self.vehicle.rear_axle_lateral_velocity()), traffic,
+                                        self._lead.target_id if self.acc is not None else None)
+        self.ch["lead_target"].publish(self._camera_stamp(lead), now_us)
         if self._adas_modes is not None:
             self._ideal_objects = self._ideal_object_sensor.capture(now_us, pose, speed, traffic)
 
@@ -572,7 +619,7 @@ class Harness:
             return rx
         adas = self.clocks["adas"]
         message = rx.message
-        if name not in ("lane_model", "object_list"):  # stamped on the ADAS ECU (or at receive, CAN)
+        if name not in ("lane_model", "object_list", "lead_target"):  # stamped on the ADAS ECU (or at receive, CAN)
             message = replace(message, header=replace(message.header, stamp_us=adas.local(message.header.stamp_us)))
         return Received(message, adas.local(rx.rx_us))
 
@@ -593,9 +640,10 @@ class Harness:
             points.append(TrajectoryPoint(t, Pose2D(dx * cos(yaw) + dy * sin(yaw), -dx * sin(yaw) + dy * cos(yaw),
                                                     ph - yaw), v, 0.0, 0.0, v * kappa, kappa,
                                           atan2(self.vehicle_config.wheelbase * kappa, 1.0), 0.0))
-        traj = Trajectory(Header(now_us, self._open_counter % 256, True, FrameId.BASE_LINK), tuple(points), 3.0)
-        status = PathStatus(BasicHeader(now_us, self._open_counter % 256, True), True, ActiveFunction.HWA,
-                            InterventionPhase.NONE, InterventionPhase.NONE, False, False)
+        traj = Trajectory(Header(now_us, self._open_counter % 256, True, FrameId.BASE_LINK),
+                          tuple(points), 3.0, PlannerId.LCC)
+        status = SystemStatus(BasicHeader(now_us, self._open_counter % 256, True), True, ActiveFunction.LCC,
+                              InterventionPhase.NONE, InterventionPhase.NONE, False, False)
         self._open_counter += 1
         self.ch["open_trajectory"].publish(traj, now_us)
         self.ch["open_status"].publish(status, now_us)
@@ -621,7 +669,8 @@ class Harness:
         speed = _fresh(self.ch["speed"].latest, now_us, SPEED_TIMEOUT_US)
         lane = _fresh(self.ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
         return self._hwa_view_gate.apply(hwa, now_us, lane,
-                                         speed.speed_mps if speed is not None else self.vehicle.v_x)
+                                         speed.speed_mps if speed is not None else self.vehicle.v_x,
+                                         following=self._lcc_following)
 
     def _measured_motion(self, now_us: int) -> VehicleMotion | None:
         ch = self.ch
@@ -650,7 +699,7 @@ class Harness:
     def _adas_function_requests(self, now_us: int) -> FunctionRequests:
         measured_adas, ideal_adas = self._adas_modes
         ch = self.ch
-        status = _fresh(ch["path_status"].latest, now_us, PATH_STATUS_TIMEOUT_US)
+        status = _fresh(ch["intervention_status"].latest, now_us, PATH_STATUS_TIMEOUT_US)
         preview = PathFeedback(path_valid=status is not None and status.path_valid)
         feedback = PathFeedback(status.path_valid, status.lka_phase, status.elk_phase) if status else preview
         select_measured = self.scenario.adas_mode == "A"
@@ -689,10 +738,9 @@ class Harness:
         ch = self.ch
         view = self._planner_view
         t0_local = now_us if self._ideal_clocks else self.clocks["adas"].local(now_us)
-        inputs = PlannerInputs(
+        shared = dict(
             t0_us=t0_local,
             lane_model=view("lane_model", ch["lane_model"].latest),
-            object_list=view("object_list", ch["object_list"].latest),
             imu=view("imu", ch["imu"].latest),
             steering=view("steering", ch["steering"].latest),
             speed=view("speed", ch["speed"].latest),
@@ -700,6 +748,9 @@ class Harness:
             function_requests=view("function_requests", ch["function_requests"].latest),
             longitudinal_plan=view("longitudinal_plan", ch["longitudinal_plan"].latest),
         )
+        inputs = LccInputs(**shared, object_list=view("object_list", ch["object_list"].latest),
+                           lead_target=view("lead_target", ch["lead_target"].latest))
+        ka_inputs = LkaElkInputs(**shared)
         ego_invalid = self.ego_faults.invalid(now_us)
         adas = self.clocks["adas"]
 
@@ -711,20 +762,29 @@ class Harness:
             return self.ego_motion.query(request)
 
         start = time.perf_counter_ns()
-        out = self.planner.step(inputs, ego_motion)
-        compute_ns = time.perf_counter_ns() - start
-        if out.trajectory is not None:
-            ch["trajectory"].publish(out.trajectory, now_us)
-        if out.path_status is not None:
-            ch["path_status"].publish(out.path_status, now_us)
-        if out.lateral_limits is not None:
-            ch["lateral_limits"].publish(out.lateral_limits, now_us)
-        if out.path_status is not None:
-            for event in self._events.update(out.path_status, now_us):
-                self.function_requests.on_event(event, now_us)
-                self._driver_event(event, now_us)
-            if self._pending:
-                self._start_triggered(out.path_status, now_us)
+        lcc_out = self.planners.lcc.step(inputs, ego_motion) if self.planners.lcc is not None else LccOutputs()
+        middle = time.perf_counter_ns()
+        ka_out = self.planners.lka_elk.step(ka_inputs, ego_motion) if self.planners.lka_elk is not None else LkaElkOutputs()
+        compute_lcc_ns, compute_ka_ns = middle - start, time.perf_counter_ns() - middle
+        if self.planners.lcc is None:
+            compute_lcc_ns = 0
+        if self.planners.lka_elk is None:
+            compute_ka_ns = 0
+        compute_ns = max(compute_lcc_ns, compute_ka_ns)
+        trajectory, status = self.arbitrator.choose(now_us, lcc_out, ka_out)
+        self._lcc_following = lcc_out.lcc_status is not None and lcc_out.lcc_status.lcc_mode == LccMode.FOLLOW
+        if trajectory is not None:
+            ch["trajectory"].publish(trajectory, now_us)
+        ch["path_status"].publish(status, now_us)
+        if ka_out.intervention_status is not None:
+            ch["intervention_status"].publish(ka_out.intervention_status, now_us)
+        if lcc_out.lateral_limits is not None:
+            ch["lateral_limits"].publish(lcc_out.lateral_limits, now_us)
+        for event in self._events.update(status, now_us):
+            self.function_requests.on_event(event, now_us)
+            self._driver_event(event, now_us)
+        if self._pending:
+            self._start_triggered(status, now_us)
         lane = inputs.lane_model
         lane_view = None
         reported = None
@@ -737,16 +797,18 @@ class Harness:
         usable = inputs_usable(inputs)
         usable["ego_motion"] = not ego_invalid
         times = {name: (rx.message.header.stamp_us, rx.rx_us, rx.message.header.valid)
-                 for name in ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
-                              "function_requests", "longitudinal_plan")
+                 for name in ("lane_model", "object_list", "lead_target", "imu", "steering", "speed",
+                              "vehicle_state", "function_requests", "longitudinal_plan")
                  if (rx := getattr(inputs, name)) is not None}
         boundaries = (None if inputs.lane_model is None else
                       tuple((b.status, b.confidence) for b in (*inputs.lane_model.message.lines,
                                                                *inputs.lane_model.message.road_edges)))
-        self.log.cycles.append(PlannerCycle(now_us, out.trajectory, out.path_status,
-                                            out.lateral_limits, compute_ns, lane_view, inputs.function_requests,
-                                            reported, usable, t0_local, times, boundaries,
-                                            inputs.longitudinal_plan))
+        self.log.cycles.append(PlannerCycle(now_us, trajectory, status, lcc_out.lateral_limits, compute_ns,
+                                            lane_view, inputs.function_requests, reported, usable, t0_local,
+                                            times, boundaries, inputs.longitudinal_plan,
+                                            lcc_out.trajectory, lcc_out.lcc_status, ka_out.trajectory,
+                                            ka_out.intervention_status, compute_lcc_ns, compute_ka_ns,
+                                            inputs.lead_target))
         if self.scenario.loop == "open":
             self._open_loop_path(now_us)
         if self.observer is not None:
@@ -764,7 +826,7 @@ class Harness:
         repeats[k] = (now_us * 1e-6 + offset, scale)
         self._driver_spec = replace(spec, repeats=tuple(repeats))
 
-    def _start_triggered(self, status: PathStatus, now_us: int) -> None:
+    def _start_triggered(self, status: SystemStatus, now_us: int) -> None:
         for event, seen in self._fault_events.items():
             if seen is None and fault_trigger.happened(event, status):
                 self._fault_events[event] = now_us
@@ -800,6 +862,9 @@ class Harness:
             position[fault.channel] += 1
         self.log.fault_events = dict(self._fault_events)
         self.log.events = {e: list(t) for e, t in self._events.times.items() if t}
+        lead_faults = self._injectors.get("lead_target")
+        if lead_faults is not None and (stamps := lead_faults.lead_fault_stamps()):
+            self.log.fault_frames["lead_target"] = stamps
         if self._fault_events:
             # Faults as injected: a triggered fault carries its real start (NEVER_S if not injected).
             channel = list(self.scenario.channel_faults)

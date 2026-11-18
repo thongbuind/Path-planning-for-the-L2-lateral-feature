@@ -1,6 +1,6 @@
 """Behaviour checksum (eval.checksum; SIM-REQ-040): same run, same checksum; any bit, other one.
 
-Shortened S1-like run as in test_slice_s1. Needs build/planner/libpp_planner; skipped otherwise.
+Shortened S1-like run as in test_slice_s1. Needs build/planner/libpp_lcc and libpp_lkaelk; skipped otherwise.
 """
 
 import math
@@ -8,14 +8,14 @@ from dataclasses import replace
 
 import pytest
 
-from adapters.sil.sil_planner import SilPlanner, library_path
+from adapters.sil.sil_planner import PlannerLibraries, library_path
 from eval import checksum
 from sim.harness import Harness
 from sim.scenario import Scenario
 from sim.world.road import Segment
 
-pytestmark = pytest.mark.skipif(not library_path().exists(),
-                                reason=f"planner library not built: {library_path()}")
+pytestmark = pytest.mark.skipif(not (library_path("pp_lcc").exists() and library_path("pp_lkaelk").exists()),
+                                reason="planner libraries not built: build/planner")
 
 SHORT = Scenario(
     name="S1-short",
@@ -29,11 +29,11 @@ SHORT = Scenario(
 
 @pytest.fixture(scope="module")
 def log():
-    return Harness(SHORT, SilPlanner, seed=3).run()
+    return Harness(SHORT, PlannerLibraries.default(), seed=3).run()
 
 
 def test_same_case_same_seed_same_checksum(log):
-    again = Harness(SHORT, SilPlanner, seed=3).run()
+    again = Harness(SHORT, PlannerLibraries.default(), seed=3).run()
     assert checksum.behavior_checksum(again) == checksum.behavior_checksum(log)
 
 
@@ -62,5 +62,5 @@ def test_one_bit_of_ground_truth_changes_the_checksum(log):
 
 
 def test_another_seed_gives_another_checksum(log):
-    other = Harness(SHORT, SilPlanner, seed=4).run()
+    other = Harness(SHORT, PlannerLibraries.default(), seed=4).run()
     assert checksum.behavior_checksum(other) != checksum.behavior_checksum(log)

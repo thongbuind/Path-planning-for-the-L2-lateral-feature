@@ -1,9 +1,10 @@
 """B0 planner conformance C1, C2, C3 (Software Qualification Test Specification 11).
 
-    python3 -m eval.conformance [--planner LIB] [--out DIR] [--record]
+    python3 -m eval.conformance [--planner LOCATION] [--out DIR] [--record]
 
 Only what is observable through interfaces/c/pp_planner.h is checked: no scenario, no
-simulator. Every group of checks runs in its own child process, so a planner that crashes
+simulator. Both planners (pp_lcc_*, pp_lkaelk_*) run every check; a check passes only when it passes
+for both, and a failure names the planner. Every group of checks runs in its own child process, so a planner that crashes
 or hangs is reported as a failure instead of stopping the evaluator. C1 or C2 failed: the
 planner is blocked and no other suite runs. C3 failed: the other suites still run, without
 the Integrable flag. Exit status 1 when blocked.
@@ -31,18 +32,18 @@ VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)  # Software Qualifi
 
 # id: (level, what is checked, source)
 CHECKS = {
-    "C1.symbols": ("C1", "Có đủ pp_state_size, pp_init, pp_step, pp_version", "Interface Control Document 4"),
+    "C1.symbols": ("C1", "Có đủ pp_<planner>_state_size, init, step, version", "Interface Control Document 4"),
     "C1.layout": ("C1", "Build từ pp_types.h cùng phiên bản schema; layout struct khớp header sinh ra",
                   "Interface Control Document 4"),
-    "C1.state_size": ("C1", "pp_state_size trả cùng một số > 0", "Interface Control Document 4"),
+    "C1.state_size": ("C1", "state_size trả cùng một số > 0", "Interface Control Document 4"),
     "C1.alignment": ("C1", "Chạy được với vùng nhớ trạng thái căn theo PP_STATE_ALIGNMENT",
                      "interfaces/c/pp_planner.h"),
-    "C2.init_ok": ("C2", "pp_init trả OK với VehicleConfig hợp lệ (VP-0)", "Interface Control Document 4"),
+    "C2.init_ok": ("C2", "init trả OK với VehicleConfig hợp lệ (VP-0)", "Interface Control Document 4"),
     "C2.init_missing": ("C2", "VehicleConfig thiếu: pp_init không trả OK, không chu kỳ nào gửi Trajectory",
                         "PP-SWR-146"),
     "C2.init_out_of_limits": ("C2", "VehicleConfig ngoài giới hạn: pp_init không trả OK, không chu kỳ nào "
                               "gửi Trajectory", "Interface Control Document 5.8 (bề rộng ≤ 2,5 m)"),
-    "C2.outputs_every_cycle": ("C2", "Trajectory, PathStatus, LateralLimits gửi mỗi chu kỳ",
+    "C2.outputs_every_cycle": ("C2", "Trajectory, LccStatus, LateralLimits (LCC) và Trajectory, InterventionStatus (LKA/ELK) gửi mỗi chu kỳ",
                                "PP-SWR-010, 150"),
     "C2.filled": ("C2", "pp_step điền mọi trường của output mỗi chu kỳ", "interfaces/c/pp_planner.h"),
     "C2.counter": ("C2", "header.counter tăng 1 mỗi message, quay vòng 0–255", "PP-SWR-014"),
@@ -89,11 +90,23 @@ FORBIDDEN_SYMBOLS = {
                              "mach_continuous_time", "timespec_get", "ftime", "clock_getres"},
 }
 
-_OUT = pp_ctypes.PlannerOutputsC
-_MESSAGES = ("trajectory", "path_status", "lateral_limits")
-_ALL = io.leaves(_OUT)
-_BY_MESSAGE = {m: io.sub_leaves(_OUT, m + ".") for m in _MESSAGES}
-_FLAGS = {m: next(l for l in _ALL if l.path == f"{m}_sent") for m in _MESSAGES}
+_MESSAGES_OF = {"lcc": ("trajectory", "lcc_status", "lateral_limits"),
+                "lkaelk": ("trajectory", "intervention_status")}
+_OUT = _MESSAGES = _ALL = _BY_MESSAGE = _FLAGS = None
+
+
+def set_family(name: str) -> None:
+    """Which planner the checks address; once per process (every job has its own child)."""
+    global _OUT, _MESSAGES, _ALL, _BY_MESSAGE, _FLAGS
+    io.use_family(name)
+    _OUT = getattr(pp_ctypes, f"{io.FAMILY.outputs}C")
+    _MESSAGES = _MESSAGES_OF[name]
+    _ALL = io.leaves(_OUT)
+    _BY_MESSAGE = {m: io.sub_leaves(_OUT, m + ".") for m in _MESSAGES}
+    _FLAGS = {m: next(l for l in _ALL if l.path == f"{m}_sent") for m in _MESSAGES}
+
+
+set_family("lcc")
 
 
 def _byte(raw: bytes, leaf: io.Leaf) -> int:
@@ -226,9 +239,10 @@ class _Guards:
 
 def job_api(lib_path: str) -> list[dict]:
     lib = io.open_library(lib_path)
-    results = [_result("C1.symbols", "pass" if hasattr(lib, "pp_version") else "fail",
-                       "" if hasattr(lib, "pp_version") else "thiếu pp_version")]
-    sizes = [int(lib.pp_state_size()) for _ in range(3)]
+    version = f"{io.FAMILY.prefix}_version"
+    results = [_result("C1.symbols", "pass" if hasattr(lib, version) else "fail",
+                       "" if hasattr(lib, version) else f"thiếu {version}")]
+    sizes = [int(getattr(lib, f"{io.FAMILY.prefix}_state_size")()) for _ in range(3)]
     results.append(_result("C1.state_size", "pass" if sizes[0] > 0 and len(set(sizes)) == 1 else "fail",
                            f"{sizes[0]} byte" if len(set(sizes)) == 1 else f"đổi giữa các lần gọi: {sizes}"))
     guards = _Guards()
@@ -244,7 +258,7 @@ def job_init(lib_path: str) -> list[dict]:
     guards = _Guards()
     seq = io.Sequence("khởi tạo", 80)
     ok = io.Instance(lib, VP0).init_result == int(I.InitResult.OK)
-    results = [_result("C2.init_ok", "pass" if ok else "fail", "" if ok else "pp_init không trả OK với VP-0")]
+    results = [_result("C2.init_ok", "pass" if ok else "fail", "" if ok else "init không trả OK với VP-0")]
 
     def rejected(config) -> str | None:
         inst = io.Instance(lib, config)
@@ -252,7 +266,7 @@ def job_init(lib_path: str) -> list[dict]:
         guards.check("khởi tạo", inst)
         problems = []
         if inst.init_result == int(I.InitResult.OK):
-            problems.append("pp_init trả OK")
+            problems.append("init trả OK")
         if checker.trajectories_sent:
             problems.append(f"gửi Trajectory {checker.trajectories_sent}/{seq.cycles} chu kỳ")
         return ", ".join(problems) or None
@@ -281,7 +295,8 @@ def job_nominal(lib_path: str) -> list[dict]:
         checkers.append(checker)
     ids = ("C2.outputs_every_cycle", "C2.filled", "C2.counter", "C2.stamp", "C2.enum",
            "C2.trajectory_format", "C2.finite")
-    versions = {lib.pp_version() for _ in range(3)} if hasattr(lib, "pp_version") else set()
+    version_fn = getattr(lib, f"{io.FAMILY.prefix}_version", None)
+    versions = {version_fn() for _ in range(3)} if version_fn is not None else set()
     words = next(iter(versions)).decode("ascii", "replace").split() if len(versions) == 1 else []
     ok = (len(words) >= 6 and words[2] == "commit" and words[4] == "calibration"
           and all(words[i] for i in (0, 1, 3, 5)))
@@ -357,21 +372,26 @@ JOBS.update({f"robust:{name}": (lambda path, n=name: job_robust(path, n), ("C2.r
 
 # ---- parent ----------------------------------------------------------------------------
 
-def run_child(job: str, lib: Path) -> list[dict]:
+def run_child(job: str, lib: Path, family: str) -> list[dict]:
     """One job in a child process; a crash or hang fails every check of the job."""
     produced = JOBS[job][1]
+    who = f"[{family}] "
     try:
-        proc = subprocess.run([sys.executable, "-m", "eval.conformance", "--child", job, str(lib)],
+        proc = subprocess.run([sys.executable, "-m", "eval.conformance", "--child", job, str(lib), family],
                               cwd=ROOT, capture_output=True, text=True, timeout=CHILD_TIMEOUT_S)
     except subprocess.TimeoutExpired:
-        return [_result(c, "fail", f"{job}: planner không trả về sau {CHILD_TIMEOUT_S} s") for c in produced]
+        return [_result(c, "fail", f"{who}{job}: planner không trả về sau {CHILD_TIMEOUT_S} s") for c in produced]
     if proc.returncode != 0:
         if proc.returncode < 0:
-            why = f"{job}: planner làm tiến trình dừng (signal {-proc.returncode})"
+            why = f"{who}{job}: planner làm tiến trình dừng (signal {-proc.returncode})"
         else:
-            why = f"{job}: lỗi {proc.stderr.strip().splitlines()[-1] if proc.stderr.strip() else proc.returncode}"
+            why = f"{who}{job}: lỗi {proc.stderr.strip().splitlines()[-1] if proc.stderr.strip() else proc.returncode}"
         return [_result(c, "fail", why) for c in produced]
-    return json.loads(proc.stdout.strip().splitlines()[-1])
+    results = json.loads(proc.stdout.strip().splitlines()[-1])
+    for r in results:
+        if r["status"] == "fail" and r["detail"]:
+            r["detail"] = who + r["detail"]
+    return results
 
 
 def symbols(lib: Path) -> dict:
@@ -405,20 +425,27 @@ def merge(results: list[dict]) -> list[dict]:
                              if k in CHECKS else {"level": "info"})} for k in order if k in by_id]
 
 
-def run(lib: Path) -> dict:
+def run(planner) -> dict:
+    """`planner`: adapters.sil.sil_planner.PlannerLibraries, or a location (directory, or a library that
+    exports both families). Every check runs for both planners."""
+    if not hasattr(planner, "paths"):
+        from adapters.sil.sil_planner import PlannerLibraries
+        planner = PlannerLibraries.at(Path(planner))
     results = [_result("C1.layout", "not_checked",
                        "Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema")]
-    api = run_child("api", lib)  # loads the library in a child first
-    results += api
-    if any(r["id"] == "C1.symbols" and r["status"] == "fail" and "pp_version" not in r["detail"] for r in api):
-        others = [c for c in CHECKS if c not in ("C1.symbols", "C1.layout", "C3.symbols")
-                  and c not in JOBS["api"][1]]
-        results += [_result(c, "not_checked", "không gọi được thư viện") for c in others]
-    else:
-        for job in JOBS:
-            if job != "api":
-                results += run_child(job, lib)
-    results.append(symbols(lib))
+    for lib, family in planner.paths():
+        api = run_child("api", lib, family.name)  # loads the library in a child first
+        results += api
+        if any(r["id"] == "C1.symbols" and r["status"] == "fail" and "_version" not in r["detail"] for r in api):
+            others = [c for c in CHECKS if c not in ("C1.symbols", "C1.layout", "C3.symbols")
+                      and c not in JOBS["api"][1]]
+            results += [_result(c, "not_checked", f"không gọi được thư viện ({family.name})") for c in others]
+        else:
+            for job in JOBS:
+                if job != "api":
+                    results += run_child(job, lib, family.name)
+    for lib in dict.fromkeys(path for path, _ in planner.paths()):
+        results.append(symbols(lib))
     checks = merge(results)
     level = {lv: ("fail" if any(c["status"] == "fail" for c in checks if c["level"] == lv) else "pass")
              for lv in ("C1", "C2", "C3")}
@@ -447,7 +474,8 @@ def text(result: dict, version: str | None) -> str:
 
 
 def main() -> None:
-    if len(sys.argv) == 4 and sys.argv[1] == "--child":
+    if len(sys.argv) == 5 and sys.argv[1] == "--child":
+        set_family(sys.argv[4])
         print(json.dumps(JOBS[sys.argv[2]][0](sys.argv[3]), ensure_ascii=False))
         return
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -456,23 +484,25 @@ def main() -> None:
     parser.add_argument("--record", action="store_true",
                         help="Official run: clean working tree; copy to research/runs")
     args = parser.parse_args()
-    lib = (args.planner or planner_choice.library_path())
-    if not lib.is_file():
-        raise SystemExit(f"planner library not found: {lib}")
-    lib = lib.resolve()
-    manifest = provenance.make("conformance", lib.stem)
+    from adapters.sil.sil_planner import PlannerLibraries
+    planner = PlannerLibraries.at(args.planner) if args.planner is not None else PlannerLibraries.default()
+    missing = [p for p in dict.fromkeys((planner.lcc, planner.lka_elk)) if not p.is_file()]
+    if missing:
+        raise SystemExit(f"planner library not found: {', '.join(str(p) for p in missing)}")
+    manifest = provenance.make("conformance", planner.lcc.stem)
     try:
-        manifest["libraries"] = [provenance.library_info(lib, external=args.planner is not None)]
+        manifest["libraries"] = provenance.library_infos(planner, external=args.planner is not None)
     except Exception as error:  # a library that cannot be loaded is still judged (C1)
-        manifest["libraries"] = [{"path": str(lib), "sha256": provenance.sha256(lib), "pp_version": None,
-                                  "build": {}, "external": args.planner is not None, "error": str(error)}]
+        manifest["libraries"] = [{"path": str(p), "sha256": provenance.sha256(p), "pp_version": None,
+                                  "build": {}, "external": args.planner is not None, "error": str(error)}
+                                 for p in dict.fromkeys((planner.lcc, planner.lka_elk))]
     if args.record:
         provenance.preflight(manifest)
-    result = run(lib)
-    version = manifest["libraries"][0]["pp_version"]
+    result = run(planner)
+    version = " | ".join(str(lib["pp_version"]) for lib in manifest["libraries"])
     report = text(result, version)
     print(report)
-    out = args.out or OUT_DIR / f"{lib.stem}-{manifest['libraries'][0]['sha256'][:8]}"
+    out = args.out or OUT_DIR / f"{planner.lcc.stem}-{manifest['libraries'][0]['sha256'][:8]}"
     out.mkdir(parents=True, exist_ok=True)
     path = out / "conformance.json"
     path.write_text(json.dumps({"pp_version": version, **result}, indent=1, ensure_ascii=False) + "\n",

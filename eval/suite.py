@@ -12,6 +12,7 @@ import argparse
 from dataclasses import replace
 import json
 from pathlib import Path
+from shlex import join
 
 from eval import aspects, conclusion, conformance, isolation, labels, loader, matrix, openx, planner_choice, provenance, report
 
@@ -27,6 +28,8 @@ def verify_manifest(path):
     for case in manifest['cases']:
         if case['id'] in cases:
             raise ValueError('duplicate case id')
+        if case.get('planner_only') not in (None, *planner_choice.FAMILIES):
+            raise ValueError('invalid standalone planner family')
         source = (path.parent / case['file']).resolve()
         if not source.is_relative_to(path.parent.resolve()):
             raise ValueError('case path outside suite directory')
@@ -52,7 +55,12 @@ SCOPE = matrix.SCOPE
 
 
 def rerun_command(path, seed, planner) -> str:
-    return f'python3 -m eval.runner {path} --seed {seed}' + (f' --planner {planner.path}' if planner else '')
+    command = ['python3', '-m', 'eval.runner', str(path), '--seed', str(seed)]
+    if planner is not None:
+        command += ['--planner', str(planner.location)]
+        if planner.only:
+            command += ['--planner-only', planner.only]
+    return join(command)
 
 
 def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
@@ -61,6 +69,8 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
     from sim.logging import run_log
     path = directory / case['file']
     scenario = replace(loader.load_file(path), name=case['id'])
+    if case.get('planner_only'):
+        planner = replace(planner, only=case['planner_only'])
     log = Harness(scenario, planner, seed).run()
     identity = {'case_hash': resolved.case_hash(scenario), 'behavior_checksum': checksum.behavior_checksum(log)}
     result = metrics.evaluate(log)
@@ -68,11 +78,14 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
     result.criteria.extend(differential.criteria(scenario, log, planner, seed))
     family = case['family']
     scope = matrix.case_scope(case) | labels.scope_extra(labels.of(scenario))
+    if log.planner_only:
+        metrics.score_standalone(result, scope)
     failed = dict.fromkeys(c.id for c in result.criteria if c.applicable and not c.passed)
     case_labels = labels.of(scenario)
     record = {'case': case['id'], 'seed': seed, 'profile': scenario.profile, 'labels': case_labels,
               'aspects': aspects.members(family, case['anchor'], case.get('methods', []), case_labels),
-              'failed': result.case_failures + [key for key in failed if key in scope],
+              'failed': [i['text'] for i in result.issues if i['kind'] != metrics.ISSUE_NOT_JUDGED]
+                        + [key for key in failed if key in scope],
               'failed_out_of_scope': [key for key in failed if key not in scope],
               'scope': sorted(scope), 'rerun': rerun_command(path, seed, planner),
               **identity, 'result': result.to_dict(), 'mcap': None}
@@ -168,7 +181,7 @@ def main():
     source, cases = verify_manifest(args.manifest)
     planner = planner_choice.from_args(args)
     manifest = provenance.make('suite', source['suite'], {'jobs': args.jobs, 'start_method': isolation.START_METHOD})
-    manifest['libraries'] = [provenance.library_info(planner.path, external=args.planner is not None)]
+    manifest['libraries'] = provenance.library_infos(planner, external=args.planner is not None)
     manifest['generation'] = {'manifest': str(args.manifest.resolve()), 'sha256': provenance.sha256(args.manifest),
                               'inputs': source['inputs'], 'definition': source['definition']}
     if args.record:
@@ -187,10 +200,10 @@ def main():
     runs = runs[:args.max_runs] if args.max_runs else runs
     out = args.out or openx.ROOT / 'build' / 'suites' / source['suite']
     out.mkdir(parents=True, exist_ok=False)
-    planner_text = f"{manifest['libraries'][0]['pp_version']} ({manifest['libraries'][0]['sha256'][:12]})"
+    planner_text = ' / '.join(f"{lib['pp_version']} ({lib['sha256'][:12]})" for lib in manifest['libraries'])
     b0 = None
     if not args.skip_b0:
-        b0 = conformance.run(planner.path)
+        b0 = conformance.run(planner)
         (out / 'conformance.json').write_text(json.dumps(b0, indent=1, ensure_ascii=False) + '\n', encoding='utf-8')
         if b0['blocked'] and args.continue_after_b0:
             print('B0: không đạt C1 hoặc C2; vẫn chạy mọi ca (--continue-after-b0)', flush=True)
@@ -200,7 +213,7 @@ def main():
             print('\n'.join(conclusion.markdown(c, planner_text)))
             raise SystemExit(1)
     counts = {'planned': selected, 'executed': 0, 'failed': 0, 'failed_out_of_scope': 0, 'errors': 0,
-              'execution_faults': 0}
+              'execution_faults': 0, 'not_judged': 0}
     result_path = out / 'results.jsonl'
     records = []
     with result_path.open('w', encoding='utf-8') as stream:
@@ -214,6 +227,7 @@ def main():
             else:
                 counts['failed'] += bool(result['failed'])
                 counts['failed_out_of_scope'] += bool(result['failed_out_of_scope'])
+                counts['not_judged'] += any(issue['kind'] == 'not_judged' for issue in result['result']['issues'])
             stream.write(json.dumps(result, ensure_ascii=False, default=report.jsonable) + '\n')
             stream.flush()
             records.append({k: v for k, v in result.items()})

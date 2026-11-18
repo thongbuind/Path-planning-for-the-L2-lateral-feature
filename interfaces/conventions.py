@@ -45,7 +45,7 @@ class Header:
 
 @dataclass(frozen=True, slots=True)
 class BasicHeader:
-    """Header without frame_id (PathStatus, LateralLimits, FunctionRequests, chassis signals)"""
+    """Header without frame_id (LccStatus, InterventionStatus, LateralLimits, FunctionRequests, chassis signals)"""
 
     stamp_us: int  # [us]
     counter: int

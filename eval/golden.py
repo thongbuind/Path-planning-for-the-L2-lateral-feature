@@ -102,9 +102,11 @@ def run(paths: tuple[str, ...], jobs: int, lib: Path, out: Path = OUT) -> dict:
 
 
 def environment(lib: Path) -> dict:
-    info = provenance.library_info(lib, external=True)
+    from adapters.sil.sil_planner import PlannerLibraries
+    infos = provenance.library_infos(PlannerLibraries.at(lib), external=True)
     return {"platform": f"{sys.platform}-{platform.machine()}", "python": platform.python_version(),
-            "numpy": numpy.__version__, "library_sha256": info["sha256"], "pp_version": info["pp_version"]}
+            "numpy": numpy.__version__, "library_sha256": "+".join(i["sha256"] for i in infos),
+            "pp_version": " | ".join(str(i["pp_version"]) for i in infos)}
 
 
 def key(row: dict) -> str:
@@ -150,7 +152,7 @@ def main() -> None:
     paths = tuple(p for p in args.paths.split(",") if p)
     if not paths or set(paths) - set(PATHS) or "runner" not in paths:
         parser.error(f"--paths: comma list of {PATHS}, runner included")
-    lib = (args.planner or planner_choice.library_path()).resolve()
+    lib = (args.planner or planner_choice.default_location()).resolve()
     report = run(paths, args.jobs, lib)
     stamp = time.strftime("%Y%m%d-%H%M%S")
     (OUT / f"{stamp}-{args.action}.json").write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")

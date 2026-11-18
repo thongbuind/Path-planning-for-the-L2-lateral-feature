@@ -10,6 +10,8 @@
             <ParameterAssignment parameterRef="variant" value="a" />
             <ParameterAssignment parameterRef="description" value="LKA đang can thiệp, ELK vạch liền vào REQUEST" />
             <ParameterAssignment parameterRef="scenario_id" value="S9" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="1.0" />
+            <ParameterAssignment parameterRef="request_events" value="{&quot;events&quot;:[{&quot;at_s&quot;:4,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false},{&quot;at_s&quot;:4.5,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;NONE&quot;],[&quot;REQUEST&quot;,&quot;LEFT&quot;,&quot;SOLID_LINE&quot;]],&quot;driver_override&quot;:false},{&quot;at_s&quot;:6,&quot;requests&quot;:[[&quot;REQUEST&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;],[&quot;OFF&quot;,&quot;NONE&quot;,&quot;NONE&quot;]],&quot;driver_override&quot;:false}]}" />
           </ParameterValueSet>
           <ParameterValueSet>
             <ParameterAssignment parameterRef="variant" value="b" />

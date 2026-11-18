@@ -24,19 +24,17 @@ from dataclasses import dataclass
 from math import atan2, cos, isfinite, pi, sin
 
 from interfaces import (
-    PATH_STATUS_TIMEOUT_US,
     TRAJECTORY_HORIZON_S,
     TRAJECTORY_STEP_S,
     TRAJECTORY_TIMEOUT_US,
-    ActiveFunction,
     EgoMotionQuery,
     EgoMotionRequest,
-    PathStatus,
     Pose2D,
     Trajectory,
     VehicleConfig,
 )
 from sim.messages import SteeringRequest
+from sim.stand_ins.arbitrator import PATH_STATUS_TIMEOUT_US, ActiveFunction, SystemStatus
 
 US_PER_S = 1_000_000
 
@@ -130,14 +128,14 @@ class LateralController:
         self.heading_gain = heading_gain
         self._trajectory: Trajectory | None = None
         self._trajectory_rx_us = 0
-        self._status: PathStatus | None = None
+        self._status: SystemStatus | None = None
         self._status_rx_us = 0
         self._last_angle = 0.0
 
     def on_trajectory(self, message: Trajectory, rx_us: int) -> None:
         self._trajectory, self._trajectory_rx_us = message, rx_us
 
-    def on_path_status(self, message: PathStatus, rx_us: int) -> None:
+    def on_path_status(self, message: SystemStatus, rx_us: int) -> None:
         self._status, self._status_rx_us = message, rx_us
 
     def step(self, now_us: int, state: EgoState, ego_motion: EgoMotionQuery) -> SteeringRequest:

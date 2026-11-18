@@ -1,17 +1,19 @@
-/* T9 Arbitration (Software Detailed Design 12). */
+/* T9 Intervention selection (selection.h; Software Detailed Design 12). */
 
-#include "arbitration.h"
+#include "selection.h"
 
 #include <stddef.h>
 #include <string.h>
 
-static void publish_phases(const pp_arbitration_memory_t *mem, pp_arbitration_t *out)
+#include "pp_core.h"
+
+static void publish_phases(const pp_selection_memory_t *mem, pp_selection_t *out)
 {
     out->lka_phase = mem->intervention[PP_FUNCTION_LKA - 1U].phase;
     out->elk_phase = mem->intervention[PP_FUNCTION_ELK - 1U].phase;
 }
 
-void pp_arbitration_invalidate(pp_arbitration_memory_t *mem, pp_arbitration_t *out)
+void pp_selection_invalidate(pp_selection_memory_t *mem, pp_selection_t *out)
 {
     for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
         pp_intervention_request_t *state = &mem->intervention[i];
@@ -21,7 +23,7 @@ void pp_arbitration_invalidate(pp_arbitration_memory_t *mem, pp_arbitration_t *o
         }
         state->holding = false;
     }
-    out->active_function = PP_ACTIVE_FUNCTION_NONE;                      /* PP-SWR-043 */
+    out->active_function = PP_INTERVENTION_FUNCTION_NONE;                /* PP-SWR-043 */
     out->starting = false;
     publish_phases(mem, out);
 }
@@ -43,8 +45,7 @@ static void check_completion(pp_intervention_request_t *state, bool settled,
     }
 }
 
-void pp_arbitrate(pp_arbitration_memory_t *mem, const pp_arbitration_input_t *in,
-                  pp_arbitration_t *out)
+void pp_select(pp_selection_memory_t *mem, const pp_selection_input_t *in, pp_selection_t *out)
 {
     (void)memset(out, 0, sizeof(*out));
     bool allowed[PP_INTERVENTIONS] = {false, false};
@@ -85,23 +86,20 @@ void pp_arbitrate(pp_arbitration_memory_t *mem, const pp_arbitration_input_t *in
     }
 
     if (!in->path_available) {
-        pp_arbitration_invalidate(mem, out);
+        pp_selection_invalidate(mem, out);
         return;
     }
     if (allowed[PP_FUNCTION_ELK - 1U]) {
-        out->active_function = PP_ACTIVE_FUNCTION_ELK;                    /* PP-SWR-030, 033 */
+        out->active_function = PP_INTERVENTION_FUNCTION_ELK;              /* PP-SWR-030, 033 */
     } else if (allowed[PP_FUNCTION_LKA - 1U]) {
-        out->active_function = PP_ACTIVE_FUNCTION_LKA;
-    } else if (in->hwa_available && (in->requests != NULL)
-               && (in->requests->requests[PP_FUNCTION_HWA].state == PP_REQUEST_STATE_REQUEST)) {
-        out->active_function = PP_ACTIVE_FUNCTION_HWA;
+        out->active_function = PP_INTERVENTION_FUNCTION_LKA;
     } else {
-        /* No candidate; a usable path can still be published for handover. */
+        /* No candidate: NONE, and the Trajectory is sent with header.valid = false (PP-SWR-180). */
     }
 
     for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
         pp_intervention_request_t *state = &mem->intervention[i];
-        if (out->active_function == (pp_active_function_t)(PP_ACTIVE_FUNCTION_LKA + i)) {
+        if (out->active_function == (pp_intervention_function_t)(PP_INTERVENTION_FUNCTION_LKA + i)) {
             out->starting = state->phase != PP_INTERVENTION_PHASE_ACTIVE;
             state->phase = PP_INTERVENTION_PHASE_ACTIVE;
         } else if (state->phase == PP_INTERVENTION_PHASE_ACTIVE) {

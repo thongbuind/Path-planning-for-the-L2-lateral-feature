@@ -61,7 +61,7 @@ static void test_profile_advances_from_original_start_time(void)
     pp_intervention_sample(&path, request.received_us + 1000000U, &lateral);
     PP_CHECK_NEAR(lateral.d[0], d_at_one_second, 1.0e-8);
     pp_intervention_sample(&path, request.received_us + 10000000U, &lateral);  /* after the quintic */
-    PP_CHECK_NEAR(lateral.d[0], 0.3, 1.0e-6);
+    PP_CHECK_NEAR(lateral.d[0], 0.0, 1.0e-6);     /* The target is the lane centre (PP-SWR-084) */
     PP_CHECK_NEAR(lateral.d_dot[0], 0.0, 1.0e-8);
 }
 
@@ -104,8 +104,73 @@ static void test_aligns_vehicle_state_with_completion_tick(void)
     PP_CHECK_NEAR(pp_intervention_vy_at_t0(&history, &state, 145000U), 0.13, 1e-7);
 }
 
+
+/* PP-SWR-032, 090, PP-ASM-028: DLC >= 0 both sides, |d| <= d_end, |v_lat| <= v_lat_end, heading, a_y add. */
+static void test_end_condition_needs_the_car_near_the_centre(void)
+{
+    pp_reference_line_t ref = {.valid = true, .width = 3.5, .view_end = 100.0};
+    pp_old_path_t old = {.valid = true};
+    pp_lateral_state_t ego = {0};
+    for (uint32_t i = 0U; i < PP_TRAJECTORY_POINTS; i++) {
+        old.x[i] = 0.0;
+        old.v[i] = 20.0;
+    }
+    pp_ref_sample_cubic(&ref);
+    PP_CHECK(pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
+    ego.d = (double)pp_calibration.d_end + 0.02;           /* DLC is fine, but not near the centre */
+    PP_CHECK(!pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
+    ego.d = (double)pp_calibration.d_end - 0.02;
+    PP_CHECK(pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
+    PP_CHECK(!pp_intervention_settled(&ref, &ego, &old, 20.0, (double)pp_calibration.v_lat_end + 0.02,
+                                      0.0, &VP0, &pp_calibration));
+    ego.heading = (double)pp_calibration.heading_end * 2.0;
+    PP_CHECK(!pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
+}
+
+static pp_reference_line_t lane_of(double centre_y, double width)
+{
+    pp_reference_line_t ref = {.valid = true, .width = width, .view_start = 0.0, .view_end = 80.0};
+    ref.centre.c[0] = centre_y;
+    return ref;
+}
+
+/* PP-SWR-093, 094, PP-ADR-019: a hazard-side edge that jumps away waits T_confirm and then
+ * slides at ref_rate; one that moves toward the car is taken at once. */
+static void test_corridor_holds_a_jump_away_and_takes_one_toward_the_car(void)
+{
+    const double dt = 0.025;
+    pp_corridor_t c;
+    pp_corridor_reset(&c);
+    const pp_motion_t still = {0.0, 0.0, 0.0};
+    pp_reference_line_t live = lane_of(0.0, 3.5);                     /* hazard side: left, edge at +1.75 */
+    const pp_reference_line_t *ref = pp_corridor_update(&c, &live, NULL, true, PP_SIDE_LEFT, 2.9,
+                                                         &pp_calibration, dt);
+    PP_CHECK_NEAR(ref->width, 3.5, 1e-9);
+
+    live = lane_of(0.25, 4.0);                                        /* left edge jumped out to +2.25 */
+    unsigned held = 0U;
+    for (unsigned k = 0U; k < 20U; k++) {                             /* 0.5 s: below T_confirm = 1 s */
+        ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
+        held += c.pending ? 1U : 0U;
+        PP_CHECK_NEAR(ref->width, 3.5, 1e-9);                         /* corridor edge did not move */
+    }
+    PP_CHECK(held == 20U);
+    for (unsigned k = 0U; k < 30U; k++) {                             /* past T_confirm: slides slowly */
+        ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
+    }
+    PP_CHECK(ref->width > 3.5);
+    PP_CHECK(ref->width < 3.5 + (double)pp_calibration.ref_rate * 1.5);  /* at most ref_rate per second */
+
+    live = lane_of(-0.2, 3.1);                                        /* left edge moved to +1.35: toward the car */
+    ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
+    PP_CHECK_NEAR(ref->width, 3.1, 1e-9);
+    PP_CHECK(!c.pending);
+}
+
 int main(void)
 {
+    test_end_condition_needs_the_car_near_the_centre();
+    test_corridor_holds_a_jump_away_and_takes_one_toward_the_car();
     test_measured_edge_needs_association_with_ego_lane();
     test_profile_advances_from_original_start_time();
     test_chosen_candidate_is_not_cut_by_t10();

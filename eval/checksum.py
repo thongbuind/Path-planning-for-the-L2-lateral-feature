@@ -1,7 +1,7 @@
 """Behaviour checksum of one run (VERSION): equal checksums mean the same behaviour, bit for bit.
 
 Hashes the whole RunLog except what is not behaviour:
-  PlannerCycle.compute_ns   wall clock of the planner call (varies with the machine load)
+  PlannerCycle.compute_ns, compute_lcc_ns, compute_ka_ns   wall clock of the planner calls (varies with the machine load)
   RunLog.scenario, .road    inputs; their identity is the case_hash (eval.case)
 Every other field is in, so a field added to RunLog changes the checksum; bump VERSION when
 the list changes on purpose. Floats are hashed as IEEE-754 binary64 (execution.canonical).
@@ -12,8 +12,9 @@ import dataclasses
 
 from execution.canonical import Digest
 
-VERSION = "behavior_checksum/1"
-EXCLUDE = {"PlannerCycle": {"compute_ns"}, "RunLog": {"scenario", "road"}}
+VERSION = "behavior_checksum/2"   # 2: two planners, more PlannerCycle fields (PP-ADR-016)
+EXCLUDE = {"PlannerCycle": {"compute_ns", "compute_lcc_ns", "compute_ka_ns"},
+           "RunLog": {"scenario", "road", "fault_frames", "planner_only"}}
 # Ground truth per step, hashed in blocks for speed.
 TRUTH_INTS = ("t_us",)
 TRUTH_FLOATS = ("rear", "front", "a_y", "speed", "wheel_angle", "rear_v_y", "yaw_rate")

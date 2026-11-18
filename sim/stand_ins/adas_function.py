@@ -68,7 +68,7 @@ class AdasCalibration:
 
 @dataclass(frozen=True, slots=True)
 class PathFeedback:
-    """PathStatus values needed by the stand-in, with separate phase ownership."""
+    """InterventionStatus values needed by the stand-in, with separate phase ownership."""
 
     path_valid: bool = False
     lka_phase: InterventionPhase = InterventionPhase.NONE

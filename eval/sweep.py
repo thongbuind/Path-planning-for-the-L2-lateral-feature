@@ -16,10 +16,9 @@ summary.md, results.json and manifest.json. --record makes it an official run
 import argparse
 import json
 import math
-import os
 import subprocess
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import yaml
@@ -31,7 +30,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SUITE_DIR = ROOT / "benchmark" / "suites"
 SWEEP_DIR = ROOT / "build" / "sweep"
 BASE_CALIBRATION = ROOT / "planner" / "calibration" / "calibration.yaml"
-LIB_NAME = "libpp_planner.dylib" if os.uname().sysname == "Darwin" else "libpp_planner.so"
 
 # Ranking order of section 9 after the requirement count: safety, then comfort.
 RANK_TARGETS = ("PP-SWR-050", "PP-SWR-125", "PP-SWR-002", "PP-SWR-053")
@@ -68,8 +66,8 @@ def one_at_a_time(suite: dict) -> list[CalSet]:
 # PP-TS-014): camera view range (Q4) and delays (Q1 to Q3).
 SIM_KEYS = ("camera_view_m", "camera_view_start_m", "camera_latency_ms", "camera_jitter_ms",
             "yaw_filter_delay_ms", "function_requests_latency_ms")
-# Run values that are not numbers: ACC mode, and the vehicle profile (PP-TS-020).
-RUN_TEXT_KEYS = ("acc", "profile")
+# Run values that are not numbers: ACC mode, vehicle profile and simulation loop.
+RUN_TEXT_KEYS = ("acc", "profile", "loop")
 RUN_SIM_KEYS = SIM_KEYS + RUN_TEXT_KEYS
 
 
@@ -85,6 +83,7 @@ def check_sim(scenario) -> None:
           and 0.0 <= scenario.yaw_filter_delay_ms <= 500.0
           and 0.0 <= scenario.function_requests_latency_ms <= 500.0
           and scenario.acc in ("off", "on", "ignore_limits")
+          and scenario.loop in ("open", "closed")
           and 0.1 <= scenario.road_mu <= 1.2
           and (scenario.eps_delay_s is None or 0.0 <= scenario.eps_delay_s <= 0.5)
           and 1.0 <= scenario.perception_noise_scale <= 5.0)
@@ -103,13 +102,14 @@ def split_run(run: list) -> tuple[list, dict]:
     return spec, sim
 
 
-def load_run(run: list):
+def load_run(run: list, *, object_list_on_empty_road: bool = False):
     """Scenario of one suite run, with its fault and simulator values; name shows the values."""
-    from dataclasses import replace
     spec, sim = split_run(run)
     scenario = loader.load(spec[0], spec[1])
     if len(spec) > 2:
         scenario = loader.with_fault(scenario, spec[2], spec[3])
+    if object_list_on_empty_road:
+        scenario = replace(scenario, object_list_on_empty_road=True)
     if sim:
         scenario = replace(scenario, **{k: (str(v) if k in RUN_TEXT_KEYS else float(v))
                                         for k, v in sim.items()},
@@ -139,7 +139,44 @@ def _build(cal_set: CalSet, folder: Path) -> Path:
                    + [f"-D{key}={value}" for key, value in cal_set.cmake],
                    check=True, capture_output=True)
     subprocess.run(["cmake", "--build", str(build)], check=True, capture_output=True)
-    return build / LIB_NAME
+    return build  # holds libpp_lcc and libpp_lkaelk, built from the same calibration
+
+
+def _paired_evidence(log, result, scope: set[str]) -> dict:
+    """Keep the units, applicability and timing needed to compare matched SIL runs."""
+    from dataclasses import asdict
+
+    import numpy as np
+
+    def metric_row(metric) -> dict:
+        row = asdict(metric)
+        value = metric.value
+        row["value"] = float(value) if value is not None and math.isfinite(value) else None
+        if "applicable" in row:
+            row["applicable"] = bool(row["applicable"])
+            row["passed"] = bool(row["passed"])
+        return row
+
+    compute_ms = [cycle.compute_lcc_ns / 1.0e6 for cycle in log.cycles]
+    timing = {}
+    if compute_ms:
+        p50, p95, p99 = np.percentile(compute_ms, (50, 95, 99))
+        timing = {"p50": float(p50), "p95": float(p95), "p99": float(p99), "max": max(compute_ms)}
+    return {
+        "profile": log.scenario.profile,
+        "acc": log.scenario.acc,
+        "loop": log.scenario.loop,
+        "scored": bool(result.scored),
+        "issues": result.issues,
+        "case_failures": result.case_failures,
+        "criteria": [metric_row(c) for c in result.criteria if c.id in scope],
+        "targets": [metric_row(t) for t in result.targets if t.id in scope],
+        "timed_cycles": len(compute_ms),
+        "compute_lcc_ms": timing,
+        "hwa_share_after_request": result.info.get("hwa_share_after_request"),
+        "vehicle": {k: result.info.get(k) for k in
+                    ("ay_vehicle_r79_max", "jerk_vehicle_r79_max", "vehicle_offset_max_m")},
+    }
 
 
 def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None) -> dict:
@@ -147,21 +184,20 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
     suite = load_suite(suite_id)
     folder = (root or SWEEP_DIR / suite_id) / cal_set.name.replace("=", "_")
     lib = _build(cal_set, folder)
-    os.environ["PP_PLANNER_LIB"] = str(lib)
-    # Imported after the library is chosen.
-    from adapters.sil.sil_planner import SilPlanner
+    from adapters.sil.sil_planner import PlannerLibraries
     from eval import metrics, proposed
     from sim.harness import Harness
 
+    planner = PlannerLibraries.at(lib)
     params = yaml.safe_load((folder / "calibration.yaml").read_text(encoding="utf-8"))["parameters"]
     req_cal = cal_io.from_parameters(params)
     part = suite[which]
     runs = []
     for run in part["runs"]:
-        scenario = load_run(run)
+        scenario = load_run(run, object_list_on_empty_road=suite.get("object_list_on_empty_road", False))
         scope = scope_of(suite, run)
         for seed in part["seeds"]:
-            log = Harness(scenario, SilPlanner, seed).run()
+            log = Harness(scenario, planner, seed).run()
             result = metrics.evaluate(log, req_cal)
             result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
             result.targets.extend(proposed.targets(log, suite.get("proposed_targets", [])))
@@ -169,7 +205,11 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
                       if c.id in scope and c.applicable and not c.passed]
             values = {t.id: t.value for t in result.targets if t.id in scope}
             values[JERK] = next(c.value for c in result.criteria if c.id == JERK)
-            runs.append({"run": scenario.name, "seed": seed, "failed": failed, "values": values})
+            row = {"run": scenario.name, "seed": seed, "failed": failed, "values": values}
+            if suite.get("paired_evidence"):
+                row["spec"] = run
+                row.update(_paired_evidence(log, result, scope))
+            runs.append(row)
     summary = summarise(runs)
     out = {"set": cal_set.name, "values": cal_set.values, "cmake": dict(cal_set.cmake),
            "part": which, "library": str(lib), "summary": summary, "runs": runs}
@@ -226,6 +266,8 @@ def _table(results: list[dict]) -> list[str]:
 
 
 def main() -> None:
+    from adapters.sil.sil_planner import PlannerLibraries
+
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("suite", help="Suite id in benchmark/suites, e.g. P1")
     parser.add_argument("--jobs", type=int, default=1)
@@ -265,8 +307,10 @@ def main() -> None:
     (out_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     (out_dir / "results.json").write_text(json.dumps(tuning + test, indent=1, ensure_ascii=False),
                                           encoding="utf-8")
-    manifest["libraries"] = [provenance.library_info(Path(lib))
-                             for lib in sorted({r["library"] for r in tuning + test})]
+    manifest["libraries"] = [
+        info for lib in sorted({r["library"] for r in tuning + test})
+        for info in provenance.library_infos(PlannerLibraries.at(Path(lib)))
+    ]
     manifest["best"] = {"set": best["set"], "values": best["values"]}
     provenance.write(manifest, out_dir)
     print(f"Summary: {out_dir / 'summary.md'}", flush=True)

@@ -4,7 +4,8 @@
 from types import SimpleNamespace
 
 from eval import metrics
-from interfaces import ActiveFunction, CancelReason, ElkReason, FunctionRequest, LineStatus, RequestState, Side
+from interfaces import CancelReason, ElkReason, FunctionRequest, LineStatus, RequestState, Side
+from sim.stand_ins.arbitrator import ActiveFunction
 
 CAL = {"conf_ego": 0.5}
 SEEN = ((LineStatus.MEASURED, 0.9),) * 4 + ((LineStatus.LOST, 0.0),) * 2

@@ -26,11 +26,11 @@ def test_any_library_runs_through_the_planner_contract(stub):
     factory = planner_choice.resolve(stub)
     assert factory.version().startswith("stub_planner ")
     planner = factory(VP0)
-    assert planner.init_result is I.InitResult.OK
-    counters = [planner.step(I.PlannerInputs(t0_us=k * I.PLANNER_PERIOD_US), no_motion)
-                .path_status.header.counter for k in range(1, 4)]
+    assert planner.lcc.init_result is I.InitResult.OK and planner.lka_elk.init_result is I.InitResult.OK
+    counters = [planner.lcc.step(I.LccInputs(t0_us=k * I.PLANNER_PERIOD_US), no_motion)
+                .lcc_status.header.counter for k in range(1, 4)]
     assert counters == [0, 1, 2]
-    assert factory(None).init_result is I.InitResult.BAD_VEHICLE_CONFIG
+    assert factory(None).lcc.init_result is I.InitResult.BAD_VEHICLE_CONFIG
 
 
 def test_factory_is_picklable_for_worker_processes(stub):
@@ -45,7 +45,7 @@ def test_missing_library_stops_with_its_path(tmp_path):
 
 def test_library_without_required_call_is_refused(build_stub):
     lib = build_stub("STUB_NO_STEP")
-    with pytest.raises(SystemExit, match="missing pp_step"):
+    with pytest.raises(SystemExit, match="missing pp_lcc_step"):
         planner_choice.resolve(lib)
 
 

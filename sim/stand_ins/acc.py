@@ -10,7 +10,7 @@ Trajectory and the lane model as received, like an ACC on the vehicle bus.
 Numbers that 4.7 does not give (nhóm tự thống nhất, to be added to 4.7):
 - speed-hold gain 0.4 1/s; curve-envelope gain 1.0 1/s plus the envelope's own slope
   as feedforward;
-- LateralLimits timeout 75 ms, as PathStatus (Interface Control Document 6.2);
+- LateralLimits timeout 75 ms, as LccStatus (Interface Control Document 6.2);
 - the gap is counted from the front of the ego bounding box of the scenario file (centre at
   half the wheelbase, length 4.9 m, eval.openx), as the ObjectList gives no ego length; an
   object's position is moved forward by its relative speed over the age of the frame.
@@ -46,7 +46,7 @@ JERK_MAX = 2.5  # [m/s^3] (4.7)
 ACT_DELAY_S, ACT_TAU_S = 0.1, 0.3  # actuator (4.7)
 K_SPEED = 0.4  # [1/s] nhóm tự thống nhất
 K_CURVE = 1.0  # [1/s] nhóm tự thống nhất
-LIMITS_TIMEOUT_US = 75_000  # nhóm tự thống nhất (as PathStatus)
+LIMITS_TIMEOUT_US = 75_000  # nhóm tự thống nhất (as LccStatus)
 # FOLLOW (4.7, "Chọn xe mục tiêu", "Bám xe trước")
 STANDSTILL_GAP_M = 5.0
 TIME_GAP_S = 1.8  # ISO 15622:2018 6.2.3.1 (1.5-2.2 s)
@@ -64,6 +64,7 @@ EGO_LENGTH_M = 4.9  # bounding box of the scenario files (eval.openx)
 class Lead:
     gap: float  # [m] bumper to bumper, now
     speed: float  # [m/s] over ground along the ego heading
+    id: int = 0  # Object id of the target; LongitudinalPlan.target_id
 
 
 class LeadSelector:
@@ -93,6 +94,11 @@ class LeadSelector:
         """Distance from the corridor centre to the nearer side of the object [m]."""
         return abs(y - self._centre(x, path, lane)) - obj.width / 2
 
+    @property
+    def target_id(self) -> int | None:
+        """Object id of the target chosen by the last update, None when there is none."""
+        return self._target
+
     def update(self, now_us: int, objects: ObjectList | None, trajectory: Trajectory | None,
                lane: LaneModel | None, v: float) -> Lead | None:
         if objects is None:
@@ -113,7 +119,7 @@ class LeadSelector:
                 continue
             inside = min(self._offset(obj, x, y, path, lane),
                          self._offset(obj, x + (obj.vx - v) * LOOK_AHEAD_S, y + obj.vy * LOOK_AHEAD_S, path, lane))
-            lead = Lead(gap, obj.vx)
+            lead = Lead(gap, obj.vx, obj.id)
             if obj.id == self._target:
                 chosen = (inside, lead)
             if inside < self.half + CORRIDOR_MARGIN_M and (best is None or gap < best[1].gap):
@@ -220,18 +226,19 @@ class Acc:
         points = []
         a_prev = self.command
         lead = self._lead
+        target_id = lead.id if lead is not None else 0
         for _ in range(LONGITUDINAL_PLAN_POINTS):
             points.append(LongitudinalPoint(max(v, 0.0), a_prev))
             a, _ = self._law(v, self.set_speed, self._curve, d, no_accel, lead)
             if lead is not None:  # the target keeps its speed over the plan
-                lead = Lead(lead.gap + (lead.speed - v) * step, lead.speed)
+                lead = Lead(lead.gap + (lead.speed - v) * step, lead.speed, lead.id)
             a = min(A_MAX, max(A_MIN, a))
             a = min(a_prev + JERK_MAX * step, max(a_prev - JERK_MAX * step, a))
             d = max(0.0, d - v * step)
             v = max(0.0, v + a * step)
             a_prev = a
         msg = LongitudinalPlan(Header(now_us, self._counter, True, FrameId.BASE_LINK),
-                               self.mode, tuple(points), 0)
+                               self.mode, tuple(points), target_id)
         self._counter = (self._counter + 1) % 256
         return msg
 

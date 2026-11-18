@@ -1,10 +1,14 @@
-# Interface Control Document 6.1 (#trajectory). Planner -> Lateral Controller, 40 Hz.
+# Interface Control Document 6.1 (#trajectory). Each planner -> arbitrator -> Lateral Controller, 40 Hz.
 icd: "6.1"
 constants:
   TRAJECTORY_POINTS: {type: uint, value: 31}
   TRAJECTORY_STEP_S: {type: float, value: 0.1}
   TRAJECTORY_HORIZON_S: {type: float, value: 3.0}
   TRAJECTORY_TIMEOUT_US: {type: uint64, value: 75000}
+enums:
+  PlannerId:
+    doc: "Planner that sent the message (PP-SWR-019)"
+    values: {LCC: 0, LKA_ELK: 1}
 structs:
   TrajectoryPoint:
     fields:
@@ -22,3 +26,4 @@ structs:
       - {name: header, type: Header, doc: "stamp_us = t0, frame BASE_LINK"}
       - {name: points, type: TrajectoryPoint, count: TRAJECTORY_POINTS}
       - {name: observed_horizon_s, type: float32, unit: s, doc: "Time on the path up to which it lies within the lane model view range; later points are extrapolated (PP-SWR-018)"}
+      - {name: planner_id, type: PlannerId}

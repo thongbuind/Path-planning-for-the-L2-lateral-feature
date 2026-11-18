@@ -1,7 +1,7 @@
 """Run a whole benchmark for one planner, keep the log, write the HTML dashboard.
 
     python3 -m eval.run_full                        # full suite, 4 workers, MCAP for failed runs
-    python3 -m eval.run_full --planner build/other/libpp_planner.dylib --jobs 4
+    python3 -m eval.run_full --planner build/other --jobs 4
     python3 -m eval.run_full --suite smoke --max-runs 6   # quick check of the pipeline
 
 Steps, all into build/benchmark/<time>-<suite>-<planner commit>/:
@@ -50,7 +50,7 @@ def planner_commit(planner: Path | None) -> str:
     try:
         from eval import planner_choice, provenance
         lib = planner_choice.resolve(planner)
-        build = provenance.library_info(lib.path, external=planner is not None).get("build", {})
+        build = provenance.library_infos(lib, external=planner is not None)[0].get("build", {})
         return str(build.get("commit") or "planner")[:7]
     except Exception:
         return "planner"
@@ -59,7 +59,7 @@ def planner_commit(planner: Path | None) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--suite", choices=("smoke", "regression", "full"), default="full")
-    parser.add_argument("--planner", type=Path, help="Planner library under test (default: as eval.suite)")
+    parser.add_argument("--planner", type=Path, help="Planners under test: directory with libpp_lcc and libpp_lkaelk, or one library with both (default: as eval.suite)")
     parser.add_argument("--jobs", type=int, default=4, help="Worker processes; each holds one SIL log (8 GB: 4)")
     parser.add_argument("--mcap", choices=("failed", "all", "none"), default="failed",
                         help="MCAP logs: failed runs (default), every run (about 15 GB for full), none")

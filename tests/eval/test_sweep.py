@@ -82,6 +82,59 @@ def test_suite_run_with_vehicle_profile():
         sweep.load_run(["S1", "c", {"profile": "VP-99"}])
 
 
+def test_t7_studies_share_tuning_and_test_with_the_same_references():
+    import yaml
+
+    from eval import study
+
+    plans = [yaml.safe_load(study.find_plan(study_id).read_text(encoding="utf-8"))
+             for study_id in ("PP-TS-024", "PP-TS-025")]
+    assert {plan["suite"] for plan in plans} == {"PP-T7"}
+    assert all(plan["parts"] == ["tuning", "test"] for plan in plans)
+    driver, nn = [{v.name: (v.values, v.cmake) for v in study.variant_sets(plan)} for plan in plans]
+    assert driver["V0"] == nn["V0"]
+    assert driver["VQ"] == nn["V1"]
+    assert nn["V1r"][0]["qp_iters"] == nn["V2"][0]["qp_iters"]
+
+    suite = sweep.load_suite("PP-T7")
+    assert not set(suite["tuning"]["seeds"]) & set(suite["test"]["seeds"])
+    for part in plans[0]["parts"]:
+        cases = [sweep.load_run(run) for run in suite[part]["runs"]]
+        assert len({case.name for case in cases}) == len(cases)
+        assert {case.loop for case in cases} == {"open", "closed"}
+
+
+def test_t7_empty_road_open_loop_and_paired_evidence():
+    import json
+    from dataclasses import replace
+
+    import pytest
+
+    from eval import metrics
+    from sim.harness import Harness
+    from tests.sim.fakes import planner_set
+
+    suite = sweep.load_suite("PP-T7")
+    spec = ["S1", "f", {"loop": "open"}]
+    with pytest.raises(ValueError, match="loop"):
+        sweep.load_run(["S1", "f", {"loop": "unknown"}])
+
+    plain = replace(sweep.load_run(spec), duration_s=0.4)
+    study_case = replace(sweep.load_run(spec, object_list_on_empty_road=suite["object_list_on_empty_road"]),
+                         duration_s=0.4)
+    plain_log = Harness(plain, planner_set(), seed=3).run()
+    log = Harness(study_case, planner_set(), seed=3).run()
+    assert [c.t0_us for c in log.cycles] == [c.t0_us for c in plain_log.cycles]
+    assert not any(c.inputs_ok["object_list"] for c in plain_log.cycles)
+    assert any(c.inputs_ok["object_list"] for c in log.cycles)
+
+    evidence = sweep._paired_evidence(log, metrics.evaluate(log), sweep.scope_of(suite, spec))
+    assert evidence["timed_cycles"] == len(log.cycles)
+    assert evidence["compute_lcc_ms"]["p99"] <= evidence["compute_lcc_ms"]["max"]
+    assert all(not c["applicable"] for c in evidence["criteria"] if c["id"] == "PP-SWR-051")
+    json.dumps(evidence, allow_nan=False)
+
+
 def test_pp_ts_020_suite_loads_and_names_its_proposed_criteria():
     from eval import proposed, sweep
     suite = sweep.load_suite("PP-TS-020")

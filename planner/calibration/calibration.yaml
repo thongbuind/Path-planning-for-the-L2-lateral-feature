@@ -16,7 +16,8 @@ parameters:
   delta_ay:         {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-007, 008"}
   epsilon_ay:       {value: 0.2, unit: m/s^2, min: 0, max: 2.5, source: "Software Requirements Specification 7; R79 5.6.2.2.3"}
   T_flag:           {value: 0.2, unit: s, gt: 0, source: "Software Requirements Specification 7; PP-SWR-007, 008"}
-  v_lat_end:        {value: 0.1, unit: m/s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
+  v_lat_end:        {value: 0.15, unit: m/s, min: 0, max: 0.15, source: "Software Requirements Specification 7; PP-SWR-032, 090; mentor"}
+  d_end:            {value: 0.10, unit: m, min: 0, max: 0.10, source: "Software Requirements Specification 7; PP-SWR-032, 084, 090; mentor"}
   heading_end:      {value: 0.5, unit: deg, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   ay_add_end:       {value: 0.2, unit: m/s^2, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
   T_end_hold:       {value: 0.5, unit: s, min: 0, source: "Software Requirements Specification 7; PP-SWR-032, 090"}
@@ -24,7 +25,6 @@ parameters:
   T_elk:            {value: 2.0, unit: s, gt: 0, source: "Limits of PP-SWR-111, 113, 115"}
   intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
   intervention_T_max: {value: 10.0, unit: s, gt_param: intervention_T_step, source: "Software Detailed Design 15; T7 A (PP-TS-016)"}
-  dlc_target_lka:   {value: 0.5, unit: m, min: 0, source: "PP-SWR-084"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}
   ay_add_max_hwa:   {value: 0.5, unit: m/s^2, max: 2.5, source: "PP-SWR-001"}
   # Ceiling of the HWA path a_y above aysmax (PP-TS-020); 0 keeps the ceiling at aysmax.
@@ -37,7 +37,8 @@ parameters:
   stitch_soft_min:  {value: 0.02, unit: m, min: 0, source: "nhóm tự thống nhất; PP-TS-021"}
   k_jump:           {value: 3, unit: sigma, min: 0, source: "PP-SWR-121, 122"}
   T_confirm:        {value: 1.0, unit: s, min: 0, source: "PP-SWR-060, 061"}
-  offset_max:       {value: 0.3, unit: m, min: 0, source: "PP-SWR-055"}
+  offset_max:       {value: 0.3, unit: m, min: 0, source: "PP-SWR-056; two big vehicles only"}
+  offset_truck:     {value: 0.10, unit: m, min: 0, max: 0.10, source: "PP-SWR-055, 066; mentor"}
   gap_truck_min:    {value: 1.5, unit: m, gt: 0, source: "PP-SWR-055, 056"}
   dlc_offset_min:   {value: 0.3, unit: m, min: 0, source: "PP-SWR-051"}
   ttc_offset_start: {value: 3.0, unit: s, min: 0, source: "PP-SWR-058"}
@@ -75,3 +76,16 @@ parameters:
   qp_corridor_margin: {value: 0.3, unit: m, min: 0, source: "PP-SWR-051; T7 C"}
   qp_iters:           {value: 150, unit: "-", min: 1, source: "PP-SWR-015; T7 C"}
   qp_rho0:            {value: 1.0, unit: "-", gt: 0, source: "Software Detailed Design 15; T7 C"}
+  # T12 bám xe trước (Software Detailed Design 5.1; PP-SWR-170 to 177).
+  follow_lat_max:   {value: 1.0, unit: m, gt: 0, source: "PP-SWR-170; mentor (tunable)"}
+  follow_vlat_max:  {value: 0.6, unit: m/s, gt: 0, source: "PP-SWR-170; mentor (tunable)"}
+  # Trail of the lead centre: trail_n * trail_spacing must cover 50 m (checked in init).
+  trail_n:          {value: 128, unit: "-", min: 16, max: 256, source: "Software Detailed Design 15; T12"}
+  trail_spacing:    {value: 0.5, unit: m, gt: 0, source: "Software Detailed Design 15; T12"}
+  # Root-mean-square residual of the cubic through the trail (M2); 0.4 m is 1.6 x the position noise of a lead at 30 m.
+  trail_fit_max:    {value: 0.4, unit: m, gt: 0, source: "Software Detailed Design 15; T12"}
+  # Below this a LeadTarget counts as no lead vehicle (ICD 5.9).
+  exist_min:        {value: 0.5, unit: "-", min: 0, max: 1, source: "nhóm tự thống nhất; ICD 5.9"}
+  # Intervention corridor (Software Detailed Design 12 step 7; PP-ADR-019): hazard-side edge
+  # differences up to this are the same edge, 3 sigma of c0 by day (PP-ASM-011) plus margin.
+  corridor_tol:     {value: 0.15, unit: m, gt: 0, source: "nhóm tự thống nhất; PP-SWR-093, 094"}

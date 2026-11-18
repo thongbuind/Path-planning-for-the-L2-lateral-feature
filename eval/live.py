@@ -132,9 +132,9 @@ def catalog():
                            sim=data.get("sim", {}), hosts=[list(h) for h in data["hosts"]]))
 
     vehicles = [dict(id=p.name, wb=p.wheelbase, w=p.width_with_mirrors, mass=p.mass) for p in PROFILES.values()]
-    from adapters.sil.sil_planner import library_path, library_version
+    from adapters.sil.sil_planner import PlannerLibraries
     try:
-        pp = library_version(library_path())
+        pp = PlannerLibraries.default().version()
     except Exception as e:  # noqa: BLE001
         pp = f"không đọc được: {e}"
     return dict(scenarios=scenarios, faults=faults, combos=combos, vehicles=vehicles,
@@ -438,7 +438,6 @@ class LiveView:
 
 def init_message(h, cfg, planner, seed):
     import numpy as np
-    from adapters.sil.sil_planner import library_version
     from sim.vehicle.profiles import STEERING_RATIO
     sc = h.scenario
     road = h.road
@@ -447,7 +446,7 @@ def init_message(h, cfg, planner, seed):
     prof = h.profile
     return dict(
         type="init", name=sc.name, desc=(sc.notes or {}).get("description", ""), dur=sc.duration_s, dt=0.025, seed=seed,
-        pp=library_version(planner.path),
+        pp=planner.version(),
         veh=dict(name=prof.name, wb=prof.wheelbase, w=prof.width_with_mirrors, lr=prof.lr, mass=prof.mass, sr=STEERING_RATIO),
         road=dict(len=round(road.length, 1), w=sc.lane_width,
                   x=np.round(road.x[::step], 2).tolist(), y=np.round(road.y[::step], 2).tolist(),

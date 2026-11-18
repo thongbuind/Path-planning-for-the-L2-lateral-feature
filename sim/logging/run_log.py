@@ -1,7 +1,8 @@
 """One RunLog as an MCAP file for Foxglove (Software Qualification Test Specification 4.1, 10).
 
 Topics, log time = simulation time:
-  /planner/trajectory, /planner/path_status, /planner/lateral_limits   outputs, as sent
+  /planner/trajectory, /planner/path_status   chosen by the arbitrator stand-in and the status of its function
+  /planner/lcc_status, /planner/intervention_status, /planner/lateral_limits   planner outputs, as sent
   /planner/function_requests   FunctionRequests the planner received at each cycle
   /planner/cycle               compute time, lane-model view range given to the planner
   /truth/vehicle               ground truth every 10 ms: pose, speed, a_y, wheel angle, lane offset
@@ -65,6 +66,10 @@ def write(log, path: Path, run: dict[str, str] | None = None) -> Path:
                 out.message("/planner/trajectory", ns, _trajectory(c.trajectory))
             if c.path_status is not None:
                 out.message("/planner/path_status", ns, _plain(c.path_status))
+            if c.lcc_status is not None:
+                out.message("/planner/lcc_status", ns, _plain(c.lcc_status))
+            if c.intervention_status is not None:
+                out.message("/planner/intervention_status", ns, _plain(c.intervention_status))
             if c.lateral_limits is not None:
                 out.message("/planner/lateral_limits", ns, _plain(c.lateral_limits))
             if c.function_requests is not None:

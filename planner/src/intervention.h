@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "arbitration.h"
 #include "feasibility.h"
 #include "generators/quintic.h"
+#include "selection.h"
 #include "stitching.h"
 
 typedef struct {
@@ -26,6 +26,31 @@ typedef struct {
     double value;
     double rate;
 } pp_lateral_velocity_history_t;
+
+/*
+ * Intervention corridor (Software Detailed Design 12 step 7; PP-SWR-093, 094; PP-ADR-019): the
+ * reference line the intervention path is sampled on. Fixed when the intervention starts and
+ * moved by ego-motion. A new hazard-side edge that moved toward the car is taken at once; one
+ * that moved away waits T_confirm, then the corridor edge slides to it at ref_rate.
+ */
+typedef struct {
+    bool valid;
+    pp_reference_line_t ref;
+    bool pending;                  /* A hazard-side edge that moved away is waiting */
+    double pending_s;
+    double candidate_edge;         /* [m] y of the edge being confirmed, at the front axle */
+} pp_corridor_t;
+
+void pp_corridor_reset(pp_corridor_t *c);
+
+/*
+ * `live`: the reference line of this cycle. `started`: first cycle of an intervention.
+ * `motion`: ego-motion since the previous cycle, NULL when not known. Returns the corridor.
+ */
+const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_reference_line_t *live,
+                                              const pp_motion_t *motion, bool started,
+                                              pp_side_t side, double front_x,
+                                              const pp_calibration_t *cal, double dt);
 
 /* Align the estimate used in PP-SWR-032/090 with the current cycle. */
 double pp_intervention_vy_at_t0(pp_lateral_velocity_history_t *history,
