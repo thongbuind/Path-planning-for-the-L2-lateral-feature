@@ -41,6 +41,12 @@ def controls():
 def files():
     for name in ("manifest.json", "resolved-case.json", "evaluation.json"):
         (folder / name).write_text(json.dumps({"name": name, "run_id": request["run_id"]}))
+    changed = request.get("drift") and request.get("expect")  # a rerun that behaves differently
+    (folder / "manifest.json").write_text(json.dumps({
+        "name": "manifest.json", "run_id": request["run_id"], "seed": 1, "git": {"commit": "abc"},
+        "libraries": [{"pp_version": "stub", "sha256": "1"}],
+        "bundle": {"recipe": {"kind": "catalog", "sid": "S1", "v": "a"}, "case_hash": "case",
+                   "behavior_checksum": "other" if changed else "same", "checksum_version": "behavior_checksum/2"}}))
 
 
 threading.Thread(target=controls, daemon=True).start()

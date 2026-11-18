@@ -11,8 +11,9 @@ resolved-case.json, evaluation.json, trace.mcap and manifest.json there (eval.ru
 
 The case is built by eval.case from the web configuration, as eval.runner builds it, and the
 run is the same Harness with an observer: after each planner cycle (25 ms) the observer builds
-the frame of that cycle, waits for the wall clock, then sends it. pp_step() is called in real
-time; nothing is computed ahead. Pacing does not change the simulation (golden set, live path).
+the frame of that cycle, waits for the wall clock, then sends it. Both planners are stepped in
+real time; nothing is computed ahead. Pacing does not change the simulation (golden set, live
+path). A rerun has "recipe", "seed", "rate" and "expect" in request.json instead of "config" alone.
 
 Lines on stdout, field "type":
     phase  resolve | simulate | evaluate | write
@@ -79,7 +80,7 @@ def function_of(sc):
     if elk:
         return "ELK"
     if sc.hwa_request_s is not None:
-        return "HWA"
+        return "LCC"
     return "Khác"
 
 
@@ -138,7 +139,7 @@ def catalog():
     except Exception as e:  # noqa: BLE001
         pp = f"không đọc được: {e}"
     return dict(scenarios=scenarios, faults=faults, combos=combos, vehicles=vehicles,
-                triggers=["lka_active", "elk_active", "intervention_active"],
+                triggers=["lka_active", "elk_active", "intervention_active", "lcc_follow"],
                 acc=["off", "on", "ignore_limits"], pp=pp)
 
 
@@ -149,7 +150,7 @@ def catalog():
 LINE_VI = {0: "trái ngoài (L2)", 1: "trái làn mình (L1)", 2: "phải làn mình (R1)", 3: "phải ngoài (R2)"}
 CH_VI = {"lane_model": "lane model", "object_list": "object list", "imu": "IMU", "steering": "góc lái",
          "speed": "tốc độ", "vehicle_state": "vehicle state", "function_requests": "FunctionRequests",
-         "longitudinal_plan": "LongitudinalPlan"}
+         "longitudinal_plan": "LongitudinalPlan", "lead_target": "LeadTarget"}
 
 
 def recipe_from_config(cfg: dict) -> dict:
@@ -314,6 +315,27 @@ class Pace:
                 self.cv.wait(timeout=left)
 
 
+def path_points(trajectory):
+    """x, y of the 31 path points in cm, or None when there is no full path."""
+    if trajectory is None or len(trajectory.points) != 31:
+        return None
+    out = []
+    for p in trajectory.points:
+        out += [round(p.pose.x * 100), round(p.pose.y * 100)]
+    return out
+
+
+def system_share(eps, steering_angle):
+    """Share of the steering done by the system, or None when no physical quantity defines it:
+    with driver torque present the EPS stand-in has no motor torque to compare it with."""
+    share = eps.system_steering_share
+    if share == 1 and eps.controlling and eps.driver_torque:
+        return None
+    if not (share or eps.driver_torque or steering_angle or round(eps.driver_angle, 5)):
+        return None
+    return share
+
+
 class LiveView:
     """Builds the frame of each planner cycle from the harness; reads, never writes. Display
     only: nothing here is scored (the evaluator runs on the RunLog after the run)."""
@@ -324,7 +346,7 @@ class LiveView:
         self.lm_stamp = None
         self.ay_n = 0
         self.zi = self.sos = None
-        self.half_lane = 0.5 * h.road.lane_width
+        self.road_view, self.road_changes = None, 0
         self.half_car = 0.5 * h.profile.width_with_mirrors
         # cùng thứ tự với fault_items: lane, channel (theo kênh), sensor, ego
         pos = {}
@@ -342,13 +364,32 @@ class LiveView:
         flags += [int(h.ego_faults.invalid(now_us))] * len(h.scenario.ego_motion_faults)
         return flags
 
+    def lane_road(self, h):
+        """Đường nhìn từ làn xe đang ở, như bên chấm dùng (làn đổi bề rộng, xe đã đổi làn)."""
+        from eval import metrics
+        changes = len(getattr(h.log, "lane_index_changes", None) or ())
+        if self.road_view is None or changes != self.road_changes:
+            self.road_view, self.road_changes = metrics.lane_relative(h.log).road, changes
+        return self.road_view
+
+    def clearance(self, road, x, y, s_hint):
+        """Khoảng hở thật hai bên [m] từ xe tới biên làn tại vị trí (x, y) của bánh trước."""
+        from eval import metrics
+        from interfaces import Side
+        front = road.project(x, y, s_hint)
+        left = metrics._boundary_offset(road, Side.LEFT, front.s)
+        right = metrics._boundary_offset(road, Side.RIGHT, front.s)
+        return left - front.d - self.half_car, front.d - right - self.half_car
+
     def lane_model_points(self, h, msg):
         """Vạch và mép đường mà lane model báo cho planner, chuyển sang toạ độ thế giới.
 
-        Lane model ở khung base_link tại lúc camera chụp (stamp), nên đặt theo tư thế xe lúc đó.
-        Đa thức y = c0 + c1 x + c2 x^2 + c3 x^3 trong đoạn tầm nhìn; bỏ vạch LOST."""
+        Lane model ở khung base_link tại lúc camera chụp. Stamp theo đồng hồ camera nên đổi về
+        thời gian toàn cục rồi mới tra tư thế xe. Đa thức y = c0 + c1 x + c2 x^2 + c3 x^3 trong
+        đoạn tầm nhìn; bỏ vạch LOST."""
         log = h.log
-        i = min(max(bisect.bisect_left(log.t_us, msg.header.stamp_us), 0), len(log.t_us) - 1)
+        capture_us = h.clocks["camera"].to_global(msg.header.stamp_us)
+        i = min(max(bisect.bisect_left(log.t_us, capture_us), 0), len(log.t_us) - 1)
         rx, ry, yaw = log.rear[i]
         c, s = math.cos(yaw), math.sin(yaw)
         out = []
@@ -393,12 +434,12 @@ class LiveView:
         lm = cyc.lateral_limits
         fr = RL._plain(cyc.function_requests.message) if cyc.function_requests is not None else None
         lv = cyc.lane_view
-        traj = []
-        if tr is not None:
-            for p in tr.points:
-                traj += [round(p.pose.x * 100), round(p.pose.y * 100)]
-        if len(traj) != 62:
-            traj = [0] * 62
+        traj = path_points(tr) or [0] * 62
+        chosen = ps.get("chosen", "LCC")
+        other = cyc.ka_trajectory if chosen == "LCC" else cyc.lcc_trajectory
+        lcc = RL._plain(cyc.lcc_status) if cyc.lcc_status is not None else None
+        ka = RL._plain(cyc.intervention_status) if cyc.intervention_status is not None else None
+        lead = cyc.lead_target.message if cyc.lead_target is not None else None
         lmodel = None
         rx = h._planner_view("lane_model", h.ch["lane_model"].latest)
         if rx is not None and rx.message.header.stamp_us != self.lm_stamp:   # chỉ gửi khi có frame camera mới
@@ -408,35 +449,44 @@ class LiveView:
         for st in h.traffic.at(now_us * 1e-6):
             objs += [round(st.x, 2), round(st.y, 2), round(st.heading, 4)]
         steering_angle = round(h.eps.angle, 5)
-        system_share = h.eps.system_steering_share
-        if system_share == 1 and h.eps.controlling and h.eps.driver_torque:
-            # Driver torque is present, but the EPS stand-in has no motor torque to compare it with.
-            system_share = 0.5
-        elif not (system_share or h.eps.driver_torque or steering_angle or round(h.eps.driver_angle, 5)):
-            system_share = None
+        share = system_share(h.eps, steering_angle)
+        road = self.lane_road(h)
+        left, right = self.clearance(road, front[0], front[1], pf.s)
+        capture_us = h.clocks["camera"].to_global(lv[0]) if lv else None
         return dict(
             type="f", t=round(now_us * 1e-6, 3),
             x=round(rear[0], 2), y=round(rear[1], 2), yaw=round(rear[2], 4),
             v=round(log.speed[i], 2), ay=round(log.a_y[i], 3), ayf=round(float(filtered[-1]), 3),
-            whl=round(log.wheel_angle[i], 5), off=round(pr.d, 3),
-            steering_angle=steering_angle, steering_system_share=system_share,
-            dl=round(self.half_lane - pf.d - self.half_car, 3), dr=round(self.half_lane + pf.d - self.half_car, 3),
+            whl=round(log.wheel_angle[i], 5), off=round(road.project(rear[0], rear[1], pr.s).d, 3),
+            steering_angle=steering_angle, steering_system_share=share,
+            dl=round(left, 3), dr=round(right, 3),
             fn=ps.get("active_function", "NONE"), lk=ps.get("lka_phase", "NONE"), el=ps.get("elk_phase", "NONE"),
             pv=int(bool(ps.get("path_valid"))), tv=int(bool(tr is not None and tr.header.valid)),
             lim=int(bool(ps.get("lateral_limit_reached"))), nar=int(bool(ps.get("lane_too_narrow"))),
             vmax=round(lm.v_max, 2) if lm is not None else None,
             dist=round(lm.distance, 1) if lm is not None else None,
-            hor=round(tr.observed_horizon_s, 2) if tr is not None else 0.0,
+            hor=round(tr.observed_horizon_s, 2) if tr is not None else None,
             cms=round(cyc.compute_ns * 1e-6, 3),
             view=round(lv[1], 1) if lv else None,
-            age=round(now_us / 1e3 - lv[0] / 1e3, 1) if lv else None,
-            rq=[r["state"] for r in fr["requests"]] if fr else ["OFF", "OFF", "OFF"],
+            age=round((now_us - capture_us) / 1e3, 1) if lv else None,
+            rq=[r["state"] for r in fr["requests"]] if fr else ["—", "—", "—"],
             tlc=[r["tlc"] for r in fr["requests"][1:]] if fr else [None, None],
             ovr=int(bool(fr and fr.get("driver_override"))),
-            traj=traj, tr=objs, fa=self.active_flags(h, now_us), lm=lmodel)
+            traj=traj, tr=objs, fa=self.active_flags(h, now_us), lm=lmodel,
+            ch=chosen, alt=path_points(other) if other is not None and other.header.valid else None,
+            lcc=None if lcc is None else dict(v=int(bool(lcc["path_valid"])), m=lcc["lcc_mode"],
+                                              d=round(lcc["follow_distance"], 1),
+                                              lim=int(bool(lcc["lateral_limit_reached"])),
+                                              nar=int(bool(lcc["lane_too_narrow"]))),
+            ka=None if ka is None else dict(v=int(bool(ka["path_valid"])), f=ka["active_function"],
+                                            lk=ka["lka_phase"], el=ka["elk_phase"],
+                                            lim=int(bool(ka["lateral_limit_reached"]))),
+            lead=None if lead is None else dict(id=lead.id, c=lead.classification.name, gap=round(lead.gap, 1),
+                                                y=round(lead.y, 2), v=int(bool(lead.header.valid))),
+            cl=round(cyc.compute_lcc_ns * 1e-6, 3), ck=round(cyc.compute_ka_ns * 1e-6, 3))
 
 
-def init_message(h, cfg, planner, seed):
+def init_message(h, recipe, planner, seed):
     import numpy as np
     from sim.vehicle.profiles import STEERING_RATIO
     sc = h.scenario
@@ -456,7 +506,7 @@ def init_message(h, cfg, planner, seed):
         tr=dict(dims=[[sp.length, sp.width] for sp in sc.traffic]),
         faults=fault_items(sc), conds=sim_conditions(sc),
         env=dict(rain=bool(sc.road_mu < 1.0 or sc.perception_noise_scale > 1.0)),
-        acc=sc.acc, trigger=cfg.get("trigger") or None)
+        acc=sc.acc, trigger=recipe.get("trigger") or None)
 
 
 def done_message(result):
@@ -464,13 +514,15 @@ def done_message(result):
     info = r["info"]
     keep = ("first_hwa_s", "hwa_share_after_request", "vehicle_offset_max_m", "free_space_each_side_m", "speed_min_mps",
             "decel_max_mps2", "ay_vehicle_r79_max", "jerk_vehicle_r79_max", "ay_vehicle_r79_over_sustained_s",
-            "ay_vehicle_r79_limits")
+            "ay_vehicle_r79_limits", "fault_events_s", "faults_not_injected")
     return dict(type="done", res=dict(
-        passed=bool(r["passed"]),
-        criteria=[dict(id=c["id"], metric=c["metric"], value=c["value"], limit=c["limit"], passed=bool(c["passed"]))
+        passed=r["passed"] is True, judged=r["passed"] is not None,
+        criteria=[dict(id=c["id"], metric=c["metric"], value=c["value"], limit=c["limit"], passed=bool(c["passed"]),
+                       first_fail_s=c.get("first_fail_s"))
                   for c in r["criteria"] if c["applicable"]],
         targets=[dict(id=c["id"], metric=c["metric"], value=c["value"], unit=c["unit"]) for c in r["targets"]],
-        info={k: info.get(k) for k in keep}, failures=list(r.get("case_failures", []))),
+        info={k: info.get(k) for k in keep}, failures=list(r.get("case_failures", [])),
+        not_judged=[i["text"] for i in r["issues"] if i["kind"] == "not_judged"]),
         lim_ay=info.get("ay_vehicle_r79_limits") if info.get("ay_vehicle_r79_max") is not None else None)
 
 
@@ -511,7 +563,8 @@ def run(folder: Path) -> None:
     from eval import case, differential, metrics, planner_choice, run_bundle
     request = json.loads((folder / "request.json").read_text(encoding="utf-8"))
     cfg = request.get("config") or {}
-    seed = int(cfg.get("seed", 1))
+    seed = int(request.get("seed", cfg.get("seed", 1)))
+    expected_case = (request.get("expect") or {}).get("case_hash")  # set by a rerun (SIM-REQ-029)
 
     send(dict(type="phase", phase="resolve"))
     try:
@@ -520,20 +573,22 @@ def run(folder: Path) -> None:
         doc = case.document(recipe, scenario)
         from execution import bundle
         bundle.write_json(folder / "resolved-case.json", doc)  # identity kept even if the run fails
-        planner = planner_choice.resolve(None)
+        planner = planner_choice.resolve(None, request.get("planner_only"))
     except SystemExit as error:
         raise Failure("INFRA", str(error)) from error
     except Exception as error:  # noqa: BLE001  invalid request: no test result
         raise Failure("INFRA", f"{type(error).__name__}: {error}") from error
+    if expected_case and doc["case_hash"] != expected_case:
+        raise Failure("INFRA", f"Ca đã đổi: case_hash {doc['case_hash'][:12]} khác bản gốc {expected_case[:12]}")
 
     # T_timeout: 6 x the simulated duration + 30 s, wall clock without pauses (slowest rate 0.5x).
     send(dict(type="budget", timeout_s=6 * scenario.duration_s + 30))
-    pace = Pace(float(cfg.get("rate", 1)))
+    pace = Pace(float(request.get("rate", cfg.get("rate", 1))))
     threading.Thread(target=lambda: [pace.command(json.loads(line)) for line in sys.stdin if line.strip()],
                      daemon=True).start()
     try:
         h = make_harness(scenario, planner, seed, emit=send, pace=pace)
-        send(init_message(h, cfg, planner, seed))
+        send(init_message(h, recipe, planner, seed))
         send(dict(type="phase", phase="simulate"))
         log = h.run()
     except Exception as error:  # noqa: BLE001

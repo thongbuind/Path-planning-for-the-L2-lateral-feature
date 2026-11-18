@@ -18,9 +18,11 @@ API
     GET  /api/runs/<id>/files/<name>          one file of a finished bundle
     GET  /api/runs/<id>/bundle                files of a finished bundle with sizes and the SHA256SUMS check
     POST /api/runs/<id>/pin                   {"on": true | false}: a pinned run is never pruned
+    POST /api/runs/<id>/rerun                 new run from the recipe of <id>, checksum compared at the end
     GET  /api/suites                          suite runs found under build/benchmark (read-only)
     GET  /api/suites/<id>                     conclusion digest of one suite run
     GET  /api/suites/<id>/report              the HTML report of that suite run
+    POST /api/suites/<id>/reopen              {"case": ..., "seed": n}: rerun of one run of that suite
     GET  /api/golden                          golden baseline, by case and path (read-only)
 """
 
@@ -53,8 +55,8 @@ STATIC_FILES = {"index.html", "app.css", "js/i18n.js", "js/catalog-en.js", "js/c
                 "js/charts.js", "js/ui.js", "wb.css", "js/wb.js", "js/wb-runs.js", "js/wb-evidence.js"}
 BUNDLE_FILES = {"manifest.json", "resolved-case.json", "execution.json", "evaluation.json", "request.json",
                 "trace.mcap", "frames.ndjson.gz", "worker.log", "SHA256SUMS"}
-RUN_PATH = re.compile(r"^/api/runs/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/events|/control|/cancel|/bundle|/pin|/files/[A-Za-z0-9._-]+)?$")
-SUITE_PATH = re.compile(r"^/api/suites/([A-Za-z0-9][A-Za-z0-9._-]{0,80})(/report)?$")
+RUN_PATH = re.compile(r"^/api/runs/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/events|/control|/cancel|/bundle|/pin|/rerun|/files/[A-Za-z0-9._-]+)?$")
+SUITE_PATH = re.compile(r"^/api/suites/([A-Za-z0-9][A-Za-z0-9._-]{0,80})(/report|/reopen)?$")
 MAX_BODY = 65536
 
 
@@ -152,6 +154,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         ms = SUITE_PATH.match(url.path)
         if ms:
             try:
+                if ms.group(2) == "/reopen":
+                    return self._json(405, {"error": "dùng POST"})
                 if ms.group(2):
                     body = evidence.suite_report(ms.group(1))
                     self.send_response(200)
@@ -167,7 +171,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             run_id, tail = m.group(1), m.group(2) or ""
             try:
                 if not tail:
-                    return self._json(200, {**self.app.supervisor.status(run_id),
+                    status = self.app.supervisor.status(run_id)  # first: the bundle may be finishing
+                    folder = self.app.supervisor.s.root / run_id
+                    rerun = evidence.rerun_check(folder) if (folder / "execution.json").is_file() else None
+                    return self._json(200, {**status, "rerun": rerun,
                                             "pinned": run_id in self.app.supervisor.pinned()})
                 if tail == "/bundle":
                     folder = self.app.supervisor.s.root / run_id
@@ -254,7 +261,24 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             except RuntimeError as error:
                 return self._json(503, {"error": str(error)})
             return self._json(201, {"run_id": run_id})
+        ms = SUITE_PATH.match(url.path)
+        if ms and ms.group(2) == "/reopen":
+            try:
+                request = evidence.suite_rerun_request(ms.group(1), str(body.get("case")), int(body.get("seed", 1)))
+            except (KeyError, StopIteration, OSError, ValueError):
+                return self._json(404, {"error": "không tìm thấy ca này hoặc thư mục ca của suite đã bị xóa"})
+            return self._start_rerun(request, f"Mở lại {body.get('case')} seed {body.get('seed', 1)}", None)
         m = RUN_PATH.match(url.path)
+        if m and m.group(2) == "/rerun":
+            folder = sup.s.root / m.group(1)
+            if not (folder / "execution.json").is_file():
+                return self._json(404, {"error": "không có run này (chỉ mở lại run đã xong)"})
+            try:
+                request = evidence.rerun_request(folder)
+            except KeyError:
+                return self._json(409, {"error": "run này không có đủ recipe và checksum để chạy lại"})
+            label = (bundles.read(folder).get("execution") or {}).get("label") or m.group(1)
+            return self._start_rerun(request, f"Mở lại {label}", m.group(1))
         if m and m.group(2) == "/pin":
             if not (sup.s.root / m.group(1) / "execution.json").is_file():
                 return self._json(404, {"error": "không có run này (chỉ ghim run đã xong)"})
@@ -270,6 +294,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             except LookupError as error:
                 return self._json(409, {"error": str(error)})
         return self._json(404, {"error": "không có API này"})
+
+    def _start_rerun(self, request: dict, label: str, parent: str | None) -> None:
+        try:
+            run_id = self.app.supervisor.submit(request, idempotency_key=self.headers.get("Idempotency-Key"),
+                                                label=label, parent=parent)
+        except RuntimeError as error:
+            return self._json(503, {"error": str(error)})
+        return self._json(201, {"run_id": run_id})
 
 
 def _label(config: dict) -> str:

@@ -9,25 +9,50 @@ from pathlib import Path
 
 from execution import bundle as B
 from execution.supervisor import Settings, Supervisor, TERMINAL
+from workbench import evidence
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = {"scenario": {"sid": "S1", "v": "a"}, "faults": [], "trigger": None, "vehicle": "VP-0", "seed": 1,
           "sim": {}, "acc": None, "rate": 0}
 
 
-def _run(tmp_path, library):
+def _wait(sup, run_id):
+    end = time.time() + 300
+    while time.time() < end:
+        status = sup.status(run_id)
+        if (status.get("state") or status.get("execution", {}).get("state")) in TERMINAL:
+            return sup.s.root / run_id, status
+        time.sleep(0.1)
+    raise AssertionError("run did not finish")
+
+
+def _supervisor(tmp_path, library):
     env = dict(os.environ, PP_PLANNER_LIB=str(library), PYTHONDONTWRITEBYTECODE="1")
-    sup = Supervisor(Settings(root=tmp_path / "runs", command=[sys.executable, "-m", "eval.live", "run"],
-                              cwd=ROOT, env=env, keep=None, max_bytes=None))
+    return Supervisor(Settings(root=tmp_path / "runs", command=[sys.executable, "-m", "eval.live", "run"],
+                               cwd=ROOT, env=env, keep=None, max_bytes=None))
+
+
+def _run(tmp_path, library):
+    sup = _supervisor(tmp_path, library)
     try:
-        run_id = sup.submit({"config": CONFIG})
-        end = time.time() + 300
-        while time.time() < end:
-            status = sup.status(run_id)
-            if (status.get("state") or status.get("execution", {}).get("state")) in TERMINAL:
-                return sup.s.root / run_id, status
-            time.sleep(0.1)
-        raise AssertionError("run did not finish")
+        return _wait(sup, sup.submit({"config": CONFIG}))
+    finally:
+        sup.shutdown(2.0)
+
+
+def test_rerun_reproduces_the_checksum_and_stops_on_a_changed_case(tmp_path, build_stub):
+    sup = _supervisor(tmp_path, build_stub())
+    try:
+        folder, _ = _wait(sup, sup.submit({"config": CONFIG}))
+        request = evidence.rerun_request(folder)
+        again, status = _wait(sup, sup.submit(request, parent=folder.name))
+        assert status["execution"]["state"] == "COMPLETED"
+        assert evidence.rerun_check(again)["match"] is True
+
+        changed = {**request, "expect": {**request["expect"], "case_hash": "0" * 40}}
+        _, status = _wait(sup, sup.submit(changed, parent=folder.name))
+        assert status["execution"]["state"] == "FAILED" and status["execution"]["failure"] == "INFRA"
+        assert "Ca đã đổi" in status["execution"]["message"]
     finally:
         sup.shutdown(2.0)
 

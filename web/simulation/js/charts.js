@@ -1,6 +1,6 @@
 /* Biểu đồ trực tiếp: một SVG, các panel dùng chung trục thời gian 0 tới hết lượt chạy.
    Khung dựng một lần; mỗi chu kỳ planner mới chỉ nối thêm điểm, nên biểu đồ hiện dần theo lượt chạy.
-   Đường đổi màu theo chức năng đang lái (HWA, LKA, ELK); lỗi đang tiêm là dải xám phủ qua mọi panel. */
+   Đường đổi màu theo chức năng đang lái (LCC, LKA, ELK); lỗi đang tiêm là dải xám phủ qua mọi panel. */
 (() => {
   'use strict';
   const PP = window.PP;
@@ -45,10 +45,10 @@
       if (R.ay[0] < -lim[0]) ayRefs.push({ y: -lim[0] }, { y: -lim[1] });
     }
     return [
-      { key: 'off', name: 'Lệch tâm làn', unit: 'cm', sym: true, get: (k) => d.off[k] * 100, fmt: (x) => PP.fs(x, 0), refs: [{ y: free, t: 'mép làn' }, { y: -free }] },
-      { key: 'ay', name: 'a_y xe, lọc R79', unit: 'm/s²', get: (k) => d.ayf[k], fmt: (x) => PP.f(x, 2), refs: ayRefs },
-      { key: 'st', name: 'Góc vô lăng', unit: '°', sym: true, get: (k) => d.whl[k] * sr * 180 / Math.PI, fmt: (x) => PP.fs(x, 1) },
-      { key: 'cms', name: 'Thời gian tính', unit: 'ms', zero: true, cap: 30, get: (k) => d.cms[k], fmt: (x) => PP.f(x, 2), refs: [{ y: 25, t: 'chu kỳ 25 ms' }] },
+      { key: 'off', name: 'Lệch tâm làn · truth', unit: 'cm', sym: true, get: (k) => d.off[k] * 100, fmt: (x) => PP.fs(x, 0), refs: [{ y: free, t: 'mép làn' }, { y: -free }] },
+      { key: 'ay', name: 'a_y xe, lọc R79 · truth', unit: 'm/s²', get: (k) => d.ayf[k], fmt: (x) => PP.f(x, 2), refs: ayRefs },
+      { key: 'st', name: 'Góc vô lăng · truth', unit: '°', sym: true, get: (k) => d.whl[k] * sr * 180 / Math.PI, fmt: (x) => PP.fs(x, 1) },
+      { key: 'cms', name: 'Thời gian tính · đo thật', unit: 'ms', zero: true, cap: 30, get: (k) => d.cms[k], fmt: (x) => PP.f(x, 2), refs: [{ y: 25, t: 'chu kỳ 25 ms' }] },
     ];
   }
   function initRanges() {

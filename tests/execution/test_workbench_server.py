@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from workbench import evidence
 from workbench import server as W
 
 FAKE = [sys.executable, str(Path(__file__).with_name("fake_worker.py"))]
@@ -83,6 +84,63 @@ def test_idempotency_key(api):
     _, b = api("POST", "/api/runs", {"config": {"mode": "ok"}}, {"Idempotency-Key": "abc"})
     assert a == b
     wait_done(api, a["run_id"])
+
+
+def _reopen(api, config):
+    _, first = api("POST", "/api/runs", {"config": config})
+    wait_done(api, first["run_id"])
+    status, again = api("POST", f"/api/runs/{first['run_id']}/rerun", {})
+    assert status == 201
+    done = wait_done(api, again["run_id"])
+    assert done["execution"]["parent_run_id"] == first["run_id"]
+    return done["rerun"]
+
+
+def test_rerun_with_the_same_behaviour_matches(api):
+    check = _reopen(api, {"mode": "ok"})
+    assert check["match"] is True and check["reasons"] == []
+
+
+def test_rerun_with_another_behaviour_is_reported(api):
+    check = _reopen(api, {"mode": "ok", "drift": True})
+    assert check["match"] is False and check["actual"]["behavior_checksum"] == "other"
+    assert check["reasons"]
+
+
+def test_rerun_needs_an_identity(api):
+    _, body = api("POST", "/api/runs", {"config": {"mode": "eval_error"}})
+    wait_done(api, body["run_id"])
+    assert api("POST", f"/api/runs/{body['run_id']}/rerun", {})[0] == 409
+    assert api("POST", "/api/runs/20990101-000000-abcdef/rerun", {})[0] == 404
+
+
+def test_rerun_of_a_suite_case_uses_its_frozen_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(evidence, "ROOT", tmp_path)
+    monkeypatch.setattr(evidence, "BENCH", tmp_path / "build" / "benchmark")
+    run = tmp_path / "build" / "benchmark" / "run-1"
+    (run / "suite").mkdir(parents=True)
+    (run / "concrete" / "cases").mkdir(parents=True)
+    (run / "concrete" / "cases" / "S1-a.xosc").write_text("<x/>")
+    (run / "concrete" / "manifest.json").write_text(json.dumps(
+        {"cases": [{"id": "S1-a", "file": "cases/S1-a.xosc", "planner_only": "lcc"}]}))
+    (run / "suite" / "manifest.json").write_text(json.dumps(
+        {"libraries": [{"pp_version": "a", "sha256": "1"}, {"pp_version": "b", "sha256": "2"}], "git": {"commit": "c"}}))
+    (run / "suite" / "results.jsonl").write_text(
+        json.dumps({"case": "S1-a", "seed": 2, "case_hash": "x", "behavior_checksum": "y"}) + "\n")
+    request = evidence.suite_rerun_request("run-1", "S1-a", 2)
+    assert request["recipe"] == {"kind": "file", "path": "build/benchmark/run-1/concrete/cases/S1-a.xosc"}
+    assert request["seed"] == 2 and request["planner_only"] == "lcc"
+    assert request["expect"]["behavior_checksum"] == "y" and len(request["expect"]["libraries"]) == 2
+    with pytest.raises(KeyError):
+        evidence.suite_rerun_request("run-1", "S1-a", 3)
+
+
+def test_case_not_judged_is_neither_pass_nor_fail(tmp_path):
+    (tmp_path / "execution.json").write_text("{}")
+    (tmp_path / "manifest.json").write_text("{}")
+    (tmp_path / "evaluation.json").write_text(json.dumps(
+        {"passed": None, "criteria": [{"id": "A", "applicable": True, "passed": True}]}))
+    assert evidence.run_summary(tmp_path)["verdict"] == "not_judged"
 
 
 def test_foreign_origin_is_refused(api):

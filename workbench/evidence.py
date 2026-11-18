@@ -42,10 +42,14 @@ def _suite_dirs() -> list[Path]:
             and (p / "suite" / "conclusion.json").is_file()]
 
 
+def _libraries(manifest: dict) -> list[dict]:
+    return [{"pp_version": lib.get("pp_version"), "sha256": lib.get("sha256")} for lib in manifest.get("libraries") or []]
+
+
 def _planner(manifest: dict) -> dict:
-    libs = manifest.get("libraries") or []
+    libs = _libraries(manifest)
     git = manifest.get("git") or {}
-    return {"pp_version": libs[0].get("pp_version") if libs else None,
+    return {"pp_version": " | ".join(str(lib["pp_version"]) for lib in libs) or None, "libraries": libs,
             "commit": git.get("short"), "dirty": bool(git.get("dirty")),
             "environment": manifest.get("environment")}
 
@@ -159,7 +163,8 @@ def run_summary(folder: Path) -> dict:
                 ev = _read_json(folder / "evaluation.json")
                 crit = [c for c in ev.get("criteria", []) if c.get("applicable")]
                 bad = [c for c in crit if not c.get("passed")]
-                out["verdict"] = "pass" if ev.get("passed") else "fail"
+                out["verdict"] = ("pass" if ev.get("passed") else
+                                  "not_judged" if ev.get("passed", False) is None else "fail")
                 out["applicable"] = len(crit)
                 out["passed"] = len(crit) - len(bad)
                 out["first_fail"] = bad[0]["id"] if bad else None
@@ -168,6 +173,87 @@ def run_summary(folder: Path) -> dict:
         return out
     marker = folder / "execution.json"
     return _cached(marker, build)
+
+
+# ---- rerun -------------------------------------------------------------------------------
+
+def _identity(manifest: dict) -> dict:
+    """What a rerun must reproduce, from the manifest of a run."""
+    bundle = manifest.get("bundle") or {}
+    return {"case_hash": bundle.get("case_hash"), "behavior_checksum": bundle.get("behavior_checksum"),
+            "checksum_version": bundle.get("checksum_version"), "libraries": _libraries(manifest),
+            "commit": (manifest.get("git") or {}).get("commit")}
+
+
+def rerun_request(folder: Path) -> dict:
+    """Request of a run that repeats a finished run; KeyError when the run left no identity."""
+    manifest = _read_json(folder / "manifest.json") if (folder / "manifest.json").is_file() else {}
+    bundle = manifest.get("bundle") or {}
+    if not bundle.get("recipe") or not bundle.get("behavior_checksum"):
+        raise KeyError(folder.name)
+    request = {"recipe": bundle["recipe"], "seed": manifest.get("seed", 1), "rate": 0,
+               "planner_only": manifest.get("planner_only"),
+               "expect": {**_identity(manifest), "source": {"run": folder.name}}}
+    original = _read_json(folder / "request.json") if (folder / "request.json").is_file() else {}
+    if original.get("config"):
+        request["config"] = {**original["config"], "rate": 0}
+    return request
+
+
+def _suite_record(suite_dir: Path, case: str, seed: int) -> dict:
+    needle = json.dumps(case).encode()
+    with (suite_dir / "results.jsonl").open("rb") as stream:
+        for line in stream:
+            if needle in line:
+                record = json.loads(line)
+                if record.get("case") == case and record.get("seed") == seed:
+                    return record
+    raise KeyError(case)
+
+
+def suite_rerun_request(suite_id: str, case: str, seed: int) -> dict:
+    """Request of a run that repeats one run of a suite from its frozen case file."""
+    if not SUITE_ID.match(suite_id):
+        raise KeyError(suite_id)
+    folder = BENCH / suite_id
+    record = _suite_record(folder / "suite", case, seed)
+    cases = _read_json(folder / "concrete" / "manifest.json")["cases"]
+    entry = next(c for c in cases if c["id"] == case)
+    path = folder / "concrete" / entry["file"]
+    if not path.is_file():
+        raise KeyError(case)
+    manifest = _read_json(folder / "suite" / "manifest.json")
+    return {"recipe": {"kind": "file", "path": str(path.relative_to(ROOT))}, "seed": seed, "rate": 0,
+            "planner_only": entry.get("planner_only"),
+            "expect": {"case_hash": record.get("case_hash"), "behavior_checksum": record.get("behavior_checksum"),
+                       "checksum_version": None, "libraries": _libraries(manifest),
+                       "commit": (manifest.get("git") or {}).get("commit"),
+                       "source": {"suite": suite_id, "case": case}}}
+
+
+def rerun_check(folder: Path) -> dict | None:
+    """Result of a rerun against what it had to reproduce; None for any other run."""
+    request = _read_json(folder / "request.json") if (folder / "request.json").is_file() else {}
+    expected = request.get("expect")
+    if not expected:
+        return None
+    if not (folder / "manifest.json").is_file():
+        return {"expected": expected, "actual": None, "match": None, "reasons": ["Lần chạy lại không hoàn tất."]}
+    actual = _identity(_read_json(folder / "manifest.json"))
+    match = bool(expected.get("behavior_checksum")) and expected["behavior_checksum"] == actual["behavior_checksum"]
+    reasons = []
+    if not match:
+        if expected.get("checksum_version") and expected["checksum_version"] != actual["checksum_version"]:
+            reasons.append(f"Phiên bản checksum khác: {expected['checksum_version']} và {actual['checksum_version']}.")
+        if expected.get("case_hash") != actual["case_hash"]:
+            reasons.append("Ca đã đổi (case_hash khác).")
+        if [lib.get("sha256") for lib in expected.get("libraries") or []] != [lib["sha256"] for lib in actual["libraries"]]:
+            reasons.append("Thư viện planner khác bản đã ghi (sha256 khác).")
+        if expected.get("commit") != actual["commit"]:
+            reasons.append("Commit của simulator hoặc bên chấm khác bản đã ghi.")
+        if not reasons:
+            reasons.append("Cùng ca, thư viện và commit nhưng hành vi khác: cần mở problem report.")
+    return {"expected": expected, "actual": actual, "match": match, "reasons": reasons}
 
 
 def bundle_files(folder: Path, verify) -> dict:

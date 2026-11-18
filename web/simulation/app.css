@@ -369,7 +369,7 @@ button { font: inherit; color: inherit; }
   backdrop-filter: blur(4px);
 }
 .chip .dot { background: var(--scr-none); }
-.chip[data-fn="HWA"] .dot { background: var(--scr-hwa); }
+.chip[data-fn="LCC"] .dot { background: var(--scr-hwa); }
 .chip[data-fn="LKA"] .dot { background: var(--scr-lka); }
 .chip[data-fn="ELK"] .dot { background: var(--scr-elk); }
 .chip small { font-weight: 500; color: var(--scr-text-2); letter-spacing: 0; font-size: 11.5px; }
@@ -512,7 +512,10 @@ button { font: inherit; color: inherit; }
 .rq span { padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--ring); letter-spacing: .02em; }
 .rq span[data-s="STANDBY"] { color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--base); }
 .rq span[data-s="REQUEST"] { color: var(--on-fn); box-shadow: none; }
-.rq span[data-s="REQUEST"][data-f="HWA"] { background: var(--hwa); }
+.rq span[data-s="REQUEST"][data-f="LCC"] { background: var(--hwa); }
+.crit .jump { margin-top: 3px; padding: 1px 7px; border: 1px solid var(--ring); border-radius: 5px; background: none; color: inherit; font: inherit; font-size: 11px; cursor: pointer; }
+.crit .jump:hover { box-shadow: inset 0 0 0 1px var(--base); }
+.crumb .replay { font-weight: 600; }
 .rq span[data-s="REQUEST"][data-f="LKA"] { background: var(--lka); }
 .rq span[data-s="REQUEST"][data-f="ELK"] { background: var(--elk); }
 .fn-badge { display: inline-flex; align-items: center; gap: 6px; }

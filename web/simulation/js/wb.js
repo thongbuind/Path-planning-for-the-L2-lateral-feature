@@ -94,8 +94,8 @@
     return d;
   };
 
-  // ---------- Màn hình chờ giai đoạn sau ----------
-  /** Mẫu dùng chung: màn hình chưa dựng nói rõ sẽ có gì, khi nào, và hôm nay dùng được gì. */
+  // ---------- Màn hình backlog ----------
+  /** Mẫu dùng chung: phần chưa cam kết nói rõ sẽ có gì và hôm nay dùng được gì. */
   WB.cho = (o) => {
     const planned = o.planned || [];
     const avail = o.available || [];
@@ -118,10 +118,8 @@
               h('div', { style: 'position:absolute;left:63%;top:6px;bottom:6px;width:2px;background:var(--lka)' }),
               h('div', { style: 'position:absolute;left:calc(63% + 6px);top:13px;font-size:11px;color:var(--ink-2)' }, 'first_fail_s')))
         : null;
-    return h('section', { class: 'wb-cho', 'aria-label': 'Tính năng đang chờ' },
-      h('div', { class: 'hd' },
-        h('span', { class: 'badge' }, WB.ico('i-wait'), 'Chờ ' + o.phase),
-        o.wps ? WB.mono(o.wps, { style: 'font-size:12px;color:var(--ink-3)' }) : null),
+    return h('section', { class: 'wb-cho', 'aria-label': 'Tính năng trong backlog' },
+      h('div', { class: 'hd' }, h('span', { class: 'badge' }, WB.ico('i-wait'), 'Backlog, chưa cam kết')),
       h('div', { style: 'display:flex;flex-direction:column;gap:8px;max-width:720px' },
         h('h2', null, o.heading), h('p', { class: 'wb-sub' }, o.summary)),
       h('div', { class: 'two' },
@@ -138,13 +136,13 @@
       { key: 'chay', label: 'Chạy mới', href: '#/chay', st: 'done' },
       { key: 'runs', label: 'Run', href: '#/runs', st: 'done' }] },
     { title: 'Đánh giá', items: [
-      { key: 'suite', label: 'Suite và regression', href: '#/suite', st: 'part' },
-      { key: 'review', label: 'So sánh và campaign', href: '#/review', st: 'wait', note: 'GĐ 5' }] },
+      { key: 'suite', label: 'Suite và regression', href: '#/suite', st: 'done' },
+      { key: 'review', label: 'So sánh và campaign', href: '#/review', st: 'wait', note: 'Backlog' }] },
     { title: 'Bằng chứng', items: [
       { key: 'tincay', label: 'Độ tin cậy', href: '#/tincay', st: 'part' },
       { key: 'nentang', label: 'Nền tảng', href: '#/nentang', st: 'part' }] },
   ];
-  const ST_ICON = { done: ['i-check', 'st-done', 'Đã có'], part: ['i-half', 'st-part', 'Một phần'], wait: ['i-wait', 'st-wait', 'Chờ giai đoạn sau'] };
+  const ST_ICON = { done: ['i-check', 'st-done', 'Đã có'], part: ['i-half', 'st-part', 'Một phần'], wait: ['i-wait', 'st-wait', 'Backlog, chưa cam kết'] };
   function buildNav() {
     const box = document.getElementById('wb-groups');
     box.textContent = '';
@@ -194,7 +192,14 @@
     const key = parts[0] || 'chay';
     const my = ++token;
     leaveAll();
-    markNav(['chay', 'runs', 'suite', 'review', 'tincay', 'nentang'].includes(key) ? key : 'chay');
+    markNav(key === 'phat' ? 'runs' : ['chay', 'runs', 'suite', 'review', 'tincay', 'nentang'].includes(key) ? key : 'chay');
+    if (key === 'phat' && parts[1]) {   // #/phat/<run_id>[/<t>]: phát lại từ bundle, không chạy planner
+      chay.hidden = false; page.hidden = true;
+      document.title = 'Phát lại · Path Planner Workbench';
+      window.dispatchEvent(new Event('resize'));
+      PP.sim.play(parts[1], parts[2] != null ? Number(parts[2]) : null);
+      return;
+    }
     if (key === 'chay' || !WB.views[key]) {
       chay.hidden = false; page.hidden = true;
       document.title = 'Chạy mới · Path Planner Workbench';

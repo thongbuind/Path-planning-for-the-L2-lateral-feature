@@ -1,5 +1,5 @@
-/* Màn Đánh giá và Bằng chứng: Suite và regression (B5), So sánh và campaign (B6, chờ GĐ 5),
-   Độ tin cậy (B7), Nền tảng (B8). Dữ liệu từ /api/suites và /api/golden, chỉ đọc. */
+/* Màn Đánh giá và Bằng chứng: Suite và regression, So sánh và campaign (backlog),
+   Độ tin cậy, Nền tảng. Dữ liệu từ /api/suites và /api/golden; "Mở lại" tạo một run mới. */
 (() => {
   'use strict';
   const WB = window.WB;
@@ -7,7 +7,6 @@
   const { h, ico, mono, wait, tag, lbl, kv, card, page } = WB;
 
   const head = (title, sub, extra) => h('header', { class: 'wb-head' }, h('div', null, h('h1', null, title), h('p', { class: 'wb-sub' }, sub)), extra || null);
-  const dashItem = (phase, text) => h('div', { style: 'display:flex;gap:10px;font-size:13px;line-height:1.45' }, h('span', { class: 'wb-wait', style: 'flex:none;align-self:flex-start' }, phase), h('span', null, text));
   const when = (iso) => (iso ? iso.replace('T', ' ').slice(0, 16) : '');
 
   // ---------- Suite và regression (B5) ----------
@@ -35,11 +34,17 @@
       h('div', { class: 'wb-bars', style: 'padding-top:6px' }, ...(s.by_requirement.length ? s.by_requirement.map((q) => h('div', { class: 'wb-bar' },
         mono(q.id, { style: 'font-size:12px' }), h('span', { class: 'dim', style: 'font-size:11.5px' }, q.sg), h('i', null, h('b', { style: 'width:' + Math.max(3, Math.round(q.n / max * 100)) + '%' })), h('em', { class: 'wb-mono' }, String(q.n)))) : [h('p', { class: 'wb-small' }, 'Không có trượt BLOCKER.')])));
 
-    const missing = h('section', { class: 'wb-card dash', style: 'gap:10px' }, lbl('Còn thiếu trên màn này'),
-      dashItem('GĐ 3', 'Nút Mở lại cho từng ca trượt: chạy lại, so checksum, nhảy tới first_fail_s.'),
-      dashItem('GĐ 3', 'first_fail_s cho các tiêu chí min và max; hiện nhiều dòng còn trống.'),
-      dashItem('GĐ 5', 'Suite ghi bundle v1 cho từng lượt, để mỗi dòng mở được như một run.'),
-      h('p', { class: 'wb-small', style: 'padding-top:4px' }, 'Hôm nay: đọc ', mono('conclusion.json'), ' của lần chạy', s.has_report ? [h('span', null, '; báo cáo HTML cũ vẫn mở được ở '), h('a', { href: 'api/suites/' + id + '/report', target: '_blank', rel: 'noopener' }, 'report.html')] : '', '.'));
+    const howto = h('section', { class: 'wb-card', style: 'gap:10px' }, lbl('Điều tra một ca trượt'),
+      h('p', { class: 'wb-sub' }, 'Mở lại chạy lại ca từ file đã đóng băng của suite, rồi so behavior checksum với kết quả đã ghi. Run mới có đủ bundle để phát lại và tới lần trượt đầu.'),
+      h('p', { class: 'wb-small' }, 'Đọc ', mono('conclusion.json'), ' của lần chạy', s.has_report ? [h('span', null, '; báo cáo đầy đủ ở '), h('a', { href: 'api/suites/' + id + '/report', target: '_blank', rel: 'noopener' }, 'report.html')] : '', '.'));
+    const reopen = (f) => async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true; b.textContent = 'Đang mở…';
+      try {
+        const r = await WB.api('suites/' + id + '/reopen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ case: f.case, seed: f.seed }) });
+        WB.go('#/runs/' + r.run_id);
+      } catch (err) { b.textContent = 'Không mở được'; b.title = err.message; }
+    };
 
     const rows = s.first_fails;
     const fails = h('section', { class: 'wb-table', 'aria-label': 'Ca trượt BLOCKER' }, h('div', { style: 'min-width:1020px' },
@@ -49,15 +54,15 @@
         mono(f.requirement, { style: 'font-size:12px' }), h('span', { style: 'font-size:12px;color:var(--ink-2)' }, f.sg || '—'),
         h('span', { class: 'wb-mono', style: 'font-size:12px;min-width:0;overflow-wrap:anywhere' }, f.case, f.text ? h('span', { class: 'wb-small', style: 'display:block;font-family:var(--font)' }, f.text) : null),
         mono(f.profile || '—', { style: 'font-size:12px' }), mono(String(f.seed ?? '—'), { style: 'font-size:12px' }),
-        mono(f.first_fail_s != null ? WB.num(f.first_fail_s) : 'trống', { style: 'font-size:12px' + (f.first_fail_s == null ? ';color:var(--ink-3)' : '') }),
+        mono(f.first_fail_s != null ? WB.num(f.first_fail_s) : 'cả lượt', { style: 'font-size:12px' + (f.first_fail_s == null ? ';color:var(--ink-3)' : '') }),
         mono(WB.num(f.value) + ' · ' + WB.limit(f.limit), { style: 'font-size:12px;color:var(--wb-crit-ink)' }),
-        h('button', { type: 'button', class: 'wb-btn', disabled: true, style: 'height:32px;padding:0 10px;font-size:12.5px' }, 'Mở lại', wait('GĐ 3'))))));
+        h('button', { type: 'button', class: 'wb-btn', style: 'height:32px;padding:0 10px;font-size:12.5px', onclick: reopen(f) }, 'Mở lại')))));
 
     return page(
-      head('Suite và regression', h('span', null, 'Kết luận chính thức theo SQTS 8.4. Kết luận chỉ đúng trong phạm vi đã thử, không phải bằng chứng an toàn. Mô hình xe VP-0 đến VP-5 chưa validation, xem ', h('a', { href: '#/tincay' }, 'Handbook mục 15'), ' ', wait('GĐ 4'), '.'),
+      head('Suite và regression', h('span', null, 'Kết luận chính thức theo SQTS 8.4. Kết luận chỉ đúng trong phạm vi đã thử, không phải bằng chứng an toàn. Mô hình xe VP-0 đến VP-5 chưa validation.'),
         h('label', { class: 'wb-field' }, 'Lần chạy', select)),
       verdict,
-      h('div', { class: 'wb-cols' }, h('div', { class: 'a', style: 'flex:1 1 320px' }, byReq), h('div', { class: 'b', style: 'flex:1 1 320px' }, missing)),
+      h('div', { class: 'wb-cols' }, h('div', { class: 'a', style: 'flex:1 1 320px' }, byReq), h('div', { class: 'b', style: 'flex:1 1 320px' }, howto)),
       rows.length ? fails : null,
       h('p', { class: 'wb-small' }, 'Kết thúc ', when(s.finished), '. Đọc từ ', mono('GET /api/suites/' + id), '.'));
   }
@@ -67,16 +72,16 @@
     WB.title('So sánh và campaign');
     return page(head('So sánh và campaign', 'Đánh giá một thay đổi: bản mới tốt hơn hay kém hơn ở ca nào, seed nào, và tập ca đã chạy phủ được tới đâu.'),
       WB.cho({
-        phase: 'giai đoạn 5', wps: 'Bước 19 · 20 · 21 · 22 · 23', ghost: 'table',
+        ghost: 'table',
         heading: 'So sánh hai lần chạy và campaign',
         summary: 'So baseline với candidate theo từng ca và seed, kèm độ phủ của tập ca đã chạy.',
         planned: [
-          { t: 'Suite ghi bundle v1 cho từng lượt', ref: 'Bước 19' },
-          { t: 'So baseline và candidate theo ca và seed; ca không ghép được hiện riêng', ref: 'Bước 20' },
-          { t: 'Cảnh báo khi hai bên khác môi trường: thư viện, Python, numpy, máy', ref: 'Bước 20' },
-          { t: 'Coverage năm mức: thiết kế, lên lịch, đã chạy, điều kiện xảy ra thật, chấm được', ref: 'Bước 21' },
-          { t: 'Campaign: danh sách ca đóng băng, tiến độ, retry tạo run mới', ref: 'Bước 22' },
-          { t: 'Cảnh báo run dùng tham số ngoài miền dùng của model', ref: 'Bước 23' },
+          { t: 'Suite ghi bundle cho từng lượt' },
+          { t: 'So baseline và candidate theo ca và seed; ca không ghép được hiện riêng' },
+          { t: 'Cảnh báo khi hai bên khác môi trường: thư viện, Python, numpy, máy' },
+          { t: 'Coverage năm mức: thiết kế, lên lịch, đã chạy, điều kiện xảy ra thật, chấm được' },
+          { t: 'Campaign: danh sách ca đóng băng, tiến độ, retry tạo run mới' },
+          { t: 'Cảnh báo run dùng tham số ngoài miền dùng của model' },
         ],
         available: [
           { t: 'So hai lần chạy suite theo từng ca', d: 'python3 -m eval.compare' },
@@ -111,13 +116,13 @@
       li('i-check', 'ok-ico', 'Selfcheck: bên chấm phải bắt được lỗi cố ý', 'python3 -m eval.selfcheck'),
       li('i-check', 'ok-ico', 'Conformance B0, chạy trong CI', 'python3 -m eval.conformance'),
       li('i-wait', 'dim', 'Tool confidence: TI, TD, TCL theo ISO 26262-8 mục 11'),
-      h('div', null, wait('GĐ 4')));
-    const verif = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Verification'), wait('GĐ 4')),
-      li('i-wait', 'dim', 'Ca giải tích yaw rate ổn định: so r = v·δ / (L + K·v²) trên VP-0', 'WP-16a'),
-      li('i-wait', 'dim', 'Sai số rời rạc hóa RK4 ở bước 1; 0,5; 0,25 ms', 'WP-16b'),
-      li('i-wait', 'dim', 'Sensitivity: tham số mô hình xe ảnh hưởng nhiều nhất tới verdict', 'WP-16b'),
-      li('i-wait', 'dim', 'Quét K, steering ratio, actuator delay theo dải có nguồn', 'GAP-07'));
-    const hb = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Simulation Handbook'), wait('GĐ 4')),
+      h('div', null, wait('chưa làm')));
+    const verif = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Verification')),
+      li('i-check', 'ok-ico', 'Ca giải tích yaw rate ổn định: so r = v·δ / (L + K·v²) trên VP-0', 'tests/sim/test_vehicle.py'),
+      li('i-wait', 'dim', 'Sai số rời rạc hóa RK4 ở bước 1; 0,5; 0,25 ms'),
+      li('i-wait', 'dim', 'Sensitivity: tham số mô hình xe ảnh hưởng nhiều nhất tới verdict'),
+      li('i-wait', 'dim', 'Quét K, steering ratio, actuator delay theo dải có nguồn (backlog)'));
+    const hb = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Simulation Handbook'), wait('chưa viết')),
       h('p', { class: 'wb-sub' }, '18 mục theo R171 Annex 5. Mỗi kết quả trên workbench sẽ có liên kết tới mục model tương ứng và trạng thái validation. Chưa có dữ liệu xe thật nên validation ghi "chưa đánh giá".'));
 
     return page(head('Độ tin cậy', 'Kết quả của simulator tin được tới đâu: tất định, kiểm bên chấm, verification và hồ sơ theo R171 Annex 5. Chưa có dữ liệu xe thật nên validation ghi "chưa đánh giá".'),
@@ -135,16 +140,16 @@
         arrow('HTTP, sự kiện NDJSON đánh số seq'),
         h('div', { class: 'wb-band core' }, lbl('Lõi chung: không biết SUT là gì, chỉ dùng thư viện chuẩn'), h('div', { class: 'wb-mods' }, mod('workbench/', 'HTTP server, API run, idempotency key'), mod('execution/', 'c14n/1, bundle v1, supervisor, phân loại lỗi'))),
         arrow('Chạy worker bằng tiến trình con, không import gói SUT'),
-        h('div', { class: 'wb-band sut' }, lbl('Gói SUT đầu tiên: path planner'), h('div', { class: 'wb-mods' }, mod('eval/', 'ResolvedCase, checksum, live, runner, suite, golden'), mod('sim/', 'Harness 1 ms, mô hình xe, cảm biến, lỗi'), mod('benchmark/', 'Kịch bản, lỗi, suite'), mod('adapters/sil', 'Nạp .so bằng ctypes'), mod('planner/', 'C11, build thành .so'), mod('interfaces/', 'Hợp đồng dữ liệu')))),
+        h('div', { class: 'wb-band sut' }, lbl('Gói SUT đầu tiên: path planner'), h('div', { class: 'wb-mods' }, mod('eval/', 'ResolvedCase, checksum, live, runner, suite, golden'), mod('sim/', 'Harness 1 ms, mô hình xe, cảm biến, lỗi'), mod('benchmark/', 'Kịch bản, lỗi, suite'), mod('adapters/sil', 'Nạp hai thư viện bằng ctypes'), mod('planner/', 'C11, pp_lcc và pp_lkaelk'), mod('interfaces/', 'Hợp đồng dữ liệu')))),
       h('p', { class: 'wb-small', style: 'padding-top:12px' }, 'Giữ bằng ', mono('tests/test_import_rules.py'), ': execution và workbench không được import gói SUT nào; web không đọc mã nguồn.'));
-    const next = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('SUT'), wait('GĐ 7')),
-      h('div', { class: 'wb-li', style: 'border-top:0' }, ico('i-check', 'ok-ico'), h('span', null, 'Path planner ', mono('pp_planner · C11 · .so qua ctypes'), ' · đang dùng')),
-      h('div', { class: 'wb-li' }, ico('i-wait', 'dim'), h('span', null, 'Gói SUT thứ hai, ví dụ ACC, trên cùng lõi')),
+    const next = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('SUT')),
+      h('div', { class: 'wb-li', style: 'border-top:0' }, ico('i-check', 'ok-ico'), h('span', null, 'Path planner ', mono('pp_lcc + pp_lkaelk · C11 · ctypes'), ' · đang dùng')),
+      h('div', { class: 'wb-li' }, ico('i-wait', 'dim'), h('span', null, 'Gói SUT thứ hai, ví dụ ACC, trên cùng lõi (backlog)')),
       h('div', { class: 'wb-li' }, ico('i-wait', 'dim'), h('span', null, 'Hướng dẫn "thêm SUT mới"')),
-      h('div', { class: 'wb-li' }, ico('i-wait', 'dim'), h('span', null, 'Tách ', mono('interfaces.Received'), ' khỏi ', mono('sim/runtime'))));
+      h('div', { class: 'wb-li' }, ico('i-wait', 'dim'), h('span', null, 'Tách ', mono('interfaces.Received'), ' khỏi ', mono('sim/runtime'), ' (backlog)')));
     const ci = card('', lbl('CI'),
       h('div', { class: 'wb-li', style: 'border-top:0' }, ico('i-wait', 'dim'), h('span', null, 'Chưa chạy trên GitHub: ', mono('.github/workflows/tests.yml'), ', chạy mỗi lần push')),
-      ...[['Build thư viện planner', 'cmake pp_planner'], ['Toàn bộ test, gồm quy tắc import', 'pytest -q'], ['Conformance B0', 'eval.conformance'], ['Ghi golden rồi kiểm lại', 'eval.golden record, check'], ['Selfcheck, bấm tay', 'eval.selfcheck']].map(([t, d]) => h('div', { class: 'wb-li' }, ico('i-check', 'ok-ico'), h('div', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:3px' }, h('span', null, t), h('code', null, d)))));
+      ...[['Build hai thư viện planner', 'cmake pp_lcc pp_lkaelk'], ['Toàn bộ test, gồm quy tắc import', 'pytest -q'], ['Conformance B0', 'eval.conformance'], ['Ghi golden rồi kiểm lại', 'eval.golden record, check'], ['Selfcheck, bấm tay', 'eval.selfcheck']].map(([t, d]) => h('div', { class: 'wb-li' }, ico('i-check', 'ok-ico'), h('div', { style: 'flex:1;min-width:0;display:flex;flex-direction:column;gap:3px' }, h('span', null, t), h('code', null, d)))));
     return page(head('Nền tảng', 'Cách hệ thống được xây: lõi thực thi chung không biết gì về path planner, gói SUT cắm vào lõi, ranh giới được test giữ.'),
       h('div', { class: 'wb-cols' }, h('div', { class: 'a' }, diagram), h('div', { class: 'b' }, next, ci)));
   }

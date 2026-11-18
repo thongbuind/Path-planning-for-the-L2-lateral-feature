@@ -30,11 +30,14 @@
   const S = {
     phase: 'idle', cat: null, d: null, rate: 1, review: null, ac: null, runId: 0, lastK: -1, dirty: true, err: '',
     run: null, seq: 0, ended: false,   // lượt chạy trên server (run_id), seq của sự kiện cuối đã nhận
+    playback: null, playCfg: false,    // run đang phát lại từ bundle: không chạy planner
     fnFilter: '', q: '',
     sel: { scen: 'S1/c', faults: { F01: 'c', F04: 'a' }, trigger: '', env: { mu: true, cam: true, noise: false }, veh: 'VP-0', seed: 1, acc: '' },
   };
   const R = {};   // phần tử cập nhật theo khung
-  const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp' };
+  const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp', lcc_follow: 'LCC vào FOLLOW' };
+  const curScen = () => (S.playback && !S.playCfg ? null : S.cat.scenarios.find((x) => x.id === S.sel.scen));
+  const resText = (res) => (res.passed ? 'Đạt' : res.judged === false ? 'Không được chấm' : 'Không đạt');
 
   // ---------- Gọi server ----------
   // Lượt chạy thuộc về server, không thuộc về tab: đóng tab không dừng lượt chạy; mở lại thì nối tiếp.
@@ -115,7 +118,7 @@
   }
 
   function buildScenarioMenu(scenarios) {
-    const fns = ['Tất cả', ...['HWA', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => scenarios.some((s) => s.fn === f))];
+    const fns = ['Tất cả', ...['LCC', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => scenarios.some((s) => s.fn === f))];
     const chips = $('fn-chips');
     fns.forEach((f) => {
       const b = h('button', { type: 'button', role: 'radio', 'aria-checked': String(f === 'Tất cả'), 'data-f': f === 'Tất cả' ? '' : f, text: f });
@@ -129,7 +132,7 @@
       bySid.get(s.sid).push(s);
     });
     const list = $('m-scen');
-    const dotCls = { HWA: 'hwa', LKA: 'lka', ELK: 'elk', 'LKA+ELK': 'mix' };
+    const dotCls = { LCC: 'hwa', LKA: 'lka', ELK: 'elk', 'LKA+ELK': 'mix' };
     bySid.forEach((variants, sid) => {
       const base = variants.find((s) => s.v === 'a') || variants[0];
       const id = 'scen-options-' + sid;
@@ -364,7 +367,7 @@
       running: () => `Đang chạy · ${PP.f(t, 1)} / ${PP.f(d.dur, 0)} s · ${S.rate ? PP.vn(S.rate) + '×' : 'tối đa'}`,
       paused: () => `Tạm dừng ở ${PP.f(S.review != null ? d.t[S.review] : t, 1)} s`,
       finishing: () => 'Đang chấm kết quả…',
-      done: () => 'Xong · ' + (d.res.passed ? 'Đạt' : 'Không đạt'),
+      done: () => (S.playback ? 'Phát lại · ' : 'Xong · ') + resText(d.res),
       stopped: () => `Đã dừng ở ${PP.f(t, 1)} s`,
       error: () => S.err,
     }[S.phase]();
@@ -380,6 +383,7 @@
       n: 0, t: [], ego: { x: [], y: [], yaw: [] }, v: [], ay: [], ayf: [], whl: [], off: [], dl: [], dr: [], fn: [], lk: [], el: [],
       steeringAngle: [], steeringSystemShare: [],
       pv: [], tv: [], lim: [], nar: [], vmax: [], dist: [], hor: [], cms: [], view: [], age: [], rq: [], tlc: [], ovr: [], traj: [], fa: [], lm: [], lmk: [],
+      ch: [], alt: [], lcc: [], ka: [], lead: [], cl: [], ck: [],
       enums: { phase: ['NONE'], rq: ['OFF'] }, pre: { off: [], dlc: [], ay: [], cms: [] }, run: { mo: 0, md: Infinity, ma: 0, mc: 0 },
       res: null, lim_ay: null,
     };
@@ -402,6 +406,8 @@
     for (const v of m.fa) d.fa.push(v);
     if (m.lm) d.lm.push(m.lm);          // chỉ có khi camera gửi frame mới; các chu kỳ sau dùng lại frame đó
     d.lmk.push(d.lm.length - 1);
+    d.ch.push(m.ch ?? null); d.alt.push(m.alt ?? null); d.lcc.push(m.lcc ?? null); d.ka.push(m.ka ?? null);
+    d.lead.push(m.lead ?? null); d.cl.push(m.cl ?? null); d.ck.push(m.ck ?? null);
     const r = d.run;
     r.mo = Math.max(r.mo, Math.abs(m.off)); r.md = Math.min(r.md, m.dl, m.dr); r.ma = Math.max(r.ma, Math.abs(m.ayf)); r.mc = Math.max(r.mc, m.cms);
     d.pre.off.push(r.mo * 100); d.pre.dlc.push(r.md * 100); d.pre.ay.push(r.ma); d.pre.cms.push(r.mc);
@@ -425,7 +431,7 @@
       $('scrub').value = '0';
       S.lastK = -1;
       setPhase('running');
-      if (S.rate !== config().rate) control({ cmd: 'rate', value: S.rate });
+      if (!S.playback && S.rate !== config().rate) control({ cmd: 'rate', value: S.rate });
     } else if (m.type === 'f') {
       if (S.d) pushFrame(m);
     } else if (m.type === 'done') {
@@ -438,7 +444,7 @@
       buildResultsFinal(d);
       setPhase('done');
     } else if (m.type === 'error') {
-      setPhase('error', m.message);
+      if (!S.playback) setPhase('error', m.message);
     } else if (m.type === 'state') {
       onState(m);
     }
@@ -446,6 +452,7 @@
 
   // Trạng thái thực thi do server báo; kết luận đánh giá đến riêng trong 'done'.
   function onState(m) {
+    if (S.playback) { if (!ACTIVE.includes(m.state) && m.state !== 'PAUSED') S.ended = true; return; }
     if (m.state === 'PAUSED' && S.phase === 'running') setPhase('paused');
     else if (m.state === 'RUNNING' && S.phase === 'paused') setPhase('running');
     if (ACTIVE.includes(m.state)) return;
@@ -460,7 +467,7 @@
     if (!S.cat) return;
     if (S.ac) S.ac.abort();
     const id = ++S.runId;
-    S.d = null; S.review = null; S.lastK = -1;
+    S.d = null; S.review = null; S.lastK = -1; S.playback = null;
     PP.charts.reset(); PP.scene.clear(); resetPanels();
     $('crumb').textContent = '';
     setPhase('connecting');
@@ -548,14 +555,69 @@
     S.dirty = true;
   }
   PP.charts.onSeek = seek;
+  // Tới khung gần thời điểm t nhất, lệch tối đa nửa chu kỳ planner.
+  function seekTime(t) {
+    const d = S.d;
+    if (t == null || !isFinite(t) || !d || !d.n) return;
+    seek(Math.round((t - d.t[0]) / d.dt));
+  }
+
+  function applyConfig(cfg) {
+    const id = cfg && cfg.scenario ? cfg.scenario.sid + '/' + cfg.scenario.v : null;
+    S.playCfg = !!(id && S.cat.scenarios.some((x) => x.id === id));
+    if (!S.playCfg) return;
+    const sim = cfg.sim || {};
+    S.sel = { scen: id, faults: Object.fromEntries(cfg.faults || []), trigger: cfg.trigger || '',
+      env: { mu: sim.road_mu === 0.5, cam: sim.camera_latency_ms === 150, noise: sim.perception_noise_scale === 1.5 },
+      veh: cfg.vehicle || 'VP-0', seed: cfg.seed || 1, acc: cfg.acc || '' };
+    syncMenu(true);
+  }
+
+  // Phát lại run đã xong từ luồng khung hình trong bundle: không sinh worker, không gọi planner.
+  async function play(runId, t) {
+    if (S.playback === runId && S.d && S.d.n && S.phase !== 'connecting') { seekTime(t); return; }
+    if (S.ac) S.ac.abort();
+    const id = ++S.runId;
+    S.d = null; S.review = null; S.lastK = -1; S.run = null; S.seq = 0; S.ended = false; S.playback = runId; S.playCfg = false;
+    forget();
+    PP.charts.reset(); PP.scene.clear(); resetPanels();
+    $('crumb').textContent = '';
+    setPhase('connecting');
+    let info, text;
+    try {
+      const a = await fetch('api/runs/' + runId);
+      if (!a.ok) throw new Error('HTTP ' + a.status);
+      info = await a.json();
+      const b = await fetch('api/runs/' + runId + '/events?from=0');
+      if (!b.ok) throw new Error('HTTP ' + b.status);
+      text = await b.text();
+    } catch (e) {
+      if (id === S.runId) setPhase('error', 'Không đọc được run ' + runId + ': ' + e.message);
+      return;
+    }
+    if (id !== S.runId) return;
+    applyConfig(info.request && info.request.config);
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]) onMsg(JSON.parse(lines[i]), id);
+      if (i % 200 === 199) { await sleep(0); if (id !== S.runId) return; }
+    }
+    if (!S.d || !S.d.n) { setPhase('error', 'Run này không có khung hình để phát lại.'); return; }
+    if (S.phase !== 'done') setPhase('stopped');
+    seekTime(t);
+  }
 
   // ---------- Đầu trang và bảng thông số ----------
   function header(d) {
-    const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
+    const sc = curScen();
     const crumb = $('crumb');
     crumb.textContent = '';
+    if (S.playback) {
+      crumb.appendChild(h('span', { class: 'replay', text: 'Phát lại từ bundle, không chạy planner' }));
+      crumb.appendChild(h('i', { text: '/' }));
+    }
     crumb.appendChild(h('strong', { text: (sc ? sc.fn + ' · ' + sc.code : d.name) }));
-    crumb.appendChild(h('span', { text: PP.vn((S.cat.scenarios.find((x) => x.id === S.sel.scen) || {}).desc || d.desc) }));
+    crumb.appendChild(h('span', { text: PP.vn((sc || {}).desc || d.desc) }));
     const fl = d.faults.map((f) => f.short);
     if (fl.length || d.conds.length) {
       crumb.appendChild(h('i', { text: '/' }));
@@ -582,7 +644,7 @@
   function buildPanel(d) {
     const root = $('pane-live');
     root.textContent = '';
-    const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
+    const sc = curScen();
     R.pill = h('span', { class: 'pill run' });
     R.pillState = '';
     root.appendChild(h('div', { class: 'case-head' }, h('div', { class: 'case-title', text: sc ? PP.vn(sc.desc) : d.name }), R.pill));
@@ -592,14 +654,20 @@
       ['v', 'Tốc độ', 'km/h'], ['off', 'Lệch tâm làn, + trái', 'cm'], ['dl', 'DLC trái', 'cm'], ['dr', 'DLC phải', 'cm'],
       ['ay', 'a_y, lọc R79', 'm/s²'], ['st', 'Góc vô lăng', '°']])));
 
-    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Vào', h('em', { text: 'mỗi 25 ms, 40 Hz' })), kv([
-      ['rq', 'Yêu cầu chức năng', ''], ['tlc', 'TLC của LKA, ELK', 's'], ['view', 'Tầm nhìn lane model', 'm'], ['age', 'Tuổi dữ liệu camera', 'ms']])));
-    const rq = h('span', { class: 'rq' }, ['HWA', 'LKA', 'ELK'].map((f) => h('span', { 'data-f': f, 'data-s': 'OFF', text: f })));
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Vào', h('em', { text: 'planner nhận, mỗi 25 ms' })), kv([
+      ['rq', 'Yêu cầu chức năng', ''], ['tlc', 'TLC của LKA, ELK', 's'], ['view', 'Tầm nhìn lane model', 'm'], ['age', 'Tuổi dữ liệu camera', 'ms'], ['lead', 'LeadTarget', '']])));
+    const rq = h('span', { class: 'rq' }, ['LCC', 'LKA', 'ELK'].map((f) => h('span', { 'data-f': f, 'data-s': 'OFF', text: f })));
     R.rq_dd.replaceChildren(rq);
     R.rq_chips = [...rq.children];
 
-    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Ra', h('em', { text: 'pp_step()' })), kv([
-      ['fn', 'Chức năng đang lái', ''], ['pv', 'Path hợp lệ', ''], ['lim', 'Giới hạn ngang', ''], ['hor', 'Horizon quan sát', 's'], ['cms', 'Thời gian tính', 'ms']])));
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Path được chọn', h('em', { text: 'arbitrator chạy thử' })), kv([
+      ['ch', 'Planner được chọn', ''], ['fn', 'Chức năng đang lái', ''], ['pv', 'Path hợp lệ', ''], ['lim', 'Giới hạn ngang', ''], ['hor', 'Horizon quan sát', 's']])));
+
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'LCC planner', h('em', { text: 'output LccStatus' })), kv([
+      ['lcm', 'Chế độ', ''], ['lcv', 'Path hợp lệ', ''], ['lcd', 'Quãng đã bám xe', 'm'], ['lct', 'Thời gian tính', 'ms']])));
+
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'LKA/ELK planner', h('em', { text: 'output InterventionStatus' })), kv([
+      ['kaf', 'Chức năng', ''], ['kap', 'Pha', ''], ['kav', 'Path hợp lệ', ''], ['kat', 'Thời gian tính', 'ms']])));
 
     const cs = h('ul', { class: 'conds' });
     R.conds = [];
@@ -633,15 +701,22 @@
   const sig = (v) => PP.f(v, Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : Math.abs(v) >= 1 ? 2 : Math.abs(v) >= 0.1 ? 3 : 4);
   function buildResultsFinal(d) {
     const crit = d.res.criteria, bad = crit.filter((c) => !c.passed);
+    const unjudged = d.res.judged === false && !bad.length;
     const body = h('div', {});
     body.appendChild(h('div', { class: 'case-head', style: 'margin-top:14px' },
-      h('div', { class: 'case-title', text: d.res.passed ? 'Đạt toàn bộ tiêu chí áp dụng' : 'Trượt ' + bad.length + ' tiêu chí' }),
-      h('span', { class: 'pill ' + (d.res.passed ? 'ok' : 'bad') }, use(d.res.passed ? 'i-check' : 'i-x'), d.res.passed ? 'Đạt' : 'Không đạt')));
+      h('div', { class: 'case-title', text: d.res.passed ? 'Đạt toàn bộ tiêu chí áp dụng' : unjudged ? 'Ca không được chấm' : 'Trượt ' + bad.length + ' tiêu chí' }),
+      h('span', { class: 'pill ' + (d.res.passed ? 'ok' : unjudged ? 'idle' : 'bad') }, use(d.res.passed ? 'i-check' : unjudged ? 'i-warn' : 'i-x'), resText(d.res))));
     body.appendChild(h('div', { class: 'case-sub', text: crit.length + ' tiêu chí áp dụng cho ca này' + (bad.length ? '. Trượt: ' + bad.map((c) => c.id).join(', ') : '') }));
+    (d.res.not_judged || []).forEach((t) => body.appendChild(h('p', { class: 'note', text: t })));
     const list = h('ul', { class: 'crit' });
     [...bad, ...crit.filter((c) => c.passed)].forEach((c) => {
-      list.appendChild(h('li', { class: c.passed ? 'ok' : 'bad' }, use(c.passed ? 'i-check' : 'i-x'),
-        h('span', {}, h('span', { class: 'm', text: c.metric }), h('span', { class: 'd', text: c.id + ' · đo ' + sig(c.value) + ' · giới hạn ' + PP.limit(c.limit) }))));
+      const info = h('span', {}, h('span', { class: 'm', text: c.metric }), h('span', { class: 'd', text: c.id + ' · đo ' + sig(c.value) + ' · giới hạn ' + PP.limit(c.limit) }));
+      if (!c.passed && c.first_fail_s != null) {
+        const jump = h('button', { class: 'jump', type: 'button', text: 'Tới lần trượt đầu, t = ' + PP.f(c.first_fail_s, 2) + ' s' });
+        jump.addEventListener('click', () => seekTime(c.first_fail_s));
+        info.appendChild(jump);
+      }
+      list.appendChild(h('li', { class: c.passed ? 'ok' : 'bad' }, use(c.passed ? 'i-check' : 'i-x'), info));
     });
     body.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Tiêu chí', h('em', { text: 'cả lượt chạy, trượt xếp trước' })), list));
     const tg = h('dl', { class: 'kv' });
@@ -660,7 +735,7 @@
     if (!R.pill) return;
     const d = S.d;
     const st = S.phase === 'done' ? (d.res.passed ? 'ok' : 'bad') : S.phase === 'stopped' ? 'stop' : S.phase === 'paused' ? 'pause' : S.phase === 'finishing' ? 'run' : 'run';
-    const txt = { ok: 'Đạt', bad: 'Không đạt', stop: 'Đã dừng', pause: 'Tạm dừng', run: S.phase === 'finishing' ? 'Đang chấm' : 'Đang chạy' }[st];
+    const txt = { ok: 'Đạt', bad: S.phase === 'done' ? resText(d.res) : 'Không đạt', stop: 'Đã dừng', pause: 'Tạm dừng', run: S.phase === 'finishing' ? 'Đang chấm' : 'Đang chạy' }[st];
     if (R.pillState === st + txt) return;
     R.pillState = st + txt;
     R.pill.className = 'pill ' + (st === 'pause' || st === 'stop' ? 'idle' : st);
@@ -699,7 +774,17 @@
     }
     setT(R.lim, d.lim[k] ? 'Chạm' + (d.vmax[k] ? ', v_max ' + PP.f(d.vmax[k] * 3.6, 0) + ' km/h' : '') : '—');
     setT(R.hor, PP.f(d.hor[k], 2));
-    setT(R.cms, PP.f(d.cms[k], 2));
+    const lc = d.lcc[k], ka = d.ka[k], ld = d.lead[k];
+    setT(R.ch, d.ch[k] == null ? '—' : d.ch[k] === 'LCC' ? 'LCC planner' : 'LKA/ELK planner');
+    setT(R.lead, !ld ? '—' : ld.c + ' #' + ld.id + ', cách ' + PP.f(ld.gap, 1) + ' m' + (ld.v ? '' : ', không hợp lệ'));
+    setT(R.lcm, lc ? lc.m : '—');
+    setT(R.lcv, lc ? (lc.v ? 'Có' : 'Không') : '—');
+    setT(R.lcd, lc ? PP.f(lc.d, 1) : '—');
+    setT(R.lct, PP.f(d.cl[k], 2));
+    setT(R.kaf, ka ? ka.f : '—');
+    setT(R.kap, !ka ? '—' : ka.f === 'ELK' ? ka.el : ka.f === 'LKA' ? ka.lk : 'NONE');
+    setT(R.kav, ka ? (ka.v ? 'Có' : 'Không') : '—');
+    setT(R.kat, PP.f(d.ck[k], 2));
 
     const nf = d.faults.length;
     R.conds.forEach((c) => c.li.classList.toggle('on', !!d.fa[k * nf + c.i]));
@@ -731,11 +816,13 @@
     setT($('fault-flag-t'), act.join(' · '));
     const br = $('hud-br');
     if (br.dataset.k !== String(k)) {
-      br.replaceChildren(
+      br.replaceChildren(...[
         h('div', { text: 'Tầm nhìn lane model ' + (d.view[k] == null ? '—' : PP.f(d.view[k], 0) + ' m') }),
         h('div', { text: 'Quỹ đạo ' + PP.f(d.hor[k], 1) + ' s, 31 điểm' }),
-        h('div', { class: 'key' }, 'vạch thật', h('i')),
-        h('div', { class: 'key' }, 'vạch lane model', h('i', { class: 'lm' })));
+        d.alt[k] ? h('div', { text: 'Nét đứt: path của planner không được chọn' }) : null,
+        h('div', { class: 'key' }, 'vạch thật (truth)', h('i')),
+        h('div', { class: 'key' }, 'lane model planner nhận', h('i', { class: 'lm' })),
+      ].filter(Boolean));
       br.dataset.k = String(k);
     }
   }
@@ -894,5 +981,6 @@
     setPhase('connecting');
     follow(id);
   }
-  boot();
+  const booted = boot();
+  PP.sim = { play: async (runId, t) => { await booted; if (S.cat) await play(runId, t); } };
 })();

@@ -1,4 +1,4 @@
-/* Màn Run: danh sách (B2), chi tiết run (B3), Điều tra (B4, chờ GĐ 3), Run con (B9).
+/* Màn Run: danh sách, chi tiết run, Điều tra (mở lại, phát lại, lần trượt đầu), Run con.
    Mọi số lấy từ /api/runs và bundle của run; giao diện không tự tính kết luận. */
 (() => {
   'use strict';
@@ -7,7 +7,9 @@
   const { h, ico, mono, wait, tag, lbl, kv, card, page } = WB;
 
   const ACTIVE = ['QUEUED', 'RUNNING', 'PAUSED'];
-  const TRIG = { '': 'theo định nghĩa của lỗi', lka_active: 'khi LKA can thiệp', elk_active: 'khi ELK can thiệp', intervention_active: 'khi LKA hoặc ELK can thiệp' };
+  const TRIG = { '': 'theo định nghĩa của lỗi', lka_active: 'khi LKA can thiệp', elk_active: 'khi ELK can thiệp', intervention_active: 'khi LKA hoặc ELK can thiệp', lcc_follow: 'khi LCC vào FOLLOW' };
+  const jsonPost = (body) => ({ method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random() }, body: JSON.stringify(body || {}) });
+  const libLine = (libs) => (libs || []).map((l) => l.pp_version).filter(Boolean).join(' | ') || null;
 
   /** Trạng thái thực thi, tách khỏi kết luận đánh giá (hai cột riêng). */
   function stInfo(r) {
@@ -52,6 +54,7 @@
         let verdict;
         if (r.verdict === 'pass') verdict = h('span', { class: 'wb-ico good' }, ico('i-check'), h('span', { style: 'display:flex;flex-direction:column;gap:1px' }, h('b', { style: 'font-weight:600' }, 'Đạt'), mono(r.passed + '/' + r.applicable + ' tiêu chí', { class: 'wb-mono dim', style: 'font-size:11px' })));
         else if (r.verdict === 'fail') verdict = h('span', { class: 'wb-ico bad' }, ico('i-x'), h('span', { style: 'display:flex;flex-direction:column;gap:1px' }, h('b', { style: 'font-weight:600' }, 'Trượt'), mono((r.first_fail || '') + ' · ' + r.passed + '/' + r.applicable, { class: 'wb-mono dim', style: 'font-size:11px' })));
+        else if (r.verdict === 'not_judged') verdict = h('span', { class: 'dim', style: 'display:flex;flex-direction:column;gap:1px' }, h('b', { style: 'font-weight:600' }, 'Không được chấm'), mono(r.passed + '/' + r.applicable + ' tiêu chí', { class: 'wb-mono dim', style: 'font-size:11px' }));
         else verdict = h('span', { class: 'dim', style: 'display:flex;flex-direction:column;gap:1px' }, h('b', { style: 'font-weight:600' }, 'Không có'), h('span', { class: 'wb-mono', style: 'font-size:11px' }, ACTIVE.includes(r.state) ? 'run chưa xong' : 'run không chạy hết'));
         body.appendChild(h('a', { class: 'wb-row runs', href: '#/runs/' + r.run_id },
           h('span', { class: 'wb-mono', style: 'font-size:12.5px' }, r.run_id, r.pinned ? h('span', { class: 'wb-tag', style: 'margin-left:6px' }, 'ghim') : null),
@@ -107,6 +110,7 @@
     const ev = d.evaluation;
     if (!ev) return h('span', { class: 'wb-pill' }, h('span', { class: 'dim' }, 'Kết luận'), h('b', { style: 'font-weight:600' }, 'Không có'), h('span', { class: 'dim' }, ACTIVE.includes(d.state) ? 'run chưa xong' : 'run không chạy hết'));
     const app = applicable(ev), bad = failing(ev);
+    if (!bad.length && ev.passed === null) return h('span', { class: 'wb-pill' }, h('span', { class: 'dim' }, 'Kết luận'), ico('i-warn'), h('b', { style: 'font-weight:600' }, 'Không được chấm'), h('span', { class: 'dim' }, app.length + ' tiêu chí đạt, nhưng điều kiện của ca chưa đủ'));
     if (!bad.length) return h('span', { class: 'wb-pill pass' }, h('span', null, 'Kết luận'), ico('i-check', 'ok-ico'), h('b', { style: 'font-weight:600' }, 'Đạt trong phạm vi đã thử'), h('span', null, app.length + '/' + app.length + ' tiêu chí áp dụng'));
     const ids = bad.slice(0, 2).map((c) => c.id).join(', ') + (bad.length > 2 ? ' +' + (bad.length - 2) : '');
     return h('span', { class: 'wb-pill fail' }, h('span', null, 'Kết luận'), ico('i-x'), h('b', { style: 'font-weight:600' }, 'Trượt · ' + ids), h('span', null, bad.length + ' trên ' + app.length + ' tiêu chí áp dụng'));
@@ -125,7 +129,16 @@
       b.disabled = false;
     } }, d.pinned ? 'Bỏ ghim' : 'Ghim');
     const copyBtn = h('button', { type: 'button', class: 'wb-btn', onclick: (e) => WB.copy(id, e.currentTarget) }, 'Sao chép run_id');
-    const tabs = [['tong-quan', 'Tổng quan', null], ['dieu-tra', 'Điều tra', wait('GĐ 3')], ['tep', 'Tệp bundle', null], ['con', 'Run con và giả thuyết', tag(String(kids.length))]];
+    const canRerun = !!(d.manifest && d.manifest.bundle && d.manifest.bundle.behavior_checksum);
+    const rerunMsg = h('span', { class: 'wb-small bad', role: 'alert' });
+    const rerunBtn = h('button', { type: 'button', class: 'wb-btn', disabled: !canRerun || ACTIVE.includes(d.state), title: canRerun ? 'Chạy lại ca này và so behavior checksum với bản gốc' : 'Run này không có đủ recipe và checksum', onclick: async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true; rerunMsg.textContent = '';
+      try { const r = await WB.api('runs/' + id + '/rerun', jsonPost()); WB.go('#/runs/' + r.run_id); }
+      catch (err) { rerunMsg.textContent = 'Không mở lại được: ' + err.message; b.disabled = false; }
+    } }, 'Mở lại (chạy lại)');
+    const canPlay = !!d.request && !ACTIVE.includes(d.state);
+    const tabs = [['tong-quan', 'Tổng quan', null], ['dieu-tra', 'Điều tra', null], ['tep', 'Tệp bundle', null], ['con', 'Run con và giả thuyết', tag(String(kids.length))]];
     return [
       h('div', { class: 'wb-crumb' }, h('a', { href: '#/runs' }, 'Run'), ' / ', tab === 'tong-quan' ? mono(id) : h('a', { href: '#/runs/' + id }, mono(id)), tab === 'tong-quan' ? null : ' / ' + (tabs.find((t) => t[0] === tab) || [0, ''])[1]),
       h('header', { class: 'wb-head', style: 'align-items:flex-start' },
@@ -134,8 +147,9 @@
             h('span', { class: 'wb-pill' }, h('span', { class: 'dim' }, 'Thực thi'), ico(s.icon, s.cls), h('b', { style: 'font-weight:600' }, s.text), mono(WB.dur(ex.ended && ex.started ? ex.ended - ex.started - (ex.paused_s || 0) : null), { class: 'wb-mono dim' })),
             verdictPill(d))),
         h('div', { class: 'wb-btns' },
-          h('button', { type: 'button', class: 'wb-btn', disabled: true, title: 'Chờ giai đoạn 3' }, 'Mở lại (chạy lại)', wait('GĐ 3')),
-          h('a', { class: 'wb-btn', href: '#/runs/' + id + '/con' }, 'Tạo run con'), copyBtn, pinBtn)),
+          canPlay ? h('a', { class: 'wb-btn', href: '#/phat/' + id, title: 'Xem lại từ bundle, không chạy planner' }, 'Phát lại') : null,
+          rerunBtn,
+          h('a', { class: 'wb-btn', href: '#/runs/' + id + '/con' }, 'Tạo run con'), copyBtn, pinBtn, rerunMsg)),
       git && git.dirty ? h('div', { class: 'wb-note', role: 'note' }, ico('i-warn'), h('span', null, 'Bundle tạo từ working tree có ' + (git.changed || []).length + ' thay đổi chưa commit (', mono((git.branch || '?') + ' @ ' + git.short), '). Chạy lại được trên máy này, nhưng chưa truy được về một commit.')) : null,
       h('nav', { class: 'wb-tabs', 'aria-label': 'Phần của run' }, ...tabs.map(([k, t, extra]) => h('a', { href: '#/runs/' + id + (k === 'tong-quan' ? '' : '/' + k), 'aria-current': k === (tab === 'tep' ? 'tep' : tab) ? 'page' : null }, t, extra))),
     ];
@@ -153,16 +167,30 @@
       return page(...head, card('', lbl('Đang chạy'), kv('Trạng thái', d.state), kv('Pha', mono(d.phase || '—')),
         h('p', { class: 'wb-small', style: 'padding-top:10px' }, 'Run chưa xong nên chưa có bundle. Trang tự cập nhật. Xem trực tiếp ở ', h('a', { href: '#/chay' }, 'Chạy mới'), '.')));
     }
-    if (tab === 'dieu-tra') return page(...head, investigate(d, id));
-    if (tab === 'con') return page(...head, await childrenTab(d, id, kids));
-    return page(...head, await overview(d, id));
+    const check = rerunCard(d);
+    if (tab === 'dieu-tra') return page(...head, check, investigate(d, id));
+    if (tab === 'con') return page(...head, check, await childrenTab(d, id, kids));
+    return page(...head, check, await overview(d, id));
+  }
+
+  /** Kết quả của lần mở lại: behavior checksum khớp bản gốc hay không, và vì sao. */
+  function rerunCard(d) {
+    const r = d.rerun;
+    if (!r) return null;
+    const src = r.expected.source || {};
+    const origin = src.run ? h('a', { class: 'wb-mono', href: '#/runs/' + src.run }, src.run) : src.suite ? h('a', { class: 'wb-mono', href: '#/suite/' + src.suite }, src.case) : mono('—');
+    const same = r.match === true;
+    return h('section', { class: 'wb-note', role: 'status', style: 'display:flex;flex-direction:column;gap:6px;align-items:flex-start' },
+      h('b', { class: same ? 'good' : 'bad', style: 'font-weight:600' }, r.match === null ? 'Lần mở lại không hoàn tất' : same ? 'Checksum khớp bản gốc' : 'Checksum không khớp bản gốc'),
+      h('span', null, 'Bản gốc: ', origin, ' · ', mono(WB.short(r.expected.behavior_checksum, 12)), r.actual ? [' · lần này: ', mono(WB.short(r.actual.behavior_checksum, 12))] : null),
+      ...r.reasons.map((t) => h('span', null, t)));
   }
 
   const fmtSize = (n) => (n >= 1e6 ? PP.f(n / 1e6, 1) + ' MB' : n >= 1e3 ? PP.f(n / 1e3, 1) + ' KB' : n + ' B');
 
   // ---------- Tổng quan (B3) ----------
   async function overview(d, id) {
-    const m = d.manifest || {}, ex = d.execution || {}, ev = d.evaluation, bun = m.bundle || {}, lib = (m.libraries || [])[0] || {}, git = m.git || {};
+    const m = d.manifest || {}, ex = d.execution || {}, ev = d.evaluation, bun = m.bundle || {}, libs = m.libraries || [], git = m.git || {};
     const [files, gold] = await Promise.all([WB.api('runs/' + id + '/bundle').catch(() => null), WB.api('golden').catch(() => null)]);
     const match = gold && gold.recorded && bun.behavior_checksum ? gold.cases.filter((c) => c.checksum === bun.behavior_checksum) : [];
     const rc = bun.recipe || {};
@@ -191,7 +219,7 @@
         const bad = c.applicable && !c.passed;
         critBox.appendChild(h('div', { class: 'wb-row crit' },
           mono(c.id, { style: 'font-size:12px' }),
-          h('span', { style: 'color:var(--ink-2);line-height:1.4' }, c.metric, bad ? h('span', { class: 'wb-small', style: 'display:block' }, 'first_fail_s: ', c.first_fail_s != null ? WB.num(c.first_fail_s) + ' s' : 'trống') : null),
+          h('span', { style: 'color:var(--ink-2);line-height:1.4' }, c.metric, bad ? h('span', { class: 'wb-small', style: 'display:block' }, 'Lần trượt đầu: ', c.first_fail_s != null ? (d.request ? h('a', { href: '#/phat/' + id + '/' + c.first_fail_s }, 't = ' + WB.num(c.first_fail_s) + ' s') : 't = ' + WB.num(c.first_fail_s) + ' s') : 'tiêu chí này chấm trên cả lượt') : null),
           mono(WB.num(c.value) + ' · ' + WB.limit(c.limit), { style: 'font-size:12px' + (bad ? ';color:var(--wb-crit-ink)' : '') }),
           !c.applicable ? h('span', { class: 'dim' }, 'Không áp dụng')
             : bad ? h('span', { class: 'wb-ico bad', style: 'font-weight:600' }, ico('i-x'), 'Trượt')
@@ -216,7 +244,7 @@
     const scope = card('warn', lbl('Phạm vi kết luận'),
       kv('Mô hình xe', mono(lc || (cfgOf(d) || {}).vehicle || '—')),
       kv('Validation', h('b', { style: 'font-weight:600;color:var(--wb-warn-ink)' }, 'chưa đánh giá')),
-      kv('Hồ sơ model', h('span', null, h('a', { href: '#/tincay' }, 'Handbook mục 15'), ' ', wait('GĐ 4'))),
+      kv('Hồ sơ model', h('span', null, h('a', { href: '#/tincay' }, 'Simulation Handbook'), ' ', wait('chưa viết'))),
       h('p', { class: 'wb-small', style: 'padding-top:10px;color:var(--ink-2)' }, 'Đạt chỉ có nghĩa trong điều kiện phép thử và miền dùng của model. Không nói gì về xe thật.'));
 
     const execCard = card('', lbl('Thực thi'),
@@ -226,12 +254,16 @@
       kv('Timeout · tạm dừng', mono(WB.num(ex.timeout_s) + ' s · ' + WB.num(ex.paused_s || 0) + ' s')),
       ex.failure ? kv('Lớp lỗi', h('span', { class: 'bad' }, ex.failure + (ex.message ? ' · ' + ex.message : ''))) : null);
 
-    const b = lib.build || {};
-    const libCard = card('', lbl('Thư viện SUT'),
-      kv('pp_version', mono(lib.pp_version || '—', { style: 'font-size:12px' })),
-      kv('calibration · t7', mono((b.calibration || '—') + ' · ' + (b.t7 || '—'), { style: 'font-size:12px' })),
-      kv('sha256', mono(lib.sha256 ? lib.sha256.slice(0, 16) + '…' + lib.sha256.slice(-11) : '—', { style: 'font-size:12px' })),
-      b.commit && git.commit && !git.commit.startsWith(b.commit.slice(0, 7)) ? h('p', { class: 'wb-small', style: 'padding-top:10px;color:var(--wb-warn-ink)' }, 'Thư viện build từ ' + b.commit.slice(0, 7) + ', khác commit mã nguồn ' + git.short + '.') : null);
+    const libCard = card('', lbl('Thư viện SUT' + (libs.length > 1 ? ' (' + libs.length + ')' : '')),
+      ...(libs.length ? libs : [{}]).flatMap((lib) => {
+        const b = lib.build || {};
+        return [
+          kv('Phiên bản', mono(lib.pp_version || '—', { style: 'font-size:12px' })),
+          kv('calibration · t7', mono((b.calibration || '—') + ' · ' + (b.t7 || '—'), { style: 'font-size:12px' })),
+          kv('sha256', mono(lib.sha256 ? lib.sha256.slice(0, 16) + '…' + lib.sha256.slice(-11) : '—', { style: 'font-size:12px' })),
+          b.commit && git.commit && !git.commit.startsWith(b.commit.slice(0, 7)) ? h('p', { class: 'wb-small', style: 'padding-top:10px;color:var(--wb-warn-ink)' }, 'Thư viện build từ ' + b.commit.slice(0, 7) + ', khác commit mã nguồn ' + git.short + '.') : null,
+        ];
+      }));
 
     const okFiles = files ? files.files.filter((f) => f.name !== 'SHA256SUMS') : [];
     const bundleCard = h('section', { class: 'wb-card', id: 'tep' },
@@ -244,23 +276,37 @@
     return h('div', { class: 'wb-cols' }, h('div', { class: 'a' }, ident, evalCard), h('div', { class: 'b' }, scope, execCard, libCard, bundleCard));
   }
 
-  // ---------- Điều tra (B4): chờ giai đoạn 3 ----------
-  function investigate() {
-    return WB.cho({
-      phase: 'giai đoạn 3', wps: 'WP-11 · WP-12 · WP-13', ghost: 'scene',
-      heading: 'Điều tra run: phát lại và evidence',
-      summary: 'Xem lại run đã xong từ bundle mà không chạy planner; mở lại ca trượt và so checksum; nhảy tới thời điểm trượt đầu tiên.',
-      planned: [
-        { t: 'Phát lại run đã xong, không sinh worker', ref: 'SIM-REQ-081' },
-        { t: 'Mở lại: chạy lại từ ResolvedCase, báo checksum khớp hay không', ref: 'SIM-REQ-082' },
-        { t: 'Nhảy tới first_fail_s, lệch tối đa một chu kỳ 25 ms', ref: 'SIM-REQ-083' },
-        { t: 'Nhãn nguồn cho mỗi lớp: truth, planner nhận, path, xe', ref: 'SIM-REQ-084' },
-      ],
-      available: [
-        { t: 'Dữ liệu phát lại đã nằm trong bundle', d: 'frames.ndjson.gz · trace.mcap' },
-        { t: 'Chạy lại một ca bằng CLI', d: 'python3 -m eval.runner <ca>.xosc --seed 1' },
-      ],
-    });
+  // ---------- Điều tra ----------
+  const FAULT_LISTS = [['lane_faults', 'Lane model'], ['channel_faults', 'Kênh'], ['sensor_faults', 'Cảm biến'], ['ego_motion_faults', 'Ego-motion']];
+  function investigate(d, id) {
+    const ev = d.evaluation, canPlay = !!d.request;
+    const at = (t, text) => (canPlay ? h('a', { class: 'wb-btn', style: 'height:30px;padding:0 10px;font-size:12.5px', href: '#/phat/' + id + (t != null ? '/' + t : '') }, text) : mono('không có khung hình'));
+    if (!ev) return card('', lbl('Điều tra'), h('p', { class: 'wb-sub' }, 'Run không có evaluation.json: ' + ((d.execution || {}).message || 'chưa chấm') + '.'), canPlay ? at(null, 'Phát lại phần đã chạy') : null);
+
+    const rows = failing(ev).map((c) => ({ id: c.id, text: c.metric, t: c.first_fail_s, value: WB.num(c.value) + ' · ' + WB.limit(c.limit) }));
+    (ev.issues || []).filter((i) => i.kind !== 'not_judged').forEach((i) => rows.push({ id: i.requirement || i.kind, text: i.text, t: i.first_fail_s, value: '—' }));
+    rows.sort((a, b) => (a.t == null ? Infinity : a.t) - (b.t == null ? Infinity : b.t));
+    const fails = card('', h('div', { style: 'display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-bottom:8px' }, lbl('Trượt theo thời gian'), h('span', { style: 'margin-left:auto' }, at(null, 'Phát lại từ đầu'))),
+      rows.length ? rows.map((r) => h('div', { class: 'wb-row crit' }, mono(r.id, { style: 'font-size:12px' }),
+        h('span', { style: 'color:var(--ink-2);line-height:1.4' }, r.text), mono(r.value, { style: 'font-size:12px;color:var(--wb-crit-ink)' }),
+        r.t != null ? at(r.t, 't = ' + WB.num(r.t) + ' s') : h('span', { class: 'dim' }, 'chấm trên cả lượt')))
+        : h('p', { class: 'wb-small' }, 'Không có tiêu chí trượt.'));
+
+    const notJudged = (ev.issues || []).filter((i) => i.kind === 'not_judged');
+    const judged = notJudged.length ? card('warn', lbl('Không được chấm'), ...notJudged.map((i) => h('p', { class: 'wb-sub' }, i.text))) : null;
+
+    const info = ev.info || {}, events = Object.entries(info.fault_events_s || {});
+    const scCase = (d['resolved-case'] || {}).case || {};
+    const planned = FAULT_LISTS.flatMap(([key, name]) => (scCase[key] || []).map((f) => ({ name, kind: f.kind + (f.channel ? ' · ' + f.channel : '') + (f.signal ? ' · ' + f.signal : ''), start: f.start_s, dur: f.duration_s, trigger: f.trigger })));
+    const faults = card('', lbl('Lỗi trong ca'),
+      planned.length ? planned.map((f) => kv(f.name + ' · ' + f.kind, mono(f.trigger ? 'theo sự kiện ' + f.trigger : 't = ' + WB.num(f.start) + ' s' + (f.dur != null ? ', trong ' + WB.num(f.dur) + ' s' : ', tới hết ca')))) : h('p', { class: 'wb-small' }, 'Ca này không bơm lỗi.'),
+      events.map(([k, t]) => kv('Sự kiện ' + k, t == null ? h('b', { class: 'bad', style: 'font-weight:600' }, 'không xảy ra, lỗi không được bơm') : at(t, 't = ' + WB.num(t) + ' s'))));
+
+    const legend = card('', lbl('Nguồn dữ liệu khi phát lại'),
+      kv('Xe, làn, khoảng hở, a_y', 'truth của simulator'), kv('Lane model, yêu cầu, LeadTarget', 'planner nhận (perception)'),
+      kv('LccStatus, InterventionStatus', 'output của từng planner'), kv('Planner được chọn, path nét liền', 'arbitrator chạy thử'),
+      h('p', { class: 'wb-small', style: 'padding-top:8px' }, 'Thời điểm trượt chỉ gợi ý chỗ cần nhìn. Kết luận nguyên nhân cần run đối chứng ở tab Run con.'));
+    return h('div', { class: 'wb-cols' }, h('div', { class: 'a' }, fails, judged), h('div', { class: 'b' }, faults, legend));
   }
 
   // ---------- Run con và giả thuyết (B9) ----------
@@ -276,7 +322,7 @@
 
   async function childrenTab(d, id, kids) {
     const cfg = cfgOf(d);
-    const hyp = card('dash', h('div', { style: 'display:flex;align-items:center;gap:10px;padding-bottom:6px' }, lbl('Giả thuyết'), wait('ngoài WP · đề xuất')),
+    const hyp = card('dash', h('div', { style: 'display:flex;align-items:center;gap:10px;padding-bottom:6px' }, lbl('Giả thuyết'), wait('Backlog')),
       h('p', { class: 'wb-sub' }, 'Bảng giả thuyết, run đối chứng và trạng thái (xác nhận, bác bỏ) chưa dựng. Hôm nay ghi trong báo cáo PP-PR ở ', mono('research/register.md'), '. Nguyên nhân chỉ được ghi khi có run đối chứng ủng hộ; timeline ở tab Điều tra chỉ gợi ý chỗ cần nhìn.'));
     if (!cfg || !cfg.scenario) return h('div', { style: 'display:flex;flex-direction:column;gap:18px' }, card('', lbl('Tạo run con'), h('p', { class: 'wb-sub' }, 'Run này không có cấu hình web (request.json không có config), nên chưa tạo run con từ giao diện được.')), hyp);
 
@@ -366,7 +412,7 @@
     const cell = (x) => (!x ? mono('—') : h('span', null,
       x.applicable ? mono(WB.num(x.value) + ' · ' + WB.limit(x.limit)) : h('span', { class: 'dim' }, 'không áp dụng'),
       x.applicable ? h('span', { class: x.passed ? 'good' : 'bad', style: 'font-weight:600' }, ' ' + (x.passed ? 'đạt' : 'trượt')) : null));
-    const libOf = (r) => (((r.manifest || {}).libraries || [])[0] || {}).pp_version;
+    const libOf = (r) => libLine((r.manifest || {}).libraries);
     const lp = libOf(p), lc = libOf(c), sameLib = lp && lc && lp === lc;
     const short = (v) => (v ? (v.match(/commit (\w{7})/) || [0, v])[1] : '—');
     const ids = new Set();

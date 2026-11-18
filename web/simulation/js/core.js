@@ -3,7 +3,7 @@
   'use strict';
   const PP = (window.PP = {});
 
-  PP.FN = ['NONE', 'HWA', 'LKA', 'ELK'];
+  PP.FN = ['NONE', 'LCC', 'LKA', 'ELK'];
   PP.FN_VAR = ['--none', '--hwa', '--lka', '--elk'];
 
   PP.clamp = (x, a, b) => Math.min(b, Math.max(a, x));
