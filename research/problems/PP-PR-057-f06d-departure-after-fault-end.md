@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở. Cơ chế 1: phương án B đã sửa trong cây làm việc 2026-11-17, chờ hồi quy; F06 d còn trượt. Cơ chế 2, 3 chờ quyết định |
+| Trạng thái | Còn mở; cơ chế 2, 3 chờ quyết định |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | PP-SWR-051; PP-SWR-125; PP-SWR-061; SG-01 |
 | Tái hiện | [20261115-1126-suite-full-7495822](../runs/20261115-1126-suite-full-7495822/report.md): F06 d và các biến thể F06 a dài 2 s trên S1a, S1c, 25 lượt, DLC −0,97 đến −1,30 m. Lượt nháp 2026-11-16: `python3 -m eval.runner S1 a --fault F06 d --seed 1`, thư viện từ cây làm việc 2f86a0b (đã có reset mềm của PP-TS-021), VP-0 |
@@ -103,3 +103,4 @@ Lượt nháp, seed 1, VP-0, thư viện build ngoài cây làm việc. Trước
 |---|---|
 | [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | Phương án A, B: F06 d, F03 c trên S1a còn trượt 051 nhưng DLC từ −1,30…−0,96 m lên −0,60…−0,23 m; trên S1c F03 c −0,54…−0,17 m, F06 d −1,15…−0,73 m. F06 d lúc LKA, ELK hết trượt 086 (4 lượt); F06 b, e trên S1c hết trượt. Cơ chế 2 còn mở (PP-TS-022) |
 | [20261117-1315-study-PP-TS-022-d2e7d27](../runs/20261117-1315-study-PP-TS-022-d2e7d27/summary.md) | Cơ chế 2 (PP-TS-022): V1 (trộn theo ngưỡng từng đoạn) sửa F06 d trên S1 a, S1 c (4 lượt, lệch 1,08 / 1,69 → 0,75 / 0,77 m); F03 c vẫn trượt; cái giá ở ca nhiễu (lệch tâm +0,03 đến +0,08 m). Quyết định chờ |
+| 20261118-2030-suite-regression-e3158a5 | F06 b, d, e trên VP-5 còn trượt PP-SWR-051 |

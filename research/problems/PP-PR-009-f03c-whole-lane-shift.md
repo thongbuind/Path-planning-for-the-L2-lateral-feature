@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; sửa qua PP-TS-001 |
+| Trạng thái | Còn mở; sửa qua J1 của PP-TS-001 |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-051, 100 |
 | Tái hiện | Lần chạy nháp smoke: F03 c trên S1a và S1c, seed 1, cả `PP_T7=quintic` và `qp` |
@@ -26,3 +26,4 @@ Thuộc câu hỏi của PP-TS-001 (J0–J3). J1 (song song, bề rộng) không
 
 | Run ID | Kết quả |
 |---|---|
+| 20261118-2030-suite-regression-e3158a5 | F03 c còn trượt PP-SWR-051 6 lần |

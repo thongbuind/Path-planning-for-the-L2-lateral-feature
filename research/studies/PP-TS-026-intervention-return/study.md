@@ -56,3 +56,4 @@ Pha chặn đà kết thúc với tốc độ ngang, gia tốc và jerk bằng 0
 ## 7. Quyết định
 
 - Chờ người phụ trách xác nhận. V4 đã đưa vào calibration để chạy hồi quy.
+- Hồi quy [20261118-2030-suite-regression-e3158a5](../../runs/20261118-2030-suite-regression-e3158a5/report.md): PP-SWR-094 từ 124 lần còn 0, PP-SWR-085 từ 23 còn 0, PP-SWR-086 từ 7 còn 0.

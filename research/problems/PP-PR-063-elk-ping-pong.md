@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; đã mô tả hiện tượng, nguyên nhân chưa phân tích hết |
+| Trạng thái | Đóng (56bdc48). Nguyên nhân: khối ADAS chạy thử coi tốc độ quay vô lăng do LKA, ELK tạo ra là ý định tài xế và hủy yêu cầu |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | PP-SWR-085, 086, 091; PP-SWR-035; PP-SWR-039 (S6 b); PP-SWR-090 (S5 c) |
 | Tái hiện | [20261117-1217-suite-regression-d2e7d27](../runs/20261117-1217-suite-regression-d2e7d27/report.md): S13 b ELK VP-3, S6 b VP-4, VP-5, S5 c VP-5. Lượt nháp 2026-11-17, seed 1, cùng file ca của lần hồi quy |
@@ -44,3 +44,4 @@ Chờ phân tích. Hướng cần xem:
 
 | Run ID | Kết quả |
 |---|---|
+| 20261118-2030-suite-regression-e3158a5 | ELK không còn bị hủy giữa chừng; PP-SWR-085 từ 23 lần còn 0, PP-SWR-086 từ 7 còn 0 |

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khoanh vùng; sửa qua PP-TS-020 |
+| Trạng thái | Còn mở; chờ quyết định biên a_y của PP-TS-020 vì đụng PP-SWR-001 |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-136; PP-SWR-051, 100 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): F08 b, c trên S1c; F08 c trên S1a |
@@ -30,3 +30,4 @@
 
 | Run ID | Kết quả |
 |---|---|
+| 20261118-2030-suite-regression-e3158a5 | F08 trên S1c còn trượt PP-SWR-051 12 lần, PP-SWR-100 1 lần |
