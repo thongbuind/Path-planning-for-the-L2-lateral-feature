@@ -24,10 +24,8 @@ try {
   for (const file of ["app.js", "cards.js", "docmd.js", "diagrams.js", "style.css", "reviews.js", "reviews.css", "en/strings.js"]) {
     fs.copyFileSync(path.join(site, file), path.join(staging, file));
   }
-  fs.cpSync(path.join(site, "simulation"), path.join(staging, "simulation"), {
-    recursive: true,
-    filter: source => !source.endsWith(".py") && !source.endsWith("README.md") && !source.endsWith("tools") && !source.includes("__pycache__")
-  });
+  // The workbench needs the local server; the public site only says how to start it.
+  fs.cpSync(path.join(site, "simulation-static"), path.join(staging, "simulation"), { recursive: true });
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
   for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html", "path-planner/index.html"]) {
     const html = fs.readFileSync(path.join(site, file), "utf8")
