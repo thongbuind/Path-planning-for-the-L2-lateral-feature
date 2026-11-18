@@ -3,16 +3,16 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ADR` |
-| Phiên bản | 1.6 |
+| Phiên bản | 1.7 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-17 |
+| Cập nhật | 2026-11-18 |
 
 ## 1. Purpose and scope {#adr-scope}
 
-- **Mục đích:** Ghi vì sao path planner được thiết kế như ở tài liệu Software Architectural Design: phương án đã xét, quyết định, hệ quả.
-- **Phạm vi:** Quyết định thiết kế của path planner.
+- **Mục đích:** Ghi vì sao hai path planner được thiết kế như ở tài liệu Software Architectural Design: phương án đã xét, quyết định, hệ quả.
+- **Phạm vi:** Quyết định thiết kế của LCC planner và LKA/ELK planner.
 
 ## 2. References {#adr-references}
 
@@ -51,6 +51,11 @@
 | PP-ADR-013 | Planner là thư viện C11 có API C, tách adapter theo nền tảng |
 | PP-ADR-014 | Planner tự tính trạng thái ngang, không dùng chung với khối Chức năng ADAS |
 | PP-ADR-015 | PathStatus có pha riêng cho LKA và ELK |
+| PP-ADR-016 | Tách LCC planner và LKA/ELK planner; arbitrator thuộc công ty |
+| PP-ADR-017 | Giữ LKA và ELK là hai chức năng riêng trong LKA/ELK planner |
+| PP-ADR-018 | Bám xe trước bằng reference line ảo dựng từ vết xe trước |
+| PP-ADR-019 | Hành lang can thiệp cập nhật bất đối xứng khi biên nhảy |
+| PP-ADR-020 | Dời 10 cm khi một xe lớn, hai xe lớn giữ cân bằng khoảng hở |
 
 ## 5. Các quyết định {#adr-decisions}
 
@@ -58,7 +63,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Bối cảnh | Xe khác lấn vào làn và cua gắt hơn mức HWA lái được cần cả phần ngang lẫn phần dọc. Path planner chỉ là khối ngang |
+| Bối cảnh | Xe khác lấn vào làn và cua gắt hơn mức LCC lái được cần cả phần ngang lẫn phần dọc. Path planner chỉ là khối ngang |
 | Phương án | A) Một planner gộp ngang và dọc. B) Hai khối, trao đổi ràng buộc qua LateralLimits và LongitudinalPlan. C) Hai khối, không trao đổi |
 | Quyết định | B. Khối dọc là ACC chạy thử trong simulator, cố định cho mọi phiên bản planner. C giữ làm đối chứng ở S14 (mentor) |
 | Hệ quả | Được: giống xe thật; khối dọc giảm tốc được trước cua. Mất: thêm hai interface; mỗi bên dùng message chu kỳ trước, trễ 25 ms; cần đường lui khi mất LongitudinalPlan |
@@ -101,7 +106,7 @@
 | Bối cảnh | Khối Chức năng ADAS (tính TLC) và planner (lập path can thiệp) cần cùng trạng thái ngang đo được |
 | Phương án | A) Chung một hàm, cùng input. B) Planner tự tính. C) Khối Chức năng ADAS gửi trạng thái trong message |
 | Quyết định | A. Bị thay bởi PP-ADR-014 |
-| Hệ quả | Được: hai bên cùng một con số. Mất: hai khối phụ thuộc chung một thư viện. B có thể vênh (TLC 1,0 s so với 1,3 s); C thêm khoảng 20 ms trễ và planner vẫn phải tự tính cho HWA |
+| Hệ quả | Được: hai bên cùng một con số. Mất: hai khối phụ thuộc chung một thư viện. B có thể vênh (TLC 1,0 s so với 1,3 s); C thêm khoảng 20 ms trễ và planner vẫn phải tự tính cho LCC |
 | Liên quan | PP-SWR-080; Software Architectural Design mục 4.2 |
 
 ### PP-ADR-006 Planner tự kiểm tính nhất quán của đường biên {#adr-006}
@@ -128,9 +133,9 @@
 
 | Mục | Nội dung |
 |---|---|
-| Bối cảnh | HWA dời tâm khi có xe lớn ở làn bên (đề bài). Path không được dịch về phía làn mở rộng (mentor). Planner phải chạy cho mọi bề rộng làn 2,5–5,5 m và mọi xe rộng tới 2,5 m |
+| Bối cảnh | LCC dời tâm khi có xe lớn ở làn bên (đề bài). Path không được dịch về phía làn mở rộng (mentor). Planner phải chạy cho mọi bề rộng làn 2,5–5,5 m và mọi xe rộng tới 2,5 m |
 | Phương án | A) Khoảng hở tới mép đường thô, offset cố định ±0,3 m. B) Cân bằng khoảng hở hai bên, bên trống lấy biên làn của reference line. C) Dời ra xa xe lớn phần khoảng hở còn thiếu so với `gap_truck_min`; xe lớn ở cả hai bên thì cân bằng hai khoảng hở. B và C đều giới hạn offset theo khoảng trống thật |
-| Quyết định | C (2026-11-11, thay B). Công thức ở Software Architectural Design mục 6; o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_làn − W_xe) / 2. B bị bỏ vì xe lớn ở giữa làn bên thì khoảng hở tới nó lớn hơn khoảng hở tới biên làn: B không dời, hoặc dời về phía xe lớn |
+| Quyết định | C (2026-11-11, thay B). Công thức ở Software Architectural Design mục 6; o_lim = max(0, min(`offset_max`, s − `dlc_offset_min`)), s = (W_làn − W_xe) / 2. B bị bỏ vì xe lớn ở giữa làn bên thì khoảng hở tới nó lớn hơn khoảng hở tới biên làn: B không dời, hoặc dời về phía xe lớn. Dòng một xe lớn bị thay bởi PP-ADR-020 (2026-11-18) |
 | Hệ quả | Được: luôn dời ra xa xe lớn, càng gần càng dời nhiều; không dịch về phía làn mở rộng; xe lớn ở hai bên thì đứng giữa; đúng với mọi làn và mọi xe, không có ca trái với PP-SWR-051. Mất: thêm calibration `gap_truck_min`; phụ thuộc chất lượng reference line; làn hẹp với xe rộng thì gần như không dời được |
 | Liên quan | PP-SWR-051, 055, 056, 060, 062; target 057; Software Architectural Design mục 6 |
 
@@ -160,8 +165,8 @@
 |---|---|
 | Bối cảnh | Lane model gửi vạch của ba làn và mép đường. Có lúc làn mình mất cả hai vạch mà vạch làn bên hoặc mép đường vẫn đo được (mentor) |
 | Phương án | A) Bám path cũ `T_coast` rồi báo không hợp lệ, bỏ qua biên khác. B) Lane model dựng lại vạch làn mình và gửi PREDICTED. C) Planner suy tâm làn từ mọi biên đủ tin còn lại, kết hợp theo phương sai; biên suy ra cần độ tin `conf_inferred` > `conf_ego` |
-| Quyết định | C (mentor). Chỉ HWA lái trên tâm làn suy ra; LKA, ELK cần vạch làn mình đủ tin (mentor) |
-| Hệ quả | Được: HWA chạy tiếp khi làn mình mất vạch; mở rộng từ cơ chế "một vạch cộng bề rộng nhớ được"; planner giữ toàn bộ phần kiểm tính nhất quán. Mất: tâm làn suy từ biên xa có sai số lớn hơn; sai khi bề rộng làn bên đổi trong lúc mất vạch. A bỏ phí dữ liệu; B làm planner không phân biệt được vạch đo với vạch dựng |
+| Quyết định | C (mentor). Chỉ LCC lái trên tâm làn suy ra; LKA, ELK cần vạch làn mình đủ tin (mentor) |
+| Hệ quả | Được: LCC chạy tiếp khi làn mình mất vạch; mở rộng từ cơ chế "một vạch cộng bề rộng nhớ được"; planner giữ toàn bộ phần kiểm tính nhất quán. Mất: tâm làn suy từ biên xa có sai số lớn hơn; sai khi bề rộng làn bên đổi trong lúc mất vạch. A bỏ phí dữ liệu; B làm planner không phân biệt được vạch đo với vạch dựng |
 | Liên quan | PP-SWR-047, 124, 147, 148; PP-ADR-006, 009; Software Architectural Design mục 4 |
 
 ### PP-ADR-012 Một bộ calibration cho mọi xe {#adr-012}
@@ -200,9 +205,59 @@
 |---|---|
 | Bối cảnh | Tại tick ELK COMPLETED, T9 có thể chọn LKA đang REQUEST theo PP-SWR-033. Khối Chức năng ADAS phải nhận ra chức năng nào vừa hoàn tất |
 | Phương án | A) Một pha chung đi cùng `active_function`. B) Pha riêng cho từng chức năng |
-| Quyết định | B. PathStatus có `lka_phase` và `elk_phase`. Mỗi pha giữ COMPLETED tới khi yêu cầu tương ứng rời REQUEST |
+| Quyết định | B. PathStatus có `lka_phase` và `elk_phase`; từ Interface Control Document 1.13 là InterventionStatus của LKA/ELK planner (PP-ADR-016). Mỗi pha giữ COMPLETED tới khi yêu cầu tương ứng rời REQUEST |
 | Hệ quả | Một message có thể công bố ELK COMPLETED cùng LKA ACTIVE. Bên phát và bên nhận phải dùng cùng phiên bản schema |
 | Liên quan | PP-TS-011, PP-SWR-032, 033, 041, Interface Control Document mục 6.2 |
+
+### PP-ADR-016 Tách LCC planner và LKA/ELK planner; arbitrator thuộc công ty {#adr-016}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Mentor (2026-11-18) đưa arbitrator ra khỏi phạm vi thực tập: công ty đã có, nhóm viết hai planner để ghép vào. Bộ 1 cho LCC, bộ 2 cho LKA và ELK |
+| Phương án | A) Một planner ba chức năng, arbitration trong planner (thiết kế trước). B) Hai planner độc lập, mỗi planner một thư viện C11, arbitrator của công ty chọn path. C) Hai planner trong một thư viện, hai API |
+| Quyết định | B. Hai thư viện cùng mã lõi (input check, T2, T4, T6, T10, T11), biên dịch riêng, không chia sẻ trạng thái lúc chạy. Contract gọi hàm riêng (`pp_lcc_`, `pp_lkaelk_`). Quy tắc chọn của arbitrator là giả định PP-ASM-022. Mỗi planner phải đúng khi planner kia không chạy (PP-SWR-181) |
+| Hệ quả | Được: khớp cách công ty ghép; kiểm thử riêng từng planner; bỏ phần arbitration giữa LCC, LKA, ELK. Mất: sinh hai bộ schema, API, adapter; path của LCC planner phải sẵn sàng từ vị trí thật của xe mọi lúc (PP-SWR-039, 040); thời gian tính hai planner cộng lại trong một chu kỳ; kết quả benchmark trước đó không so trực tiếp được |
+| Liên quan | PP-ASM-022; PP-SWR-019, 039, 040, 180, 181; Software Architectural Design mục 3; Interface Control Document mục 4, 6 |
+
+### PP-ADR-017 Giữ LKA và ELK là hai chức năng riêng trong LKA/ELK planner {#adr-017}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Mentor đề nghị gộp LKA và ELK thành một chức năng vì thời gian còn lại ngắn. LKA là CSF (R79 2.3.4.2 c). ELK vạch và mép đường là CSF theo ELKS (EU 2021/646); ELK với xe ở làn bên là ESF (R79 2.3.4.3 a). Euro NCAP chấm hai bộ test riêng (LSS 7.2.4, 7.2.5). Tài liệu, mã nguồn và test của hai chức năng đã có riêng |
+| Phương án | A) Gộp thành một chức năng, một ngưỡng kích hoạt. B) Hai chức năng riêng, chọn ELK > LKA trong cùng planner |
+| Quyết định | B (2026-11-18). Ngưỡng cắt 10 cm và 0,15 m/s của mentor áp cho cả hai (PP-ASM-028) |
+| Hệ quả | Được: đúng bản chất hành vi và tiêu chuẩn; giữ test và tài liệu đã có; giới hạn a_y, jerk, DTLE và pha riêng từng chức năng. Mất: thêm một bước chọn nhỏ (ELK > LKA); giữ hai bộ tham số `T_lka`, `T_elk` |
+| Liên quan | PP-SWR-030 đến 041, 110 đến 115; Software Architectural Design mục 5, 7; ADAS Function Specification mục 3, 9 |
+
+### PP-ADR-018 Bám xe trước bằng reference line ảo dựng từ vết xe trước {#adr-018}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Mentor: khi mất cả hai vạch làn mình, LCC bám xe trước tối đa 30 m. Input: tâm xe trước, khoảng cách bumper, heading, vận tốc tương đối. Trong cua, y của xe trước trong `base_link` lệch tới 3,0 m ở 30 m (R = 150 m) |
+| Phương án | A) Đoạn Hermite từ xe mình tới vị trí hiện tại của xe trước. B) Vết xe trước: lưu vị trí xe trước theo thời gian, dời bằng ego-motion, khớp đa thức. C) Bám path cũ tới hết `T_coast` |
+| Quyết định | B, điều kiện vào và duy trì đo theo tâm làn gốc. A bị bỏ vì trong cua đường nối cắt vào trong; vết cho đường đi đúng chỗ xe trước đã đi. C không bám được quá 1 s (PP-ADR-009) |
+| Hệ quả | Được: path đi theo chỗ xe trước đã đi; không cần mô hình xe trước. Mất: bộ đệm vết cỡ cố định (`trail_n`); vết phải ghi từ lúc còn vạch; chất lượng phụ thuộc nhiễu vị trí xe trước; tối đa 30 m |
+| Liên quan | PP-SWR-170 đến 178; PP-ASM-024, 025, 027; Software Architectural Design mục 6.3; Software Detailed Design mục 5.1 (T12) |
+
+### PP-ADR-019 Hành lang can thiệp cập nhật bất đối xứng khi biên nhảy {#adr-019}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Mentor: ở mép đường lane model có thể báo biên nhảy ra xa hơn thực tế, nên planner đẩy xe về làn rồi kéo ra. Path can thiệp lấy mẫu trên reference line của từng chu kỳ, nên biên nhảy thì path dời theo. Điều kiện kết thúc mới (10 cm, 0,15 m/s) cũng tính trên reference line đó |
+| Phương án | A) Giữ reference line từng chu kỳ, dựa vào T2 lọc nhảy. B) Hành lang chốt lúc bắt đầu; biên dịch vào phía xe nhận ngay, dịch ra xa chờ `T_confirm`. C) Hành lang cố định tới hết can thiệp |
+| Quyết định | B. A bỏ vì T2 nhận thay đổi thật sau `T_confirm`, trong lúc đó path đã dời. C bỏ vì không theo được thay đổi thật của làn |
+| Hệ quả | Được: biên nhảy ra xa không kéo xe ra; biên dịch vào vẫn nhận ngay; không báo COMPLETED sai. Mất: làn rộng ra thật thì xe vẫn về tâm làn cũ ít nhất `T_confirm`; thêm trạng thái hành lang |
+| Liên quan | PP-SWR-084, 093, 094; Software Architectural Design mục 7.2; Software Detailed Design T9 bước 7 |
+
+### PP-ADR-020 Dời 10 cm khi một xe lớn, hai xe lớn giữ cân bằng khoảng hở {#adr-020}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | PP-ADR-008 dời theo phần khoảng hở còn thiếu so với `gap_truck_min`. Mentor (2026-11-18): tránh xe tải bằng cách lệch 10 cm về phía còn lại nếu làn bên cạnh không có xe tới |
+| Phương án | A) Giữ PP-ADR-008. B) Mọi ca lệch cố định 10 cm; hai bên có xe thì không lệch. C) Một xe lớn: lệch 10 cm khi làn bên kia không có xe tới; hai xe lớn: giữ cân bằng của PP-ADR-008 |
+| Quyết định | C. Thay PP-ADR-008 ở dòng một xe lớn. Hai xe lớn giữ cân bằng vì mentor chưa nêu ca này và cân bằng không bao giờ dời về phía xe có khoảng hở nhỏ hơn (PP-SWR-056) |
+| Hệ quả | Được: khớp mentor; vẫn xử lý được ca hai xe tải. Mất: một xe lớn rất gần thì 10 cm không đủ đạt `gap_truck_min`; ưu tiên an toàn bên kia (PP-SWR-065) |
+| Liên quan | PP-SWR-055, 056, 065, 066; Software Architectural Design mục 6 |
 
 ## Revision history {#revision-history}
 
@@ -215,3 +270,4 @@
 | 1.4 | 2026-11-12 | Thêm PP-ADR-015 về pha riêng cho LKA và ELK trong PathStatus |
 | 1.5 | 2026-11-16 | PP-ADR-004 chọn D thay C: trộn path cũ và trạng thái đo theo độ lệch. Lý do: PP-TS-021 (20261116-1748-study-PP-TS-021-8726b80); với C, xe đứng sát dưới `stitch_reset` và controller kéo thêm a_y (PP-PR-056); ngưỡng nhỏ thì path đổi qua lại mỗi chu kỳ |
 | 1.6 | 2026-11-17 | PP-ADR-004: hệ quả lúc LKA, ELK bắt đầu theo SRS 1.23 (PP-PR-062) |
+| 1.7 | 2026-11-18 | Thêm PP-ADR-016 đến 020: tách hai planner, giữ LKA và ELK riêng, bám xe trước, hành lang can thiệp, dời 10 cm (thay một phần PP-ADR-008); PP-ADR-015 chuyển sang InterventionStatus. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24) |

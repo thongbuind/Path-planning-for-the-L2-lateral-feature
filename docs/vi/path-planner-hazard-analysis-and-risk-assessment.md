@@ -3,15 +3,15 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-HARA` |
-| Phiên bản | 1.4 |
+| Phiên bản | 1.5 |
 | Trạng thái | Chờ confirmation review |
 | Tác giả | thongbui |
 | Người review |   |
-| Cập nhật | 2026-11-17 |
+| Cập nhật | 2026-11-18 |
 
 ## 1. Purpose and scope {#safety-scope}
 
-- **Mục đích.** Phân tích hazard và đánh giá rủi ro cho hệ thống hỗ trợ lái ngang HWA, LKA, ELK theo ISO 26262-3 (concept phase); đề xuất S, E, C, ASIL và safety goal để phòng an toàn làm confirmation review.
+- **Mục đích.** Phân tích hazard và đánh giá rủi ro cho hệ thống hỗ trợ lái ngang LCC (HWA), LKA, ELK, gồm hai path planner, theo ISO 26262-3 (concept phase); đề xuất S, E, C, ASIL và safety goal để phòng an toàn làm confirmation review.
 - **Phạm vi.** Item definition, operational situation, hazard, hazardous event, safety goal, SOTIF triggering condition (ISO 21448), safety mechanism của path planner.
 - **Ngoài phạm vi.** Functional safety concept, phân bổ ASIL xuống từng khối, technical safety concept; ACC và AEB; lỗi phần cứng của cảm biến và EPS.
 - **Kết quả mong muốn từ phòng an toàn.** Xác nhận hoặc sửa S, E, C, ASIL ở mục 6; xác nhận safety goal ở mục 7; trả lời các điểm ở mục 10.
@@ -34,7 +34,7 @@
 
 | Chức năng | Mô tả | Loại theo R79 | Bật |
 |---|---|---|---|
-| HWA | Giữ xe ở tâm làn liên tục, dời tâm khi có xe lớn ở làn bên | ACSF Category B1 | Tài xế bật bằng nút; cần ACC bật, tay trên vô lăng |
+| LCC (HWA) | Giữ xe ở tâm làn liên tục, dời 10 cm khi có xe lớn ở làn bên, bám xe trước khi mất cả hai vạch (dưới 60 km/h, tối đa 30 m) | ACSF Category B1 | Tài xế bật bằng nút; cần ACC bật, tay trên vô lăng |
 | LKA | Lái xe về trong làn khi xe trôi về vạch mà tài xế không chủ đích | CSF | Mặc định bật |
 | ELK | Lái khẩn cấp khi xe sắp vượt vạch liền, ra mép đường, hoặc sắp va xe ngược chiều, xe đang vượt ở làn bên | CSF, ESF; ELKS | Mặc định bật mỗi lần khởi động |
 
@@ -42,8 +42,8 @@
 
 | Phần | Nội dung |
 |---|---|
-| Trong item | Khối Chức năng ADAS (quyết định khi nào can thiệp); path planner (lập path ngang, arbitration); Lateral Controller; EPS (chấp hành) |
-| Input từ ngoài item | Lane model (camera), perception (camera, radar), state estimator (v_y), ego-motion, CAN khung gầm (yaw rate, tốc độ, góc lái, mô-men tài xế), khối dọc (ACC) |
+| Trong item | Khối Chức năng ADAS (quyết định khi nào can thiệp); hai path planner (LCC planner, LKA/ELK planner: lập path ngang); arbitrator của công ty (chọn path của một planner); Lateral Controller; EPS (chấp hành) |
+| Input từ ngoài item | Lane model (camera), perception (camera, radar; kể cả dữ liệu xe trước để bám), state estimator (v_y), ego-motion, CAN khung gầm (yaw rate, tốc độ, góc lái, mô-men tài xế), khối dọc (ACC) |
 | Output | Mô-men hoặc góc lái qua EPS; cảnh báo HMI (đèn, âm thanh, rung) |
 | Phản ứng khi lỗi | Path planner báo `path_valid = false`; Lateral Controller và EPS giảm mô-men về 0 theo dốc; HMI yêu cầu tài xế cầm lái |
 
@@ -51,7 +51,7 @@
 
 | Chức năng | a_y tổng | a_y thêm vào | Jerk | Thời lượng một lần can thiệp |
 |---|---|---|---|---|
-| HWA | ≤ 2,5 m/s² (R79 cho tới 3 m/s²) | ≤ 0,5 m/s² (giá trị khởi đầu) | ≤ 5 m/s³ (R79) | Liên tục |
+| LCC | ≤ 2,5 m/s² (R79 cho tới 3 m/s²) | ≤ 0,5 m/s² (giá trị khởi đầu) | ≤ 5 m/s³ (R79) | Liên tục |
 | LKA | ≤ 3,0 m/s² | ≤ 1,5 m/s² | ≤ 5 m/s³ | Tới khi kết thúc; quá 10 s cảnh báo âm thanh (R79 5.1.6.1.2.1) |
 | ELK | ≤ 4,0 m/s² | ≤ 3,0 m/s² | ≤ 10 m/s³ | Tới khi kết thúc; quá 10 s cảnh báo âm thanh (R79 5.1.6.1.2.1) |
 
@@ -61,16 +61,16 @@ Tài xế ghi đè được bất cứ lúc nào: khối Chức năng ADAS hủy
 
 | Điều kiện | Giá trị |
 |---|---|
-| Tốc độ | HWA 10–130 km/h; LKA, ELK kích hoạt từ 70 km/h, giữ tới dưới 65 km/h, tối đa 130 km/h |
+| Tốc độ | LCC (HWA) 10–130 km/h, bám xe trước dưới 60 km/h; LKA, ELK kích hoạt từ 70 km/h, giữ tới dưới 65 km/h, tối đa 130 km/h |
 | Đường | Có vạch hoặc mép đường đủ tin; bề rộng làn 2,5–5,5 m, kể cả làn hỗn hợp ô tô và xe máy ở Việt Nam |
 | Xe | Mọi xe gia đình, rộng tới 2,5 m kể cả gương (QCVN 09:2015/BGTVT) |
-| Tài xế | Mức L2: tài xế giám sát và chịu trách nhiệm lái; HWA đòi tay trên vô lăng |
+| Tài xế | Mức L2: tài xế giám sát và chịu trách nhiệm lái; LCC đòi tay trên vô lăng |
 
 **Giả định**
 
 - Input từ ngoài item có cờ hợp lệ, counter, CRC; input không hợp lệ được phát hiện trong một chu kỳ 25 ms.
 - EPS giảm mô-men theo dốc khi path không hợp lệ; không thả mô-men đột ngột.
-- Tài xế L2 chú ý và giữ vô lăng khi HWA bật.
+- Tài xế L2 chú ý và giữ vô lăng khi LCC bật.
 
 ## 4. Operational situations {#safety-situations}
 
@@ -78,7 +78,7 @@ E theo ISO 26262-3, Phụ lục B:
 
 | Cách tính | E1 | E2 | E3 | E4 | Dùng cho |
 |---|---|---|---|---|---|
-| Thời lượng | — | Dưới 1 % thời gian lái | 1–10 % | Trên 10 % | OS-01 đến OS-04, OS-06 |
+| Thời lượng | — | Dưới 1 % thời gian lái | 1–10 % | Trên 10 % | OS-01 đến OS-04, OS-06, OS-08 |
 | Tần suất | Ít hơn một lần mỗi năm với đa số tài xế | Vài lần mỗi năm | Một lần mỗi tháng trở lên | Gần như mỗi chuyến | OS-05, OS-07 |
 
 | ID | Tình huống | E đề xuất | Rationale |
@@ -86,10 +86,11 @@ E theo ISO 26262-3, Phụ lục B:
 | OS-01 | Cao tốc 90–130 km/h, có xe ngang hàng ở làn bên kề | E3 | Có xe ngang hàng là thường gặp nhưng không chiếm phần lớn thời gian lái |
 | OS-02 | Đường hai chiều 70–90 km/h, có xe ngược chiều ở làn bên | E3 | Thường gặp ngoài đô thị Việt Nam; xe ngược chiều trong vùng xung đột chiếm phần nhỏ thời gian |
 | OS-03 | Làn sát mép đường, lề hoặc rào chắn, 70–130 km/h | E4 | Hầu hết đường có làn sát mép |
-| OS-04 | HWA đang lái trong cua R ≤ 500 m trên cao tốc | E3 | Cua có bán kính này chiếm phần nhỏ chiều dài cao tốc |
+| OS-04 | LCC đang lái trong cua R ≤ 500 m trên cao tốc | E3 | Cua có bán kính này chiếm phần nhỏ chiều dài cao tốc |
 | OS-05 | Xe trôi không chủ đích về phía xe ngược chiều hoặc xe đang vượt | E1 | Cần đồng thời tài xế lơ đãng và xe khác trong vùng xung đột |
-| OS-06 | HWA đang lái trên cao tốc | E4 | Tình huống dùng chính của HWA |
+| OS-06 | LCC đang lái trên cao tốc | E4 | Tình huống dùng chính của LCC |
 | OS-07 | Tài xế bẻ lái né vật cản trên làn | E2 | Vài lần mỗi năm |
+| OS-08 | Mất cả hai vạch làn mình, có xe tải hoặc xe con phía trước, dưới 60 km/h | E3 | Vạch mờ, đường chưa kẻ vạch hoặc công trường thường gặp ở Việt Nam; LCC chỉ bám xe dưới 60 km/h và tối đa 30 m nên chiếm phần nhỏ thời gian lái |
 
 ## 5. Hazard identification {#safety-hazards}
 
@@ -97,7 +98,7 @@ Hazard là hành vi sai ở cấp xe, suy từ các kiểu lỗi chức năng: c
 
 | ID | Hazard ở cấp xe | Lỗi chức năng dẫn tới |
 |---|---|---|
-| H1 | Can thiệp lái ngang không mong muốn: khi không cần, sai hướng hoặc quá mạnh | Path theo vạch nhận nhầm; arbitration sai; path vượt giới hạn quyền lái |
+| H1 | Can thiệp lái ngang không mong muốn: khi không cần, sai hướng hoặc quá mạnh | Path theo vạch nhận nhầm hoặc biên nhảy; chọn can thiệp sai; bám nhầm xe trước; path vượt giới hạn quyền lái |
 | H2 | Mất hỗ trợ lái đột ngột khi chức năng đang giữ xe | Path không hợp lệ đột ngột; path bị cắt mà không báo |
 | H3 | Can thiệp không đủ hoặc quá muộn khi ELK cần can thiệp | Path can thiệp quá yếu hoặc bắt đầu muộn |
 | H4 | Lệnh lái giật | Path nhảy bậc khi đổi chức năng hoặc khi lane model nhảy |
@@ -107,18 +108,19 @@ Hazard là hành vi sai ở cấp xe, suy từ các kiểu lỗi chức năng: c
 
 **Thang.** S0 không thương tích; S1 nhẹ đến vừa; S2 nặng, có khả năng sống; S3 đe doạ tính mạng. C0 nói chung kiểm soát được; C1 ≥ 99 % tài xế tránh được; C2 ≥ 90 %; C3 < 90 %. ASIL tra theo ISO 26262-3 Bảng 4.
 
-**Lập luận C.** Ngân sách a_y thêm vào giới hạn độ lệch ngang trước khi tài xế phản ứng: lệch ≈ ½·a·t². Trong 1 s: HWA 0,5 m/s² lệch 0,25 m; LKA 1,5 m/s² lệch 0,75 m; ELK 3,0 m/s² lệch 1,5 m. Vì vậy cùng hazard H1, sự kiện được tách theo quyền lái của chức năng.
+**Lập luận C.** Ngân sách a_y thêm vào giới hạn độ lệch ngang trước khi tài xế phản ứng: lệch ≈ ½·a·t². Trong 1 s: LCC 0,5 m/s² lệch 0,25 m; LKA 1,5 m/s² lệch 0,75 m; ELK 3,0 m/s² lệch 1,5 m. Vì vậy cùng hazard H1, sự kiện được tách theo quyền lái của chức năng.
 
 | ID | Hazard | Chức năng | Tình huống | Hậu quả | S | E | C | ASIL |
 |---|---|---|---|---|---|---|---|---|
-| HE-01 | H1 | HWA, LKA | OS-01 | Va chạm bên ở tốc độ cao, mất lái | S3 | E3 | C2 | B |
-| HE-02 | H1 | HWA, LKA | OS-02 | Va chạm trực diện | S3 | E3 | C2 | B |
-| HE-03 | H1 | HWA, LKA | OS-03 | Lao ra lề, va rào chắn góc nhỏ | S2 | E4 | C2 | B |
+| HE-01 | H1 | LCC, LKA | OS-01 | Va chạm bên ở tốc độ cao, mất lái | S3 | E3 | C2 | B |
+| HE-02 | H1 | LCC, LKA | OS-02 | Va chạm trực diện | S3 | E3 | C2 | B |
+| HE-03 | H1 | LCC, LKA | OS-03 | Lao ra lề, va rào chắn góc nhỏ | S2 | E4 | C2 | B |
 | HE-08 | H1 | ELK | OS-01, OS-02 | Va chạm bên hoặc trực diện | S3 | E3 | C3 | C |
-| HE-04 | H2 | HWA | OS-04 | Xe ra khỏi làn trong cua, va xe làn bên | S3 | E3 | C2 | B |
+| HE-04 | H2 | LCC | OS-04 | Xe ra khỏi làn trong cua, va xe làn bên | S3 | E3 | C2 | B |
 | HE-05 | H3 | ELK | OS-05 | Va chạm bên hoặc trực diện | S3 | E1 | C3 | A |
-| HE-06 | H4 | HWA | OS-06 | Giật lái, lệch làn nhẹ | S2 | E4 | C1 | A |
-| HE-07 | H5 | HWA, LKA, ELK | OS-07 | Va vào vật cản | S3 | E2 | C2 | A |
+| HE-06 | H4 | LCC | OS-06 | Giật lái, lệch làn nhẹ | S2 | E4 | C1 | A |
+| HE-07 | H5 | LCC, LKA, ELK | OS-07 | Va vào vật cản | S3 | E2 | C2 | A |
+| HE-09 | H1 | LCC (bám xe trước) | OS-08 | Xe bám theo xe trước ra khỏi làn hoặc ra lề, va xe làn bên ở dưới 60 km/h | S2 | E3 | C1 | QM |
 
 **Rationale**
 
@@ -127,10 +129,11 @@ Hazard là hành vi sai ở cấp xe, suy từ các kiểu lỗi chức năng: c
 | HE-01, HE-02 | Va chạm với xe khác ở 70–130 km/h có thể gây mất lái và va chạm thứ cấp | a_y thêm vào ≤ 1,5 m/s²; tài xế L2 giữ vô lăng, ghi đè với 3 Nm |
 | HE-03 | Ra lề hoặc va rào góc nhỏ thường gây thương tích nặng nhưng ít khi tử vong | Như HE-01 |
 | HE-08 | Như HE-01, HE-02 | a_y thêm vào tới 3,0 m/s² đẩy xe lệch 1,5 m trong 1 s, nhanh hơn phản ứng của phần lớn tài xế |
-| HE-04 | Ra khỏi làn trong cua ở tốc độ cao | Tài xế đang giữ vô lăng (HWA); R79 đòi cảnh báo và không thả đột ngột |
+| HE-04 | Ra khỏi làn trong cua ở tốc độ cao | Tài xế đang giữ vô lăng (LCC); R79 đòi cảnh báo và không thả đột ngột |
 | HE-05 | Như HE-02 | Tài xế lơ đãng là điều kiện của tình huống. Ở L2, tình huống này tương đương xe không có ELK; xem mục 10 |
 | HE-06 | Giật lái trong giới hạn quyền lái gây lệch nhỏ | Tài xế giữ vô lăng; bước nhảy bị giới hạn bởi giới hạn a_y và tốc độ quay của EPS |
 | HE-07 | Va vào vật cản ở tốc độ cao | Can thiệp hủy khi mô-men tài xế ≥ 3 Nm; quyền lái có giới hạn |
+| HE-09 | Va chạm bên hoặc ra lề ở dưới 60 km/h gây thương tích vừa đến nặng | Bám tối đa 30 m (1,8 s ở 60 km/h), path lệch tối đa 0,8 m so với tâm làn gốc, a_y ≤ 2,5 m/s²; tài xế L2 giữ vô lăng |
 
 ## 7. Safety goals {#safety-goals}
 
@@ -138,7 +141,7 @@ FTTI của SG-01, SG-02 ước lượng bằng thời gian để xe lệch hết
 
 | ID | Safety goal | Hazardous event | ASIL đề xuất | Safe state | FTTI đề xuất |
 |---|---|---|---|---|---|
-| SG-01 | Tránh can thiệp lái ngang không mong muốn vượt giới hạn tài xế kiểm soát được | HE-01, HE-02, HE-03, HE-08 | C | Tắt hỗ trợ ngang, giảm mô-men về 0 theo dốc, không thả đột ngột (như SG-02), cảnh báo tài xế | 0,5 s (a = 3,0 m/s²: 0,58 s) |
+| SG-01 | Tránh can thiệp lái ngang không mong muốn vượt giới hạn tài xế kiểm soát được | HE-01, HE-02, HE-03, HE-08, HE-09 (QM) | C | Tắt hỗ trợ ngang, giảm mô-men về 0 theo dốc, không thả đột ngột (như SG-02), cảnh báo tài xế | 0,5 s (a = 3,0 m/s²: 0,58 s) |
 | SG-02 | Không mất hỗ trợ lái đột ngột khi một chức năng đang lái | HE-04 | B | Tiếp tục hỗ trợ trong khả năng, rồi giảm mô-men theo dốc kèm cảnh báo (R79 5.6.2.2.3) | 0,5 s (a = 2,5 m/s²: 0,63 s) |
 | SG-03 | Can thiệp đủ để giữ xe trong làn khi ELK được yêu cầu | HE-05 | A | Cảnh báo tài xế | — |
 | SG-04 | Không tạo bước nhảy trong lệnh lái | HE-06 | A | Path không hợp lệ, giảm mô-men theo dốc | 0,1 s (nhóm tự thống nhất) |
@@ -156,25 +159,31 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | TC-04 | Đỉnh dốc che tầm nhìn trước cua | Thấy cua muộn | Giới hạn a_y; báo `lateral_limit_reached`, khối dọc giảm tốc | S1b |
 | TC-05 | Cua gắt hơn aysmax | Path bị cắt, xe ra sát vạch | Như TC-04 | S1b |
 | TC-06 | Đường ướt, μ = 0,5 | Lốp bám kém hơn giới hạn a_y | Giới hạn a_y của ELK 4,0 m/s² dưới mức bám 4,9 m/s² | S12 |
-| TC-07 | Xe lớn ở làn bên, làn hẹp, vật ở hai bên | Dời tâm sai hướng hoặc quá sát | Dời ra xa xe lớn theo khoảng hở tới nó; hai bên có xe lớn thì đứng giữa; offset giới hạn theo khoảng trống thật | S3, S3b, S15 |
-| TC-08 | Tắc đường, tốc độ thấp | Path chỉ phủ đoạn ngắn | HWA tiếp tục; LKA, ELK không khả dụng | S11 |
+| TC-07 | Xe lớn ở làn bên, làn hẹp, vật ở hai bên | Dời tâm sai hướng hoặc quá sát | Một xe lớn: dời 10 cm ra xa khi làn bên kia không có xe tới; hai xe lớn thì cân bằng khoảng hở; offset giới hạn theo khoảng trống thật | S3, S3b, S15 |
+| TC-08 | Tắc đường, tốc độ thấp | Path chỉ phủ đoạn ngắn | LCC tiếp tục; LKA, ELK không khả dụng | S11 |
 | TC-09 | Gió ngang, đường nghiêng ngang | Xe trôi dù path đúng | Vòng kín của Lateral Controller; LKA can thiệp | S4 |
-| TC-10 | Mất mọi biên làn kéo dài | Dead reckoning tích luỹ sai | Bám path cũ tối đa 1 s rồi path không hợp lệ | F05 |
+| TC-10 | Mất mọi biên làn kéo dài | Dead reckoning tích luỹ sai | LCC bám xe trước tối đa 30 m nếu đủ điều kiện; không thì bám path cũ tối đa 1 s rồi path không hợp lệ | F05, S22 |
 | TC-11 | Độ cong ước lượng sai ở xa | Path theo cua giả | Kết hợp độ cong camera với yaw rate và lịch sử path | F06 |
-| TC-12 | Làn mình mất vạch, vạch làn bên hoặc mép đường còn thấy | Tâm làn suy từ biên xa bị lệch | Biên suy ra cần độ tin cao hơn; chỉ HWA dùng | F21 |
-| TC-13 | Làn hẹp với xe rộng | Không đủ khoảng trống để giữ xe trong làn | Báo `lane_too_narrow`, HWA không khả dụng | S19 |
+| TC-12 | Làn mình mất vạch, vạch làn bên hoặc mép đường còn thấy | Tâm làn suy từ biên xa bị lệch | Biên suy ra cần độ tin cao hơn; chỉ LCC dùng | F21 |
+| TC-13 | Làn hẹp với xe rộng | Không đủ khoảng trống để giữ xe trong làn | Báo `lane_too_narrow`, LCC không khả dụng | S19 |
+| TC-14 | Mép đường hoặc biên phía nguy hiểm báo nhảy ra xa hơn thực tế lúc LKA, ELK can thiệp | Path đẩy xe về làn rồi kéo ra; báo COMPLETED sai | Hành lang can thiệp chốt lúc bắt đầu; biên dịch ra xa chờ xác nhận | F24 |
+| TC-15 | Xe trước đổi làn, hoặc perception nhầm xe làn bên thành xe trước | Bám nhầm, xe ra khỏi làn | Điều kiện vào và duy trì (lệch ≤ 0,8 m, `id` khớp mục tiêu ACC, tối đa 30 m); rời FOLLOW trong một chu kỳ | S22, S23, F25 |
+| TC-16 | LeadTarget nhiễu, mất hoặc heading sai | Vết xe trước lệch | LeadTarget không hợp lệ thì rời FOLLOW; sai số khớp vượt `trail_fit_max` thì không bám | F25 |
 
 ## 9. Safety mechanisms của path planner {#safety-mechanisms}
 
 | Mechanism | Safety goal | Requirement |
 |---|---|---|
 | Giới hạn a_y, a_y thêm vào, jerk theo chức năng | SG-01 | PP-SWR-001, 003, 110 đến 115 |
-| Arbitration theo ưu tiên, chỉ xét chức năng ở REQUEST | SG-01 | PP-SWR-030, 047 |
+| Chọn can thiệp ELK > LKA, chỉ xét chức năng ở REQUEST (LKA/ELK planner) | SG-01 | PP-SWR-030, 047 |
+| Điều kiện vào và duy trì bám xe trước; rời FOLLOW trong một chu kỳ | SG-01 | PP-SWR-170 đến 172, 176 |
+| Hành lang can thiệp khi biên nhảy | SG-01 | PP-SWR-093, 094 |
 | Kiểm tính nhất quán của biên làn | SG-01 | PP-SWR-121, 122, 148 |
 | Giữ hỗ trợ khi chạm giới hạn; bám path cũ tối đa 1 s khi mất biên | SG-02 | PP-SWR-005, 006, 037, 124 |
 | Kiểm liên tục giữa hai path liên tiếp mỗi chu kỳ | SG-04 | PP-SWR-031, 049, 100 đến 102, 126 đến 128 |
 | Input không hợp lệ thì path không hợp lệ trong một chu kỳ | SG-01, SG-04 | PP-SWR-142, 143, 145 |
 | Path bám vị trí xe khi tài xế ghi đè | SG-05 | PP-SWR-039, 040 |
+| Path LCC bắt đầu từ vị trí thật khi LKA hoặc ELK ở REQUEST, để arbitrator chọn được bất kỳ lúc nào | SG-04 | PP-SWR-039, 040 |
 | Giới hạn DTLE và khoảng cách tới xe ở làn bên | SG-03 | PP-SWR-086, 088 |
 
 ## 10. Open points for reviewer {#safety-open-points}
@@ -191,6 +200,8 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | 8 | FTTI ở mục 7: SG-01, SG-02 ước lượng theo động học; SG-04, SG-05 do nhóm tự thống nhất; SG-03 chưa có. Cần đối chiếu với thời gian phát hiện và phản ứng của path planner, Lateral Controller và EPS |
 | 9 | Tiêu chí chấp nhận SOTIF (số lần can thiệp sai trên quãng đường); hiện Software Qualification Test Specification đòi 0 lần trên toàn bộ test case |
 | 10 | Triggering condition chưa có test case: hầm, bóng đổ, chói nắng, vạch tạm ở công trường, làn hỗn hợp ô tô và xe máy. Nhóm sẽ bổ sung test case; xin xác nhận danh sách đã đủ chưa |
+| 11 | HE-09 (LCC bám xe trước): nhóm đề xuất S2, E3, C1, tức QM. Xin xác nhận S2 và C1 với giới hạn bám 30 m, lệch tối đa 0,8 m, dưới 60 km/h |
+| 12 | Arbitrator chọn path giữa hai planner thuộc công ty, nằm trong item nhưng ngoài phạm vi nhóm (PP-ASM-022). Xin xác nhận phần này do công ty phân tích |
 
 ## Revision history {#revision-history}
 
@@ -201,3 +212,4 @@ Giới hạn của cảm biến và thuật toán khi không có gì hỏng. M�
 | 1.2 | 2026-11-11 | TC-07 theo cách dời tâm mới (PP-ADR-008) |
 | 1.3 | 2026-11-13 | Mục 4: bỏ giới hạn thời lượng 10 s của LKA, ELK; R79 5.1.6.1.2.1 chỉ đòi cảnh báo âm thanh khi quá 10 s. Cắt ở 10 s đi ngược SG-02, SG-03 (PP-TS-016) |
 | 1.4 | 2026-11-17 | Safety mechanism liên tục thêm PP-SWR-049: lúc LKA, ELK bắt đầu, độ cong đầu của path khớp xe (PP-PR-062) |
+| 1.5 | 2026-11-18 | Hai planner và arbitrator của công ty (item definition, mục 9, mục 10 điểm 12). Thêm OS-08, HE-09 (LCC bám xe trước, đề xuất QM), TC-14 đến TC-16, safety mechanism cho bám xe, hành lang can thiệp và path LCC từ vị trí thật. TC-07, TC-10 theo luật dời 10 cm và bám xe. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24) |
