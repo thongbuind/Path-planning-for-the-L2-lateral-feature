@@ -52,7 +52,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-005 | F01 trên S1c: path nhảy giữa hai chu kỳ khi phần xa bị cắt theo aysmax | Đóng; xác nhận ở 20261114-1952-suite-regression-0776bad | PP-SWR-100, 120 | [report](problems/PP-PR-005-noise-at-aysmax-continuity.md) |
 | PP-PR-004 | S14e: giữ làn và liên tục path trên cua chữ S | Còn mở; sửa qua PP-TS-005 | PP-SWR-051, 100; 006, 007 | [report](problems/PP-PR-004-s14-s-bend.md) |
 | PP-PR-006 | Vào cua vượt aysmax: xe bám trễ, stitching reset làm path nhảy | Đóng; xác nhận ở 20261114-1952-suite-regression-0776bad | PP-SWR-100 | [report](problems/PP-PR-006-stitch-reset-curve-entry.md) |
-| PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Đã ghi giới hạn quan sát theo B trong Software Requirements Specification 1.17 | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
+| PP-PR-007 | S14a 130 km/h: xe ra khỏi đường sau đoạn vượt aysmax; 051 chấm khi đã ra ngoài | Phương án B đã vào SRS 1.17; S14 a VP-0 vẫn trượt ở e3158a5, còn mở | PP-SWR-051 | [report](problems/PP-PR-007-s14a-overspeed-after-limit.md) |
 | PP-PR-008 | S1ba 130 km/h: path T7 A trễ so với a_y cần lúc vào cua | Còn mở; xe rời làn ở 130 km/h kéo theo mất path | PP-SWR-006 | [report](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md) |
 | PP-PR-009 | F03 c: cả bốn vạch nhảy 3,5 m trong 2 s, xe đi theo sang làn bên | Còn mở; sửa qua J1 của PP-TS-001 | PP-SWR-051, 100 | [report](problems/PP-PR-009-f03c-whole-lane-shift.md) |
 | PP-PR-010 | FunctionRequests quá timeout, PathStatus vẫn báo path hợp lệ | Đóng; xác nhận ở 20261113-1803-suite-regression-3c31309 | PP-SWR-145 | [report](problems/PP-PR-010-function-requests-timeout.md) |
@@ -121,3 +121,4 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-073 | COMPLETED lệch thời điểm khi lane model nhiễu | Mở | PP-SWR-032, 090 | [report](problems/PP-PR-073-completed-under-noise.md) |
 | PP-PR-074 | Vào lại FOLLOW chậm sau lỗi LeadTarget | Mở | PP-SWR-170 | [report](problems/PP-PR-074-follow-reentry-after-fault.md) |
 | PP-PR-075 | S22 a: độ cong đổi quá ngưỡng giữa hai path | Mở | PP-SWR-102 | [report](problems/PP-PR-075-s22a-curvature-step.md) |
+| PP-PR-076 | G01 trên S1c, VP-5: DLC âm nhẹ | Mở | PP-SWR-051 | [report](problems/PP-PR-076-g01-s1c-vp5-departure.md) |

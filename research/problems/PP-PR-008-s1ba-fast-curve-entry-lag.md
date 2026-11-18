@@ -32,4 +32,4 @@ Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-18
 
 | Run ID | Kết quả |
 |---|---|
-| 20261118-2030-suite-regression-e3158a5 | S1b a VP-0 còn trượt PP-SWR-005, 006, 007, 030; S14 a VP-0 còn trượt 030, 051 |
+| 20261118-2030-suite-regression-e3158a5 | S1b a VP-0 còn trượt PP-SWR-005, 006, 007, 030 |

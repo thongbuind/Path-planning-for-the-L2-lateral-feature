@@ -13,7 +13,7 @@ F25: PP-SWR-170 trượt 8 lần.
 
 ## 2. Nguyên nhân
 
-Sau lỗi, điều kiện M1, M2 và độ dài vết chưa đạt ngay ở chu kỳ bên chấm coi là đủ điều kiện.
+Giả thuyết, chưa xác nhận bằng trace: sau lỗi, điều kiện M1, M2 và độ dài vết chưa đạt ngay ở chu kỳ bên chấm coi là đủ điều kiện.
 
 ## 3. Cách sửa
 

@@ -13,7 +13,9 @@ S12, F01, G01: PP-SWR-032 trượt 20 lần, PP-SWR-090 trượt 9 lần (có F0
 
 ## 2. Nguyên nhân
 
-Điều kiện kết thúc tính trên ước lượng nhiễu nên đứt quãng hoặc đạt sớm hơn trạng thái thật. `T_end_margin` 0,1 s giảm báo sớm nhưng không xử lý được nhiễu.
+Giả thuyết, chưa xác nhận bằng trace: điều kiện kết thúc tính trên ước lượng nhiễu nên đứt quãng hoặc đạt sớm hơn trạng thái thật. `T_end_margin` 0,1 s giảm báo sớm nhưng không xử lý được nhiễu.
+
+So với baseline 20261118-1546-suite-regression-edb02b8: PP-SWR-032 từ 18 lên 20 lần, riêng G01 từ 1 lên 6; PP-SWR-090 từ 15 xuống 9. Phần tăng xuất hiện sau khi sửa path và hành lang.
 
 ## 3. Cách sửa
 
