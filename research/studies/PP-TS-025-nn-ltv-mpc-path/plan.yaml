@@ -1,0 +1,36 @@
+# Draft for review. V2 to V4 are proposed CMake choices.
+# V1r and V2 use the same reduced iteration count. 75 is the draft starting point.
+# Freeze the selected iteration count, calibration and learned artifacts before the test.
+id: PP-TS-025
+locked: null
+suite: PP-T7
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  DLC_min_m: 0.01
+  PP-SWR-002: 0.05
+variants:
+  V0:
+    description: Quintic theo thời lượng (T7 A), calibration mặc định
+    calibration: {}
+    cmake: {PP_T7: quintic}
+  V1:
+    description: QP/LTV-MPC hiện tại (T7 C), 150 vòng ADMM
+    calibration: {qp_iters: 150}
+    cmake: {PP_T7: qp}
+  V1r:
+    description: QP hiện tại với cùng ngân sách vòng như V2
+    calibration: {qp_iters: 75}
+    cmake: {PP_T7: qp}
+  V2:
+    description: NN khởi tạo jerk cho QP, cùng ngân sách vòng như V1r
+    calibration: {qp_iters: 75}
+    cmake: {PP_T7: qp_nn_warmstart}    # proposed, not implemented
+  V3:
+    description: NN chỉnh trọng số QP trong dải calibration
+    calibration: {qp_iters: 150}
+    cmake: {PP_T7: qp_nn_weights}      # proposed, not implemented
+  V4:
+    description: NN sinh jerk để tích phân path, qua T10 và T4 chung (đối chứng)
+    calibration: {}
+    cmake: {PP_T7: nn_direct}          # proposed, not implemented

@@ -37,6 +37,8 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã quyết 2026-11-16 theo 20261116-1748-study-PP-TS-021-8726b80; hồi quy 20261117-0908-suite-regression-c56f0bf có trượt mới ở ELK (PP-PR-062) | V7: reset mềm 0,02–0,1 m | [study](studies/PP-TS-021-stitch-start/study.md) |
 | PP-TS-022 | T4 bước 4: mỗi điểm của path so với ngưỡng nào khi tính λ (path quay về chậm ở F06 d, F03 c) | Đã quyết 2026-11-17 theo 20261117-1315-study-PP-TS-022-d2e7d27 (V1 trượt 2 / 3, V0 4 / 5; V1 sửa F06 d, không sửa F03 c, S14 e; lệch tâm xấu hơn ở 19 / 36 lượt); chờ hồi quy | V1: mỗi điểm so với ngưỡng của đoạn mình, một λ | [study](studies/PP-TS-022-blend-limit/study.md) |
 | PP-TS-023 | Dải đặc tính lái (K, steering ratio, actuator delay) của vehicle profile cho phép chấm flexibility | Mở; chờ nguồn cho dải | — | [study](studies/PP-TS-023-profile-steering-dynamics/study.md) |
+| PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-025; kế hoạch nháp, V1/V2 chưa cài | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
+| PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-024; kế hoạch nháp, V2–V4 chưa cài | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
 
 ## Problem reports
 
@@ -111,3 +113,5 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-067 | Overlay lane model trên web tra tư thế bằng stamp đồng hồ camera; tới 2,5 cm dưới F14 | Mở; độ lớn nhỏ | Chỉ hiển thị | [report](problems/PP-PR-067-lane-overlay-clock-domain.md) |
 | PP-PR-068 | SQTS 4.1 mô tả chế độ thời gian thực (python-can `udp_multicast`) chưa có trong code | Mở; chờ quyết định A, B, C | SQTS 4.1 | [report](problems/PP-PR-068-realtime-mode-not-implemented.md) |
 | PP-PR-069 | Lỗi gắn trigger không được bơm nhưng ca vẫn được chấm như đã bơm | Mở; chờ quyết định cách sửa | SQTS 6, 8.4 | [report](problems/PP-PR-069-uninjected-fault-still-judged.md) |
+| PP-PR-070 | S22b rời FOLLOW trước giới hạn 30 m. F25c và F25e báo path mất hiệu lực sớm sau FOLLOW | Mở; quan sát SIL mục tiêu, chờ tái kiểm trên bản build chính thức | PP-SWR-170, 173 | [report](problems/PP-PR-070-follow-coast-timing.md) |
+| PP-PR-071 | S20a và F24a trên S20a có DLC phía can thiệp giảm lại quá 0,1 m | Mở; quan sát SIL mục tiêu, chờ tái kiểm trên bản build chính thức | PP-SWR-094 | [report](problems/PP-PR-071-s20a-dlc-reversal.md) |

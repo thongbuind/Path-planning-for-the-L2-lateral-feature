@@ -1,0 +1,27 @@
+# Draft for review. V1 and V2 are proposed CMake choices. V0 and VQ are the shared references.
+# Tuning grid, eligibility and pairwise decisions are specified in study.md.
+id: PP-TS-024
+locked: null
+suite: PP-T7
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  DLC_min_m: 0.01
+  PP-SWR-002: 0.05
+variants:
+  V0:
+    description: Quintic theo thời lượng (T7 A), calibration mặc định
+    calibration: {}
+    cmake: {PP_T7: quintic}
+  VQ:
+    description: QP/LTV-MPC hiện tại (T7 C), 150 vòng ADMM
+    calibration: {qp_iters: 150}
+    cmake: {PP_T7: qp}
+  V1:
+    description: Tangent point định vị đỉnh của hiệu chỉnh ngang có biên
+    calibration: {}
+    cmake: {PP_T7: driver_tangent}     # proposed, not implemented
+  V2:
+    description: Chọn hiệu chỉnh ngang theo a_y và jerk dự báo trên phần quan sát
+    calibration: {}
+    cmake: {PP_T7: driver_ay}          # proposed, not implemented
