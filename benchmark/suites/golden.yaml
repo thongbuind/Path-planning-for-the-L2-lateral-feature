@@ -52,3 +52,10 @@ cases:
     purpose: Ca đang trượt (lỗi lane model kéo dài)
     recipe: {kind: catalog, sid: S1, v: a, faults: [[F06, d]]}
     smoke: F06-d-S1a-VP-0
+  - id: G-13
+    purpose: LCC bám xe trước khi mất vạch
+    recipe: {kind: catalog, sid: S22, v: a}
+    smoke: S22-a-VP-0
+  - id: G-14
+    purpose: Lỗi LeadTarget khi đang bám xe trước
+    recipe: {kind: catalog, sid: S22, v: a, faults: [[F25, b]], trigger: lcc_follow, offset_s: 0.2}
