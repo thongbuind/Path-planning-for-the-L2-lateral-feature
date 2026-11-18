@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.12 |
+| Phiên bản | 1.13 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -232,7 +232,8 @@ Phép tính sai số của tâm làn gốc sau 30 m ở Appendix A.7.
 | Việc | LKA | ELK | Liên quan |
 |---|---|---|---|
 | Điểm bắt đầu | Trạng thái đo được lúc kích hoạt (mục 4.2) | Như LKA | PP-SWR-031, 049, 080 |
-| Thời lượng | Khởi đầu `T_lka`, chọn theo TLC và giới hạn a_y | Khởi đầu `T_elk`, chọn theo TLC và giới hạn a_y | Target 081, 082 |
+| Dạng path | Xe đang trôi ra: pha chặn đà rồi pha về tâm trong `T_return`. Xe đã tự về: chỉ pha về tâm (PP-ADR-021) | Như LKA; ELK vì xe làn bên về tâm trong `T_return_object` | PP-SWR-085, 094 |
+| Thời lượng chặn đà | Khởi đầu `T_lka`, chọn theo TLC và giới hạn a_y | Khởi đầu `T_elk`, chọn theo TLC và giới hạn a_y | Target 081, 082 |
 | Đích | Tâm làn (d = 0); kết thúc khi lệch tâm ≤ `d_end` (mentor) | Như LKA | PP-SWR-032, 084, 085 |
 | Siết biên | Không | Biên phía nguy hiểm siết lại để bánh xe không qua vạch phía đó | PP-SWR-086 |
 | Hành lang can thiệp | Chốt lúc bắt đầu; biên phía nguy hiểm cập nhật bất đối xứng (mục 7.2) | Như LKA | PP-SWR-093, 094 |
@@ -254,7 +255,8 @@ Hiện tượng mentor nêu ở mép đường: lane model báo biên nhảy ra 
 | Việc | Cách làm |
 |---|---|
 | Chốt | Lúc LKA hoặc ELK bắt đầu, chốt reference line (tâm, bề rộng, hai biên) làm hành lang can thiệp; mỗi chu kỳ dời hành lang bằng ego-motion |
-| Biên phía nguy hiểm dịch vào phía xe | Nhận ngay: an toàn hơn |
+| Biên phù hợp với hành lang | Hành lang tiến dần về lane model với hằng số thời gian `corridor_tau`, để nhiễu không lái xe |
+| Biên phía nguy hiểm dịch vào phía xe | Giữ liên tục `corridor_toward` thì hành lang theo nhanh: an toàn hơn; một frame nhiễu không đủ |
 | Biên phía nguy hiểm dịch ra xa | Giữ hành lang cũ tới khi vị trí mới giữ liên tục `T_confirm` và biên đối diện xác nhận bề rộng; sau đó dịch hành lang tới biên mới với tốc độ `ref_rate` |
 | Điều kiện kết thúc | Tính theo hành lang. Chu kỳ có biên đang chờ xác nhận không tính vào điều kiện, bộ đếm `T_end_hold` đặt lại |
 | Lane model báo đổi làn | Hủy can thiệp theo ADAS Function Specification, edge case 7 |
@@ -357,8 +359,11 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `heading_end` | ° | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
 | `ay_add_end` | m/s² | 0,2 | 0,1–0,3 | ≥ 0 | PP-SWR-032, 090 |
 | `T_end_hold` | s | 0,5 | 0,3–1,0 | ≥ 0 | PP-SWR-032, 090 |
-| `T_lka` | s | 3,0 | 2,0–4,0 | > 0 | PP-SWR-110, 112, 114. Target 081, 087 |
-| `T_elk` | s | 2,0 | 1,0–3,0 | > 0 | PP-SWR-111, 113, 115. Target 082 |
+| `T_end_margin` | s | 0,1 | 0–0,3 | 0–0,4 | PP-SWR-032, 090 |
+| `T_lka` | s | 1,25 | 1,0–2,5 | > 0 | Pha chặn đà của LKA. PP-SWR-110, 112, 114. Target 081, 087 |
+| `T_elk` | s | 0,75 | 0,5–2,0 | > 0 | Pha chặn đà của ELK. PP-SWR-111, 113, 115. Target 082 |
+| `T_return` | s | 4,0 | 3,0–5,0 | > 0 | Pha về tâm của LKA, ELK. PP-SWR-085, 094. Target 081, 082 |
+| `T_return_object` | s | 2,0 | 1,5–3,0 | > 0 | Pha về tâm của ELK vì xe làn bên. PP-SWR-088 |
 | `T_recenter` | s | 3,5 | 2,5–5,0 | Giới hạn của PP-SWR-001, 003 | Target 002, 053 |
 | `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,5 (PP-SWR-001) | Target 002, 053, 059 |
 | `jerk_target_hwa` | m/s³ | 2,5 | 1,5–5,0 | ≤ 5 (PP-SWR-003) | Target 004 |
@@ -415,7 +420,7 @@ Bias 1 °/s (offset cảm biến thô Bosch SMI230): 0,22 m sau 1 s, 0,87 m sau 
 | 0,4 m/s | 1,36 / 6,6 / 2,8 | 0,78 / 2,5 / 1,5 | 0,54 / 1,3 / 0,9 |
 | 0,6 m/s | 1,47 / 6,9 / 2,9 | 0,91 / 2,8 / 1,7 | 0,66 / 1,5 / 1,1 |
 
-T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10–0,16 m so với 0,13–0,28 m khi T = 3 s). Đây là căn cứ cho giá trị khởi đầu `T_lka` = 3 s.
+T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10–0,16 m so với 0,13–0,28 m khi T = 3 s). Bảng này tính cho một quintic về tâm. Từ PP-TS-026, `T_lka` là thời lượng pha chặn đà.
 
 **A.7 Bám xe trước** (PP-SWR-170 đến 173, PP-ASM-025).
 
@@ -444,3 +449,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.10 | 2026-11-16 | Mục 4.2: điểm đầu chuyển dần từ path cũ sang trạng thái đo (PP-ADR-004 D). Mục 11: `stitch_reset` 0,2 → 0,1 m, dải 0,05–0,2 m; thêm `stitch_soft_min`. Lý do: PP-TS-021 V7 (20261116-1748-study-PP-TS-021-8726b80) |
 | 1.11 | 2026-11-17 | Mục 4.2, 7: LKA, ELK bắt đầu từ trạng thái đo, chu kỳ đầu không trộn với path cũ (SRS 1.23, PP-PR-062) |
 | 1.12 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 3: bảng hai planner, thành phần Lead trail, arbitrator trong cycle sequence và latency chain. Mục 5: Arbitration đổi thành Intervention selection của LKA/ELK planner, bỏ nhánh HWA. Mục 6: dời tâm một xe lớn 10 cm, hai xe lớn giữ cân bằng, xe ở làn bên kia chặn dời; mục 6.3 bám xe trước. Mục 7: đích tâm làn, điều kiện kết thúc thêm `d_end`, `v_lat_end` = 0,15 m/s; mục 7.2 hành lang can thiệp. Mục 8, 10: bậc suy giảm FOLLOW, edge case 17 đến 19. Mục 11: thêm `d_end`, `offset_truck`, `follow_lat_max`, `follow_vlat_max`; bỏ `dlc_target_lka`. Appendix A.7. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-030 đến 049, 055, 065, 066, 084, 093, 094, 170 đến 178, 180, 181 |
+| 1.13 | 2026-11-18 | Mục 7: path LKA, ELK hai pha (PP-ADR-021). Mục 7.2: hành lang lọc nhiễu lane model. Mục 11: thêm `T_end_margin`, `T_return`; đổi giá trị `T_lka`, `T_elk`. Lý do: PP-TS-026, PP-PR-071, 072 |

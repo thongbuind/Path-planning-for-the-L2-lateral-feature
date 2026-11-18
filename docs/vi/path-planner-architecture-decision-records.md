@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ADR` |
-| Phiên bản | 1.7 |
+| Phiên bản | 1.8 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -56,6 +56,7 @@
 | PP-ADR-018 | Bám xe trước bằng reference line ảo dựng từ vết xe trước |
 | PP-ADR-019 | Hành lang can thiệp cập nhật bất đối xứng khi biên nhảy |
 | PP-ADR-020 | Dời 10 cm khi một xe lớn, hai xe lớn giữ cân bằng khoảng hở |
+| PP-ADR-021 | LKA, ELK chặn đà trôi rồi về tâm chậm |
 
 ## 5. Các quyết định {#adr-decisions}
 
@@ -244,9 +245,9 @@
 | Mục | Nội dung |
 |---|---|
 | Bối cảnh | Mentor: ở mép đường lane model có thể báo biên nhảy ra xa hơn thực tế, nên planner đẩy xe về làn rồi kéo ra. Path can thiệp lấy mẫu trên reference line của từng chu kỳ, nên biên nhảy thì path dời theo. Điều kiện kết thúc mới (10 cm, 0,15 m/s) cũng tính trên reference line đó |
-| Phương án | A) Giữ reference line từng chu kỳ, dựa vào T2 lọc nhảy. B) Hành lang chốt lúc bắt đầu; biên dịch vào phía xe nhận ngay, dịch ra xa chờ `T_confirm`. C) Hành lang cố định tới hết can thiệp |
+| Phương án | A) Giữ reference line từng chu kỳ, dựa vào T2 lọc nhảy. B) Hành lang chốt lúc bắt đầu; biên dịch vào phía xe được theo sau `corridor_toward`, dịch ra xa chờ `T_confirm`; biên phù hợp được lọc theo `corridor_tau`. C) Hành lang cố định tới hết can thiệp |
 | Quyết định | B. A bỏ vì T2 nhận thay đổi thật sau `T_confirm`, trong lúc đó path đã dời. C bỏ vì không theo được thay đổi thật của làn |
-| Hệ quả | Được: biên nhảy ra xa không kéo xe ra; biên dịch vào vẫn nhận ngay; không báo COMPLETED sai. Mất: làn rộng ra thật thì xe vẫn về tâm làn cũ ít nhất `T_confirm`; thêm trạng thái hành lang |
+| Hệ quả | Được: biên nhảy ra xa không kéo xe ra; nhiễu lane model không lái xe; biên dịch vào thật vẫn được theo nhanh; không báo COMPLETED sai. Mất: làn rộng ra thật thì xe vẫn về tâm làn cũ ít nhất `T_confirm`; thêm trạng thái hành lang |
 | Liên quan | PP-SWR-084, 093, 094; Software Architectural Design mục 7.2; Software Detailed Design T9 bước 7 |
 
 ### PP-ADR-020 Dời 10 cm khi một xe lớn, hai xe lớn giữ cân bằng khoảng hở {#adr-020}
@@ -258,6 +259,16 @@
 | Quyết định | C. Thay PP-ADR-008 ở dòng một xe lớn. Hai xe lớn giữ cân bằng vì mentor chưa nêu ca này và cân bằng không bao giờ dời về phía xe có khoảng hở nhỏ hơn (PP-SWR-056) |
 | Hệ quả | Được: khớp mentor; vẫn xử lý được ca hai xe tải. Mất: một xe lớn rất gần thì 10 cm không đủ đạt `gap_truck_min`; ưu tiên an toàn bên kia (PP-SWR-065) |
 | Liên quan | PP-SWR-055, 056, 065, 066; Software Architectural Design mục 6 |
+
+### PP-ADR-021 LKA, ELK chặn đà trôi rồi về tâm chậm {#adr-021}
+
+| Mục | Nội dung |
+|---|---|
+| Bối cảnh | Từ khi đích là tâm làn, một quintic ngắn đưa xe về nhanh, xe vượt qua tâm rồi quay lại. DLC phía can thiệp giảm lại quá 0,1 m, trượt PP-SWR-094 |
+| Phương án | A) Một quintic như cũ. B) Một quintic dài hơn. C) Hai pha: chặn đà trong `T_lka` hoặc `T_elk`, rồi về tâm trong `T_return` |
+| Quyết định | C với chặn đà 1,25 s (LKA), 0,75 s (ELK), về tâm 4 s, theo PP-TS-026 V4; ELK vì xe làn bên về tâm trong 2 s để giữ khoảng cách (PP-SWR-088). A và B còn trượt PP-SWR-094 ở nhiều ca; B còn đưa xe ra gần vạch hơn |
+| Hệ quả | Được: xe không vượt tâm, chặn đà vẫn nhanh. Mất: thời gian tới COMPLETED dài hơn khoảng 1–2 s, target 081, 082 xấu đi; thêm `T_return` |
+| Liên quan | PP-SWR-085, 086, 088, 094; target 081, 082; PP-TS-026; Software Detailed Design mục 10 |
 
 ## Revision history {#revision-history}
 
@@ -271,3 +282,4 @@
 | 1.5 | 2026-11-16 | PP-ADR-004 chọn D thay C: trộn path cũ và trạng thái đo theo độ lệch. Lý do: PP-TS-021 (20261116-1748-study-PP-TS-021-8726b80); với C, xe đứng sát dưới `stitch_reset` và controller kéo thêm a_y (PP-PR-056); ngưỡng nhỏ thì path đổi qua lại mỗi chu kỳ |
 | 1.6 | 2026-11-17 | PP-ADR-004: hệ quả lúc LKA, ELK bắt đầu theo SRS 1.23 (PP-PR-062) |
 | 1.7 | 2026-11-18 | Thêm PP-ADR-016 đến 020: tách hai planner, giữ LKA và ELK riêng, bám xe trước, hành lang can thiệp, dời 10 cm (thay một phần PP-ADR-008); PP-ADR-015 chuyển sang InterventionStatus. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24) |
+| 1.8 | 2026-11-18 | Thêm PP-ADR-021; PP-ADR-019: hành lang lọc nhiễu, biên dịch vào cần giữ `corridor_toward`. Lý do: PP-TS-026, PP-PR-071, 072 |

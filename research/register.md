@@ -39,7 +39,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-TS-023 | Dải đặc tính lái (K, steering ratio, actuator delay) của vehicle profile cho phép chấm flexibility | Mở; chờ nguồn cho dải | — | [study](studies/PP-TS-023-profile-steering-dynamics/study.md) |
 | PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-025; kế hoạch nháp, V1/V2 chưa cài | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
 | PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-024; kế hoạch nháp, V2–V4 chưa cài | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
-| PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Đã khóa 2026-11-18 | — | [study](studies/PP-TS-026-intervention-return/study.md) |
+| PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Chờ quyết định; 20261118-1712-study-PP-TS-026-3875f8e; V4 áp dụng để chạy hồi quy | Đề xuất V4 | [study](studies/PP-TS-026-intervention-return/study.md) |
 
 ## Problem reports
 

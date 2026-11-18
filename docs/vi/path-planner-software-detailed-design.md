@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.27 |
+| Phiên bản | 1.28 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -72,7 +72,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | 2 | L1 và R1 cùng đủ tin: tâm làn = (y_L1 + y_R1) / 2. Cập nhật w_mem và mọi o_k bằng lọc thông thấp hằng số thời gian `tau_mem`, chỉ khi bề rộng đo trong 2,5–5,5 m; đặt lại σ_o,k = `sigma_mem0`. Bề rộng đo ngoài 2,5–5,5 m khi đã có w_mem và reference line của chu kỳ trước: chỉ dùng vạch cho tâm gần tâm cũ hơn, theo bước 3 (PP-SWR-060, 122). LCC planner giữ reference line này làm tâm làn gốc cho T12 |
 | 3 | Chỉ một trong L1, R1 đủ tin: tâm làn = biên đó ∓ w_mem/2. Không cập nhật bộ nhớ |
 | 4 | Không vạch làn mình nào đủ tin, còn biên khác đủ tin: mỗi biên cho một tâm ứng viên y_k − o_k; kết hợp hệ số theo trọng số 1 / (σ_c0,k² + σ_o,k²). Đặt cờ tâm làn suy ra (PP-SWR-047). σ_o,k² tăng `q_mem` mỗi giây. Nếu vạch làn mình chỉ bị loại ở kiểm nhất quán (không mất, vẫn đủ tin theo SRS 4), làm bước 5 trước; hết `T_coast` mới suy tâm |
-| 5 | Không còn biên nào đủ tin, kể cả khi lane model không hợp lệ: LCC planner dùng reference line ảo của T12 nếu đủ điều kiện bám xe. Không bám xe được, và với LKA/ELK planner: bám reference line cũ đã dời bằng ego-motion tối đa `T_coast`, path nối tiếp path cũ qua T4; rồi `path_valid = false` |
+| 5 | Không còn biên nào đủ tin, kể cả khi lane model không hợp lệ: LCC planner dùng reference line ảo của T12 nếu đủ điều kiện bám xe. Không bám xe được, và với LKA/ELK planner: bám reference line cũ đã dời bằng ego-motion tối đa `T_coast`, path nối tiếp path cũ qua T4; rồi `path_valid = false`. Khi rời FOLLOW, reference line cũ là đường vừa bám và `T_coast` tính từ lúc rời (PP-SWR-173) |
 | 6 | Biên làn của reference line = tâm làn ± w/2, dùng cho khoảng hở (T8) và corridor (T7). Khoảng trống mỗi bên = (w − `vehicle_width`) / 2; nhỏ hơn `free_space_min` thì `lane_too_narrow = true` |
 
 **Kiểm tính nhất quán**
@@ -160,12 +160,13 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 | LCC đưa về giữa | 0 | `T_recenter`. Bắt đầu khi LCC ở REQUEST mà chu kỳ trước chưa lái, khi hết ghi đè, hoặc khi LKA và ELK cùng rời REQUEST; kết thúc khi lệch ngang ≤ `recenter_done` hoặc LCC rời REQUEST |
 | LCC khi tài xế ghi đè, hoặc khi LKA hoặc ELK ở REQUEST | Lệch ngang hiện tại của xe: path song song với làn, không kéo xe về (PP-TS-017) | `T_recenter`. Hết điều kiện thì chuyển sang LCC đưa về giữa |
 | LCC bám xe trước | 0 trên reference line ảo của T12 | `T_hwa` |
-| LKA | Tâm làn của hành lang can thiệp, d = 0 | Khởi đầu bằng `T_lka` |
-| ELK | Như LKA; biên phía nguy hiểm siết như ở interface chung | Khởi đầu bằng `T_elk` |
+| LKA | Tâm làn của hành lang can thiệp, d = 0 | Pha chặn đà khởi đầu bằng `T_lka`, pha về tâm `T_return` |
+| ELK | Như LKA; biên phía nguy hiểm siết như ở interface chung | Pha chặn đà khởi đầu bằng `T_elk`, pha về tâm `T_return` |
 
 LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step`, tới `intervention_T_max`, nếu path ban đầu chưa đạt.
 
 - Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ứng viên thoả giới hạn là ứng viên T10 bước 2 không cắt; ứng viên bị cắt chỉ dùng khi không còn ứng viên nào khác. Trong số đó, ưu tiên ứng viên giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
+- Xe đang trôi ra phía `side`: pha chặn đà là quintic từ trạng thái đo (d0, v0, a0) tới đỉnh d0 + 0,4·v0·T + 0,05·a0·T², kết thúc với vận tốc, gia tốc và jerk bằng 0; pha về tâm là quintic từ đỉnh về d = 0 trong `T_return`. Xe đã tự đi về phía tâm: chỉ một quintic về tâm trong `T_return` (PP-TS-026, PP-SWR-094). ELK vì xe ngược chiều hoặc đang vượt dùng `T_return_object` thay cho `T_return`, để rời phía có xe sớm hơn (PP-SWR-088). Ứng viên thời lượng áp cho pha chặn đà.
 - Giữ hệ số quintic và mốc bắt đầu trong suốt lần can thiệp. Mỗi chu kỳ lấy mẫu theo thời gian đã qua, trên hành lang can thiệp của T9 (bước 7), không trên reference line của chu kỳ đó: biên nhảy không được kéo path theo. Sau thời lượng quintic, mẫu ngang giữ đích và vận tốc ngang bằng 0 cho tới khi T9 kết thúc hoặc hủy.
 - Với ELK mép đường, dựng reference line từ mép nguy hiểm và biên đối diện đủ tin. Khi biên đối diện mất, dùng lại bề rộng đã nhớ nếu mép còn MEASURED và vị trí khớp mép đã gắn với làn sau bù ego-motion. Vạch ngoài làn đo được ở cùng phía loại mép đó khỏi hành lang làn đang chạy (PP-SWR-047).
 
@@ -198,11 +199,11 @@ Chỉ LKA/ELK planner. Việc chọn giữa hai planner thuộc arbitrator của
 |---|---|
 | 1 | Kiểm timeout FunctionRequests theo thời gian nhận. Khi quá 75 ms, vô hiệu path ở cả InterventionStatus và Trajectory (PP-SWR-145) |
 | 2 | Khi state rời REQUEST, xóa pha và cờ chặn của chức năng đó. Khi vừa nhận ELK REQUEST, chặn yêu cầu nếu lốp trước đã qua vạch phía yêu cầu quá 0,3 m (PP-SWR-089) |
-| 3 | Lần can thiệp đang ACTIVE: tính điều kiện kết thúc từ DLC hai phía, lệch tâm, v_lat, góc lệch và trị tuyệt đối a_y thêm vào của path đang áp dụng tại t0, theo hành lang can thiệp (bước 7); ngưỡng `d_end`, `v_lat_end`, `heading_end`, `ay_add_end`. Đưa v_y về t0 bằng ngoại suy tuyến tính từ hai VehicleStateEstimate hợp lệ gần nhất. Đặt COMPLETED khi giữ liên tục `T_end_hold`. Giữ pha tới khi state rời REQUEST (PP-SWR-032, 041, 090) |
+| 3 | Lần can thiệp đang ACTIVE: tính điều kiện kết thúc từ DLC hai phía, lệch tâm, v_lat, góc lệch và trị tuyệt đối a_y thêm vào của path đang áp dụng tại t0, theo hành lang can thiệp (bước 7); ngưỡng `d_end`, `v_lat_end`, `heading_end`, `ay_add_end`. Đưa v_y về t0 bằng ngoại suy tuyến tính từ hai VehicleStateEstimate hợp lệ gần nhất. Đặt COMPLETED khi giữ liên tục `T_end_hold` + `T_end_margin`: điều kiện tính trên ước lượng nên giữ thêm để không báo trước trạng thái thật. Giữ pha tới khi state rời REQUEST (PP-SWR-032, 041, 090) |
 | 4 | Chọn ELK > LKA trong các REQUEST đủ điều kiện. LKA, ELK cần biên đủ tin theo PP-SWR-047. Lần mới của LKA, ELK vạch cần vạch làn mình phía `side` đủ tin, không bị T2 loại, trên reference line không coast và không suy ra (PP-SWR-092). Lần mới cần v_y hợp lệ. Lần đang chạy tiếp tục lấy mẫu quintic nếu chỉ mất v_y (PP-SWR-046). Hủy khi không còn đủ điều kiện. Không có mốc cắt thời lượng |
 | 5 | Khi hoàn tất hoặc hủy, chọn chức năng kế tiếp ngay trong cùng chu kỳ. Nếu không còn ứng viên, báo NONE và `Trajectory.header.valid = false` (PP-SWR-180). ELK mép đường vẫn xét hành lang theo biên trực tiếp ở tick nhận OFF. Trộn T4 theo PP-SWR-031, 036, 037 |
 | 6 | Khi path không hợp lệ, báo NONE. Chặn các REQUEST can thiệp đang giữ cho tới khi rời REQUEST rồi yêu cầu lại (PP-SWR-043, 045) |
-| 7 | Hành lang can thiệp: lúc lần can thiệp bắt đầu, chốt reference line (tâm, bề rộng, hai biên) làm hành lang; mỗi chu kỳ dời hành lang bằng ego-motion. Biên phía nguy hiểm mới lệch hành lang không quá `corridor_tol` hoặc dịch vào phía xe thì nhận ngay (hành lang lấy lại hình dạng của reference line chu kỳ đó). Dịch ra xa thì giữ hành lang cũ tới khi vị trí mới giữ liên tục `T_confirm` và biên đối diện xác nhận bề rộng, rồi dịch hành lang tới biên mới với tốc độ `ref_rate`. Chu kỳ có biên đang chờ xác nhận không tính vào điều kiện kết thúc: bộ đếm `T_end_hold` đặt lại (PP-SWR-093, 094; PP-ADR-019). Lane model báo đổi làn thì hủy can thiệp |
+| 7 | Hành lang can thiệp: lúc lần can thiệp bắt đầu, chốt reference line (tâm, bề rộng, hai biên) làm hành lang; mỗi chu kỳ dời hành lang bằng ego-motion. Biên phía nguy hiểm mới lệch hành lang không quá `corridor_tol`: hành lang tiến về reference line chu kỳ đó với hằng số thời gian `corridor_tau`. Dịch vào phía xe quá `corridor_tol` và giữ liên tục `corridor_toward`: tiến nhanh gấp bốn. Dịch ra xa thì giữ hành lang cũ tới khi biên vẫn ở ngoài suốt `T_confirm`; khi đó, nếu biên đối diện cũng đổi thì hành lang tiến về reference line với `corridor_tau`, nếu không thì dịch tới biên mới với tốc độ `ref_rate`. Chu kỳ có biên đang chờ xác nhận không tính vào điều kiện kết thúc: bộ đếm `T_end_hold` đặt lại (PP-SWR-093, 094; PP-ADR-019). Lane model báo đổi làn thì hủy can thiệp |
 
 Kết quả khớp bảng intervention state ở Software Architectural Design mục 5.1; unit test kiểm từng ô của bảng đó.
 
@@ -267,6 +268,8 @@ Bổ sung cho Software Architectural Design mục 11; cùng cách quét (Softwar
 | `trail_fit_max` | m | 0,4 | 0,3–0,6 | T12; RMS của phép khớp |
 | `exist_min` | — | 0,5 | 0,3–0,8 | T12; dưới ngưỡng này LeadTarget coi như không có xe trước |
 | `corridor_tol` | m | 0,15 | 0,1–0,3 | T9 bước 7; lệch biên nguy hiểm tới ngưỡng này vẫn là cùng một biên |
+| `corridor_tau` | s | 0,5 | 0,25–1,0 | T9 bước 7; lọc nhiễu lane model trong lúc can thiệp |
+| `corridor_toward` | s | 0,15 | 0,1–0,3 | T9 bước 7; ba frame camera trước khi coi biên thật sự dịch vào |
 
 Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cách lớn nhất tới xe trước (V2), để vết phủ từ xe mình tới xe trước.
 
@@ -303,3 +306,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.25 | 2026-11-17 | T4 bước 4: lệch của mỗi điểm chia cho hệ số của đoạn thời gian chứa nó (1, 2, 4) trước khi tính λ; vẫn một λ cho cả path. Lý do: PP-TS-022 V1 (20261117-1315-study-PP-TS-022-d2e7d27); path quay về từ xa chậm ở F06 d vì phần xa bị giữ theo ngưỡng 0–1 s. Ảnh hưởng: PP-SWR-100 đến 102, 051; T4 |
 | 1.26 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 3: unit nào ở planner nào; thêm T12 (mục 5.1, bám xe trước, PP-ADR-018). T9 đổi tên Intervention selection, bỏ nhánh HWA, thêm bước 7 hành lang can thiệp (PP-ADR-019). T4: LCC planner bắt đầu từ trạng thái đo cả khi LKA, ELK ở REQUEST. T7: LKA, ELK về tâm làn, lấy mẫu trên hành lang can thiệp. T8: dời `offset_truck`, xe ở làn bên kia chặn dời. T10, T11 theo từng planner. Mục 15: thêm `trail_n`, `trail_spacing`, `trail_fit_max`. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-039, 040, 055, 065, 066, 093, 094, 170 đến 178, 180, 181 |
 | 1.27 | 2026-11-18 | Khớp với mã đã tách hai planner. Mục 3: module T9 là `selection.c`. T12: bộ đệm vết ghi không cần `target_id` khớp; reference line ảo là parabol có điểm neo theo `heading` xe trước, M2 theo RMS (`trail_fit_max` 0,4 m); thêm `exist_min`, `corridor_tol`. Lý do: bám xe trước chạy đầu cuối trong simulator cho thấy sai số lớn nhất và hệ số bậc 3 làm FOLLOW ngắt liên tục với nhiễu vị trí xe trước 0,25 m. Ảnh hưởng: calibration.yaml, PP-SWR-172 (xe trước đổi thì rời FOLLOW vẫn đúng theo M6) |
+| 1.28 | 2026-11-18 | T7: path LKA, ELK hai pha (PP-ADR-021). T9 bước 3 giữ thêm `T_end_margin`; bước 7 lọc nhiễu bằng `corridor_tau`, `corridor_toward`. T12: lúc bám xe, bộ nhớ reference line lấy đường đang bám để coast sau khi rời FOLLOW. Lý do: PP-TS-026, PP-PR-070, 071, 072 |

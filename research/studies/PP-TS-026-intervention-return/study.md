@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Chờ quyết định; V4 đang được áp dụng để chạy hồi quy |
 | Mở ngày | 2026-11-18 |
 | Khóa ngày | 2026-11-18 |
 | Liên quan | PP-SWR-032, 084, 085, 086, 090, 091, 094, 110 đến 115; target 081, 082, 087; PP-PR-071, 072; Software Detailed Design mục 10 |
@@ -32,8 +32,27 @@ Pha chặn đà kết thúc với tốc độ ngang, gia tốc và jerk bằng 0
 
 ## 4. Lần chạy
 
+- [20261118-1712-study-PP-TS-026-3875f8e](../../runs/20261118-1712-study-PP-TS-026-3875f8e/summary.md)
+
 ## 5. Kết quả
+
+| Phương án | Lần trượt, bộ chỉnh | Lần trượt, bộ kiểm | Trượt còn lại ở bộ kiểm | 081 xấu nhất, bộ kiểm [s] | 082 xấu nhất, bộ kiểm [s] | 087 xấu nhất, bộ kiểm [m] |
+|---|---|---|---|---|---|---|
+| V0 | 18 | 34 | PP-SWR-094, 090, 032 | 3,60 | 4,30 | 0,183 |
+| V1 | 14 | 32 | PP-SWR-094 | 4,23 | 4,80 | 0,118 |
+| V2 | 5 | 10 | PP-SWR-094, 090 | 4,85 | 5,55 | 0,144 |
+| V3 | 4 | 6 | PP-SWR-090 | 5,48 | 6,25 | 0,075 |
+| V4 | 4 | 6 | PP-SWR-090 | 5,20 | 5,93 | 0,174 |
+
+- Hai pha với về tâm 4 s bỏ hết PP-SWR-094 trên bộ kiểm. Một quintic dài hơn (V1) không đủ.
+- V3 và V4 cùng số lần trượt. V4 tới COMPLETED sớm hơn và giữ DTLE tốt hơn.
+- Giá phải trả: thời gian tới COMPLETED dài thêm 1–2 s so với V0.
 
 ## 6. Đề xuất
 
+- Chọn V4: `T_lka` 1,25 s, `T_elk` 0,75 s, `T_return` 4 s.
+- Bổ sung ngoài các phương án đã khóa: lượt nháp S8b c cho thấy về tâm chậm làm khoảng cách tới xe làn bên còn 0,27 m (PP-SWR-088), nên ELK vì xe làn bên dùng `T_return_object` = 2 s. Phần này được kiểm ở lần hồi quy, không thuộc so sánh của study.
+
 ## 7. Quyết định
+
+- Chờ người phụ trách xác nhận. V4 đã đưa vào calibration để chạy hồi quy.

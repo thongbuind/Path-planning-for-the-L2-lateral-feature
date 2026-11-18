@@ -262,7 +262,9 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     const double max_duration = (double)cal->intervention_T_max;      /* Software Detailed Design 15 */
     const double step = (double)cal->intervention_T_step;
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
-    const double t_return = (double)cal->T_return;
+    /* A vehicle in the adjacent lane is coming abreast: the car leaves its side sooner (PP-SWR-088). */
+    const bool object = elk && ((req->reason == PP_ELK_REASON_ONCOMING) || (req->reason == PP_ELK_REASON_OVERTAKING));
+    const double t_return = object ? (double)cal->T_return_object : (double)cal->T_return;
     path->start_us = t0_us;
     build_path(path, start, sign, target, duration, t_return);
     const double allowed_crossing = elk ? 0.0 : PP_MARK_DTLE_ALLOW_M;
@@ -337,8 +339,7 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
                                               const pp_calibration_t *cal, double dt)
 {
     const double sign = (side == PP_SIDE_LEFT) ? 1.0 : -1.0;
-    bool moved = c->valid && !started && (motion != NULL) && live->valid && !live->coasting
-                 && !c->ref.coasting;
+    bool moved = c->valid && !started && (motion != NULL);
     if (moved) {
         pp_cubic_t centre;
         double lo = 0.0;
@@ -350,8 +351,16 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
             c->ref.view_end = hi;
         }
     }
-    if (!moved || !live->valid || live->coasting) {
+    if (!moved) {
         adopt(c, live);                                  /* Start, or nothing to compare with */
+        return &c->ref;
+    }
+    /* No fresh lane: the corridor goes on by ego-motion, not on the memory of T2. */
+    c->ref.coasting = !live->valid || live->coasting;
+    if (c->ref.coasting) {
+#ifdef PP_REF_SAMPLED
+        pp_ref_sample_cubic(&c->ref);
+#endif
         return &c->ref;
     }
     const double x = pp_clamp(front_x, fmax(c->ref.view_start, live->view_start),
@@ -363,7 +372,7 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
     const double alpha = fmin(1.0, dt / fmax(dt, (double)cal->corridor_tau));
     c->toward_s = (away < -tol) ? (c->toward_s + dt) : 0.0;
     if (c->toward_s >= (double)cal->corridor_toward) {
-        adopt(c, live);       /* The edge really moved toward the car: taken at once */
+        correct(c, live, fmin(1.0, 4.0 * alpha));   /* The edge really moved toward the car: fast */
     } else if (away <= tol) {
         correct(c, live, alpha);   /* Consistent, or one noisy frame toward the car */
     } else {
@@ -373,7 +382,10 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
         c->pending = true;
         if (c->pending_s >= (double)cal->T_confirm) {
             if (opposite > tol) {
-                adopt(c, live);                          /* The whole lane moved: not a jump */
+                const double held_s = c->pending_s;
+                correct(c, live, alpha);                 /* The whole lane moved: not a jump */
+                c->pending = true;
+                c->pending_s = held_s;
             } else {
                 const double shift = fmin(away, (double)cal->ref_rate * dt);
                 c->ref.centre.c[0] += sign * 0.5 * shift;        /* Hazard edge only slides */

@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.24 |
+| Phiên bản | 1.25 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -157,6 +157,8 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | `follow_lat_max` | Lệch ngang lớn nhất giữa xe mình và xe trước để vào bám xe | > 0 m | mentor (tunable) |
 | `follow_vlat_max` | Tốc độ ngang lớn nhất của xe trước để vào bám xe | > 0 m/s | mentor (tunable) |
 | `T_end_hold` | Thời gian điều kiện kết thúc phải giữ liên tục trước khi báo COMPLETED | ≥ 0 s | — |
+| `T_end_margin` | Thời gian planner giữ thêm vì điều kiện được tính trên ước lượng | 0–0,4 s, tức nhỏ hơn 0,5 s của PP-SWR-032 | nhóm tự thống nhất |
+| `T_return`, `T_return_object` | Thời lượng đưa xe về tâm làn sau khi đã chặn đà trôi; bản thứ hai cho ELK vì xe làn bên | > 0 s | nhóm tự thống nhất (PP-TS-026) |
 
 ## 8. Requirements {#req-requirements}
 
@@ -429,3 +431,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.22 | 2026-11-16 | PP-SWR-100 đến 102 chia ba đoạn theo thời gian trên path: 0–1 s giữ 0,05 m, 0,005 rad, 0,0003 1/m; 1–2 s gấp đôi; sau 2 s theo mentor (SRS 1.21). Lý do: controller nhìn trước trong đoạn đầu (PP-ASM-021); ở 25 m/s, lệch 0,2 m tại 15 m làm a_y nhảy khoảng 1,1 m/s² trong một chu kỳ, 0,05 m khoảng 0,28 m/s² (PP-TS-019). Ảnh hưởng: như 1.21; Software Qualification Test Specification 8.1, Software Detailed Design T4, Software Architectural Design A.3, Mentor Report |
 | 1.23 | 2026-11-17 | PP-SWR-031: ngoại lệ áp cho chu kỳ đầu của mọi lần LKA, ELK bắt đầu, bỏ điều kiện xe lệch path cũ quá 0,1 m hoặc 0,1 m/s. Thêm PP-SWR-049: độ cong điểm đầu khớp độ cong thật của xe. Lý do: PP-PR-062; path của chức năng trước bám theo xe đang trôi ra, nên khi xe còn trong dung sai, path ELK bị trộn với path hướng ra ngoài và ELK quay vào muộn (DTLE tới −0,54 m). Đề bài chỉ đòi không có bước nhảy ở lệnh lái. Ảnh hưởng: PP-SWR-031, 049, 080, 100 đến 102; Software Qualification Test Specification 8.1; T4, T7 |
 | 1.24 | 2026-11-18 | Tách thành hai planner: LCC planner (LCC, tên khác của HWA) và LKA/ELK planner; bỏ arbitration giữa ba chức năng vì arbitrator thuộc công ty (PP-ASM-022). Giữ LKA và ELK riêng, chọn ELK > LKA trong LKA/ELK planner. Điều kiện kết thúc thêm lệch tâm ≤ `d_end` = 10 cm và `v_lat_end` = 0,15 m/s theo mentor; PP-SWR-084 đổi theo đích tâm làn. Dời tâm vì xe lớn: một xe lớn thì lệch 10 cm khi làn bên kia không có xe tới, hai xe lớn thì giữ cách cân bằng (PP-SWR-055, 065, 066). Thêm PP-SWR-093, 094 (biên nhảy lúc can thiệp), 170 đến 178 (LCC bám xe trước), 180, 181, 019, 067 (LCC phải lái khi ở REQUEST, trước đây nằm trong PP-SWR-030); PP-SWR-039, 040 thêm vế LKA, LCC ở REQUEST; PP-ASM-022 đến 028. Lý do: mentor đổi sản phẩm ngày 18/11. Ảnh hưởng: mọi requirement dùng chữ HWA, `active_function`, PathStatus; Interface Control Document, Software Architectural Design, Software Detailed Design, ADAS Function Specification, Hazard Analysis and Risk Assessment, Software Qualification Test Specification, Mentor Report |
+| 1.25 | 2026-11-18 | Mục 7: thêm giới hạn của `T_end_margin`, `T_return`, `T_return_object`. Không đổi requirement. Lý do: PP-TS-026, PP-PR-072 |
