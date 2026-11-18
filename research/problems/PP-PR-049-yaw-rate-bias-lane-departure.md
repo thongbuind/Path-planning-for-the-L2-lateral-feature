@@ -31,3 +31,4 @@
 | Run ID | Kết quả |
 |---|---|
 | 20261118-2030-suite-regression-e3158a5 | F08 trên S1c còn trượt PP-SWR-051 12 lần, PP-SWR-100 1 lần |
+| 20261118-2127-study-PP-TS-020-ac82bb3 | V1a gỡ F08 a, còn F08 b 3 trên 4 lượt; V1b, V1c gỡ cả hai nhưng thêm trượt R79 ở S1b a, c. F08 c chưa có trong suite |

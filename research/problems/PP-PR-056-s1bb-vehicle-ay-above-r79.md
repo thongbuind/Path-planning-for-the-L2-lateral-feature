@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân chính: T4 giữ điểm đầu path trên path cũ. Kịch bản đã sửa (SQTS 1.45). Sửa qua PP-TS-021 |
+| Trạng thái | Mở: S1b b vẫn trượt R79 ở mọi phương án của PP-TS-020 sau PP-TS-021; S1b a, c đạt ở V0, V1a |
 | Mở ngày | 2026-11-16 |
 | Requirement bị ảnh hưởng | R79 5.6.2.1.1, Annex 8 3.2.2 (chưa có PP-SWR; tiêu chí `PP-TS-020/R79-5.6.2.1.1`); PP-SWR-001; SQTS 5.1 (S1b) |
 | Tái hiện | [20261116-1548-study-PP-TS-020-04ae8c5](../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md): S1b b, ACC `ignore_limits`, VP-0, seed 3, 4. Chẩn đoán 2026-11-16 (nháp, thư viện của lần chạy đó): seed 3, V0, V1a, V1b |
@@ -55,3 +55,4 @@ Hai phần, chưa tách hết:
 | Run ID | Kết quả |
 |---|---|
 | [20261116-1607-study-PP-TS-020-d1d50de](../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md) | S1b a, b chạy 17 s (SQTS 1.45): tiêu chí R79 trượt ở mọi phương án, kể cả V0 (path ở aysmax). Phần kịch bản đã sửa; bản hiện tại trượt bài R79 Annex 8, 3.2.2. Phần bám path còn mở |
+| [20261118-2127-study-PP-TS-020-ac82bb3](../runs/20261118-2127-study-PP-TS-020-ac82bb3/summary.md) | S1b b trượt R79 ở cả năm phương án. S1b a, c đạt ở V0, V1a, V2; trượt ở V1b, V1c |

@@ -48,3 +48,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261118-1712-study-PP-TS-026-3875f8e | study | PP-TS-026 | 3875f8e | calibration 553e26851383, 553e26851383, a7e691e85462, a7e691e85462, d625708cf2d5, d625708cf2d5, a0262f931091, a0262f931091, eccb89e26d9c, eccb89e26d9c | Đứng đầu ở test: V3 | |
 | 20261118-1950-suite-regression-e395662 | suite | regression | e395662 | calibration c9618c64d42e, c9618c64d42e | Không đạt; {"executed": 2309, "failed": 90, "errors": 0} | |
 | 20261118-2030-suite-regression-e3158a5 | suite | regression | e3158a5 | calibration c9618c64d42e, c9618c64d42e | Không đạt; {"executed": 2309, "failed": 72, "errors": 0} | |
+| 20261118-2127-study-PP-TS-020-ac82bb3 | study | PP-TS-020 | ac82bb3 | calibration 0b2fc0aea548, 0b2fc0aea548, b91f2247e78f, b91f2247e78f, 422bdb441e35, 422bdb441e35, 42aa4a2f6fc0, 42aa4a2f6fc0, 422bdb441e35, 422bdb441e35 | Đứng đầu ở test: V1c | |
