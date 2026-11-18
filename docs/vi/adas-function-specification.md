@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.9 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -125,7 +125,7 @@ Theo DIM của Euro NCAP, chỉ dùng tín hiệu có trên xe: mô-men tài x�
 |---|---|---|---|
 | Lơ đãng, xe tự trôi | Mô-men < `torque_passive` và tốc độ quay vô lăng < 15 °/s, giữ 0,5 s | Được kích hoạt | Euro NCAP: vô lăng 0 ± 15 °/s trước lúc trôi |
 | Chuyển làn có xi-nhan | Xi-nhan về phía đang trôi, hoặc vừa tắt chưa tới `t_indicator` | Chặn LKA và ELK vạch; ELK vật thể theo mục 6, bước 5 | Euro NCAP (xi-nhan 1,0 ± 0,5 s trước lúc đánh lái) |
-| Chuyển làn không xi-nhan | Mô-men ≥ `torque_intent` về phía vạch, giữ 0,2 s; hoặc tốc độ quay vô lăng ≥ 30 °/s về phía vạch | Như dòng trên | nhóm tự thống nhất |
+| Chuyển làn không xi-nhan | Mô-men ≥ `torque_intent` về phía vạch, giữ 0,2 s; hoặc tốc độ quay vô lăng ≥ 30 °/s về phía vạch khi LKA, ELK không đang can thiệp (lúc can thiệp, vô lăng do hệ thống quay) | Như dòng trên | nhóm tự thống nhất |
 | Ghi đè lúc đang can thiệp | Mô-men ≥ `torque_override` ngược chiều can thiệp, giữ 0,1 s | Gửi OFF, bật `driver_override`; không kích hoạt lại cùng phía trong `t_reactivate_override` | R79 5.1.6; Euro NCAP ≤ 3,5 Nm |
 | Bẻ lái gấp tránh vật | v_lat > `v_lat_swerve`, xi-nhan tắt | Chặn cả LKA và ELK, kể cả khi làn bên có xe; chỉ cảnh báo | R79 5.1.6: tài xế luôn được ghi đè |
 | Tay rời vô lăng | Mô-men < 0,3 Nm liên tục | LCC: cảnh báo hình sau `t_hands_off_visual`, âm thanh sau `t_hands_off_acoustic`, tắt sau `t_hands_off_off`. LKA, ELK vẫn can thiệp | R79 5.6.2.2.5 (giới hạn chậm nhất) |
@@ -321,3 +321,4 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 | 1.7 | 2026-11-12 | Mục 7, 13: `view_min` (20 m) thay bằng `t_view_min` (1,0 s, ≥ 0,7 s) để phần path quan sát đủ cho controller ở mọi tốc độ (PP-ASM-021) |
 | 1.8 | 2026-11-13 | Mục 6, bước 5: điều kiện xe sau xét ở mọi chu kỳ tới khi lốp trước qua vạch quá 0,3 m (PP-PR-027) |
 | 1.9 | 2026-11-18 | Hai planner: HWA gọi là LCC (HWA); bỏ arbitration khỏi phần việc của planner, arbitrator thuộc công ty (PP-ASM-022). Mục 7: LCC khả dụng khi planner báo `lcc_mode = FOLLOW`, không áp điều kiện tầm nhìn. Mục 9, 10, 11: sự kiện, cảnh báo và edge case 17 đến 19 cho bám xe trước và biên nhảy. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-124, 170 đến 177 |
+| 1.10 | 2026-11-18 | Mục 8: tốc độ quay vô lăng không tính là ý định tài xế khi LKA, ELK đang can thiệp (PP-PR-063) |

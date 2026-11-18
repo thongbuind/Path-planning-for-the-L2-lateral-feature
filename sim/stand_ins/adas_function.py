@@ -198,6 +198,8 @@ class AdasFunction:
             self._passive_since = None
         elif self._passive_since is None:
             self._passive_since = now_us
+        # While LKA or ELK steers, the steering wheel rate is the system's own (ADAS-FS 8).
+        intervening = InterventionPhase.ACTIVE in (inputs.feedback.lka_phase, inputs.feedback.elk_phase)
         deliberate = set()
         for side in SIDES:
             sign = sign_of_side(side)
@@ -207,7 +209,7 @@ class AdasFunction:
                     deliberate.add(side)
             else:
                 self._torque_intent_since.pop(side, None)
-            if (sign * rate >= _INTENT_RATE or side in self._last_indicator
+            if ((not intervening and sign * rate >= _INTENT_RATE) or side in self._last_indicator
                     and now_us - self._last_indicator[side] < self.cal.t_indicator * _US_PER_S):
                 deliberate.add(side)
         return self._passive_since is not None and now_us - self._passive_since >= _PASSIVE_HOLD_US, deliberate
