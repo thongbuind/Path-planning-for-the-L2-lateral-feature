@@ -1,0 +1,56 @@
+# Tuning and test runs of PP-TS-026 (research/studies/PP-TS-026-intervention-return). Locked
+# 2026-11-18 with the plan. LKA and ELK cases where the car comes back to the lane centre:
+# straight road, curve, road edge, EPS delay, and the larger vehicle profiles. Draft runs on
+# cases of the regression were seen before this suite was written: the test set uses other
+# variants and seeds 3, 4.
+id: PP-TS-026
+title: Đường về tâm làn của LKA và ELK
+
+scope:
+  always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102]
+  S4: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-110, PP-SWR-112, PP-SWR-114, PP-SWR-081, PP-SWR-087]
+  S5: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115, PP-SWR-082]
+  S6: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115, PP-SWR-082]
+  S20: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115, PP-SWR-082]
+  S13: [PP-SWR-085, PP-SWR-086, PP-SWR-091, PP-SWR-094]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S4, a]
+    - [S4, c]
+    - [S5, a]
+    - [S5, c]
+    - [S6, a]
+    - [S6, b]
+    - [S20, a]
+    - [S20, b]
+    - [S13, a-elk]
+    - [S5, c, {profile: VP-4}]
+    - [S4, a, {profile: VP-5}]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S4, b]
+    - [S4, d]
+    - [S4, e]
+    - [S5, b]
+    - [S5, d]
+    - [S5, e]
+    - [S5, f]
+    - [S6, c]
+    - [S6, d]
+    - [S6, e]
+    - [S20, c]
+    - [S20, d]
+    - [S20, e]
+    - [S13, a]
+    - [S13, b]
+    - [S13, c]
+    - [S13, b-elk]
+    - [S13, c-elk]
+    - [S4, a, {profile: VP-3}]
+    - [S5, c, {profile: VP-5}]
+    - [S6, b, {profile: VP-4}]
+    - [S20, a, {profile: VP-2}]

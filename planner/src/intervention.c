@@ -181,15 +181,38 @@ bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_st
            && fabs(ay_add) <= (double)cal->ay_add_end;                    /* PP-SWR-032, 090 */
 }
 
-static void sample_profile(const pp_quintic_t *profile, double elapsed, pp_lateral_path_t *out)
+static void sample_profile(const pp_intervention_path_t *path, double elapsed, pp_lateral_path_t *out)
 {
     for (uint32_t i = 0U; i < PP_TRAJECTORY_POINTS; i++) {
-        pp_quintic_eval(profile, elapsed + (double)i * PP_GRID_STEP_S,
-                        &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+        const double t = elapsed + (double)i * PP_GRID_STEP_S;
+        if (path->two_phase && (t >= path->profile.duration)) {
+            pp_quintic_eval(&path->back, t - path->profile.duration, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+        } else {
+            pp_quintic_eval(&path->profile, t, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+        }
     }
 }
 
-static double candidate_score(const pp_quintic_t *profile, const pp_reference_line_t *ref,
+/* One quintic to the centre, or (T_return > 0, car still moving outward) an arrest in `duration`
+ * that ends with zero speed, acceleration and jerk, then a slow return in T_return (PP-TS-026). */
+static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *start, double sign,
+                       double target, double duration, double t_return)
+{
+    path->two_phase = false;
+    if (t_return <= 0.0) {
+        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, duration, &path->profile);
+    } else if ((sign * start->d_dot) <= 0.0) {
+        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_return, &path->profile);
+    } else {
+        const double peak = start->d + (0.4 * start->d_dot * duration)
+                            + (0.05 * start->d_ddot * duration * duration);
+        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, peak, duration, &path->profile);
+        (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
+        path->two_phase = true;
+    }
+}
+
+static double candidate_score(const pp_intervention_path_t *profile, const pp_reference_line_t *ref,
                               const pp_speed_profile_t *speed, const pp_function_limits_t *limits,
                               const pp_vehicle_config_t *vehicle, double sign, double allowed_crossing,
                               double crossing_d)
@@ -240,8 +263,9 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     const double max_duration = (double)cal->intervention_T_max;      /* Software Detailed Design 15 */
     const double step = (double)cal->intervention_T_step;
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
+    const double t_return = (double)cal->T_return;
     path->start_us = t0_us;
-    (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, duration, &path->profile);
+    build_path(path, start, sign, target, duration, t_return);
     const double allowed_crossing = elk ? 0.0 : PP_MARK_DTLE_ALLOW_M;
     /* When the ADAS block estimates a nearer crossing, favour candidates that
      * reverse the outward motion earlier (Software Detailed Design 10). */
@@ -252,16 +276,16 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     if (isfinite(tlc) && (sign * start->d_dot > 0.0)) {
         crossing_d = fmin(half, (sign * front_d) + (sign * start->d_dot * fmax(0.0, tlc)));
     }
-    double best = candidate_score(&path->profile, ref, speed, limits, vehicle, sign, allowed_crossing, crossing_d);
+    double best = candidate_score(path, ref, speed, limits, vehicle, sign, allowed_crossing, crossing_d);
     const uint32_t count = (uint32_t)floor(max_duration / step);
     for (uint32_t n = 1U; (n <= count) && (best > 0.0); n++) {
         const double t = (double)n * step;
-        pp_quintic_t candidate;
-        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t, &candidate);
+        pp_intervention_path_t candidate = *path;
+        build_path(&candidate, start, sign, target, t, t_return);
         const double score = candidate_score(&candidate, ref, speed, limits, vehicle, sign, allowed_crossing, crossing_d);
         if (score < best) {
             best = score;
-            path->profile = candidate;
+            *path = candidate;
         }
     }
 }
@@ -270,7 +294,7 @@ void pp_intervention_sample(const pp_intervention_path_t *path, uint64_t t0_us,
                             pp_lateral_path_t *out)
 {
     const double elapsed = (t0_us >= path->start_us) ? (double)(t0_us - path->start_us) / PP_US_PER_S : 0.0;
-    sample_profile(&path->profile, elapsed, out);
+    sample_profile(path, elapsed, out);
 }
 
 void pp_corridor_reset(pp_corridor_t *c)
