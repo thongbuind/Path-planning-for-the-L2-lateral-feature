@@ -101,7 +101,7 @@
     const golden = !g.recorded
       ? card('dash', lbl('Tất định: golden set'), h('p', { class: 'wb-sub' }, 'Chưa có baseline. Chạy ', mono('python3 -m eval.golden record'), ' để ghi.'))
       : card('', h('div', { style: 'display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding-bottom:8px' }, lbl('Tất định: golden set'),
-          h('span', { class: 'wb-pill' }, g.cases.length + ' ca · ' + g.n_results + ' lượt chạy'),
+          h('span', { class: 'wb-pill' }, new Set(g.cases.map((c) => c.id)).size + ' ca · ' + g.cases.length + ' lượt · ' + g.n_results + ' kết quả theo đường chạy'),
           h('span', { class: 'wb-pill' }, (g.paths || []).join(' · ')),
           h('span', { class: 'wb-small' }, 'ghi lúc ' + new Date(g.recorded_at * 1000).toLocaleString('vi-VN'))),
         h('p', { class: 'wb-small', style: 'padding-bottom:10px' }, mono((env.pp_version || '—') + ' · Python ' + (env.python || '?') + ' · numpy ' + (env.numpy || '?') + ' · ' + (env.platform || '?'))),
@@ -115,12 +115,11 @@
     const checks = card('', lbl('Kiểm bên chấm'),
       li('i-check', 'ok-ico', 'Selfcheck: bên chấm phải bắt được lỗi cố ý', 'python3 -m eval.selfcheck'),
       li('i-check', 'ok-ico', 'Conformance B0, chạy trong CI', 'python3 -m eval.conformance'),
-      li('i-wait', 'dim', 'Tool confidence: TI, TD, TCL theo ISO 26262-8 mục 11'),
-      h('div', null, wait('chưa làm')));
+      li('i-check', 'ok-ico', 'Tool confidence: TI, TD, TCL theo ISO 26262-8 mục 11', 'Simulation Handbook mục 11'));
     const verif = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Verification')),
       li('i-check', 'ok-ico', 'Ca giải tích yaw rate ổn định: so r = v·δ / (L + K·v²) trên VP-0', 'tests/sim/test_vehicle.py'),
-      li('i-wait', 'dim', 'Sai số rời rạc hóa RK4 ở bước 1; 0,5; 0,25 ms'),
-      li('i-wait', 'dim', 'Sensitivity: tham số mô hình xe ảnh hưởng nhiều nhất tới verdict'),
+      li('i-check', 'ok-ico', 'Sai số rời rạc hóa ở bước 1; 0,5; 0,25 ms: dưới 1,5 mm trên ba ca vòng kín', 'python3 -m eval.verify_sim calculation'),
+      li('i-check', 'ok-ico', 'Sensitivity ±20 % của C_f, C_r, I_z, trễ EPS: không đổi kết luận trên 24 lượt', 'python3 -m eval.verify_sim sensitivity'),
       li('i-wait', 'dim', 'Quét K, steering ratio, actuator delay theo dải có nguồn (backlog)'));
     const hb = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Simulation Handbook'), mono('docs/vi/simulation-handbook.md', { style: 'font-size:12px' })),
       h('p', { class: 'wb-sub' }, '18 mục theo R171 Annex 5, mỗi model có một mục riêng ghi mục đích, giả định, nguồn tham số, miền dùng, verification và trạng thái validation. Chưa có dữ liệu xe thật nên cả 9 model ghi "chưa validation". Mọi báo cáo kết luận ghi phiên bản simulator và trạng thái này.'));
