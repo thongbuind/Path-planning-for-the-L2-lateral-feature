@@ -17,6 +17,8 @@ from pathlib import Path
 
 import numpy
 
+from eval import credibility
+
 ROOT = Path(__file__).resolve().parents[1]
 RUNS_DIR = ROOT / "research" / "runs"
 INDEX = RUNS_DIR / "INDEX.md"
@@ -107,6 +109,7 @@ def make(kind: str, target: str, extra: dict | None = None) -> dict:
     run_id = f"{stamp}-{kind}-{target}-{git['short'] or 'nogit'}" + ("-dirty" if git["dirty"] else "")
     return {"run_id": run_id, "kind": kind, "target": target, "started": now(),
             "command": [Path(sys.argv[0]).name] + sys.argv[1:], "git": git, "libraries": [],
+            "simulator": credibility.simulator_info(git),
             "inputs": input_files(),
             "environment": {"python": platform.python_version(), "numpy": numpy.__version__,
                             "platform": platform.platform(), "machine": platform.machine()},

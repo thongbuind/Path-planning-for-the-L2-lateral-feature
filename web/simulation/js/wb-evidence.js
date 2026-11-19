@@ -122,8 +122,8 @@
       li('i-wait', 'dim', 'Sai số rời rạc hóa RK4 ở bước 1; 0,5; 0,25 ms'),
       li('i-wait', 'dim', 'Sensitivity: tham số mô hình xe ảnh hưởng nhiều nhất tới verdict'),
       li('i-wait', 'dim', 'Quét K, steering ratio, actuator delay theo dải có nguồn (backlog)'));
-    const hb = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Simulation Handbook'), wait('chưa viết')),
-      h('p', { class: 'wb-sub' }, '18 mục theo R171 Annex 5. Mỗi kết quả trên workbench sẽ có liên kết tới mục model tương ứng và trạng thái validation. Chưa có dữ liệu xe thật nên validation ghi "chưa đánh giá".'));
+    const hb = card('dash', h('div', { style: 'display:flex;gap:10px;align-items:center;padding-bottom:6px' }, lbl('Simulation Handbook'), mono('docs/vi/simulation-handbook.md', { style: 'font-size:12px' })),
+      h('p', { class: 'wb-sub' }, '18 mục theo R171 Annex 5, mỗi model có một mục riêng ghi mục đích, giả định, nguồn tham số, miền dùng, verification và trạng thái validation. Chưa có dữ liệu xe thật nên cả 9 model ghi "chưa validation". Mọi báo cáo kết luận ghi phiên bản simulator và trạng thái này.'));
 
     return page(head('Độ tin cậy', 'Kết quả của simulator tin được tới đâu: tất định, kiểm bên chấm, verification và hồ sơ theo R171 Annex 5. Chưa có dữ liệu xe thật nên validation ghi "chưa đánh giá".'),
       golden, h('div', { class: 'wb-cols' }, h('div', { class: 'a', style: 'flex:1 1 360px' }, checks), h('div', { class: 'b', style: 'flex:1 1 360px' }, verif)), hb);

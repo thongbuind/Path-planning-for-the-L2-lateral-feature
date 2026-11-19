@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from eval import conclusion, presentation, severity
+from eval import conclusion, credibility, presentation, severity
 from eval.report_strings import translate, conformance_detail, conformance_title
 from eval.metrics import COMPUTE_BINS_MS
 from interfaces.planner_io import PLANNER_PERIOD_US
@@ -1555,6 +1555,8 @@ class Report:
                 (self.tr("Tạo báo cáo"), self.generated), (self.tr("Phiên bản trình bày"), REPORT_VERSION),
                 ('Planner', version or self.tr("Chưa ghi nhận")), (self.tr("Nguồn nhận diện planner"), version_source),
                 ('SHA-256 binary', lib.get('sha256') or self.tr("Chưa ghi nhận cho lượt chạy này")),
+                (self.tr("Simulator"), credibility.simulator_text(m['simulator']) if m.get('simulator') else self.tr("Chưa ghi nhận cho lượt chạy này")),
+                (self.tr("Validation của model"), '; '.join(f"{x['name']}: {x['validation']}" for x in m['simulator']['models']) if m.get('simulator') else self.tr("Chưa ghi nhận cho lượt chạy này")),
                 ('Benchmark commit', (m.get('git') or {}).get('commit') or self.tr("Chưa ghi nhận cho lượt chạy này")),
                 (self.tr("Dấu vân tay bộ đầu vào"), fingerprint + self.tr(" (SHA-256 của danh sách hash trong generation)")),
                 ('Calibration', build.get('calibration') or self.d['generation'].get('inputs',{}).get('planner/calibration/calibration.yaml',self.tr("Chưa ghi nhận"))),

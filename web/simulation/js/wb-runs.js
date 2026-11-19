@@ -244,7 +244,7 @@
     const scope = card('warn', lbl('Phạm vi kết luận'),
       kv('Mô hình xe', mono(lc || (cfgOf(d) || {}).vehicle || '—')),
       kv('Validation', h('b', { style: 'font-weight:600;color:var(--wb-warn-ink)' }, 'chưa đánh giá')),
-      kv('Hồ sơ model', h('span', null, h('a', { href: '#/tincay' }, 'Simulation Handbook'), ' ', wait('chưa viết'))),
+      kv('Hồ sơ model', h('span', null, h('a', { href: '#/tincay' }, 'Simulation Handbook'))),
       h('p', { class: 'wb-small', style: 'padding-top:10px;color:var(--ink-2)' }, 'Đạt chỉ có nghĩa trong điều kiện phép thử và miền dùng của model. Không nói gì về xe thật.'));
 
     const execCard = card('', lbl('Thực thi'),

@@ -7,8 +7,10 @@ import sys
 import time
 from pathlib import Path
 
+from eval import run_bundle
 from execution import bundle as B
 from execution.supervisor import Settings, Supervisor, TERMINAL
+from sim.logging import mcap_writer
 from workbench import evidence
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,7 +68,20 @@ def test_complete_bundle_from_the_live_worker(tmp_path, build_stub):
     assert manifest["run_id"] == folder.name
     assert manifest["bundle"]["case_hash"] == status["resolved-case"]["case_hash"]
     assert manifest["libraries"][0]["pp_version"].startswith("stub_planner ")
+    assert manifest["simulator"]["models"] and manifest["simulator"]["checksum_version"].startswith("behavior_checksum/")
     assert (folder / "trace.mcap").is_file() and (folder / "frames.ndjson.gz").is_file()
+    # SIM-REQ-028: every listed exception to the sim clock is a field that the trace really has
+    domains = manifest["bundle"]["time_domains"]
+    assert domains == run_bundle.TIME_DOMAINS and domains["default"] == "sim"
+    assert set(domains["exceptions"].values()) <= set(domains["domains"])
+    found = set()
+    for topic, _, message in mcap_writer.read(folder / "trace.mcap")["messages"]:
+        for key in domains["exceptions"]:
+            _, wanted_topic, field = key.split()
+            if topic == wanted_topic:
+                assert field in message, key
+                found.add(key)
+    assert {"trace.mcap /planner/trajectory stamp_us", "trace.mcap /planner/cycle lane_capture_us"} <= found
     types = [json.loads(line)["type"] for line in __import__("gzip").open(folder / "frames.ndjson.gz")]
     assert types[0] == "state" and "init" in types and "f" in types and "done" in types and types[-1] == "state"
 

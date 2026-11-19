@@ -11,7 +11,7 @@ A run record, as eval.suite and eval.matrix keep them:
    "error": text or None (evaluator side), "mcap": path or None, "rerun": command}
 """
 
-from eval import severity
+from eval import credibility, severity
 
 # Names of Software Qualification Test Specification 8.4 (renamed in 1.30).
 BLOCKED = "Không đạt"
@@ -107,12 +107,17 @@ def _fmt(value) -> str:
     return str(value)
 
 
-def markdown(c: dict, planner: str = "") -> list[str]:
-    """Head of a report: conclusion, Integrable flag, every failure by level."""
+def markdown(c: dict, planner: str = "", simulator: str | None = None) -> list[str]:
+    """Head of a report: conclusion, Integrable flag, every failure by level.
+
+    `simulator` is the version of the simulator and the validation state of its models
+    (eval.credibility.simulator_text, SIM-REQ-121); a report always has it, so None means the
+    current checkout."""
     integrable = {None: "chưa chạy B0", True: "có", False: "không"}[c["integrable"]]
     lines = [f"# Kết luận: {c['verdict']}", ""]
     if planner:
         lines.append(f"- Planner: {planner}")
+    lines.append(f"- Simulator: {credibility.simulator_text() if simulator is None else simulator}")
     lines += [f"- Tích hợp được: {integrable}",
               f"- Đã chạy: {c['runs']} lần chạy; trượt BLOCKER {c['counts']['BLOCKER']}, "
               f"MAJOR {c['counts']['MAJOR']}, MINOR {c['counts']['MINOR']}"

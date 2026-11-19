@@ -296,6 +296,7 @@ _ENGLISH = {
     "Phiên bản trình bày": "Report version",
     "Nguồn nhận diện planner": "Planner identification source",
     "Chưa ghi nhận cho lượt chạy này": "Not recorded for this run",
+    "Validation của model": "Model validation",
     "Dấu vân tay bộ đầu vào": "Input fingerprint",
     " (SHA-256 của danh sách hash trong generation)": " (SHA-256 of the hash list in the generation manifest)",
     "Phạm vi": "Scope",
