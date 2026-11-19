@@ -151,7 +151,8 @@ def _differences(a: dict, b: dict) -> list[dict]:
     for key, label in (("platform", "Hệ điều hành"), ("machine", "Kiến trúc máy"), ("python", "Phiên bản Python"),
                        ("numpy", "Phiên bản numpy")):
         add(key, label + ": checksum hành vi không so được từng bit", ea.get(key), eb.get(key), "warn")
-    add("target", "Loại lần chạy", a["target"], b["target"], "warn")
+    if a["kind"] == "suite":   # a campaign's target is its name, which says nothing about the kind of run
+        add("target", "Loại lần chạy", a["target"], b["target"], "warn")
     if a["scope"] != b["scope"]:
         add("scope", "Cách chấm", a["scope"], b["scope"], "warn")
     return out
