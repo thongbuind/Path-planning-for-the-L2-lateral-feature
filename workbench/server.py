@@ -24,6 +24,13 @@ API
     GET  /api/suites/<id>/report              the HTML report of that suite run
     POST /api/suites/<id>/reopen              {"case": ..., "seed": n}: rerun of one run of that suite
     GET  /api/golden                          golden baseline, by case and path (read-only)
+    GET  /api/compare?base=&cand=             two suite runs (suite:<id>) or two campaigns (campaign:<id>), read-only
+    GET  /api/campaigns                       campaigns with their counts and coverage
+    POST /api/campaigns                       {"name", "matrix" or "items"} -> {"id", "runs"}: frozen list, runs started
+    GET  /api/campaigns/<id>                  every run of the campaign with its state, and the coverage
+    POST /api/campaigns/<id>/cancel           cancel the runs of this campaign that have not ended
+    POST /api/campaigns/<id>/repeat           the same list again as a new campaign
+    POST /api/campaigns/<id>/delete           remove the campaign and unpin its runs (not while one is active)
 """
 
 import argparse
@@ -42,7 +49,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from execution import bundle as bundles
 from execution.supervisor import Settings, Supervisor
-from workbench import evidence
+from workbench import campaign, compare, evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "web" / "simulation"
@@ -52,11 +59,13 @@ PORT = int(os.environ.get("PP_PORT", "8793"))
 WORKER = [sys.executable, "-u", "-m", "eval.live", "run"]
 CATALOG = [sys.executable, "-m", "eval.live", "catalog"]
 STATIC_FILES = {"index.html", "app.css", "js/i18n.js", "js/catalog-en.js", "js/core.js", "js/scene.js",
-                "js/charts.js", "js/ui.js", "wb.css", "js/wb.js", "js/wb-runs.js", "js/wb-evidence.js"}
+                "js/charts.js", "js/ui.js", "wb.css", "js/wb.js", "js/wb-runs.js", "js/wb-evidence.js",
+                "js/wb-compare.js"}
 BUNDLE_FILES = {"manifest.json", "resolved-case.json", "execution.json", "evaluation.json", "request.json",
                 "trace.mcap", "frames.ndjson.gz", "worker.log", "SHA256SUMS"}
 RUN_PATH = re.compile(r"^/api/runs/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/events|/control|/cancel|/bundle|/pin|/rerun|/files/[A-Za-z0-9._-]+)?$")
 SUITE_PATH = re.compile(r"^/api/suites/([A-Za-z0-9][A-Za-z0-9._-]{0,80})(/report|/reopen)?$")
+CAMPAIGN_PATH = re.compile(r"^/api/campaigns/([0-9]{8}-[0-9]{6}-[0-9a-f]{6})(/cancel|/repeat|/delete)?$")
 MAX_BODY = 65536
 
 
@@ -69,6 +78,7 @@ class App:
         self.supervisor = Supervisor(Settings(root=runs, command=worker or WORKER, cwd=ROOT, env=env,
                                               max_running=max_running))
         self.catalog_command = catalog or CATALOG
+        self.campaigns = Path(runs).parent / "campaigns"   # beside the runs, never under web/ (nothing here is published)
         self.env = env
         self._catalog: bytes | None = None
         self._lock = threading.Lock()
@@ -151,6 +161,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._json(200, {"suites": evidence.suites()})
         if url.path == "/api/golden":
             return self._json(200, evidence.golden())
+        if url.path == "/api/campaigns":
+            return self._json(200, {"campaigns": campaign.listing(self.app.campaigns, self.app.supervisor),
+                                    "max_runs": campaign.MAX_RUNS})
+        mc = CAMPAIGN_PATH.match(url.path)
+        if mc:
+            if mc.group(2):
+                return self._json(405, {"error": "dùng POST"})
+            try:
+                return self._json(200, campaign.status(self.app.campaigns, self.app.supervisor, mc.group(1)))
+            except KeyError:
+                return self._json(404, {"error": "không có campaign này"})
+        if url.path == "/api/compare":
+            return self._compare(parse_qs(url.query))
         ms = SUITE_PATH.match(url.path)
         if ms:
             try:
@@ -195,6 +218,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if name not in STATIC_FILES:
             return self.send_error(404)
         return super().do_GET()
+
+    def _side(self, ref: str) -> dict:
+        kind, ident = compare.parse_ref(ref)
+        if kind == "suite":
+            return compare.load_suite(ident)
+        return compare.load_campaign(campaign.read(self.app.campaigns, ident), self.app.supervisor.s.root)
+
+    def _compare(self, query: dict) -> None:
+        """GET /api/compare?base=suite:<id>&cand=suite:<id> (or campaign:<id> on both): read-only."""
+        try:
+            base = self._side((query.get("base") or [""])[0])
+            cand = self._side((query.get("cand") or [""])[0])
+            return self._json(200, compare.compare(base, cand))
+        except KeyError:
+            return self._json(404, {"error": "không có lần chạy hoặc campaign này"})
+        except ValueError as error:
+            return self._json(400, {"error": str(error)})
 
     def _runs(self) -> list[dict]:
         """GET /api/runs: the supervisor's list plus pinned flag, source, verdict, duration of finished runs."""
@@ -261,6 +301,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             except RuntimeError as error:
                 return self._json(503, {"error": str(error)})
             return self._json(201, {"run_id": run_id})
+        if url.path == "/api/campaigns":
+            try:
+                doc = campaign.create(self.app.campaigns, sup, body, label_of=_label)
+            except campaign.CampaignError as error:
+                return self._json(400, {"error": str(error)})
+            except RuntimeError as error:
+                return self._json(503, {"error": str(error)})
+            return self._json(201, {"id": doc["id"], "runs": len(doc["items"])})
+        mc = CAMPAIGN_PATH.match(url.path)
+        if mc and mc.group(2):
+            try:
+                if mc.group(2) == "/cancel":
+                    return self._json(200, campaign.cancel(self.app.campaigns, sup, mc.group(1)))
+                if mc.group(2) == "/repeat":
+                    doc = campaign.repeat(self.app.campaigns, sup, mc.group(1), label_of=_label)
+                    return self._json(201, {"id": doc["id"], "runs": len(doc["items"])})
+                campaign.delete(self.app.campaigns, sup, mc.group(1))
+                return self._json(200, {"deleted": mc.group(1)})
+            except KeyError:
+                return self._json(404, {"error": "không có campaign này"})
+            except campaign.CampaignError as error:
+                return self._json(409, {"error": str(error)})
+            except RuntimeError as error:
+                return self._json(503, {"error": str(error)})
         ms = SUITE_PATH.match(url.path)
         if ms and ms.group(2) == "/reopen":
             try:

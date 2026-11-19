@@ -53,5 +53,5 @@ def test_handbook_has_an_entry_for_every_model():
 def test_handbook_lists_every_requirement_with_a_status():
     text = HANDBOOK.read_text(encoding="utf-8")
     rows = re.findall(r"^\| (SIM-REQ-\d{3}) \|.*\| (Đạt|Một phần|Chưa làm) \|", text, re.M)
-    assert len({r[0] for r in rows}) == 58 and len(rows) == 58
+    assert len({r[0] for r in rows}) == 64 and len(rows) == 64
     assert "<<" not in text, "placeholder left in the handbook"

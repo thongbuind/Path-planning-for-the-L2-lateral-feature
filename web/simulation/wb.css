@@ -174,6 +174,16 @@
 .wb-row.fails { grid-template-columns: 96px 56px minmax(230px, 1.6fr) 52px 40px 84px 130px 150px; min-height: 48px; gap: 12px; }
 .wb-row.crit { grid-template-columns: 96px minmax(0, 1fr) 150px 70px; gap: 12px; min-height: 0; padding: 9px 0; align-items: start; }
 .wb-row.gold { grid-template-columns: 56px minmax(220px, 1fr) 44px 92px 64px 64px 64px; gap: 12px; min-height: 40px; }
+.wb-row.cmp { grid-template-columns: 84px 96px minmax(220px, 1.6fr) 84px 84px 84px 140px 140px; gap: 12px; min-height: 44px; }
+.wb-row.envs { grid-template-columns: minmax(220px, 1.2fr) minmax(160px, 1fr) minmax(160px, 1fr) 96px; gap: 12px; min-height: 40px; }
+.wb-row.reqs { grid-template-columns: 120px 96px 96px 96px; gap: 12px; min-height: 36px; }
+.wb-row.camps { grid-template-columns: minmax(200px, 1.3fr) 130px 100px minmax(260px, 1.6fr) 120px; gap: 12px; min-height: 48px; }
+.wb-row.items { grid-template-columns: 36px minmax(220px, 1.6fr) 150px 200px 100px; gap: 12px; min-height: 40px; }
+.wb-pickbox { display: flex; flex-direction: column; max-height: 240px; overflow: auto; margin-top: 6px; border: 1px solid var(--grid); border-radius: 8px; padding: 4px 8px; }
+.wb-pick { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; font-size: 12.5px; cursor: pointer; }
+.wb-pick input { flex: none; }
+.wb-bars.cov .wb-bar i b { background: var(--violet); }
+.wb-card ul.howto { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .wb-ico { display: inline-flex; align-items: center; gap: 6px; }
 .wb-ico svg { width: 13px; height: 13px; flex: none; }
 .good { color: var(--good-ink); }

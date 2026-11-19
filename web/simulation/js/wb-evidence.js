@@ -1,5 +1,5 @@
-/* Màn Đánh giá và Bằng chứng: Suite và regression, So sánh và campaign (backlog),
-   Độ tin cậy, Nền tảng. Dữ liệu từ /api/suites và /api/golden; "Mở lại" tạo một run mới. */
+/* Màn Đánh giá và Bằng chứng: Suite và regression, Độ tin cậy, Nền tảng
+   (So sánh và campaign ở wb-compare.js). Dữ liệu từ /api/suites và /api/golden; "Mở lại" tạo một run mới. */
 (() => {
   'use strict';
   const WB = window.WB;
@@ -16,6 +16,7 @@
     if (!list.length) return page(head('Suite và regression', 'Chưa có lần chạy suite nào trong build/benchmark.'));
     const id = rest[0] && list.some((s) => s.id === rest[0]) ? rest[0] : list[0].id;
     const s = await WB.api('suites/' + id);
+    const prev = list[list.findIndex((x) => x.id === id) + 1];
     const select = h('select', { class: 'wb-select', style: 'min-width:300px;font-family:var(--font-mono);font-size:13px', 'aria-label': 'Lần chạy', onchange: (e) => WB.go('#/suite/' + e.target.value) },
       ...list.map((x) => h('option', { value: x.id, selected: x.id === id }, x.id + (x.planner.commit ? ' · ' + x.planner.commit : ''))));
     const pass = s.verdict === 'Đạt';
@@ -36,7 +37,7 @@
 
     const howto = h('section', { class: 'wb-card', style: 'gap:10px' }, lbl('Điều tra một ca trượt'),
       h('p', { class: 'wb-sub' }, 'Mở lại chạy lại ca từ file đã đóng băng của suite, rồi so behavior checksum với kết quả đã ghi. Run mới có đủ bundle để phát lại và tới lần trượt đầu.'),
-      h('p', { class: 'wb-small' }, 'Đọc ', mono('conclusion.json'), ' của lần chạy', s.has_report ? [h('span', null, '; báo cáo đầy đủ ở '), h('a', { href: 'api/suites/' + id + '/report', target: '_blank', rel: 'noopener' }, 'report.html')] : '', '.'));
+      h('p', { class: 'wb-small' }, prev ? [h('a', { href: '#/review/so-sanh/suite/' + prev.id + '/' + id }, 'So với lần chạy ngay trước (' + prev.id + ')'), ' · '] : '', 'Đọc ', mono('conclusion.json'), ' của lần chạy', s.has_report ? [h('span', null, '; báo cáo đầy đủ ở '), h('a', { href: 'api/suites/' + id + '/report', target: '_blank', rel: 'noopener' }, 'report.html')] : '', '.'));
     const reopen = (f) => async (e) => {
       const b = e.currentTarget;
       b.disabled = true; b.textContent = 'Đang mở…';
@@ -66,30 +67,6 @@
       rows.length ? fails : null,
       h('p', { class: 'wb-small' }, 'Kết thúc ', when(s.finished), '. Đọc từ ', mono('GET /api/suites/' + id), '.'));
   }
-
-  // ---------- So sánh và campaign (B6) ----------
-  const reviewView = () => {
-    WB.title('So sánh và campaign');
-    return page(head('So sánh và campaign', 'Đánh giá một thay đổi: bản mới tốt hơn hay kém hơn ở ca nào, seed nào, và tập ca đã chạy phủ được tới đâu.'),
-      WB.cho({
-        ghost: 'table',
-        heading: 'So sánh hai lần chạy và campaign',
-        summary: 'So baseline với candidate theo từng ca và seed, kèm độ phủ của tập ca đã chạy.',
-        planned: [
-          { t: 'Suite ghi bundle cho từng lượt' },
-          { t: 'So baseline và candidate theo ca và seed; ca không ghép được hiện riêng' },
-          { t: 'Cảnh báo khi hai bên khác môi trường: thư viện, Python, numpy, máy' },
-          { t: 'Coverage năm mức: thiết kế, lên lịch, đã chạy, điều kiện xảy ra thật, chấm được' },
-          { t: 'Campaign: danh sách ca đóng băng, tiến độ, retry tạo run mới' },
-          { t: 'Cảnh báo run dùng tham số ngoài miền dùng của model' },
-        ],
-        available: [
-          { t: 'So hai lần chạy suite theo từng ca', d: 'python3 -m eval.compare' },
-          { t: 'case_hash và behavior_checksum của từng lượt', d: 'results.jsonl của suite' },
-          { t: 'Kết luận từng lần regression', d: 'màn Suite và regression' },
-        ],
-      }));
-  };
 
   // ---------- Độ tin cậy (B7) ----------
   async function trustView() {
@@ -154,7 +131,6 @@
   }
 
   WB.views.suite = suiteView;
-  WB.views.review = reviewView;
   WB.views.tincay = trustView;
   WB.views.nentang = platformView;
 })();

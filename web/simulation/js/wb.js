@@ -137,7 +137,7 @@
       { key: 'runs', label: 'Run', href: '#/runs', st: 'done' }] },
     { title: 'Đánh giá', items: [
       { key: 'suite', label: 'Suite và regression', href: '#/suite', st: 'done' },
-      { key: 'review', label: 'So sánh và campaign', href: '#/review', st: 'wait', note: 'Backlog' }] },
+      { key: 'review', label: 'So sánh và campaign', href: '#/review', st: 'done' }] },
     { title: 'Bằng chứng', items: [
       { key: 'tincay', label: 'Độ tin cậy', href: '#/tincay', st: 'part' },
       { key: 'nentang', label: 'Nền tảng', href: '#/nentang', st: 'part' }] },
