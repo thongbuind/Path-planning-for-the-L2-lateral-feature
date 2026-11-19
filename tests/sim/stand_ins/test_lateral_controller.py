@@ -4,18 +4,18 @@ from math import cos, isclose, sin, tan
 
 import pytest
 
+from sim.stand_ins.arbitrator import ActiveFunction, SystemStatus
 from sim.stand_ins.lateral_controller import EgoState, LateralController, sample_trajectory
 from interfaces import (
     TRAJECTORY_POINTS,
     TRAJECTORY_STEP_S,
-    ActiveFunction,
     BasicHeader,
     EgoMotionRequest,
     EgoMotionResponse,
     FrameId,
     Header,
     InterventionPhase,
-    PathStatus,
+    PlannerId,
     Pose2D,
     Trajectory,
     TrajectoryPoint,
@@ -52,15 +52,15 @@ def make_trajectory(pose_at, curvature_at=lambda t: 0.0, valid=True, stamp_us=ST
             front_wheel_angle_rad=0.0,
             rear_wheel_angle_rad=0.0,
         ))
-    return Trajectory(Header(stamp_us, 0, valid, FrameId.BASE_LINK), tuple(points), 3.0)
+    return Trajectory(Header(stamp_us, 0, valid, FrameId.BASE_LINK), tuple(points), 3.0, PlannerId.LCC)
 
 
 def straight(offset_y=0.0):
     return make_trajectory(lambda t: Pose2D(SPEED * t, offset_y, 0.0))
 
 
-def status(path_valid=True, function=ActiveFunction.HWA, valid=True):
-    return PathStatus(BasicHeader(STAMP, 0, valid), path_valid, function,
+def status(path_valid=True, function=ActiveFunction.LCC, valid=True):
+    return SystemStatus(BasicHeader(STAMP, 0, valid), path_valid, function,
                       InterventionPhase.NONE, InterventionPhase.NONE, False, False)
 
 

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã đưa phương án B vào Software Requirements Specification 1.17 |
+| Trạng thái | Phương án B đã vào SRS 1.17; S14 a VP-0 vẫn trượt ở e3158a5, còn mở |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-051 |
 | Tái hiện | 20261111-1443-suite-regression-ef8bf4b, `S14-a-VP-*` (speed 36,1 m/s, ACC on), seed 1, 2 |
@@ -38,3 +38,9 @@ Việc còn lại:
 
 | Run ID | Kết quả |
 |---|---|
+
+## Xác nhận 20261118-2030-suite-regression-e3158a5
+
+| Run ID | Kết quả |
+|---|---|
+| 20261118-2030-suite-regression-e3158a5 | S14 a VP-0: một ca trượt PP-SWR-051 (−23,06 m), một ca trượt PP-SWR-030 |

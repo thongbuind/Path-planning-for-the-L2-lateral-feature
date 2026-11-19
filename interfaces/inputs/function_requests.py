@@ -12,7 +12,7 @@ from interfaces._validate import check_array, check_enum
 from interfaces.conventions import BasicHeader, Side
 
 
-FUNCTIONS = 3  # requests[3]: HWA, LKA, ELK
+FUNCTIONS = 3  # requests[3]: LCC, LKA, ELK
 FUNCTION_REQUESTS_TIMEOUT_US = 75000
 FUNCTION_REQUESTS_MAX_DELTA_COUNTER = 4  # Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms)
 FUNCTION_REQUESTS_MAX_AGE_US = 45000
@@ -47,8 +47,8 @@ class CancelReason(IntEnum):
 @dataclass(frozen=True, slots=True)
 class FunctionRequest:
     state: RequestState
-    side: Side  # Drift side; HWA uses NONE
-    tlc: float  # [s]; Computed by the ADAS function block; HWA ignores it
+    side: Side  # Drift side; LCC uses NONE
+    tlc: float  # [s]; Computed by the ADAS function block; LCC ignores it
     elk_reason: ElkReason  # ROAD_EDGE selects the observed road edge for ELK; other values are for logging
     cancel_reason: CancelReason  # Log only
 

@@ -339,6 +339,23 @@
 
   // ---------- Quỹ đạo của planner ----------
   function drawPath(d, k) {
+    const alt = d.alt && d.alt[k];
+    if (alt) {   // Path của planner còn lại: có hiệu lực nhưng arbitrator không chọn.
+      const ca = Math.cos(d.ego.yaw[k]), sa = Math.sin(d.ego.yaw[k]);
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = C.text;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      for (let i = 0; i < 31; i++) {
+        const px = alt[2 * i] / 100, py = alt[2 * i + 1] / 100;
+        const e = toEgo(d.ego.x[k] + px * ca - py * sa, d.ego.y[k] + px * sa + py * ca), p = Q(e[0], e[1]);
+        if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
     if (!d.tv[k]) return;
     const fn = d.fn[k], col = C.fn[fn];
     const base = k * 62;

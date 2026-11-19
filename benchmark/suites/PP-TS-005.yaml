@@ -14,6 +14,8 @@ scope:
   F01: [PP-SWR-003]
   F02: []
   F06: [PP-SWR-125]
+  # Memory moved by ego-motion drifts with a yaw-rate bias; judged like the S-bend it runs on.
+  F08: [PP-SWR-050, PP-SWR-051]
 
 tuning:
   seeds: [1, 2]
@@ -24,6 +26,7 @@ tuning:
     - [S1, a, F01, c]
     - [S1, a, F06, a]
     - [S1, c, F02, a]
+    - [S1, d, F08, b]
 
 test:
   seeds: [3, 4]
@@ -43,3 +46,4 @@ test:
     - [S1, a, F06, b]
     - [S1, c, F06, e]
     - [S1, c, F02, e]
+    - [S1, f, F08, b]

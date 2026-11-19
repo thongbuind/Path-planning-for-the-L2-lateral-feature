@@ -1,0 +1,3356 @@
+{
+ "verdict": "Không đạt",
+ "integrable": true,
+ "b0_blocked": false,
+ "runs": 2085,
+ "counts": {
+  "BLOCKER": 58,
+  "MAJOR": 0,
+  "MINOR": 47
+ },
+ "failures": [
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-005",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S1b-a-VP-0-693b15015bfa",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 7.858,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Chu kỳ cua gắt mà mất path hoặc HWA",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S1b-a-VP-0-693b15015bfa_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S1b-a-VP-0-693b15015bfa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S1b-a-VP-0-693b15015bfa",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 3.9579999999999997,
+   "value": -0.11526223280594472,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S1b-a-VP-0-693b15015bfa_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S1b-a-VP-0-693b15015bfa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-007",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1b-a-VP-0-693b15015bfa",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 8.621,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Lần lốp đè vạch khi cua gắt mà cờ chưa bật",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S1b-a-VP-0-693b15015bfa_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S1b-a-VP-0-693b15015bfa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-030",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-a-VP-0-3290c39907ee",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 7.858,
+   "value": 29.0,
+   "limit": "= 0",
+   "text": "Chu kỳ mà chức năng đang lái khác chức năng chọn theo PP-SWR-030",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-3290c39907ee_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-3290c39907ee.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-030",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S16-d-VP-4-b4f61b6d60f9",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": null,
+   "limit": "",
+   "text": "ELK: có REQUEST nhưng thiếu path can thiệp hợp lệ",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S16-d-VP-4-b4f61b6d60f9_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-d-VP-4-b4f61b6d60f9.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-030",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S1b-a-VP-0-693b15015bfa",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 7.858,
+   "value": 29.0,
+   "limit": "= 0",
+   "text": "Chu kỳ mà chức năng đang lái khác chức năng chọn theo PP-SWR-030",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S1b-a-VP-0-693b15015bfa_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S1b-a-VP-0-693b15015bfa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F02-e-S1a-VP-5-29183b65ffaf",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.11037677375793375,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F02-e-S1a-VP-5-29183b65ffaf_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F02-e-S1a-VP-5-29183b65ffaf.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F02-e-S1c-VP-5-50d3444b79d5",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1131323386838341,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F02-e-S1c-VP-5-50d3444b79d5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F02-e-S1c-VP-5-50d3444b79d5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1a-VP-0-1c03af025ee4",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.24088344743512602,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1a-VP-0-1c03af025ee4_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1a-VP-0-1c03af025ee4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1a-VP-1-a5219f0b3fc2",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.23442733333183918,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1a-VP-1-a5219f0b3fc2_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1a-VP-1-a5219f0b3fc2.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1a-VP-5-4a0b9685f06c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.5521256923510696,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1a-VP-5-4a0b9685f06c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1a-VP-5-4a0b9685f06c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1c-VP-0-0e2929c3df25",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.17583193390572505,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1c-VP-0-0e2929c3df25_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1c-VP-0-0e2929c3df25.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1c-VP-1-4278b1e68610",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.16905699158069531,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1c-VP-1-4278b1e68610_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1c-VP-1-4278b1e68610.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F03-c-S1c-VP-5-ce2933b62cf1",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.5426100906597273,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F03-c-S1c-VP-5-ce2933b62cf1_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F03-c-S1c-VP-5-ce2933b62cf1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-a-S1a-VP-0-5158987ade9c",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.29389258156020936,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-a-S1a-VP-0-5158987ade9c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-a-S1a-VP-0-5158987ade9c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-a-S1c-VP-0-aed66d9b07f6",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.8069851407043511,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-a-S1c-VP-0-aed66d9b07f6_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-a-S1c-VP-0-aed66d9b07f6.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1a-VP-0-24550cfc95c5",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.29389258156020936,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1a-VP-0-24550cfc95c5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1a-VP-0-24550cfc95c5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1a-VP-1-3a4b29f3fe5b",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3006221454171485,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1a-VP-1-3a4b29f3fe5b_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1a-VP-1-3a4b29f3fe5b.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1a-VP-5-9e2995fea291",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.6022723206157863,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1a-VP-5-9e2995fea291_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1a-VP-5-9e2995fea291.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1c-VP-0-608ec3b8fc9f",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.8069851407043511,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1c-VP-0-608ec3b8fc9f_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1c-VP-0-608ec3b8fc9f.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1c-VP-1-40397bd3efa4",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.7289997649156268,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1c-VP-1-40397bd3efa4_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1c-VP-1-40397bd3efa4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F06-d-S1c-VP-5-bdab3c9103b7",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.1495778966237442,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F06-d-S1c-VP-5-bdab3c9103b7_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F06-d-S1c-VP-5-bdab3c9103b7.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-0-4efddd649b2a",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.7418189651892391,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-0-4efddd649b2a_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-0-4efddd649b2a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-0-9d836e616214",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.7418189651892391,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-0-9d836e616214_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-0-9d836e616214.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-1-9f6496a368b0",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.8226322152860845,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-1-9f6496a368b0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-1-9f6496a368b0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-1-c098420638d4",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.8226322152860845,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-1-c098420638d4_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-1-c098420638d4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-5-5d6c59c69cbe",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.027570637359415,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-5-5d6c59c69cbe_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-5-5d6c59c69cbe.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-a-S1c-VP-5-dce61f599c6e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.027570637359415,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-a-S1c-VP-5-dce61f599c6e_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-a-S1c-VP-5-dce61f599c6e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-b-S1c-VP-0-4ae7633cf949",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.9729229811311557,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-b-S1c-VP-0-4ae7633cf949_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-b-S1c-VP-0-4ae7633cf949.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-b-S1c-VP-1-297eab73e001",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.9906022488050334,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-b-S1c-VP-1-297eab73e001_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-b-S1c-VP-1-297eab73e001.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-b-S1c-VP-5-9d66d718191a",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.2811270714469554,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-b-S1c-VP-5-9d66d718191a_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-b-S1c-VP-5-9d66d718191a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-c-S1c-VP-0-bca0f1afb997",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.9592603861083626,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-c-S1c-VP-0-bca0f1afb997_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-c-S1c-VP-0-bca0f1afb997.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-c-S1c-VP-1-3d8334644eea",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.0195671311717285,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-c-S1c-VP-1-3d8334644eea_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-c-S1c-VP-1-3d8334644eea.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F08-c-S1c-VP-5-06d7bb8fda8b",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -1.3567781677469135,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F08-c-S1c-VP-5-06d7bb8fda8b_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F08-c-S1c-VP-5-06d7bb8fda8b.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "G01-S1c-VP-5-38898514a806",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.0043996122717797626,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S1c-VP-5-38898514a806_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S1c-VP-5-38898514a806.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-a-VP-0-cabfa230312d",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -23.159164640518707,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-cabfa230312d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-cabfa230312d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-0-ff8e4ce04140",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.020795629840189567,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-0-ff8e4ce04140_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-0-ff8e4ce04140.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-1-c599c50726eb",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.11241071779415923,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-1-c599c50726eb_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-1-c599c50726eb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-2-d2cc20ee8bbf",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.13751537695281302,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-2-d2cc20ee8bbf_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-2-d2cc20ee8bbf.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-3-24dcd5adb2de",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.17343584085730168,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-3-24dcd5adb2de_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-3-24dcd5adb2de.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-4-a571d2de589d",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.18316788528743733,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-4-a571d2de589d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-4-a571d2de589d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-e-VP-5-3f2b28b63f2e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3061678852874373,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-5-3f2b28b63f2e_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-5-3f2b28b63f2e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-085",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "F02-e-S4a_at_lka_activep0.2-VP-3-92b9ffc993c0",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.10343997049845854,
+   "limit": ">= 0",
+   "text": "DLC phía đối diện qua bàn giao EPS [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F02-e-S4a_at_lka_activep0.2-VP-3-92b9ffc993c0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F02-e-S4a_at_lka_activep0.2-VP-3-92b9ffc993c0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-085",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S13-a-elk-VP-4-21d3dc44702c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.10806435734094655,
+   "limit": ">= 0",
+   "text": "DLC phía đối diện qua bàn giao EPS [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-elk-VP-4-21d3dc44702c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-elk-VP-4-21d3dc44702c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-085",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S13-c-elk-VP-3-6a4d13fdd9f5",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3218342623363579,
+   "limit": ">= 0",
+   "text": "DLC phía đối diện qua bàn giao EPS [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-3-6a4d13fdd9f5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-3-6a4d13fdd9f5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-085",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S13-c-elk-VP-4-701b478759b0",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3240474129113404,
+   "limit": ">= 0",
+   "text": "DLC phía đối diện qua bàn giao EPS [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-4-701b478759b0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-4-701b478759b0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": -0.3299799794585617,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S13-a-elk-VP-4-21d3dc44702c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.5443386167207525,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-elk-VP-4-21d3dc44702c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-elk-VP-4-21d3dc44702c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S13-c-elk-VP-3-6a4d13fdd9f5",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.40917865094730954,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-3-6a4d13fdd9f5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-3-6a4d13fdd9f5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S13-c-elk-VP-4-701b478759b0",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.44613747626842737,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-4-701b478759b0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-4-701b478759b0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S5-ncap-solid-left-6-VP-5-723e8419ead5",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.41299886996724244,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-left-6-VP-5-723e8419ead5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-left-6-VP-5-723e8419ead5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S5-ncap-solid-right-6-VP-5-c80861a0a0c6",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.41299886996724244,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-right-6-VP-5-c80861a0a0c6_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-right-6-VP-5-c80861a0a0c6.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-091",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S13-a-elk-VP-4-21d3dc44702c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.5443386167207525,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch khi EPS chậm tới 100 ms [m]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-elk-VP-4-21d3dc44702c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-elk-VP-4-21d3dc44702c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-100",
+   "safety_goals": [
+    "SG-04"
+   ],
+   "case": "S13-c-elk-VP-3-6a4d13fdd9f5",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": 7.627,
+   "value": 1.437456116156478,
+   "limit": "<= 1",
+   "text": "Lệch ngang giữa hai path liên tiếp / ngưỡng của khoảng",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-3-6a4d13fdd9f5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-3-6a4d13fdd9f5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-101",
+   "safety_goals": [
+    "SG-04"
+   ],
+   "case": "S13-c-elk-VP-3-6a4d13fdd9f5",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": 7.627,
+   "value": 1.3280452719361513,
+   "limit": "<= 1",
+   "text": "Lệch hướng giữa hai path liên tiếp / ngưỡng của khoảng",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-3-6a4d13fdd9f5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-3-6a4d13fdd9f5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-102",
+   "safety_goals": [
+    "SG-04"
+   ],
+   "case": "F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": 12.963,
+   "value": 1.53930116300697,
+   "limit": "<= 1",
+   "text": "Lệch độ cong giữa hai path liên tiếp / ngưỡng của khoảng",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-102",
+   "safety_goals": [
+    "SG-04"
+   ],
+   "case": "S13-a-elk-VP-4-21d3dc44702c",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": 10.952,
+   "value": 1.066045671775207,
+   "limit": "<= 1",
+   "text": "Lệch độ cong giữa hai path liên tiếp / ngưỡng của khoảng",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-elk-VP-4-21d3dc44702c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-elk-VP-4-21d3dc44702c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-102",
+   "safety_goals": [
+    "SG-04"
+   ],
+   "case": "S13-c-elk-VP-3-6a4d13fdd9f5",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": 7.627,
+   "value": 2.9556399511761016,
+   "limit": "<= 1",
+   "text": "Lệch độ cong giữa hai path liên tiếp / ngưỡng của khoảng",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-c-elk-VP-3-6a4d13fdd9f5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-c-elk-VP-3-6a4d13fdd9f5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-a-S4a_at_lka_activep0-VP-0-c97d4f8c3b33.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-a-S5a_at_elk_activep0.2-VP-1-44c9a8a8a61d.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S4a_at_lka_activep0-VP-2-26b730c60966",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S4a_at_lka_activep0-VP-2-26b730c60966_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S4a_at_lka_activep0-VP-2-26b730c60966.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S4a_at_lka_activep0-VP-2-26b730c60966",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S4a_at_lka_activep0-VP-2-26b730c60966_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S4a_at_lka_activep0-VP-2-26b730c60966.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S4a_at_lka_activep0.2-VP-3-7e4bb0e3caed.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S5a_at_elk_activep0-VP-2-795bfb495e44",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S5a_at_elk_activep0-VP-2-795bfb495e44_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S5a_at_elk_activep0-VP-2-795bfb495e44.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-b-S5a_at_elk_activep0.2-VP-3-43bbc0fa0b87.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S4a_at_lka_activep0-VP-4-914355537c7d",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S4a_at_lka_activep0-VP-4-914355537c7d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S4a_at_lka_activep0-VP-4-914355537c7d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S4a_at_lka_activep0-VP-4-914355537c7d",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S4a_at_lka_activep0-VP-4-914355537c7d_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S4a_at_lka_activep0-VP-4-914355537c7d.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S4a_at_lka_activep0.2-VP-5-2e109dc103db.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S5a_at_elk_activep0-VP-4-d7e0b59fbf4d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F01-c-S5a_at_elk_activep0.2-VP-5-fbea90d7d4d0.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-0-944a5944b2f0",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-0-944a5944b2f0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-0-944a5944b2f0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-0-944a5944b2f0",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-0-944a5944b2f0_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-0-944a5944b2f0.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-1-d9c02f4d85c9",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-1-d9c02f4d85c9_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-1-d9c02f4d85c9.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-1-d9c02f4d85c9",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-1-d9c02f4d85c9_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-1-d9c02f4d85c9.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-2-19b08e51426b",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-2-19b08e51426b_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-2-19b08e51426b.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-2-19b08e51426b",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-2-19b08e51426b_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-2-19b08e51426b.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-3-9991783c316d",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-3-9991783c316d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-3-9991783c316d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-3-9991783c316d",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-3-9991783c316d_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-3-9991783c316d.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-4-072664ac9b98",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-4-072664ac9b98_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-4-072664ac9b98.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-4-072664ac9b98",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-4-072664ac9b98_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-4-072664ac9b98.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-5-26df2868e70c",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-5-26df2868e70c_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-5-26df2868e70c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "G01-S4c-VP-5-26df2868e70c",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/G01-S4c-VP-5-26df2868e70c_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/G01-S4c-VP-5-26df2868e70c.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-0-69e53aeef11a",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-0-69e53aeef11a_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-0-69e53aeef11a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-0-69e53aeef11a",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-0-69e53aeef11a_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-0-69e53aeef11a.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-1-4b3e70a50a26",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 2.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-1-4b3e70a50a26_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-1-4b3e70a50a26.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-1-4b3e70a50a26",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-1-4b3e70a50a26_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-1-4b3e70a50a26.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-2-0962daddf5bd",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-2-0962daddf5bd_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-2-0962daddf5bd.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-2-0962daddf5bd",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-2-0962daddf5bd_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-2-0962daddf5bd.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-3-984dbaa7f733",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-3-984dbaa7f733_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-3-984dbaa7f733.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-3-984dbaa7f733",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-3-984dbaa7f733_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-3-984dbaa7f733.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-4-a4945d3bcd67",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-4-a4945d3bcd67_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-4-a4945d3bcd67.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-4-a4945d3bcd67",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-4-a4945d3bcd67_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-4-a4945d3bcd67.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-5-2b777db332c0",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-5-2b777db332c0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-5-2b777db332c0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-b-VP-5-2b777db332c0",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S12-b-VP-5-2b777db332c0_seed2.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-b-VP-5-2b777db332c0.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S13-a-VP-5-4d54367ca2b0",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-VP-5-4d54367ca2b0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-VP-5-4d54367ca2b0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "F02-e-S5a_at_elk_activep0.2-VP-3-bb766866f0d0",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/F02-e-S5a_at_elk_activep0.2-VP-3-bb766866f0d0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/F02-e-S5a_at_elk_activep0.2-VP-3-bb766866f0d0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S5-a-VP-0-c628d63ec554",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-a-VP-0-c628d63ec554_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-a-VP-0-c628d63ec554.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S5-ncap-solid-left-6-VP-2-409dc2648811",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-left-6-VP-2-409dc2648811_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-left-6-VP-2-409dc2648811.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S5-ncap-solid-right-6-VP-2-567a2f0ffef5",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-right-6-VP-2-567a2f0ffef5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-right-6-VP-2-567a2f0ffef5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  }
+ ],
+ "out_of_scope": [
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-0-b84bf321b14a",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.2357489122196781,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-0-b84bf321b14a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-1-1db4613cf0cb",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.21579319262078867,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-1-1db4613cf0cb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-2-213efa4e998e",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.33080905572599373,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-2-213efa4e998e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-3-4e8dc883d0cd",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3936355007127774,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-3-4e8dc883d0cd.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-4-255842c24eca",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.42700345343724533,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-4-255842c24eca.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-c-VP-5-9ad0657941fb",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.5500034534372453,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-5-9ad0657941fb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2-c-VP-5-9ad0657941fb",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-c-VP-5-9ad0657941fb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S2-d-VP-5-a311ab7697a8",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.023402418654528745,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-d-VP-5-a311ab7697a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S2-d-VP-5-a311ab7697a8",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S2-d-VP-5-a311ab7697a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-0-ff8e4ce04140",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.4109528984631192,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-0-ff8e4ce04140_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-0-ff8e4ce04140.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-0-dc72ffbcfa45",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.2340459921425344,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-0-dc72ffbcfa45.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-1-c599c50726eb",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.4519664033247959,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-1-c599c50726eb_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-1-c599c50726eb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-1-9e894e6e0e47",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.250990690969853,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-1-9e894e6e0e47.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-2-d2cc20ee8bbf",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.4169504361917915,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-2-d2cc20ee8bbf_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-2-d2cc20ee8bbf.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-2-8ea25fd5bd76",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.2362153143629464,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-2-8ea25fd5bd76.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-3-24dcd5adb2de",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.4087853260018495,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-3-24dcd5adb2de_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-3-24dcd5adb2de.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-3-5cf328ad0176",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.233435196624422,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-3-5cf328ad0176.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-4-a571d2de589d",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.3762447580907096,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-4-a571d2de589d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-4-a571d2de589d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-4-f51e1424afde",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.2263367006813524,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-4-f51e1424afde.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-5-3f2b28b63f2e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": 6.582999999999999,
+   "value": -1.3762447580907096,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-e-VP-5-3f2b28b63f2e_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-5-3f2b28b63f2e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-e-VP-5-845fd11edffe",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": 6.207999999999999,
+   "value": -1.2263367006813524,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-e-VP-5-845fd11edffe.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-a-VP-0-cabfa230312d",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 4.308,
+   "value": -0.26368160765185733,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-cabfa230312d_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-cabfa230312d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-005",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-a-VP-0-3290c39907ee",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 7.858,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Chu kỳ cua gắt mà mất path hoặc HWA",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-3290c39907ee_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-3290c39907ee.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-006",
+   "safety_goals": [
+    "SG-02"
+   ],
+   "case": "S14-a-VP-0-3290c39907ee",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 3.9579999999999997,
+   "value": -0.11526223280594472,
+   "limit": ">= 0",
+   "text": "a_y path trừ (aysmax − epsilon_ay), 0–1 s, khi a_y cần > aysmax [m/s²]",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-3290c39907ee_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-3290c39907ee.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-007",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S14-a-VP-0-3290c39907ee",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": 8.621,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Lần lốp đè vạch khi cua gắt mà cờ chưa bật",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S14-a-VP-0-3290c39907ee_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S14-a-VP-0-3290c39907ee.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-b-VP-1-311647f45960",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-b-VP-1-311647f45960.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-0-5f3bb8bbbdcc",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-0-5f3bb8bbbdcc.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-1-6341e6253ac1",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-1-6341e6253ac1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-2-f89a9a0c7f96",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-2-f89a9a0c7f96.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-3-23a7856ac085",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-3-23a7856ac085.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-4-f876104a11e9",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-4-f876104a11e9.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-c-VP-5-e35d853524b2",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-5-e35d853524b2.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S4b-c-VP-5-e35d853524b2",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-c-VP-5-e35d853524b2.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-e-VP-0-3c6fbd348bdd",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-e-VP-0-3c6fbd348bdd.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-e-VP-2-8664d4326faa",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-e-VP-2-8664d4326faa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-e-VP-3-bc1154b2eab4",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-e-VP-3-bc1154b2eab4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S4b-e-VP-4-ee510703be24",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S4b-e-VP-4-ee510703be24.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S5-ncap-solid-left-6-VP-5-723e8419ead5",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-left-6-VP-5-723e8419ead5_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-left-6-VP-5-723e8419ead5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S5-ncap-solid-right-6-VP-5-c80861a0a0c6",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S5-ncap-solid-right-6-VP-5-c80861a0a0c6_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S5-ncap-solid-right-6-VP-5-c80861a0a0c6.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-b-VP-0-8cd97b161efa",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-b-VP-0-8cd97b161efa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-right-5-VP-4-86dc3e882cfa",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-right-5-VP-4-86dc3e882cfa.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-right-5-VP-5-e836ac7fac6e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-right-5-VP-5-e836ac7fac6e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-right-5-VP-5-e836ac7fac6e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-right-5-VP-5-e836ac7fac6e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-right-6-VP-0-96da99cc59a8",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-right-6-VP-0-96da99cc59a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-dashed-right-5-VP-4-042b1d5b2589",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-dashed-right-5-VP-4-042b1d5b2589.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-dashed-right-5-VP-5-e5806c2a0972",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-dashed-right-5-VP-5-e5806c2a0972.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-dashed-right-5-VP-5-e5806c2a0972",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-dashed-right-5-VP-5-e5806c2a0972.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-ncap-edge-dashed-right-6-VP-0-cbc6c280715a",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-ncap-edge-dashed-right-6-VP-0-cbc6c280715a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S6-a-VP-0-9fc3dd64df95",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S6-a-VP-0-9fc3dd64df95.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S7-a-VP-5-b8c0c48677a9",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-a-VP-5-b8c0c48677a9.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S7-a-VP-5-b8c0c48677a9",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-a-VP-5-b8c0c48677a9.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S7-ncap-oncoming-left-2-VP-1-6106edde77e1",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-ncap-oncoming-left-2-VP-1-6106edde77e1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S7-ncap-oncoming-left-2-VP-3-c31a0a7a2f98",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-ncap-oncoming-left-2-VP-3-c31a0a7a2f98.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S7-ncap-oncoming-left-5-VP-2-c55019b6b65d",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-ncap-oncoming-left-5-VP-2-c55019b6b65d.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S7-a-VP-0-ea43d4a89263",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S7-a-VP-0-ea43d4a89263.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-overtaking-left-72-5-VP-2-ebd0c49983ed",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-overtaking-left-72-5-VP-2-ebd0c49983ed.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-overtaking-left-80-5-VP-2-c37f27537ba5",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-overtaking-left-80-5-VP-2-c37f27537ba5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-72-5-VP-2-f8e7b7cfa553",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-72-5-VP-2-f8e7b7cfa553.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-72-6-VP-1-3593df43a638",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-72-6-VP-1-3593df43a638.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-72-6-VP-4-f21b00402c85",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-72-6-VP-4-f21b00402c85.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-80-5-VP-2-0a5939562854",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-80-5-VP-2-0a5939562854.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-80-6-VP-1-d06fada2abeb",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-80-6-VP-1-d06fada2abeb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8-ncap-indicated-left-80-6-VP-4-ca3bba24859a",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8-ncap-indicated-left-80-6-VP-4-ca3bba24859a.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-055",
+   "safety_goals": [],
+   "case": "S3b-d-VP-5-befbcf67d7a8",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 0.0,
+   "limit": "> 0",
+   "text": "Lệch path về phía xa xe lớn, 0–1 s, nhỏ nhất khi khoảng hở < gap_truck_min [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S3b-d-VP-5-befbcf67d7a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-058",
+   "safety_goals": [],
+   "case": "S3b-d-VP-5-befbcf67d7a8",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 0.0,
+   "limit": "> 0",
+   "text": "Lệch path về phía xa xe lớn lúc xe lớn tới ngang hàng [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S3b-d-VP-5-befbcf67d7a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S3b-d-VP-5-befbcf67d7a8",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 2.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S3b-d-VP-5-befbcf67d7a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8b-c-VP-0-b7f431c8a478",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-c-VP-0-b7f431c8a478.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8b-c-VP-1-bb7979e8243e",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-c-VP-1-bb7979e8243e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8b-c-VP-4-7888642b1a30",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-c-VP-4-7888642b1a30.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8b-d-VP-5-5c0fcb91d951",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-d-VP-5-5c0fcb91d951.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S8b-d-VP-5-5c0fcb91d951",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-d-VP-5-5c0fcb91d951.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-090",
+   "safety_goals": [],
+   "case": "S8b-e-VP-5-a5e9d93895f4",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần báo COMPLETED khi chưa đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-e-VP-5-a5e9d93895f4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S8b-e-VP-5-a5e9d93895f4",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S8b-e-VP-5-a5e9d93895f4.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-0-425b042b9630",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-0-425b042b9630.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-0-425b042b9630",
+   "profile": "VP-0",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-0-425b042b9630.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-1-c5f495806475",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-1-c5f495806475.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-1-c5f495806475",
+   "profile": "VP-1",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-1-c5f495806475.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-2-dcd8acfe5043",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-2-dcd8acfe5043.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-2-dcd8acfe5043",
+   "profile": "VP-2",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-2-dcd8acfe5043.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-3-4b7830a9f53c",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-3-4b7830a9f53c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-3-4b7830a9f53c",
+   "profile": "VP-3",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-3-4b7830a9f53c.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-4-406ed8c312c5",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-4-406ed8c312c5.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-4-406ed8c312c5",
+   "profile": "VP-4",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-4-406ed8c312c5.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-5-7039c477036e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-5-7039c477036e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-032",
+   "safety_goals": [],
+   "case": "S12-c-VP-5-7039c477036e",
+   "profile": "VP-5",
+   "seed": 2,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "<= 0",
+   "text": "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S12-c-VP-5-7039c477036e.xosc --seed 2 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S13-a-VP-5-4d54367ca2b0",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/suite/mcap/S13-a-VP-5-4d54367ca2b0_seed1.mcap",
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S13-a-VP-5-4d54367ca2b0.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-0-fde743d6df3f",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.38930111288559144,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-0-fde743d6df3f.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-2-70ee4251d683",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.3678206785379077,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-2-70ee4251d683.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-3-7333de786139",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.4015802567537966,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-3-7333de786139.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-4-17c9ae7cbeeb",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.4291456567927717,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-4-17c9ae7cbeeb.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-085",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S16-c-VP-5-8588c1885ba1",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.1052160014012875,
+   "limit": ">= 0",
+   "text": "DLC phía đối diện qua bàn giao EPS [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-5-8588c1885ba1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-5-8588c1885ba1",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.47232088454714327,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-5-8588c1885ba1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S16-c-VP-5-8588c1885ba1",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 2.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-5-8588c1885ba1.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-d-VP-0-e29852ad5a1c",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.48046708569373364,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-d-VP-0-e29852ad5a1c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-d-VP-1-875c67fe6ec3",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.37504472390414567,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-d-VP-1-875c67fe6ec3.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-d-VP-2-d8db2d5453a8",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.47434076016337,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-d-VP-2-d8db2d5453a8.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-d-VP-3-c4c71c213cb3",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.4906456780542976,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-d-VP-3-c4c71c213cb3.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-0-da72edc4ec56",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.38930111288559144,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-0-da72edc4ec56.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-0-8573bbceb147",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.38908602915459944,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-0-8573bbceb147.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-086",
+   "safety_goals": [
+    "SG-03"
+   ],
+   "case": "S16-c-VP-0-6f5b10397642",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.38917241140061565,
+   "limit": ">= -0.3",
+   "text": "DTLE vạch nhỏ nhất [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S16-c-VP-0-6f5b10397642.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-0-3de8f33b03db",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.258701668454582,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-0-3de8f33b03db.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-1-e7d4b9f04c9b",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.07918671065937,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-1-e7d4b9f04c9b.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-2-31d7c4a6ad1f",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.14142629543847174,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-2-31d7c4a6ad1f.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-3-d35d81d4965b",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.20629284131706482,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-3-d35d81d4965b.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-4-fce608d216a6",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.2749153865371039,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-4-fce608d216a6.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-b-VP-5-7c84dc0ea45e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.37235543116815917,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-5-7c84dc0ea45e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S17-b-VP-5-7c84dc0ea45e",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-b-VP-5-7c84dc0ea45e.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-0-ec530a565153",
+   "profile": "VP-0",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -5.580609461269298,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-0-ec530a565153.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-1-2fb27134ba07",
+   "profile": "VP-1",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -5.7017290369849185,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-1-2fb27134ba07.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-2-d36a269b1605",
+   "profile": "VP-2",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -5.934800948159751,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-2-d36a269b1605.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-3-23bdadaaa5df",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -6.039625398085317,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-3-23bdadaaa5df.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-4-7235bceb0cae",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -6.074260800132319,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-4-7235bceb0cae.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-c-VP-5-2fa05512e157",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -6.284272950992964,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-5-2fa05512e157.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S17-c-VP-5-2fa05512e157",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-c-VP-5-2fa05512e157.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-d-VP-3-32384fa9491c",
+   "profile": "VP-3",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.012496973004308076,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-d-VP-3-32384fa9491c.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-d-VP-4-0847e3e773ff",
+   "profile": "VP-4",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.07952286966858324,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-d-VP-4-0847e3e773ff.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "BLOCKER",
+   "requirement": "PP-SWR-051",
+   "safety_goals": [
+    "SG-01"
+   ],
+   "case": "S17-d-VP-5-adc239af2eb2",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": -0.39323255508964183,
+   "limit": ">= 0",
+   "text": "DLC nhỏ nhất so với làn thật [m]",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-d-VP-5-adc239af2eb2.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  },
+  {
+   "level": "MINOR",
+   "requirement": "PP-SWR-062",
+   "safety_goals": [],
+   "case": "S17-d-VP-5-adc239af2eb2",
+   "profile": "VP-5",
+   "seed": 1,
+   "first_fail_s": null,
+   "value": 1.0,
+   "limit": "= 0",
+   "text": "Requirement trượt ở biên ODD",
+   "mcap": null,
+   "rerun": "python3 -m eval.runner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/benchmark/20261117-0907-regression-c56f0bf/concrete/cases/S17-d-VP-5-adc239af2eb2.xosc --seed 1 --planner /Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/planner/libpp_planner.dylib"
+  }
+ ],
+ "not_judged": []
+}

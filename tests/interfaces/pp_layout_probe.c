@@ -38,6 +38,8 @@ size_t pp_probe_sizeof(const char *type_name)
         result = sizeof(pp_road_edge_t);
     } else if (strcmp(type_name, "LaneModel") == 0) {
         result = sizeof(pp_lane_model_t);
+    } else if (strcmp(type_name, "LeadTarget") == 0) {
+        result = sizeof(pp_lead_target_t);
     } else if (strcmp(type_name, "LongitudinalPoint") == 0) {
         result = sizeof(pp_longitudinal_point_t);
     } else if (strcmp(type_name, "LongitudinalPlan") == 0) {
@@ -50,22 +52,30 @@ size_t pp_probe_sizeof(const char *type_name)
         result = sizeof(pp_vehicle_config_t);
     } else if (strcmp(type_name, "VehicleStateEstimate") == 0) {
         result = sizeof(pp_vehicle_state_estimate_t);
+    } else if (strcmp(type_name, "InterventionStatus") == 0) {
+        result = sizeof(pp_intervention_status_t);
     } else if (strcmp(type_name, "LateralLimits") == 0) {
         result = sizeof(pp_lateral_limits_t);
-    } else if (strcmp(type_name, "PathStatus") == 0) {
-        result = sizeof(pp_path_status_t);
+    } else if (strcmp(type_name, "LccStatus") == 0) {
+        result = sizeof(pp_lcc_status_t);
     } else if (strcmp(type_name, "TrajectoryPoint") == 0) {
         result = sizeof(pp_trajectory_point_t);
     } else if (strcmp(type_name, "Trajectory") == 0) {
         result = sizeof(pp_trajectory_t);
-    } else if (strcmp(type_name, "PlannerInputs") == 0) {
-        result = sizeof(pp_planner_inputs_t);
-    } else if (strcmp(type_name, "PlannerOutputs") == 0) {
-        result = sizeof(pp_planner_outputs_t);
+    } else if (strcmp(type_name, "LccInputs") == 0) {
+        result = sizeof(pp_lcc_inputs_t);
+    } else if (strcmp(type_name, "LccOutputs") == 0) {
+        result = sizeof(pp_lcc_outputs_t);
+    } else if (strcmp(type_name, "LkaElkInputs") == 0) {
+        result = sizeof(pp_lka_elk_inputs_t);
+    } else if (strcmp(type_name, "LkaElkOutputs") == 0) {
+        result = sizeof(pp_lka_elk_outputs_t);
     } else if (strcmp(type_name, "ReceivedLaneModel") == 0) {
         result = sizeof(pp_received_lane_model_t);
     } else if (strcmp(type_name, "ReceivedObjectList") == 0) {
         result = sizeof(pp_received_object_list_t);
+    } else if (strcmp(type_name, "ReceivedLeadTarget") == 0) {
+        result = sizeof(pp_received_lead_target_t);
     } else if (strcmp(type_name, "ReceivedImuSignals") == 0) {
         result = sizeof(pp_received_imu_signals_t);
     } else if (strcmp(type_name, "ReceivedSteeringSignals") == 0) {
@@ -213,6 +223,26 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_lane_model_t, lane_width_source);
     } else if ((strcmp(type_name, "LaneModel") == 0) && (strcmp(field_name, "lane_change") == 0)) {
         result = offsetof(pp_lane_model_t, lane_change);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "header") == 0)) {
+        result = offsetof(pp_lead_target_t, header);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "id") == 0)) {
+        result = offsetof(pp_lead_target_t, id);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "classification") == 0)) {
+        result = offsetof(pp_lead_target_t, classification);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "x") == 0)) {
+        result = offsetof(pp_lead_target_t, x);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "y") == 0)) {
+        result = offsetof(pp_lead_target_t, y);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "gap") == 0)) {
+        result = offsetof(pp_lead_target_t, gap);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "heading") == 0)) {
+        result = offsetof(pp_lead_target_t, heading);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "vx_rel") == 0)) {
+        result = offsetof(pp_lead_target_t, vx_rel);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "vy_rel") == 0)) {
+        result = offsetof(pp_lead_target_t, vy_rel);
+    } else if ((strcmp(type_name, "LeadTarget") == 0) && (strcmp(field_name, "existence_probability") == 0)) {
+        result = offsetof(pp_lead_target_t, existence_probability);
     } else if ((strcmp(type_name, "LongitudinalPoint") == 0) && (strcmp(field_name, "v") == 0)) {
         result = offsetof(pp_longitudinal_point_t, v);
     } else if ((strcmp(type_name, "LongitudinalPoint") == 0) && (strcmp(field_name, "a") == 0)) {
@@ -271,6 +301,18 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_vehicle_state_estimate_t, lateral_velocity_variance);
     } else if ((strcmp(type_name, "VehicleStateEstimate") == 0) && (strcmp(field_name, "slip_angle") == 0)) {
         result = offsetof(pp_vehicle_state_estimate_t, slip_angle);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "header") == 0)) {
+        result = offsetof(pp_intervention_status_t, header);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "path_valid") == 0)) {
+        result = offsetof(pp_intervention_status_t, path_valid);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "active_function") == 0)) {
+        result = offsetof(pp_intervention_status_t, active_function);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "lka_phase") == 0)) {
+        result = offsetof(pp_intervention_status_t, lka_phase);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "elk_phase") == 0)) {
+        result = offsetof(pp_intervention_status_t, elk_phase);
+    } else if ((strcmp(type_name, "InterventionStatus") == 0) && (strcmp(field_name, "lateral_limit_reached") == 0)) {
+        result = offsetof(pp_intervention_status_t, lateral_limit_reached);
     } else if ((strcmp(type_name, "LateralLimits") == 0) && (strcmp(field_name, "header") == 0)) {
         result = offsetof(pp_lateral_limits_t, header);
     } else if ((strcmp(type_name, "LateralLimits") == 0) && (strcmp(field_name, "v_max") == 0)) {
@@ -279,20 +321,18 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_lateral_limits_t, distance);
     } else if ((strcmp(type_name, "LateralLimits") == 0) && (strcmp(field_name, "lateral_limit_reached") == 0)) {
         result = offsetof(pp_lateral_limits_t, lateral_limit_reached);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "header") == 0)) {
-        result = offsetof(pp_path_status_t, header);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "path_valid") == 0)) {
-        result = offsetof(pp_path_status_t, path_valid);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "active_function") == 0)) {
-        result = offsetof(pp_path_status_t, active_function);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lka_phase") == 0)) {
-        result = offsetof(pp_path_status_t, lka_phase);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "elk_phase") == 0)) {
-        result = offsetof(pp_path_status_t, elk_phase);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lateral_limit_reached") == 0)) {
-        result = offsetof(pp_path_status_t, lateral_limit_reached);
-    } else if ((strcmp(type_name, "PathStatus") == 0) && (strcmp(field_name, "lane_too_narrow") == 0)) {
-        result = offsetof(pp_path_status_t, lane_too_narrow);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "header") == 0)) {
+        result = offsetof(pp_lcc_status_t, header);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "path_valid") == 0)) {
+        result = offsetof(pp_lcc_status_t, path_valid);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "lcc_mode") == 0)) {
+        result = offsetof(pp_lcc_status_t, lcc_mode);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "follow_distance") == 0)) {
+        result = offsetof(pp_lcc_status_t, follow_distance);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "lateral_limit_reached") == 0)) {
+        result = offsetof(pp_lcc_status_t, lateral_limit_reached);
+    } else if ((strcmp(type_name, "LccStatus") == 0) && (strcmp(field_name, "lane_too_narrow") == 0)) {
+        result = offsetof(pp_lcc_status_t, lane_too_narrow);
     } else if ((strcmp(type_name, "TrajectoryPoint") == 0) && (strcmp(field_name, "time_from_start") == 0)) {
         result = offsetof(pp_trajectory_point_t, time_from_start);
     } else if ((strcmp(type_name, "TrajectoryPoint") == 0) && (strcmp(field_name, "pose") == 0)) {
@@ -317,36 +357,64 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_trajectory_t, points);
     } else if ((strcmp(type_name, "Trajectory") == 0) && (strcmp(field_name, "observed_horizon_s") == 0)) {
         result = offsetof(pp_trajectory_t, observed_horizon_s);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "t0_us") == 0)) {
-        result = offsetof(pp_planner_inputs_t, t0_us);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "lane_model") == 0)) {
-        result = offsetof(pp_planner_inputs_t, lane_model);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "object_list") == 0)) {
-        result = offsetof(pp_planner_inputs_t, object_list);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "imu") == 0)) {
-        result = offsetof(pp_planner_inputs_t, imu);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "steering") == 0)) {
-        result = offsetof(pp_planner_inputs_t, steering);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "speed") == 0)) {
-        result = offsetof(pp_planner_inputs_t, speed);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "vehicle_state") == 0)) {
-        result = offsetof(pp_planner_inputs_t, vehicle_state);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "function_requests") == 0)) {
-        result = offsetof(pp_planner_inputs_t, function_requests);
-    } else if ((strcmp(type_name, "PlannerInputs") == 0) && (strcmp(field_name, "longitudinal_plan") == 0)) {
-        result = offsetof(pp_planner_inputs_t, longitudinal_plan);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "trajectory_sent") == 0)) {
-        result = offsetof(pp_planner_outputs_t, trajectory_sent);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "trajectory") == 0)) {
-        result = offsetof(pp_planner_outputs_t, trajectory);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "path_status_sent") == 0)) {
-        result = offsetof(pp_planner_outputs_t, path_status_sent);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "path_status") == 0)) {
-        result = offsetof(pp_planner_outputs_t, path_status);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "lateral_limits_sent") == 0)) {
-        result = offsetof(pp_planner_outputs_t, lateral_limits_sent);
-    } else if ((strcmp(type_name, "PlannerOutputs") == 0) && (strcmp(field_name, "lateral_limits") == 0)) {
-        result = offsetof(pp_planner_outputs_t, lateral_limits);
+    } else if ((strcmp(type_name, "Trajectory") == 0) && (strcmp(field_name, "planner_id") == 0)) {
+        result = offsetof(pp_trajectory_t, planner_id);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "t0_us") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, t0_us);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "lane_model") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, lane_model);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "object_list") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, object_list);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "lead_target") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, lead_target);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "imu") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, imu);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "steering") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, steering);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "speed") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, speed);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "vehicle_state") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, vehicle_state);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "function_requests") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, function_requests);
+    } else if ((strcmp(type_name, "LccInputs") == 0) && (strcmp(field_name, "longitudinal_plan") == 0)) {
+        result = offsetof(pp_lcc_inputs_t, longitudinal_plan);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "trajectory_sent") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, trajectory_sent);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "trajectory") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, trajectory);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "lcc_status_sent") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, lcc_status_sent);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "lcc_status") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, lcc_status);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "lateral_limits_sent") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, lateral_limits_sent);
+    } else if ((strcmp(type_name, "LccOutputs") == 0) && (strcmp(field_name, "lateral_limits") == 0)) {
+        result = offsetof(pp_lcc_outputs_t, lateral_limits);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "t0_us") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, t0_us);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "lane_model") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, lane_model);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "imu") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, imu);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "steering") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, steering);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "speed") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, speed);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "vehicle_state") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, vehicle_state);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "function_requests") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, function_requests);
+    } else if ((strcmp(type_name, "LkaElkInputs") == 0) && (strcmp(field_name, "longitudinal_plan") == 0)) {
+        result = offsetof(pp_lka_elk_inputs_t, longitudinal_plan);
+    } else if ((strcmp(type_name, "LkaElkOutputs") == 0) && (strcmp(field_name, "trajectory_sent") == 0)) {
+        result = offsetof(pp_lka_elk_outputs_t, trajectory_sent);
+    } else if ((strcmp(type_name, "LkaElkOutputs") == 0) && (strcmp(field_name, "trajectory") == 0)) {
+        result = offsetof(pp_lka_elk_outputs_t, trajectory);
+    } else if ((strcmp(type_name, "LkaElkOutputs") == 0) && (strcmp(field_name, "intervention_status_sent") == 0)) {
+        result = offsetof(pp_lka_elk_outputs_t, intervention_status_sent);
+    } else if ((strcmp(type_name, "LkaElkOutputs") == 0) && (strcmp(field_name, "intervention_status") == 0)) {
+        result = offsetof(pp_lka_elk_outputs_t, intervention_status);
     } else if ((strcmp(type_name, "ReceivedLaneModel") == 0) && (strcmp(field_name, "present") == 0)) {
         result = offsetof(pp_received_lane_model_t, present);
     } else if ((strcmp(type_name, "ReceivedLaneModel") == 0) && (strcmp(field_name, "rx_us") == 0)) {
@@ -359,6 +427,12 @@ size_t pp_probe_offsetof(const char *type_name, const char *field_name)
         result = offsetof(pp_received_object_list_t, rx_us);
     } else if ((strcmp(type_name, "ReceivedObjectList") == 0) && (strcmp(field_name, "message") == 0)) {
         result = offsetof(pp_received_object_list_t, message);
+    } else if ((strcmp(type_name, "ReceivedLeadTarget") == 0) && (strcmp(field_name, "present") == 0)) {
+        result = offsetof(pp_received_lead_target_t, present);
+    } else if ((strcmp(type_name, "ReceivedLeadTarget") == 0) && (strcmp(field_name, "rx_us") == 0)) {
+        result = offsetof(pp_received_lead_target_t, rx_us);
+    } else if ((strcmp(type_name, "ReceivedLeadTarget") == 0) && (strcmp(field_name, "message") == 0)) {
+        result = offsetof(pp_received_lead_target_t, message);
     } else if ((strcmp(type_name, "ReceivedImuSignals") == 0) && (strcmp(field_name, "present") == 0)) {
         result = offsetof(pp_received_imu_signals_t, present);
     } else if ((strcmp(type_name, "ReceivedImuSignals") == 0) && (strcmp(field_name, "rx_us") == 0)) {

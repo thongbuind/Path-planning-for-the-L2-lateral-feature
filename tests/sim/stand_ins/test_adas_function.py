@@ -153,6 +153,19 @@ def test_lka_held_below_speed_and_cancelled_by_same_side_indicator():
     assert not cancelled.driver_override
 
 
+def test_system_steering_during_elk_is_not_driver_intent():
+    adas = AdasFunction(VEHICLE, lka_enabled=False, elk_enabled=True)
+    adas.elk.request = FunctionRequest(RequestState.REQUEST, Side.LEFT, 0.5, ElkReason.SOLID_LINE, CancelReason.NONE)
+    fast_left = replace(MOTION, steering_rate_rps=1.0)  # the system counter-steers toward the line
+    active = PathFeedback(True, elk_phase=InterventionPhase.ACTIVE)
+    message = _step(adas, 100_000, lane=_lane(100_000, 0.15, solid=True), motion=fast_left, feedback=active)
+    assert message.requests[2].state == RequestState.REQUEST
+
+    message = _step(adas, 125_000, lane=_lane(125_000, 0.15, solid=True), motion=fast_left)
+    assert message.requests[2].state == RequestState.OFF  # nothing steers: the rate is the driver's
+    assert message.requests[2].cancel_reason == CancelReason.DRIVER_OVERRIDE
+
+
 def test_torque_override_uses_elapsed_time_and_cooldown():
     adas = AdasFunction(VEHICLE, lka_enabled=True, elk_enabled=False)
     _start_lka(adas)

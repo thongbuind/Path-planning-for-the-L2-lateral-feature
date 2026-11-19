@@ -1,0 +1,67 @@
+name: Tests
+
+# Quality gate of the repository (SIM-REQ-101): build the planner, run the tests, conformance B0
+# and the golden set of the simulation platform. Benchmark suites are not run here; they run on
+# the development machine (--record). Selfcheck runs on demand (workflow_dispatch).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      selfcheck:
+        description: Also run the evaluator self-check with bait planners
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Fetch ASAM schemas (checked against sources.json)
+        run: python -m eval.fetch_schemas
+      - name: Build planner
+        run: |
+          cmake -S planner -B build/planner -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE="$(which python)"
+          cmake --build build/planner
+      - name: C unit tests of the planner
+        run: ctest --test-dir build/planner --output-on-failure
+      - name: Unit and integration tests
+        run: python -m pytest -q
+      - name: Conformance B0
+        run: python -m eval.conformance
+      - name: Golden set, determinism within this machine
+        run: |
+          python -m eval.golden record --jobs 2 --paths runner,suite,live
+          python -m eval.golden check --jobs 1 --paths runner
+      - name: Evaluator self-check
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.selfcheck }}
+        run: python -m eval.selfcheck --jobs 2
+      - name: Checksums of the planner libraries
+        run: (cd build/planner && sha256sum libpp_lcc.so libpp_lkaelk.so | tee SHA256SUMS)
+      - name: Keep the Linux planner libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: planner-libraries
+          path: |
+            build/planner/libpp_lcc.so
+            build/planner/libpp_lkaelk.so
+            build/planner/SHA256SUMS

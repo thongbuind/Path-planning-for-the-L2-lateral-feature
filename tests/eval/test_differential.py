@@ -1,7 +1,7 @@
 """PP-SWR-129, 130 by a reference twin of the same seed (Software Qualification Test
 Specification 6: F15, F16, F17), on a short run with the stub planner library."""
 
-from adapters.sil.sil_planner import PlannerLibrary
+from adapters.sil.sil_planner import PlannerLibraries
 from eval import differential
 from sim.faults.channel import ChannelFault
 from sim.harness import Harness
@@ -10,7 +10,7 @@ from sim.world.road import Segment
 
 
 def test_twin_drops_exactly_the_messages_hit_and_outputs_are_compared(build_stub):
-    planner = PlannerLibrary(build_stub())
+    planner = PlannerLibraries.at(build_stub())
     faults = (ChannelFault("counter_repeat", "lane_model", start_s=0.5, duration_s=0.5, every=2, value=10.0),
               ChannelFault("counter_stuck", "speed", start_s=0.5, duration_s=0.2))
     scenario = Scenario(name="short", segments=(Segment("straight", 200.0),), lane_width=3.5, speed_mps=20.0,

@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Path Planner SIL Replay</title>
+<title>Path Planner Workbench</title>
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="wb.css">
 <script>
   try { var th = localStorage.getItem('pp-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 </script>
@@ -21,22 +22,44 @@
   <symbol id="i-check" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor"/><path d="M5 8.2l2.1 2.1L11 6.2" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="currentColor"/><path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5L3.5 9h4L7 14.5 12.5 7h-4z" fill="currentColor"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 1.8l6.6 11.6H1.4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.4v3.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.7" r=".9" fill="currentColor"/></symbol>
+  <symbol id="i-half" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></symbol>
+  <symbol id="i-wait" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.4 2.2"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="currentColor"/></symbol>
+  <symbol id="i-sq" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
   <symbol id="i-logo" viewBox="0 0 20 20"><path d="M3 17c0-6 4-7 7-7s7-1 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="3" cy="17" r="1.8" fill="currentColor"/></symbol>
 </svg>
 
+<a class="wb-skip" href="#wb-content">Bỏ qua điều hướng</a>
+<div class="wb">
+<nav class="wb-nav" id="wb-nav" aria-label="Không gian làm việc">
+  <div class="wb-brand">
+    <svg width="20" height="20" aria-hidden="true"><use href="#i-logo"/></svg>
+    <div><b>Path Planner Workbench</b><span class="wb-mono" id="wb-ver"></span></div>
+  </div>
+  <div class="wb-groups" id="wb-groups"></div>
+  <div class="wb-foot">
+    <div class="wb-srv"><i class="wb-led" id="wb-led"></i><span>Workbench <span class="wb-mono" id="wb-host"></span></span></div>
+    <div class="wb-srv-sub" id="wb-slots" aria-live="polite"></div>
+    <div class="wb-legend">
+      <span><svg aria-hidden="true"><use href="#i-check"/></svg>Đã có</span>
+      <span><svg aria-hidden="true"><use href="#i-half"/></svg>Một phần: có dữ liệu, thiếu giao diện</span>
+      <span><svg aria-hidden="true"><use href="#i-wait"/></svg>Backlog, chưa cam kết</span>
+    </div>
+    <button class="icon-btn" id="theme" type="button" aria-label="Đổi giao diện sáng tối" title="Đổi giao diện sáng tối">
+      <svg id="theme-ico"><use href="#i-moon"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="wb-main" id="wb-content" tabindex="-1">
+<div class="view" id="v-chay">
 <div class="app">
 
   <header class="top">
-    <div class="brand">
-      <svg width="18" height="18" style="color:var(--violet);align-self:center"><use href="#i-logo"/></svg>
-      <b>Path Planner</b><span>SIL, chạy thời gian thực</span>
-    </div>
+    <div class="brand"><b>Chạy mới</b><span>SIL, chạy thời gian thực</span></div>
     <div class="crumb" id="crumb" aria-live="polite"></div>
     <div class="top-actions">
       <span id="ver" class="num"></span>
-      <button class="icon-btn" id="theme" type="button" aria-label="Đổi giao diện sáng tối" title="Đổi giao diện sáng tối">
-        <svg id="theme-ico"><use href="#i-moon"/></svg>
-      </button>
     </div>
   </header>
 
@@ -50,7 +73,7 @@
       <h2>Tình huống <em id="n-scen"></em></h2>
       <input class="search" id="q" type="search" placeholder="Tìm: S1, cua, xe tải, xi-nhan…" aria-label="Tìm tình huống" autocomplete="off">
       <div class="chips" id="fn-chips" role="radiogroup" aria-label="Lọc theo chức năng"></div>
-      <div class="slist" id="m-scen" role="radiogroup" aria-label="Tình huống"></div>
+      <div class="slist" id="m-scen" role="group" aria-label="Tình huống"></div>
     </section>
 
     <section class="msec">
@@ -63,6 +86,7 @@
           <option value="lka_active">Khi LKA can thiệp</option>
           <option value="elk_active">Khi ELK can thiệp</option>
           <option value="intervention_active">Khi LKA hoặc ELK can thiệp</option>
+          <option value="lcc_follow">Khi LCC vào FOLLOW</option>
         </select>
       </label>
     </section>
@@ -101,6 +125,13 @@
       </div>
       <div class="hud hud-tr"><canvas id="minimap" width="190" height="104" aria-label="Bản đồ lộ trình"></canvas></div>
       <div class="hud hud-bl">
+        <svg class="steering-wheel" id="hud-steering" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Vô lăng">
+          <g id="hud-steering-rotor" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+            <circle cx="24" cy="24" r="19"/>
+            <path d="M7 16l12 6m22-6-12 6m-5 7v14"/>
+            <circle cx="24" cy="24" r="5"/>
+          </g>
+        </svg>
         <div class="speed"><span id="hud-v">0</span><small>km/h</small></div>
       </div>
       <div class="hud hud-br" id="hud-br"></div>
@@ -135,6 +166,10 @@
   </main>
 
   <aside class="panel" aria-label="Thông số">
+    <section class="scenario-description" id="scenario-description" aria-labelledby="scenario-description-title" aria-live="polite" aria-atomic="true" hidden>
+      <h2 id="scenario-description-title"><span>Bài thử đã chọn</span><span id="scenario-description-code"></span></h2>
+      <p id="scenario-description-text"></p>
+    </section>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tab-live" aria-selected="true" aria-controls="pane-live">Thông số</button>
       <button type="button" role="tab" id="tab-res" aria-selected="false" aria-controls="pane-res">Kết quả</button>
@@ -144,6 +179,10 @@
   </aside>
 
 </div>
+</div>
+<div class="view wb-page" id="v-page" hidden></div>
+</div>
+</div>
 
 <script src="js/i18n.js"></script>
 <script src="js/catalog-en.js"></script>
@@ -151,5 +190,9 @@
 <script src="js/scene.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/wb.js"></script>
+<script src="js/wb-runs.js"></script>
+<script src="js/wb-evidence.js"></script>
+<script src="js/wb-compare.js"></script>
 </body>
 </html>

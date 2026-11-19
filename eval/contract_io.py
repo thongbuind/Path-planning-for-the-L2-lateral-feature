@@ -15,7 +15,21 @@ import numpy as np
 
 import interfaces as I
 from adapters.sil import pp_ctypes
-from adapters.sil.sil_planner import STATE_ALIGNMENT, load_library
+from adapters.sil.sil_planner import LCC, LKAELK, STATE_ALIGNMENT, Family, load_library
+
+# Planner family the calls below address: set once per process (a conformance job runs in its own
+# child process, one family at a time).
+FAMILY: Family = LCC
+
+
+def use_family(name: str) -> None:
+    global FAMILY
+    FAMILY = {f.name: f for f in (LCC, LKAELK)}[name]
+
+
+def _symbol(lib: ctypes.CDLL, what: str):
+    return getattr(lib, f"{FAMILY.prefix}_{what}")
+
 
 GUARD_BYTES = 256  # each side of the state memory
 GUARD_PATTERN = 0xC3
@@ -111,7 +125,7 @@ def vehicle_config_c(config: I.VehicleConfig | None):
 
 @dataclass
 class StepResult:
-    raw: bytes  # PlannerOutputsC
+    raw: bytes  # the outputs struct of the family
     sentinel: int
     requests: list[tuple[int, int]]
 
@@ -122,7 +136,7 @@ class Instance:
 
     def __init__(self, lib: ctypes.CDLL, config: I.VehicleConfig | None) -> None:
         self.lib = lib
-        self.state_size = int(lib.pp_state_size())
+        self.state_size = int(_symbol(lib, "state_size")())
         total = GUARD_BYTES + self.state_size + GUARD_BYTES + 4 * STATE_ALIGNMENT
         self._memory = (ctypes.c_uint8 * total)()
         base = ctypes.addressof(self._memory)
@@ -135,14 +149,14 @@ class Instance:
             ctypes.memset(base + lo, GUARD_PATTERN, hi - lo)
         self.state = ctypes.c_void_p(first)
         self._config = vehicle_config_c(config)
-        self.init_result = int(lib.pp_init(self.state, self.state_size, self._config))
-        self._outputs = pp_ctypes.PlannerOutputsC()
+        self.init_result = int(_symbol(lib, "init")(self.state, self.state_size, self._config))
+        self._outputs = getattr(pp_ctypes, f"{FAMILY.outputs}C")()
 
     def guards_intact(self) -> bool:
         raw = bytes(self._memory)
         return all(all(b == GUARD_PATTERN for b in raw[lo:hi]) for lo, hi in self._guards)
 
-    def step(self, inputs: pp_ctypes.PlannerInputsC, motion: "Motion", sentinel: int) -> StepResult:
+    def step(self, inputs: ctypes.Structure, motion: "Motion", sentinel: int) -> StepResult:
         requests: list[tuple[int, int]] = []
 
         def answer(_context, request_ptr, response_ptr) -> None:
@@ -152,12 +166,12 @@ class Instance:
 
         callback = EGO_MOTION_FN(answer)
         ctypes.memset(ctypes.byref(self._outputs), sentinel, ctypes.sizeof(self._outputs))
-        self.lib.pp_step(self.state, ctypes.byref(inputs), callback, None, ctypes.byref(self._outputs))
+        _symbol(self.lib, "step")(self.state, ctypes.byref(inputs), callback, None, ctypes.byref(self._outputs))
         return StepResult(bytes(self._outputs), sentinel, requests)
 
 
 def open_library(path) -> ctypes.CDLL:
-    return load_library(path)
+    return load_library(path, FAMILY)
 
 
 # ---- input sequences -------------------------------------------------------------------
@@ -178,7 +192,7 @@ class Motion:
 
 @dataclass
 class Sequence:
-    """Input of every cycle; `frame(k)` returns PlannerInputsC for cycle k."""
+    """Input of every cycle; `frame(k)` returns the inputs struct of the family for cycle k."""
     name: str
     cycles: int
     seed: int | None = None  # None: nominal straight road; else seeded variations
@@ -187,11 +201,12 @@ class Sequence:
     extreme: tuple[str, str] | None = None  # (input, "low"|"high"): payload at the range ends
     motion: Motion = field(default_factory=Motion)
 
-    def frame(self, k: int) -> pp_ctypes.PlannerInputsC:
+    def frame(self, k: int) -> ctypes.Structure:
         return build_inputs(self, k)
 
 
-INPUTS = ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
+# Every input of either planner; the LKA/ELK planner has no object_list and no lead_target.
+INPUTS = ("lane_model", "object_list", "lead_target", "imu", "steering", "speed", "vehicle_state",
           "function_requests", "longitudinal_plan")
 
 # Range ends: the CAN encoding of Interface Control Document 5.3 for chassis signals (what
@@ -238,14 +253,14 @@ def _header(h, t_us: int, counter: int, valid: bool, frame: bool = True) -> None
         h.frame_id = int(I.FrameId.BASE_LINK)
 
 
-def build_inputs(seq: Sequence, k: int) -> pp_ctypes.PlannerInputsC:
+def build_inputs(seq: Sequence, k: int) -> ctypes.Structure:
     t0 = T_START_US + k * I.PLANNER_PERIOD_US
     rng = np.random.default_rng([seq.seed, k]) if seq.seed is not None else None
     # Seeded variations: the car weaves in the lane, the road bends, LKA requests come and go.
     offset = 0.3 * math.sin(k / 23.0) if rng is not None else 0.0
     curve = 1e-3 * math.sin(k / 61.0) if rng is not None else 0.0
     lka_request = rng is not None and (k // 80) % 3 == 1
-    x = pp_ctypes.PlannerInputsC()
+    x = getattr(pp_ctypes, f"{FAMILY.inputs}C")()
     x.t0_us = t0
 
     lm = x.lane_model.message
@@ -277,10 +292,16 @@ def build_inputs(seq: Sequence, k: int) -> pp_ctypes.PlannerInputsC:
     lm.lane_change = int(I.Side.NONE)
     x.lane_model.rx_us = t0 - 5_000
 
-    ol = x.object_list.message
-    _header(ol.header, t0 - 50_000, k, "object_list" not in seq.invalid)
-    ol.num_objects = 0
-    x.object_list.rx_us = t0 - 5_000
+    if hasattr(x, "object_list"):  # LCC planner only
+        ol = x.object_list.message
+        _header(ol.header, t0 - 50_000, k, "object_list" not in seq.invalid)
+        ol.num_objects = 0
+        x.object_list.rx_us = t0 - 5_000
+    if hasattr(x, "lead_target"):  # LCC planner only: no lead vehicle (existence 0)
+        lt = x.lead_target.message
+        _header(lt.header, t0 - 50_000, k, "lead_target" not in seq.invalid)
+        lt.classification = int(I.LeadClass.UNKNOWN)
+        x.lead_target.rx_us = t0 - 5_000
 
     v = seq.motion.speed_mps
     for name, fill in (("imu", lambda m: (setattr(m, "yaw_rate_rps", v * curve), setattr(m, "accel_x_mps2", 0.0),
@@ -323,8 +344,9 @@ def build_inputs(seq: Sequence, k: int) -> pp_ctypes.PlannerInputsC:
     x.longitudinal_plan.rx_us = t0 - 3_000
 
     for name in INPUTS:
-        getattr(x, name).present = name not in seq.absent
-    if seq.extreme is not None:
+        if hasattr(x, name):
+            getattr(x, name).present = name not in seq.absent
+    if seq.extreme is not None and hasattr(x, seq.extreme[0]):
         name, which = seq.extreme
         message = getattr(x, name).message
         for leaf in leaves(type(message)):

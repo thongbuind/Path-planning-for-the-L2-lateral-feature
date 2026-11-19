@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân; chờ PP-TS-005 |
+| Trạng thái | Còn mở; sửa qua PP-TS-005 |
 | Mở ngày | 2026-11-11 |
 | Requirement cần kiểm tra | PP-SWR-051, 100; kiểm tra thêm PP-SWR-006, 007 |
 | Tái hiện | `python3 -m eval.runner S14 e --acc on --seed 1` và `--acc ignore_limits`; VP-0 |
@@ -49,3 +49,4 @@ Có nhiều cách, mở PP-TS-005. QP hợp nhất (PP-TS-003) không sửa đư
 | Run ID | Kết quả |
 |---|---|
 | 20261111-1443-suite-regression-ef8bf4b | Tái hiện trên mốc V0: S14e trượt PP-SWR-051 (24 lần) và 100 (18 lần), cả 6 profile |
+| 20261118-2030-suite-regression-e3158a5 | S14 e còn trượt PP-SWR-051 ở VP-0 đến VP-5 |

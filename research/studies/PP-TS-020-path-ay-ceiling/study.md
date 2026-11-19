@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đang chạy |
+| Trạng thái | Chờ quyết định |
 | Mở ngày | 2026-11-16 |
 | Khóa ngày | 2026-11-16 |
 | Quyết định ngày | — |
@@ -93,6 +93,7 @@ Ca chọn từ nhóm trượt PP-SWR-051 trên S1c của lần chạy full, cùn
 |---|---|---|
 | [20261116-1548-study-PP-TS-020-04ae8c5](../../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md) | V0, V1a, V1b, V1c | Theo plan khóa 2026-11-16. S1b quá ngắn để chấm R79 (PP-PR-056); thay bằng lần dưới |
 | [20261116-1607-study-PP-TS-020-d1d50de](../../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md) | V0, V1a, V1b, V1c, V2 | Khóa lại: S1b a, b 17 s, c 15 s; thêm V2 |
+| [20261118-2127-study-PP-TS-020-ac82bb3](../../runs/20261118-2127-study-PP-TS-020-ac82bb3/summary.md) | V0, V1a, V1b, V1c, V2 | Chạy lại sau PP-TS-021, trên bản hai planner. Plan và suite không đổi |
 
 ## 5. Kết quả
 
@@ -145,9 +146,38 @@ Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0
 - V2 giống V0 ở mọi ca S1c: cờ giới hạn bật ở S1c, nên margin bị tắt đúng ở ca cần nó. V2 còn thêm trượt PP-SWR-100 ở F17 b, do trần đổi bậc khi cờ đổi. Loại V2.
 - Ở S1c, V1b và V1c như nhau và tốt nhất: gỡ F08 a, F08 b, F06 e. Lệch tâm làn xấu nhất (PP-SWR-050): V0, V2 0,50 / 0,45 m; V1 0,12–0,13 / 0,28 m.
 
+**Lần chạy chính thức sau PP-TS-021** [20261118-2127-study-PP-TS-020-ac82bb3](../../runs/20261118-2127-study-PP-TS-020-ac82bb3/summary.md). Mỗi phương án 50 lượt. Số lượt trượt (chỉnh / kiểm): V0 4 / 8; V1a 0 / 5; V1b 2 / 4; V1c 2 / 4; V2 4 / 8.
+
+| Ca (2 seed mỗi ô) | V0 | V1a | V1b | V1c | V2 |
+|---|---|---|---|---|---|
+| S1b a, ACC bỏ qua LateralLimits | Đạt | Đạt | R79 | R79 | Đạt |
+| S1b b, ACC bỏ qua LateralLimits | R79 | R79 | R79 | R79 | R79 |
+| S1b c, ACC bỏ qua LateralLimits | Đạt | Đạt | R79 | R79 | Đạt |
+| S1c + F08 a, VP-0 và VP-5 | 051 | Đạt | Đạt | Đạt | 051 |
+| S1c + F08 b, VP-0 | 051 | 051 (seed 3) | Đạt | Đạt | 051 |
+| S1c + F08 b, VP-5 | 051 | 051 | Đạt | Đạt | 051 |
+| S1c + F06 e, VP-5 | 051 | Đạt | Đạt | Đạt | 051 |
+| Mọi ca còn lại, gồm S1c + F17 b | Đạt | Đạt | Đạt | Đạt | Đạt |
+
+- Không phương án nào đạt mọi tiêu chí: S1b b trượt R79 ở cả năm phương án, kể cả V0 (PP-PR-056).
+- Lượt trượt của V1a là tập con của V0: không thêm lỗi mới, gỡ F08 a, F06 e và một lượt F08 b.
+- V1b, V1c gỡ hết F08 a, b và F06 e, nhưng thêm trượt R79 ở S1b a, c. Hai phương án cho kết quả đạt, trượt như nhau.
+- V2 cho kết quả đạt, trượt giống V0. Vẫn loại.
+- Sau PP-TS-021, S1b a ở V0, V1a và S1b c ở V1a không còn trượt R79. F17 b không còn trượt sau khi sửa bộ bơm lỗi (PP-PR-059).
+- PP-SWR-050 của bộ chỉnh: V0 0,371 m; V1a 0,119 m; V1b 0,122 m; V1c 0,121 m. Bộ kiểm 0,377 m ở mọi phương án.
+- Suite không có F08 c, G01 và VP-1. `results.json` không ghi giá trị của PP-SWR-051 và a_y xe, nên chưa biết biên còn lại của từng ca.
+
 ## 6. Đề xuất
 
-2026-11-16, sau lần chạy 20261116-1607, chờ người dùng:
+2026-11-18, sau lần chạy 20261118-2127-study-PP-TS-020-ac82bb3, chờ người dùng:
+
+- Đề xuất V1a (`ay_margin_hwa` = 0,1 m/s²): nhỏ nhất trong các phương án có lợi, và không thêm lượt trượt nào so với V0.
+- V1a chưa đạt mọi tiêu chí: còn S1b b (R79, có sẵn ở V0) và F08 b (PP-SWR-051, 3 trên 4 lượt).
+- Chọn V1a thì phải đổi PP-SWR-001 cùng lúc theo câu đề xuất (a_y của path ≤ aysmax + 0,3 m/s²). Nếu không, hồi quy sẽ trượt PP-SWR-001.
+- Hướng cho F08 b, chưa chạy: giảm dần margin khi chính cung đường cần a_y trên aysmax (V3). Cần mở lại plan và chạy lại mọi phương án.
+- S1b b xử lý riêng ở PP-PR-056.
+
+Đề xuất trước đó (2026-11-16, sau lần chạy 20261116-1607):
 
 - 2026-11-16: chờ [PP-TS-021](../PP-TS-021-stitch-start/study.md) (T4), rồi chạy lại study này trên bản đã sửa T4.
 - Chưa chọn. Bản hiện tại trượt bài R79 Annex 8, 3.2.2 ở S1b a, b; chưa sửa thì chưa chấm được margin về phía R79. Ưu tiên PP-PR-056: tách phần do Lateral Controller chạy thử và phần do T4 nối path cũ khi xe lệch dưới `stitch_reset`.

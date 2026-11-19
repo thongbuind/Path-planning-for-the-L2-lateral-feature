@@ -33,14 +33,14 @@ def _point():
 
 def test_array_length_is_checked():
     header = I.Header(0, 0, True, I.FrameId.BASE_LINK)
-    I.Trajectory(header, [_point()] * 31, 3.0)
+    I.Trajectory(header, [_point()] * 31, 3.0, I.PlannerId.LCC)
     with pytest.raises(ValueError):
-        I.Trajectory(header, [_point()] * 30, 3.0)
+        I.Trajectory(header, [_point()] * 30, 3.0, I.PlannerId.LCC)
 
 
 def test_list_is_stored_as_tuple():
     header = I.Header(0, 0, True, I.FrameId.BASE_LINK)
-    assert isinstance(I.Trajectory(header, [_point()] * 31, 3.0).points, tuple)
+    assert isinstance(I.Trajectory(header, [_point()] * 31, 3.0, I.PlannerId.LKA_ELK).points, tuple)
 
 
 @pytest.mark.parametrize("counter", [-1, 256, True, 1.0])
@@ -50,12 +50,16 @@ def test_unsigned_width_is_checked(counter):
 
 
 def test_enum_value_is_checked_and_coerced():
-    status = I.PathStatus(I.BasicHeader(0, 0, True), True, 2, 1, 2, False, False)
-    assert status.active_function is I.ActiveFunction.LKA
+    status = I.InterventionStatus(I.BasicHeader(0, 0, True), True, 1, 1, 2, False)
+    assert status.active_function is I.InterventionFunction.LKA
     assert status.lka_phase is I.InterventionPhase.ACTIVE
     assert status.elk_phase is I.InterventionPhase.COMPLETED
     with pytest.raises(ValueError):
-        I.PathStatus(I.BasicHeader(0, 0, True), False, 9, 0, 0, False, False)
+        I.InterventionStatus(I.BasicHeader(0, 0, True), False, 9, 0, 0, False)
+    lcc = I.LccStatus(I.BasicHeader(0, 0, True), True, 3, 12.5, False, False)
+    assert lcc.lcc_mode is I.LccMode.FOLLOW
+    with pytest.raises(ValueError):
+        I.LccStatus(I.BasicHeader(0, 0, True), True, 9, 0.0, False, False)
 
 
 def test_value_ranges_are_left_to_the_receiver():
@@ -65,5 +69,6 @@ def test_value_ranges_are_left_to_the_receiver():
 
 
 def test_planner_inputs_default_to_not_received():
-    inputs = I.PlannerInputs(t0_us=25_000)
-    assert inputs.lane_model is None and inputs.longitudinal_plan is None
+    inputs = I.LccInputs(t0_us=25_000)
+    assert inputs.lane_model is None and inputs.longitudinal_plan is None and inputs.lead_target is None
+    assert not hasattr(I.LkaElkInputs(t0_us=25_000), "object_list")   # no ObjectList, no LeadTarget there

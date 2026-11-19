@@ -1,0 +1,69 @@
+# Shared LCC comparison for PP-TS-024 and PP-TS-025. The final map is reviewed before locking.
+# Keep the scenario anchors, profiles, ACC modes, loops and seeds identical across variants.
+id: PP-T7
+title: So sánh kỹ thuật sinh path LCC
+paired_evidence: true
+object_list_on_empty_road: true
+
+scope:
+  always: [PP-SWR-010, PP-SWR-018, PP-SWR-001, PP-SWR-003, PP-SWR-005, PP-SWR-006,
+           PP-SWR-007, PP-SWR-051, PP-SWR-100, PP-SWR-101, PP-SWR-102, PP-SWR-116,
+           PP-SWR-117, PP-SWR-050, PP-SWR-004, PP-SWR-016]
+  S2: [PP-SWR-052, PP-SWR-002, PP-SWR-053]
+  S3: [PP-SWR-055, PP-SWR-056, PP-SWR-058, PP-SWR-057, PP-SWR-059]
+  S14: [PP-SWR-009, PP-SWR-150, PP-SWR-151]
+  S17: [PP-SWR-039, PP-SWR-040, PP-SWR-061]
+  S22: [PP-SWR-170, PP-SWR-171, PP-SWR-172, PP-SWR-173, PP-SWR-174, PP-SWR-175, PP-SWR-176, PP-SWR-177]
+  # Derived checks PP-SWR-120 and 149 use the jerk, DLC and continuity criteria above.
+  F06: [PP-SWR-125]
+  F22: [PP-SWR-017]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, d]
+    - [S1, g]
+    - [S1, g, F01, a]
+    - [S1b, a, {acc: ignore_limits}]
+    - [S2, b]
+    - [S3, a]
+    - [S14, c, {acc: 'on'}]
+    - [S22, a]
+    - [S1, d, {loop: open}]
+    - [S1, g, F01, a, {loop: open}]
+    - [S1b, a, {acc: ignore_limits, loop: open}]
+
+test:
+  seeds: [3, 4]
+  runs:
+    # Short S-bend and tight nominal bend, across a common vehicle profile panel.
+    - [S1, f]
+    - [S1, f, {profile: VP-3}]
+    - [S1, f, {profile: VP-5}]
+    - [S1, c]
+    - [S1, c, {profile: VP-3}]
+    - [S1, c, {profile: VP-5}]
+    - [S1, e]
+    - [S1b, b, {acc: ignore_limits}]
+    - [S1b, c, {acc: ignore_limits}]
+    - [S1b, c, {acc: 'on'}]
+    - [S14, e, {acc: 'on'}]
+    - [S14, e, {acc: ignore_limits}]
+    - [S2, d]
+    - [S3, b]
+    - [S17, a]
+    - [S22, c]
+    - [S12, a]
+    - [S1, c, F01, c]
+    - [S1, c, F01, c, {profile: VP-5}]
+    - [S1, c, F06, e]
+    - [S1, f, F12, b]
+    - [S1, f, F22, c]
+    - [S1, f, {camera_view_m: 40, profile: VP-5}]
+    # Same initial conditions, with a predefined path driving the simulated car.
+    - [S1, f, {loop: open}]
+    - [S1, c, F01, c, {loop: open}]
+    - [S1, f, F22, c, {loop: open}]
+    - [S1b, c, {acc: ignore_limits, loop: open}]
+    - [S14, e, {acc: ignore_limits, loop: open}]

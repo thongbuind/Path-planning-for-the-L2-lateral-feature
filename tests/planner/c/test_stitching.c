@@ -110,21 +110,24 @@ static void test_start_from_old_path_or_reset(void)
     pp_lateral_state_t start;
     pp_old_path_t old;
 
-    pp_previous_path_t prev = straight_path(0.1, 0.0);
+    /* Close to the old path: the old path alone. */
+    pp_previous_path_t prev = straight_path(0.01, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
-#ifdef PP_T4_START_SOFT
-    {
-        const double w = pp_stitch_soft_weight(0.1, (double)pp_calibration.stitch_soft_min,
-                                               (double)pp_calibration.stitch_reset);
-        PP_CHECK(w > 0.0 && w < 1.0);
-        PP_CHECK_NEAR(start.d, 0.1 * (1.0 - w), 1e-6);   /* between old path and measured */
-    }
-#else
-    PP_CHECK_NEAR(start.d, 0.1, 1e-6);
-#endif
+    PP_CHECK_NEAR(start.d, 0.01, 1e-6);
     PP_CHECK_NEAR(start.d_dot, 0.0, 1e-9);
     PP_CHECK_NEAR(start.d_ddot, 0.0, 1e-9);
+
+    /* Between stitch_soft_min and stitch_reset: part of the way to the measured state. */
+    prev = straight_path(0.05, 0.0);
+    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
+    PP_CHECK(pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
+    {
+        const double w = pp_stitch_soft_weight(0.05, (double)pp_calibration.stitch_soft_min,
+                                               (double)pp_calibration.stitch_reset);
+        PP_CHECK(w > 0.0 && w < 1.0);
+        PP_CHECK_NEAR(start.d, 0.05 * (1.0 - w), 1e-6);
+    }
 
     prev = straight_path(0.1 + (double)pp_calibration.stitch_reset, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
@@ -157,15 +160,38 @@ static void test_blend_limits_the_jump(void)
     const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
     PP_CHECK_NEAR(lambda, margin * PP_CONT_LATERAL_M / 0.5, 1e-6);
     PP_CHECK_NEAR(cand.points[10].pose.y, margin * PP_CONT_LATERAL_M, 1e-6);
-#ifdef PP_T4_BLEND_SEGMENTS
-    PP_CHECK_NEAR(cand.points[30].pose.y, margin * 0.2, 1e-6);   /* band after 2 s: 0.2 m */
-#else
     PP_CHECK(cand.points[30].pose.y <= PP_CONT_LATERAL_M);
-#endif
 
     /* Candidate equal to the old path: unchanged. */
     pp_previous_path_t same = straight_path(0.0, 0.0);
     PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, same.points), 1.0, 1e-9);
+}
+
+/* PP-TS-022 V1: a candidate that leaves the old path only far ahead. Every point counts
+ * against the limit of its own time band; the path sent is still one lambda. */
+static void test_blend_limit_of_a_far_change(void)
+{
+    pp_previous_path_t prev = straight_path(0.0, 0.0);
+    pp_old_path_t old;
+    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
+
+    /* 0 m up to 1 s, then linear to 1.0 m at 3 s (0.5 m at 2 s). */
+    pp_previous_path_t cand = straight_path(0.0, 0.0);
+    for (unsigned k = 11U; k < PP_TRAJECTORY_POINTS; k++) {
+        cand.points[k].pose.y = (float)(0.05 * (double)(k - 10U));
+    }
+    const double margin = (double)pp_calibration.cont_margin;
+    const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
+    /* The old path, one cycle older, ends before the point at 3 s: the last point both
+     * paths describe is 2.9 s, 0.95 m. */
+    /* Binding point: 2 s, 0.5 m against 0.1 m (2.9 s: 0.95 m against 0.2 m is looser). */
+    PP_CHECK_NEAR(lambda, margin * PP_CONT_BAND_1_2_S * PP_CONT_LATERAL_M / 0.5, 1e-6);
+    /* One lambda: the sent path is old + lambda (candidate - old) at every point. */
+    PP_CHECK_NEAR(cand.points[20].pose.y, lambda * 0.5, 1e-5);
+    PP_CHECK_NEAR(cand.points[30].pose.y, lambda * 1.0, 1e-5);
+    PP_CHECK(cand.points[10].pose.y <= PP_CONT_LATERAL_M);
+    PP_CHECK(cand.points[20].pose.y <= PP_CONT_BAND_1_2_S * PP_CONT_LATERAL_M);
+    PP_CHECK(cand.points[30].pose.y <= PP_CONT_BAND_AFTER_2_S * PP_CONT_LATERAL_M);
 }
 
 /* PP-SWR-100 within the view range: a change beyond x_limit does not hold the path back. */
@@ -204,7 +230,6 @@ static void test_soft_weight(void)
     }
 }
 
-#ifdef PP_T4_START_SOFT
 static void test_soft_start_blends_every_component(void)
 {
     const pp_reference_line_t ref = straight_ref();
@@ -222,53 +247,19 @@ static void test_soft_start_blends_every_component(void)
     PP_CHECK_NEAR(start.d_ddot, 0.2, 1e-6);
     PP_CHECK_NEAR(start.heading, 0.005, 1e-6);
 }
-#endif
 
-#ifdef PP_T4_BLEND_SEGMENTS
-/* PP-TS-021 V3: a large change after 2 s no longer holds back the first 2 s, and every
- * point stays within the limit of its own band of PP-SWR-100 (SRS 1.22). */
-static void test_blend_by_band(void)
-{
-    pp_previous_path_t prev = straight_path(0.0, 0.0);
-    pp_old_path_t old;
-    pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
-    pp_previous_path_t cand = straight_path(0.04, 0.0);
-    for (unsigned k = 21U; k < PP_TRAJECTORY_POINTS; k++) {
-        cand.points[k].pose.y = 0.5F;
-    }
-    const double margin = (double)pp_calibration.cont_margin;
-    const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
-    const double far = margin * 0.2 / 0.5;                          /* lambda of the band after 2 s */
-    PP_CHECK_NEAR(lambda, far, 1e-6);
-    /* Knots 1, 1, far, far at 0, 1, 2, 3 s: the first second follows the candidate, the
-     * second one goes down to `far` without a step. One lambda would give `0.045 / 0.5`. */
-    PP_CHECK_NEAR(cand.points[0].pose.y, 0.04, 1e-6);
-    PP_CHECK_NEAR(cand.points[10].pose.y, 0.04, 1e-6);
-    PP_CHECK_NEAR(cand.points[15].pose.y, 0.04 * (1.0 + (0.5 * (far - 1.0))), 1e-6);
-    PP_CHECK_NEAR(cand.points[20].pose.y, 0.04 * far, 1e-6);
-    PP_CHECK_NEAR(cand.points[30].pose.y, 0.5 * far, 1e-6);
-    for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
-        const double limit = (k <= 10U) ? 0.05 : ((k <= 20U) ? 0.1 : 0.2);
-        PP_CHECK(fabs((double)cand.points[k].pose.y) <= (margin * limit) + 1e-6);
-    }
-}
-#endif
 
 int main(void)
 {
     test_soft_weight();
-#ifdef PP_T4_START_SOFT
     test_soft_start_blends_every_component();
-#endif
-#ifdef PP_T4_BLEND_SEGMENTS
-    test_blend_by_band();
-#endif
     test_move_old();
     test_sample_on_curve_stays_on_the_arc();
     test_old_path_not_usable();
     test_start_from_old_path_or_reset();
     test_start_curvature_gives_lateral_acceleration();
     test_blend_limits_the_jump();
+    test_blend_limit_of_a_far_change();
     test_blend_ignores_change_beyond_view();
     return PP_TEST_RESULT();
 }

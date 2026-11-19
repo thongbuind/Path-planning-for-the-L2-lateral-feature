@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-18T00:00:00Z" description="S23" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S23.xosc" />
+    <Deterministic>
+      <DeterministicMultiParameterDistribution>
+        <ValueSetDistribution>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="0.5" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="8.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S23" />
+            <ParameterAssignment parameterRef="variant" value="a" />
+            <ParameterAssignment parameterRef="description" value="Mất hai vạch, xe trước cách 25 m, là xe máy" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S22a.xodr" />
+            <ParameterAssignment parameterRef="lead_s_m" value="39.9" />
+            <ParameterAssignment parameterRef="lead_t_m" value="0.0" />
+            <ParameterAssignment parameterRef="lead_speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="lead_length_m" value="2.0" />
+            <ParameterAssignment parameterRef="lead_width_m" value="0.8" />
+            <ParameterAssignment parameterRef="lead_category" value="motorbike" />
+            <ParameterAssignment parameterRef="loss_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="loss_duration_s" value="2.0" />
+            <ParameterAssignment parameterRef="lead_lat_enabled" value="false" />
+            <ParameterAssignment parameterRef="lead_lat_start_s" value="3.2" />
+            <ParameterAssignment parameterRef="lead_lat_duration_s" value="2.1" />
+            <ParameterAssignment parameterRef="lead_lat_target_m" value="0.9" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="18.055555555555554" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="0.5" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="8.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S23" />
+            <ParameterAssignment parameterRef="variant" value="b" />
+            <ParameterAssignment parameterRef="description" value="Tốc độ 65 km/h" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S22a.xodr" />
+            <ParameterAssignment parameterRef="lead_s_m" value="41.3" />
+            <ParameterAssignment parameterRef="lead_t_m" value="0.0" />
+            <ParameterAssignment parameterRef="lead_speed_mps" value="18.055555555555554" />
+            <ParameterAssignment parameterRef="lead_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="lead_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="lead_category" value="car" />
+            <ParameterAssignment parameterRef="loss_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="loss_duration_s" value="2.0" />
+            <ParameterAssignment parameterRef="lead_lat_enabled" value="false" />
+            <ParameterAssignment parameterRef="lead_lat_start_s" value="3.2" />
+            <ParameterAssignment parameterRef="lead_lat_duration_s" value="2.1" />
+            <ParameterAssignment parameterRef="lead_lat_target_m" value="0.9" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="0.5" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="8.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S23" />
+            <ParameterAssignment parameterRef="variant" value="c" />
+            <ParameterAssignment parameterRef="description" value="Xe trước cách 60 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S22a.xodr" />
+            <ParameterAssignment parameterRef="lead_s_m" value="76.3" />
+            <ParameterAssignment parameterRef="lead_t_m" value="0.0" />
+            <ParameterAssignment parameterRef="lead_speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="lead_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="lead_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="lead_category" value="car" />
+            <ParameterAssignment parameterRef="loss_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="loss_duration_s" value="2.0" />
+            <ParameterAssignment parameterRef="lead_lat_enabled" value="false" />
+            <ParameterAssignment parameterRef="lead_lat_start_s" value="3.2" />
+            <ParameterAssignment parameterRef="lead_lat_duration_s" value="2.1" />
+            <ParameterAssignment parameterRef="lead_lat_target_m" value="0.9" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="0.5" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="8.0" />
+            <ParameterAssignment parameterRef="acc" value="on" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S23" />
+            <ParameterAssignment parameterRef="variant" value="d" />
+            <ParameterAssignment parameterRef="description" value="Xe trước lệch tâm làn gốc 1,5 m" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S22a.xodr" />
+            <ParameterAssignment parameterRef="lead_s_m" value="41.3" />
+            <ParameterAssignment parameterRef="lead_t_m" value="1.5" />
+            <ParameterAssignment parameterRef="lead_speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="lead_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="lead_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="lead_category" value="car" />
+            <ParameterAssignment parameterRef="loss_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="loss_duration_s" value="2.0" />
+            <ParameterAssignment parameterRef="lead_lat_enabled" value="false" />
+            <ParameterAssignment parameterRef="lead_lat_start_s" value="3.2" />
+            <ParameterAssignment parameterRef="lead_lat_duration_s" value="2.1" />
+            <ParameterAssignment parameterRef="lead_lat_target_m" value="0.9" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+          </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-0" />
+            <ParameterAssignment parameterRef="speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="hwa_request_s" value="0.5" />
+            <ParameterAssignment parameterRef="hold_until_hwa" value="false" />
+            <ParameterAssignment parameterRef="start_s_m" value="10.0" />
+            <ParameterAssignment parameterRef="start_offset_m" value="0.0" />
+            <ParameterAssignment parameterRef="start_heading_rad" value="0.0" />
+            <ParameterAssignment parameterRef="duration_s" value="8.0" />
+            <ParameterAssignment parameterRef="acc" value="off" />
+            <ParameterAssignment parameterRef="curvature_scale" value="1.0" />
+            <ParameterAssignment parameterRef="direction" value="1.0" />
+            <ParameterAssignment parameterRef="scenario_id" value="S23" />
+            <ParameterAssignment parameterRef="variant" value="e" />
+            <ParameterAssignment parameterRef="description" value="Xe trước không là mục tiêu ACC" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S22a.xodr" />
+            <ParameterAssignment parameterRef="lead_s_m" value="41.3" />
+            <ParameterAssignment parameterRef="lead_t_m" value="0.0" />
+            <ParameterAssignment parameterRef="lead_speed_mps" value="13.88888888888889" />
+            <ParameterAssignment parameterRef="lead_length_m" value="4.8" />
+            <ParameterAssignment parameterRef="lead_width_m" value="1.9" />
+            <ParameterAssignment parameterRef="lead_category" value="car" />
+            <ParameterAssignment parameterRef="loss_start_s" value="3.0" />
+            <ParameterAssignment parameterRef="loss_duration_s" value="2.0" />
+            <ParameterAssignment parameterRef="lead_lat_enabled" value="false" />
+            <ParameterAssignment parameterRef="lead_lat_start_s" value="3.2" />
+            <ParameterAssignment parameterRef="lead_lat_duration_s" value="2.1" />
+            <ParameterAssignment parameterRef="lead_lat_target_m" value="0.9" />
+            <ParameterAssignment parameterRef="expected_outcome" value="refuse" />
+          </ParameterValueSet>
+        </ValueSetDistribution>
+      </DeterministicMultiParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

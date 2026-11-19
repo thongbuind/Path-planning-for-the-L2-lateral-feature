@@ -1,0 +1,31 @@
+# Evaluation plan of PP-TS-026 (research/README.md, step 2). Locked 2026-11-18.
+# Requirements decide; targets rank as in Software Qualification Test Specification 9.
+id: PP-TS-026
+locked: 2026-11-18
+suite: PP-TS-026
+parts: [tuning, test]
+equal_within:
+  PP-SWR-081: 0.25
+  PP-SWR-082: 0.25
+  PP-SWR-087: 0.02
+variants:
+  V0:
+    description: Một quintic về tâm, T_lka 3 s, T_elk 2 s (bản hiện tại)
+    calibration: {}
+    cmake: {}
+  V1:
+    description: Một quintic dài hơn, T_lka 4 s, T_elk 3 s
+    calibration: {T_lka: 4.0, T_elk: 3.0}
+    cmake: {}
+  V2:
+    description: Hai pha, chặn đà 1,5 s (LKA), 1,0 s (ELK), về tâm 3 s
+    calibration: {T_return: 3.0, T_lka: 1.5, T_elk: 1.0}
+    cmake: {}
+  V3:
+    description: Hai pha, chặn đà 1,5 s (LKA), 1,0 s (ELK), về tâm 4 s
+    calibration: {T_return: 4.0, T_lka: 1.5, T_elk: 1.0}
+    cmake: {}
+  V4:
+    description: Hai pha, chặn đà 1,25 s (LKA), 0,75 s (ELK), về tâm 4 s
+    calibration: {T_return: 4.0, T_lka: 1.25, T_elk: 0.75}
+    cmake: {}

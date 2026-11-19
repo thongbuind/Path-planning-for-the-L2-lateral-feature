@@ -1,4 +1,4 @@
-/* Unit tests of T8 Offset (offset.c), option C of PP-ADR-008. */
+/* Unit tests of T8 Offset (offset.c): one big vehicle gives offset_truck, two balance (PP-ADR-008, 020). */
 
 #include <math.h>
 #include <string.h>
@@ -58,20 +58,46 @@ static void test_truck_centred_in_right_lane_moves_left(void)
     const pp_object_list_t list = trucks(y, 1U);
     pp_offset_state_t st;
     pp_offset_reset(&st);
-    /* Gap 3.5 - 1.25 - 0.95 = 1.3 m; missing 0.2 m to gap_truck_min 1.5 m. */
-    PP_CHECK_NEAR(settle(&st, &list, &ref), (double)pp_calibration.gap_truck_min - 1.3, 1e-6);
+    /* Gap 3.5 - 1.25 - 0.95 = 1.3 m < gap_truck_min 1.5 m: the fixed offset_truck, to the left. */
+    PP_CHECK_NEAR(settle(&st, &list, &ref), (double)pp_calibration.offset_truck, 1e-6);   /* PP-SWR-055, 066 */
 }
 
-static void test_truck_on_the_left_moves_right_up_to_the_limit(void)
+static void test_truck_on_the_left_moves_right_by_offset_truck_even_when_very_close(void)
 {
     const pp_reference_line_t ref = straight(3.5);
-    const double y[] = {2.7};                     /* gap 0.5 m: missing 1.0 m */
+    const double y[] = {2.7};                     /* gap 0.5 m: still only offset_truck */
     const pp_object_list_t list = trucks(y, 1U);
     pp_offset_state_t st;
     pp_offset_reset(&st);
-    /* o_lim = min(offset_max, (3.5 - 1.9)/2 - dlc_offset_min). */
-    const double o_lim = fmin((double)pp_calibration.offset_max, 0.8 - (double)pp_calibration.dlc_offset_min);
-    PP_CHECK_NEAR(settle(&st, &list, &ref), -o_lim, 1e-6);
+    PP_CHECK_NEAR(settle(&st, &list, &ref), -(double)pp_calibration.offset_truck, 1e-6);
+}
+
+static void test_narrow_lane_limits_the_offset(void)
+{
+    const pp_reference_line_t ref = straight(2.6);     /* s = 0.35 m, o_lim = 0.35 - dlc_offset_min = 0.05 m */
+    const double y[] = {-2.6};
+    const pp_object_list_t list = trucks(y, 1U);
+    pp_offset_state_t st;
+    pp_offset_reset(&st);
+    const double o_lim = fmax(0.0, 0.5 * (2.6 - CAR_WIDTH) - (double)pp_calibration.dlc_offset_min);
+    PP_CHECK_NEAR(settle(&st, &list, &ref), fmin((double)pp_calibration.offset_truck, o_lim), 1e-6);
+}
+
+/* A car abreast in the other lane stops the offset (PP-SWR-065); one far away does not. */
+static void test_vehicle_on_the_other_side_blocks_the_offset(void)
+{
+    const pp_reference_line_t ref = straight(3.5);
+    const double y[] = {-3.5, 3.5};
+    pp_object_list_t list = trucks(y, 2U);
+    list.objects[1].width = 1.8F;                      /* a car, not a big vehicle */
+    list.objects[1].length = 4.5F;
+    pp_offset_state_t st;
+    pp_offset_reset(&st);
+    PP_CHECK_NEAR(settle(&st, &list, &ref), 0.0, 1e-12);
+
+    list.objects[1].x = 60.0F;                         /* far ahead, same speed: never abreast */
+    pp_offset_reset(&st);
+    PP_CHECK_NEAR(settle(&st, &list, &ref), (double)pp_calibration.offset_truck, 1e-6);
 }
 
 static void test_far_truck_no_offset(void)
@@ -122,7 +148,9 @@ static void test_ghost_sized_object_ignored(void)
 int main(void)
 {
     test_truck_centred_in_right_lane_moves_left();
-    test_truck_on_the_left_moves_right_up_to_the_limit();
+    test_truck_on_the_left_moves_right_by_offset_truck_even_when_very_close();
+    test_narrow_lane_limits_the_offset();
+    test_vehicle_on_the_other_side_blocks_the_offset();
     test_far_truck_no_offset();
     test_trucks_both_sides_balance();
     test_rate_limit_and_return_without_object_list();

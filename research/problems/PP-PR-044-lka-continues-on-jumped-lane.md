@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Còn mở. Lỗi c0 giữ lâu hơn `T_confirm` được nhận như thay đổi thật, planner không phân biệt được |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-085; liên quan 121, 030 |
 | Tái hiện | [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md): F02-e-S4a_at_lka_activep0.2, VP-3, seed 1 |
@@ -36,3 +36,4 @@ Chưa quyết. Cần xem log: T2 có nhận bước nhảy (k_jump) không, và 
 
 | Run ID | Kết quả |
 |---|---|
+| 20261118-2030-suite-regression-e3158a5 | F02 e còn trượt PP-SWR-051 (VP-5), 084, 090 |

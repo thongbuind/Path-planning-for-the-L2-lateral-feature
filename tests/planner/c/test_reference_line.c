@@ -145,6 +145,119 @@ static void test_walk_curve(void)
     PP_CHECK_NEAR(p.dkappa, 0.0, 1e-12);
 }
 
+/* PP-TS-005 preparation step: the sampled line gives the same geometry as its cubic. */
+static pp_reference_line_t curved_ref(void)
+{
+    pp_reference_line_t ref;
+    (void)memset(&ref, 0, sizeof(ref));
+    ref.valid = true;
+    ref.centre.c[0] = 0.3;
+    ref.centre.c[1] = 0.01;
+    ref.centre.c[2] = 1.0 / (2.0 * 300.0);
+    ref.centre.c[3] = 2.0e-6;                             /* curvature grows 1.2e-5 1/m per m */
+    ref.view_end = 80.0;
+    return ref;
+}
+
+/* Arc length along the cubic from x0 to x, integrated finely: the reference of the test. */
+static double fine_arc_length(const pp_cubic_t *p, double x0, double x)
+{
+    const uint32_t steps = 200000U;
+    const double dx = (x - x0) / (double)steps;
+    double s = 0.0;
+    for (uint32_t i = 0U; i < steps; i++) {
+        const double slope = pp_cubic_slope(p, x0 + (((double)i + 0.5) * dx));
+        s += dx * sqrt(1.0 + (slope * slope));
+    }
+    return s;
+}
+
+static void test_sampled_walk_matches_cubic(void)
+{
+    const pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled = curved_ref();
+    pp_ref_walker_t wc;
+    pp_ref_walker_t ws;
+    pp_ref_point_t pc;
+    pp_ref_point_t ps;
+    pp_ref_sample_cubic(&sampled);
+    PP_CHECK(sampled.sampled);
+    PP_CHECK(sampled.nodes.n <= PP_REF_NODES);
+    PP_CHECK_NEAR(sampled.nodes.s[sampled.nodes.origin], 0.0, 1e-12);
+    pp_ref_walk_begin(&wc, &cubic, &pc);
+    pp_ref_walk_begin(&ws, &sampled, &ps);
+    PP_CHECK_NEAR(ps.x, pc.x, 1e-9);
+    PP_CHECK_NEAR(ps.y, pc.y, 1e-9);
+    const double x0 = pc.x;
+
+    /* Against the cubic itself, at x between and on the nodes, behind and ahead. */
+    for (double x = -75.0; x <= 79.5; x += 3.3) {
+        const double s = fine_arc_length(&cubic.centre, x0, x);
+        const double d1 = pp_cubic_slope(&cubic.centre, x);
+        const double g = 1.0 + (d1 * d1);
+        pp_ref_walk_to(&ws, s, &ps);
+        /* 5 um: arc length by the midpoint rule in 0.25 m steps, as in the cubic walker. */
+        PP_CHECK_NEAR(ps.x, x, 5e-6);
+        PP_CHECK_NEAR(ps.y, pp_cubic_value(&cubic.centre, x), 5e-6);
+        PP_CHECK_NEAR(ps.theta, atan(d1), 1e-7);
+        PP_CHECK_NEAR(ps.kappa, pp_cubic_bend(&cubic.centre, x) / (g * sqrt(g)), 1e-8);
+    }
+
+    /* Against the cubic walker, also past the range end (arc). The walker adds a small
+     * arc-length error at every call inside a step, so the tolerance is wider here. */
+    for (double s = 0.0; s <= 110.0; s += 0.7) {
+        pp_ref_walk_to(&wc, s, &pc);
+        pp_ref_walk_to(&ws, s, &ps);
+        PP_CHECK_NEAR(ps.x, pc.x, 5e-4);
+        PP_CHECK_NEAR(ps.y, pc.y, 5e-4);
+        PP_CHECK_NEAR(ps.theta, pc.theta, 5e-6);
+        PP_CHECK_NEAR(ps.kappa, pc.kappa, 1e-7);
+        PP_CHECK_NEAR(ps.dkappa, pc.dkappa, 1e-7);
+    }
+}
+
+static void test_sampled_project_matches_cubic(void)
+{
+    const pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled = curved_ref();
+    const double points[][2] = {{0.0, 0.0}, {2.9, 0.0}, {25.0, 1.5}, {60.0, -3.0}, {79.0, 9.0},
+                                {-4.0, 0.2}, {-30.0, 2.0}, {-70.0, -1.0}};
+    pp_ref_sample_cubic(&sampled);
+    for (size_t i = 0U; i < (sizeof(points) / sizeof(points[0])); i++) {
+        pp_ref_point_t fc;
+        pp_ref_point_t fs;
+        double dc = 0.0;
+        double ds = 0.0;
+        pp_ref_project(&cubic, points[i][0], points[i][1], &fc, &dc);
+        pp_ref_project(&sampled, points[i][0], points[i][1], &fs, &ds);
+        PP_CHECK_NEAR(ds, dc, 1e-5);
+        PP_CHECK_NEAR(fs.x, fc.x, 1e-4);
+        PP_CHECK_NEAR(fs.kappa, fc.kappa, 1e-8);
+    }
+}
+
+static void test_sampled_line_without_range_ahead(void)
+{
+    /* Range end behind the car: only the arc from s = 0, as on the cubic path. */
+    pp_reference_line_t cubic = curved_ref();
+    pp_reference_line_t sampled;
+    pp_ref_walker_t wc;
+    pp_ref_walker_t ws;
+    pp_ref_point_t pc;
+    pp_ref_point_t ps;
+    cubic.view_end = -5.0;
+    sampled = cubic;
+    pp_ref_sample_cubic(&sampled);
+    PP_CHECK(sampled.nodes.n == (sampled.nodes.origin + 1U));
+    pp_ref_walk_begin(&wc, &cubic, &pc);
+    pp_ref_walk_begin(&ws, &sampled, &ps);
+    pp_ref_walk_to(&wc, 30.0, &pc);
+    pp_ref_walk_to(&ws, 30.0, &ps);
+    PP_CHECK_NEAR(ps.x, pc.x, 1e-9);
+    PP_CHECK_NEAR(ps.y, pc.y, 1e-9);
+    PP_CHECK_NEAR(ps.dkappa, 0.0, 1e-12);
+}
+
 static const pp_motion_t STILL = {0.0, 0.0, 0.0};
 
 static void test_inferred_centre_uses_remembered_offsets(void)
@@ -401,6 +514,80 @@ static void test_coast_ends_after_t_coast(void)
     PP_CHECK(!ref.valid);                                   /* PP-SWR-124 */
 }
 
+static void test_return_after_a_long_fault_is_taken_at_once(void)
+{
+    /* PP-PR-057: a wrong shape on every line for 2 T_confirm (F06 d) is taken after T_confirm
+     * (R1). The old position must still be there when the true shape comes back, also one
+     * cycle later than 2 T_confirm (the lane model latency). */
+    const pp_motion_t forward = {0.625, 0.0, 0.0};          /* 25 m/s, one cycle */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    const int fault = (int)lround(2.0 * (double)pp_calibration.T_confirm / DT) + 4;
+    for (int i = 0; i < fault; i++) {
+        lane = two_lines(3.5, 0.0);
+        lane.boundary[PP_LINE_L1].poly.c[2] = 5.0e-4;       /* F06 d: wrong c2 on every line */
+        lane.boundary[PP_LINE_R1].poly.c[2] = 5.0e-4;
+        pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    }
+    PP_CHECK(ref.valid && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[2], 5.0e-4, 1e-12);          /* wrong shape was taken (R1) */
+    lane = two_lines(3.5, 0.0);                              /* fault ends */
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(!ref.line_rejected[0] && !ref.line_rejected[1]);
+    PP_CHECK(ref.valid && !ref.coasting);
+    PP_CHECK_NEAR(ref.centre.c[2], 0.0, 1e-12);
+}
+
+static void test_old_position_ends_when_its_range_is_behind_the_car(void)
+{
+    /* The old position is evidence only for the road it observed: after the car has driven
+     * past its range, the true shape is a new change again and waits for T_confirm. */
+    const pp_motion_t forward = {0.625, 0.0, 0.0};
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    const int fault = (int)lround(80.0 / 0.625) + 8;        /* drives past the 80 m range */
+    for (int i = 0; i < fault; i++) {
+        lane = two_lines(3.5, 0.0);
+        lane.boundary[PP_LINE_L1].poly.c[2] = 5.0e-4;
+        lane.boundary[PP_LINE_R1].poly.c[2] = 5.0e-4;
+        pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    }
+    lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &forward, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK(ref.line_rejected[0] && ref.line_rejected[1]);
+}
+
+static void test_width_outside_the_odd_keeps_the_stable_line(void)
+{
+    /* PP-PR-057: R1 jumps one lane width out and stays (F03, one line). After T_confirm it
+     * is taken (R1), the two lines are 7 m apart: the centre must stay half the remembered
+     * width inside L1, not move to the middle of the two. */
+    pp_reference_memory_t mem;
+    pp_reference_line_t ref;
+    pp_reference_memory_reset(&mem);
+    pp_lane_at_t0_t lane = two_lines(3.5, 0.0);
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    lane.boundary[PP_LINE_R1].poly.c[0] -= 3.5;
+    const int cycles = (int)lround(2.0 * (double)pp_calibration.T_confirm / DT);
+    for (int i = 0; i < cycles; i++) {
+        pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+        PP_CHECK(ref.valid);
+        PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-9);
+        PP_CHECK_NEAR(ref.width, 3.5, 1e-9);
+    }
+    PP_CHECK(!ref.line_rejected[1]);                        /* the jumped line was taken */
+    PP_CHECK_NEAR(mem.width, 3.5, 1e-12);
+    lane = two_lines(3.5, 0.0);                              /* R1 back */
+    pp_reference_line_update(&mem, &lane, &STILL, &pp_calibration, 1.9, DT, &ref);
+    PP_CHECK_NEAR(ref.centre.c[0], 0.0, 1e-9);
+}
+
 int main(void)
 {
     test_jump_of_one_line_is_rejected();
@@ -410,6 +597,8 @@ int main(void)
     test_flickering_jump_is_never_accepted();
     test_return_after_a_change_is_taken_at_once();
     test_shape_change_cannot_slip_in_while_the_memory_ages();
+    test_return_after_a_long_fault_is_taken_at_once();
+    test_old_position_ends_when_its_range_is_behind_the_car();
     test_noisy_frame_does_not_hold_back_the_next_one();
     test_slow_drift_within_the_check_is_taken();
     test_centre_between_lines();
@@ -419,8 +608,12 @@ int main(void)
     test_inference_needs_a_known_boundary();
     test_rejected_ego_line_coasts_before_inference();
     test_width_memory_filters_and_rejects();
+    test_width_outside_the_odd_keeps_the_stable_line();
     test_lane_too_narrow();
     test_walk_straight_and_arc_continuation();
     test_walk_curve();
+    test_sampled_walk_matches_cubic();
+    test_sampled_project_matches_cubic();
+    test_sampled_line_without_range_ahead();
     return PP_TEST_RESULT();
 }

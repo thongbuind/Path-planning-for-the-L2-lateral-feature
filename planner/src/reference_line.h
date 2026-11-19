@@ -14,6 +14,7 @@
 #define PP_REFERENCE_LINE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "latency.h"
 #include "pp_calibration.h"
@@ -38,7 +39,8 @@ typedef struct {
  * `accepted` is the position in use. A jump starts a `candidate`; it is taken as a real
  * change once the new position has stayed consistent with itself for T_confirm (R1).
  * After a change, or after a frame taken while a candidate was pending, the old position
- * stays as `previous` for T_confirm; a frame back at it is taken at once (R2).
+ * stays as `previous` while its range, moved by ego-motion, still reaches the car; a frame
+ * back at it is taken at once (R2).
  */
 typedef struct {
     pp_line_track_t accepted;
@@ -71,9 +73,35 @@ typedef struct {
     double coast_s;               /* [s] coasting for this long */
 } pp_reference_memory_t;
 
+/*
+ * Sampled reference line (PP-TS-005, preparation step): the lane centre as nodes along
+ * its arc length, so that a reference line need not be one cubic. Node `origin` is s = 0,
+ * the foot of the perpendicular from the base_link origin. Nodes are PP_REF_STEP_M apart;
+ * only the last node, the end of the observed range, may be closer to the one before it.
+ */
+#define PP_REF_STEP_M (2.0)
+#define PP_REF_BACK_M (80.0)          /* Behind s = 0: rear detection range of ObjectList */
+#define PP_REF_NODES (120U)           /* 40 behind, s = 0, up to 126 m ahead, the range end */
+
+typedef struct {
+    uint32_t n;                   /* Nodes in use; 0: none */
+    uint32_t origin;              /* Index of the node at s = 0 */
+    double s[PP_REF_NODES];       /* [m] arc length, increasing */
+    double x[PP_REF_NODES];       /* base_link at t0 */
+    double y[PP_REF_NODES];
+    double theta[PP_REF_NODES];   /* Tangent heading [rad] */
+    double kappa[PP_REF_NODES];   /* [1/m] */
+    double dkappa[PP_REF_NODES];  /* d kappa / ds [1/m^2] */
+} pp_ref_nodes_t;
+
 typedef struct {
     bool valid;
-    pp_cubic_t centre;            /* Lane centre y(x), base_link at t0 */
+    /* Lane centre y(x), base_link at t0. Geometry of the line while `sampled` is false;
+     * otherwise only the source the nodes were made from. Read the geometry through
+     * pp_ref_walk_* and pp_ref_project, not from here. */
+    pp_cubic_t centre;
+    bool sampled;                 /* Geometry is `nodes` */
+    pp_ref_nodes_t nodes;
     double width;                 /* [m] lane width used this cycle */
     double view_start;            /* [m] x range where the centre is observed */
     double view_end;
@@ -96,6 +124,12 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
                               const pp_motion_t *cycle_motion, const pp_calibration_t *cal,
                               double vehicle_width, double dt, pp_reference_line_t *out);
 
+/*
+ * Fills `nodes` from `centre` and the observed range and sets `sampled`: the cubic from
+ * PP_REF_BACK_M behind s = 0 to the range end. Call again after `centre` changes.
+ */
+void pp_ref_sample_cubic(pp_reference_line_t *ref);
+
 /* Point of the reference line at an arc length. */
 typedef struct {
     double x;
@@ -109,6 +143,7 @@ typedef struct {
  * Walks along the reference line by arc length. s = 0 is the foot of the
  * perpendicular from the base_link origin. Beyond the observed range the line
  * continues as a circular arc with the curvature and heading at the range end.
+ * A sampled line is interpolated between its nodes; the walker state is then unused.
  */
 typedef struct {
     const pp_reference_line_t *ref;
@@ -126,8 +161,10 @@ void pp_ref_walk_begin(pp_ref_walker_t *walker, const pp_reference_line_t *ref,
 void pp_ref_walk_to(pp_ref_walker_t *walker, double s, pp_ref_point_t *point);
 
 /*
- * Foot of the perpendicular from a point near the car (px, py in base_link) on the
- * observed cubic, and the signed lateral offset d of the point (left positive).
+ * Foot of the perpendicular from a point (px, py in base_link) on the reference line, and
+ * the signed lateral offset d of the point (left positive). Cubic: the foot is on the
+ * cubic, also beyond the observed range. Sampled: beyond the last node the foot is on the
+ * arc continuation, as in pp_ref_walk_to.
  */
 void pp_ref_project(const pp_reference_line_t *ref, double px, double py,
                     pp_ref_point_t *foot, double *d);

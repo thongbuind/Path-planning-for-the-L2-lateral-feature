@@ -33,7 +33,7 @@ typedef uint8_t pp_direction_t;
 #define PP_EGO_MOTION_WINDOW_US (500000ULL) /* t1, t2 within the last 0.5 s */
 
 /* ---- inputs.function_requests (Interface Control Document 5.6) ---- */
-#define PP_FUNCTIONS (3U) /* requests[3]: HWA, LKA, ELK */
+#define PP_FUNCTIONS (3U) /* requests[3]: LCC, LKA, ELK */
 #define PP_FUNCTION_REQUESTS_TIMEOUT_US (75000ULL)
 #define PP_FUNCTION_REQUESTS_MAX_DELTA_COUNTER (4U) /* Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms) */
 #define PP_FUNCTION_REQUESTS_MAX_AGE_US (45000ULL)
@@ -84,6 +84,17 @@ typedef uint8_t pp_lane_width_source_t;
 #define PP_LANE_WIDTH_SOURCE_MEASURED ((pp_lane_width_source_t)0U)
 #define PP_LANE_WIDTH_SOURCE_REMEMBERED ((pp_lane_width_source_t)1U)
 
+/* ---- inputs.lead_target (Interface Control Document 5.9) ---- */
+#define PP_LEAD_TARGET_TIMEOUT_US (150000ULL)
+#define PP_LEAD_TARGET_MAX_DELTA_COUNTER (3U) /* Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms) */
+#define PP_LEAD_TARGET_MAX_AGE_US (250000ULL)
+typedef uint8_t pp_lead_class_t; /* Class of the lead vehicle; only CAR and TRUCK are followed (PP-SWR-170, 176) */
+#define PP_LEAD_CLASS_UNKNOWN ((pp_lead_class_t)0U)
+#define PP_LEAD_CLASS_CAR ((pp_lead_class_t)1U)
+#define PP_LEAD_CLASS_TRUCK ((pp_lead_class_t)2U)
+#define PP_LEAD_CLASS_MOTORCYCLE ((pp_lead_class_t)3U)
+#define PP_LEAD_CLASS_OTHER ((pp_lead_class_t)4U)
+
 /* ---- inputs.longitudinal_plan (Interface Control Document 5.7) ---- */
 #define PP_LONGITUDINAL_PLAN_POINTS (31U) /* Same 0.1 s grid as Trajectory */
 #define PP_LONGITUDINAL_PLAN_TIMEOUT_US (75000ULL)
@@ -111,27 +122,38 @@ typedef uint8_t pp_longitudinal_mode_t;
 #define PP_VEHICLE_STATE_MAX_DELTA_COUNTER (4U) /* Largest accepted counter step (ICD 4, E2E): floor((60 + 25) / 20 ms) */
 #define PP_VEHICLE_STATE_MAX_AGE_US (30000ULL)
 
-/* ---- outputs.path_status (Interface Control Document 6.2) ---- */
-#define PP_PATH_STATUS_TIMEOUT_US (75000ULL)
-typedef uint8_t pp_active_function_t;
-#define PP_ACTIVE_FUNCTION_NONE ((pp_active_function_t)0U)
-#define PP_ACTIVE_FUNCTION_HWA ((pp_active_function_t)1U)
-#define PP_ACTIVE_FUNCTION_LKA ((pp_active_function_t)2U)
-#define PP_ACTIVE_FUNCTION_ELK ((pp_active_function_t)3U)
+/* ---- outputs.intervention_status (Interface Control Document 6.3) ---- */
+#define PP_INTERVENTION_STATUS_TIMEOUT_US (75000ULL)
+typedef uint8_t pp_intervention_function_t; /* Result of the intervention selection (PP-SWR-030) */
+#define PP_INTERVENTION_FUNCTION_NONE ((pp_intervention_function_t)0U)
+#define PP_INTERVENTION_FUNCTION_LKA ((pp_intervention_function_t)1U)
+#define PP_INTERVENTION_FUNCTION_ELK ((pp_intervention_function_t)2U)
 typedef uint8_t pp_intervention_phase_t;
 #define PP_INTERVENTION_PHASE_NONE ((pp_intervention_phase_t)0U)
 #define PP_INTERVENTION_PHASE_ACTIVE ((pp_intervention_phase_t)1U)
 #define PP_INTERVENTION_PHASE_COMPLETED ((pp_intervention_phase_t)2U)
+
+/* ---- outputs.lcc_status (Interface Control Document 6.2) ---- */
+#define PP_LCC_STATUS_TIMEOUT_US (75000ULL)
+typedef uint8_t pp_lcc_mode_t; /* How the LCC path is built (PP-SWR-177) */
+#define PP_LCC_MODE_NONE ((pp_lcc_mode_t)0U)
+#define PP_LCC_MODE_LANE ((pp_lcc_mode_t)1U)
+#define PP_LCC_MODE_INFERRED ((pp_lcc_mode_t)2U)
+#define PP_LCC_MODE_FOLLOW ((pp_lcc_mode_t)3U)
+#define PP_LCC_MODE_COAST ((pp_lcc_mode_t)4U)
 
 /* ---- outputs.trajectory (Interface Control Document 6.1) ---- */
 #define PP_TRAJECTORY_POINTS (31U)
 #define PP_TRAJECTORY_STEP_S (0.1F)
 #define PP_TRAJECTORY_HORIZON_S (3.0F)
 #define PP_TRAJECTORY_TIMEOUT_US (75000ULL)
+typedef uint8_t pp_planner_id_t; /* Planner that sent the message (PP-SWR-019) */
+#define PP_PLANNER_ID_LCC ((pp_planner_id_t)0U)
+#define PP_PLANNER_ID_LKA_ELK ((pp_planner_id_t)1U)
 
 /* ---- planner_io (Interface Control Document 4) ---- */
 #define PP_PLANNER_PERIOD_US (25000ULL)
-typedef uint8_t pp_init_result_t; /* Result of pp_init */
+typedef uint8_t pp_init_result_t; /* Result of pp_<planner>_init */
 #define PP_INIT_RESULT_OK ((pp_init_result_t)0U)
 #define PP_INIT_RESULT_BAD_ARGUMENT ((pp_init_result_t)1U)
 #define PP_INIT_RESULT_BAD_VEHICLE_CONFIG ((pp_init_result_t)2U)
@@ -145,7 +167,7 @@ typedef struct {
     pp_frame_id_t frame_id; /* BASE_LINK: rear axle centre, x forward, y left, z up */
 } pp_header_t;
 
-/* conventions (Interface Control Document 4): Header without frame_id (PathStatus, LateralLimits, FunctionRequests, chassis signals) */
+/* conventions (Interface Control Document 4): Header without frame_id (LccStatus, InterventionStatus, LateralLimits, FunctionRequests, chassis signals) */
 typedef struct {
     uint64_t stamp_us; /* [us] */
     uint8_t counter;
@@ -219,8 +241,8 @@ typedef struct {
 /* inputs.function_requests (Interface Control Document 5.6) */
 typedef struct {
     pp_request_state_t state;
-    pp_side_t side; /* Drift side; HWA uses NONE */
-    float tlc; /* [s]; Computed by the ADAS function block; HWA ignores it */
+    pp_side_t side; /* Drift side; LCC uses NONE */
+    float tlc; /* [s]; Computed by the ADAS function block; LCC ignores it */
     pp_elk_reason_t elk_reason; /* ROAD_EDGE selects the observed road edge for ELK; other values are for logging */
     pp_cancel_reason_t cancel_reason; /* Log only */
 } pp_function_request_t;
@@ -286,6 +308,27 @@ typedef struct {
     uint64_t rx_us; /* [us] delivery time, receiver clock */
     pp_lane_model_t message;
 } pp_received_lane_model_t;
+
+/* inputs.lead_target (Interface Control Document 5.9): The vehicle that is the ACC target, centre in base_link at measurement time; header.valid = false when there is none */
+typedef struct {
+    pp_header_t header;
+    uint32_t id; /* Stable across frames; compared with LongitudinalPlan.target_id */
+    pp_lead_class_t classification;
+    float x; /* [m]; Centre of the lead vehicle */
+    float y; /* [m] */
+    float gap; /* [m]; Front bumper of the ego vehicle to rear bumper of the lead vehicle */
+    float heading; /* [rad]; Heading of the lead vehicle against the x axis of base_link */
+    float vx_rel; /* [m/s]; Lead velocity minus ego velocity, projected on base_link; x longitudinal */
+    float vy_rel; /* [m/s]; y lateral */
+    float existence_probability; /* [0..1] */
+} pp_lead_target_t;
+
+/* LeadTarget as received: present = false until the first message arrives */
+typedef struct {
+    bool present;
+    uint64_t rx_us; /* [us] delivery time, receiver clock */
+    pp_lead_target_t message;
+} pp_received_lead_target_t;
 
 /* inputs.longitudinal_plan (Interface Control Document 5.7) */
 typedef struct {
@@ -361,24 +404,33 @@ typedef struct {
     pp_vehicle_state_estimate_t message;
 } pp_received_vehicle_state_estimate_t;
 
-/* outputs.lateral_limits (Interface Control Document 6.3) */
+/* outputs.intervention_status (Interface Control Document 6.3) */
+typedef struct {
+    pp_basic_header_t header;
+    bool path_valid; /* Required inputs valid and a path can be built on request; not 'intervening' */
+    pp_intervention_function_t active_function; /* NONE without a request or when path_valid is false */
+    pp_intervention_phase_t lka_phase; /* LKA intervention phase */
+    pp_intervention_phase_t elk_phase; /* ELK intervention phase */
+    bool lateral_limit_reached; /* Path cut by the a_y or jerk limit of LKA or ELK; log only */
+} pp_intervention_status_t;
+
+/* outputs.lateral_limits (Interface Control Document 6.4) */
 typedef struct {
     pp_basic_header_t header;
     float v_max; /* [m/s] */
     float distance; /* [m]; Distance to the point of kappa_max */
-    bool lateral_limit_reached; /* Same value as PathStatus of the same cycle */
+    bool lateral_limit_reached; /* Same value as LccStatus of the same cycle */
 } pp_lateral_limits_t;
 
-/* outputs.path_status (Interface Control Document 6.2) */
+/* outputs.lcc_status (Interface Control Document 6.2) */
 typedef struct {
     pp_basic_header_t header;
     bool path_valid;
-    pp_active_function_t active_function; /* NONE when path_valid is false */
-    pp_intervention_phase_t lka_phase; /* LKA intervention phase */
-    pp_intervention_phase_t elk_phase; /* ELK intervention phase */
+    pp_lcc_mode_t lcc_mode; /* NONE when LCC is not in REQUEST or path_valid is false */
+    float follow_distance; /* [m]; Distance driven since FOLLOW began; 0 outside FOLLOW; log and display only */
     bool lateral_limit_reached;
     bool lane_too_narrow;
-} pp_path_status_t;
+} pp_lcc_status_t;
 
 /* outputs.trajectory (Interface Control Document 6.1) */
 typedef struct {
@@ -398,30 +450,52 @@ typedef struct {
     pp_header_t header; /* stamp_us = t0, frame BASE_LINK */
     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
     float observed_horizon_s; /* [s]; Time on the path up to which it lies within the lane model view range; later points are extrapolated (PP-SWR-018) */
+    pp_planner_id_t planner_id;
 } pp_trajectory_t;
 
-/* planner_io (Interface Control Document 4): Newest message of each input with its receive time (rx_us), or not received yet */
+/* planner_io (Interface Control Document 4): LCC planner: newest message of each input with its receive time (rx_us), or not received yet */
 typedef struct {
     uint64_t t0_us; /* [us]; Cycle tick */
     pp_received_lane_model_t lane_model;
     pp_received_object_list_t object_list;
+    pp_received_lead_target_t lead_target;
     pp_received_imu_signals_t imu;
     pp_received_steering_signals_t steering;
     pp_received_speed_signals_t speed;
     pp_received_vehicle_state_estimate_t vehicle_state;
     pp_received_function_requests_t function_requests;
     pp_received_longitudinal_plan_t longitudinal_plan;
-} pp_planner_inputs_t;
+} pp_lcc_inputs_t;
 
-/* planner_io (Interface Control Document 4): Outputs of one cycle; each with a flag whether it is sent */
+/* planner_io (Interface Control Document 4): Outputs of one LCC planner cycle; each with a flag whether it is sent */
 typedef struct {
     bool trajectory_sent;
     pp_trajectory_t trajectory;
-    bool path_status_sent;
-    pp_path_status_t path_status;
+    bool lcc_status_sent;
+    pp_lcc_status_t lcc_status;
     bool lateral_limits_sent;
     pp_lateral_limits_t lateral_limits;
-} pp_planner_outputs_t;
+} pp_lcc_outputs_t;
+
+/* planner_io (Interface Control Document 4): LKA/ELK planner: newest message of each input with its receive time (rx_us), or not received yet */
+typedef struct {
+    uint64_t t0_us; /* [us]; Cycle tick */
+    pp_received_lane_model_t lane_model;
+    pp_received_imu_signals_t imu;
+    pp_received_steering_signals_t steering;
+    pp_received_speed_signals_t speed;
+    pp_received_vehicle_state_estimate_t vehicle_state;
+    pp_received_function_requests_t function_requests;
+    pp_received_longitudinal_plan_t longitudinal_plan;
+} pp_lka_elk_inputs_t;
+
+/* planner_io (Interface Control Document 4): Outputs of one LKA/ELK planner cycle; each with a flag whether it is sent */
+typedef struct {
+    bool trajectory_sent;
+    pp_trajectory_t trajectory;
+    bool intervention_status_sent;
+    pp_intervention_status_t intervention_status;
+} pp_lka_elk_outputs_t;
 
 #ifdef __cplusplus
 }

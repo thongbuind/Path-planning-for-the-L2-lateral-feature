@@ -50,6 +50,7 @@ class TrafficSpec:
     # (t_s, speed_mps) points, t increasing from 0; speed linear in between, held after the
     # last point. Empty: constant `speed`.
     speed_profile: tuple[tuple[float, float], ...] = ()
+    kind: str = "CAR"  # LeadTarget.classification: CAR, TRUCK, MOTORCYCLE, OTHER
 
     def __post_init__(self) -> None:
         if (not all(map(isfinite, (self.s0, self.d, self.speed, self.length, self.width)))
@@ -90,6 +91,7 @@ class TrafficState:
     d: float
     length: float
     width: float
+    kind: str = "CAR"
 
 
 class Traffic:
@@ -110,5 +112,5 @@ class Traffic:
             elif spec.direction < 0:
                 heading += pi
             speed = hypot(longitudinal, lateral)
-            out.append(TrafficState(spec.id, x, y, heading, speed, s, d, spec.length, spec.width))
+            out.append(TrafficState(spec.id, x, y, heading, speed, s, d, spec.length, spec.width, spec.kind))
         return out

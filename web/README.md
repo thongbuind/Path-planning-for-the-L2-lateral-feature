@@ -22,7 +22,7 @@ các file tài liệu `.md`. Mở thẳng `index.html` thì bản đồ vẫn xe
 - Bấm thẻ **Path Planner** để xem minh họa luồng xử lý trong một lần gọi `pp_step()`; các thẻ phần mềm, giả lập và nhãn đường nối khác mở mục tương ứng trong tài liệu.
 - Bấm **Tài liệu kỹ thuật** để mở danh sách tại `technical-documents/`. Bấm thẻ báo cáo để mở URL riêng, ví dụ `technical-documents/?doc=adas-function-specification&lang=vi`. Liên kết **Trang chủ** đưa về bản đồ tại `home/`.
 - Bấm vùng **Benchmark** để xem báo cáo SIL mới nhất ở `benchmark/`. Nút **Toàn màn hình** mở chế độ toàn màn hình của trình duyệt.
-- Bấm **Mô phỏng** để chạy planner SIL thời gian thực. Tính năng cần `serve.py`, các phụ thuộc Python và thư viện planner đã build; xem `simulation/README.md`. GitHub Pages chỉ phục vụ giao diện tĩnh, không chạy được planner.
+- Bấm **Mô phỏng** để chạy planner SIL thời gian thực. Tính năng cần workbench đang chạy (`python3 -m workbench.server`), các phụ thuộc Python và thư viện planner đã build; xem `simulation/README.md`. GitHub Pages chỉ phục vụ giao diện tĩnh, không chạy được planner.
 
 ## Chuẩn bị bản tĩnh cho GitHub Pages
 

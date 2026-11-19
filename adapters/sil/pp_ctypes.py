@@ -20,6 +20,9 @@ ROAD_EDGES = 2
 LANE_MODEL_TIMEOUT_US = 150000
 LANE_MODEL_MAX_DELTA_COUNTER = 3
 LANE_MODEL_MAX_AGE_US = 250000
+LEAD_TARGET_TIMEOUT_US = 150000
+LEAD_TARGET_MAX_DELTA_COUNTER = 3
+LEAD_TARGET_MAX_AGE_US = 250000
 LONGITUDINAL_PLAN_POINTS = 31
 LONGITUDINAL_PLAN_TIMEOUT_US = 75000
 LONGITUDINAL_PLAN_MAX_DELTA_COUNTER = 4
@@ -31,7 +34,8 @@ OBJECT_LIST_MAX_AGE_US = 250000
 VEHICLE_STATE_TIMEOUT_US = 60000
 VEHICLE_STATE_MAX_DELTA_COUNTER = 4
 VEHICLE_STATE_MAX_AGE_US = 30000
-PATH_STATUS_TIMEOUT_US = 75000
+INTERVENTION_STATUS_TIMEOUT_US = 75000
+LCC_STATUS_TIMEOUT_US = 75000
 TRAJECTORY_POINTS = 31
 TRAJECTORY_TIMEOUT_US = 75000
 PLANNER_PERIOD_US = 25000
@@ -205,6 +209,29 @@ class ReceivedLaneModelC(ctypes.Structure):
     ]
 
 
+class LeadTargetC(ctypes.Structure):
+    _fields_ = [
+        ("header", HeaderC),
+        ("id", ctypes.c_uint32),
+        ("classification", ctypes.c_uint8),
+        ("x", ctypes.c_float),
+        ("y", ctypes.c_float),
+        ("gap", ctypes.c_float),
+        ("heading", ctypes.c_float),
+        ("vx_rel", ctypes.c_float),
+        ("vy_rel", ctypes.c_float),
+        ("existence_probability", ctypes.c_float),
+    ]
+
+
+class ReceivedLeadTargetC(ctypes.Structure):
+    _fields_ = [
+        ("present", ctypes.c_bool),
+        ("rx_us", ctypes.c_uint64),
+        ("message", LeadTargetC),
+    ]
+
+
 class LongitudinalPointC(ctypes.Structure):
     _fields_ = [
         ("v", ctypes.c_float),
@@ -288,6 +315,17 @@ class ReceivedVehicleStateEstimateC(ctypes.Structure):
     ]
 
 
+class InterventionStatusC(ctypes.Structure):
+    _fields_ = [
+        ("header", BasicHeaderC),
+        ("path_valid", ctypes.c_bool),
+        ("active_function", ctypes.c_uint8),
+        ("lka_phase", ctypes.c_uint8),
+        ("elk_phase", ctypes.c_uint8),
+        ("lateral_limit_reached", ctypes.c_bool),
+    ]
+
+
 class LateralLimitsC(ctypes.Structure):
     _fields_ = [
         ("header", BasicHeaderC),
@@ -297,13 +335,12 @@ class LateralLimitsC(ctypes.Structure):
     ]
 
 
-class PathStatusC(ctypes.Structure):
+class LccStatusC(ctypes.Structure):
     _fields_ = [
         ("header", BasicHeaderC),
         ("path_valid", ctypes.c_bool),
-        ("active_function", ctypes.c_uint8),
-        ("lka_phase", ctypes.c_uint8),
-        ("elk_phase", ctypes.c_uint8),
+        ("lcc_mode", ctypes.c_uint8),
+        ("follow_distance", ctypes.c_float),
         ("lateral_limit_reached", ctypes.c_bool),
         ("lane_too_narrow", ctypes.c_bool),
     ]
@@ -328,14 +365,16 @@ class TrajectoryC(ctypes.Structure):
         ("header", HeaderC),
         ("points", TrajectoryPointC * 31),
         ("observed_horizon_s", ctypes.c_float),
+        ("planner_id", ctypes.c_uint8),
     ]
 
 
-class PlannerInputsC(ctypes.Structure):
+class LccInputsC(ctypes.Structure):
     _fields_ = [
         ("t0_us", ctypes.c_uint64),
         ("lane_model", ReceivedLaneModelC),
         ("object_list", ReceivedObjectListC),
+        ("lead_target", ReceivedLeadTargetC),
         ("imu", ReceivedImuSignalsC),
         ("steering", ReceivedSteeringSignalsC),
         ("speed", ReceivedSpeedSignalsC),
@@ -345,14 +384,36 @@ class PlannerInputsC(ctypes.Structure):
     ]
 
 
-class PlannerOutputsC(ctypes.Structure):
+class LccOutputsC(ctypes.Structure):
     _fields_ = [
         ("trajectory_sent", ctypes.c_bool),
         ("trajectory", TrajectoryC),
-        ("path_status_sent", ctypes.c_bool),
-        ("path_status", PathStatusC),
+        ("lcc_status_sent", ctypes.c_bool),
+        ("lcc_status", LccStatusC),
         ("lateral_limits_sent", ctypes.c_bool),
         ("lateral_limits", LateralLimitsC),
+    ]
+
+
+class LkaElkInputsC(ctypes.Structure):
+    _fields_ = [
+        ("t0_us", ctypes.c_uint64),
+        ("lane_model", ReceivedLaneModelC),
+        ("imu", ReceivedImuSignalsC),
+        ("steering", ReceivedSteeringSignalsC),
+        ("speed", ReceivedSpeedSignalsC),
+        ("vehicle_state", ReceivedVehicleStateEstimateC),
+        ("function_requests", ReceivedFunctionRequestsC),
+        ("longitudinal_plan", ReceivedLongitudinalPlanC),
+    ]
+
+
+class LkaElkOutputsC(ctypes.Structure):
+    _fields_ = [
+        ("trajectory_sent", ctypes.c_bool),
+        ("trajectory", TrajectoryC),
+        ("intervention_status_sent", ctypes.c_bool),
+        ("intervention_status", InterventionStatusC),
     ]
 
 
@@ -371,16 +432,20 @@ FIELD_SPECS = {
     "LaneLine": [("c0", "scalar", None), ("c1", "scalar", None), ("c2", "scalar", None), ("c3", "scalar", None), ("variance", "array_scalar", None), ("view_range_start", "scalar", None), ("view_range_end", "scalar", None), ("confidence", "scalar", None), ("type", "enum", 'LineType'), ("crossable", "scalar", None), ("status", "enum", 'LineStatus'), ("predicted_duration", "scalar", None)],
     "RoadEdge": [("c0", "scalar", None), ("c1", "scalar", None), ("c2", "scalar", None), ("c3", "scalar", None), ("variance", "array_scalar", None), ("view_range_start", "scalar", None), ("view_range_end", "scalar", None), ("confidence", "scalar", None), ("type", "enum", 'RoadEdgeType'), ("status", "enum", 'LineStatus'), ("predicted_duration", "scalar", None)],
     "LaneModel": [("header", "struct", 'Header'), ("lines", "array_struct", 'LaneLine'), ("road_edges", "array_struct", 'RoadEdge'), ("lane_width", "scalar", None), ("lane_width_source", "enum", 'LaneWidthSource'), ("lane_change", "enum", 'Side')],
+    "LeadTarget": [("header", "struct", 'Header'), ("id", "scalar", None), ("classification", "enum", 'LeadClass'), ("x", "scalar", None), ("y", "scalar", None), ("gap", "scalar", None), ("heading", "scalar", None), ("vx_rel", "scalar", None), ("vy_rel", "scalar", None), ("existence_probability", "scalar", None)],
     "LongitudinalPoint": [("v", "scalar", None), ("a", "scalar", None)],
     "LongitudinalPlan": [("header", "struct", 'Header'), ("mode", "enum", 'LongitudinalMode'), ("points", "array_struct", 'LongitudinalPoint'), ("target_id", "scalar", None)],
     "Object": [("id", "scalar", None), ("x", "scalar", None), ("y", "scalar", None), ("vx", "scalar", None), ("vy", "scalar", None), ("heading", "scalar", None), ("length", "scalar", None), ("width", "scalar", None), ("existence_probability", "scalar", None)],
     "ObjectList": [("header", "struct", 'Header'), ("num_objects", "scalar", None), ("objects", "array_struct", 'Object')],
     "VehicleConfig": [("wheelbase", "scalar", None), ("rear_axle_to_cg", "scalar", None), ("vehicle_width", "scalar", None), ("steering_ratio", "scalar", None), ("max_wheel_angle", "scalar", None), ("max_steering_wheel_rate", "scalar", None), ("actuator_delay", "scalar", None)],
     "VehicleStateEstimate": [("header", "struct", 'Header'), ("lateral_velocity", "scalar", None), ("lateral_velocity_variance", "scalar", None), ("slip_angle", "scalar", None)],
+    "InterventionStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("active_function", "enum", 'InterventionFunction'), ("lka_phase", "enum", 'InterventionPhase'), ("elk_phase", "enum", 'InterventionPhase'), ("lateral_limit_reached", "scalar", None)],
     "LateralLimits": [("header", "struct", 'BasicHeader'), ("v_max", "scalar", None), ("distance", "scalar", None), ("lateral_limit_reached", "scalar", None)],
-    "PathStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("active_function", "enum", 'ActiveFunction'), ("lka_phase", "enum", 'InterventionPhase'), ("elk_phase", "enum", 'InterventionPhase'), ("lateral_limit_reached", "scalar", None), ("lane_too_narrow", "scalar", None)],
+    "LccStatus": [("header", "struct", 'BasicHeader'), ("path_valid", "scalar", None), ("lcc_mode", "enum", 'LccMode'), ("follow_distance", "scalar", None), ("lateral_limit_reached", "scalar", None), ("lane_too_narrow", "scalar", None)],
     "TrajectoryPoint": [("time_from_start", "scalar", None), ("pose", "struct", 'Pose2D'), ("longitudinal_velocity_mps", "scalar", None), ("lateral_velocity_mps", "scalar", None), ("acceleration_mps2", "scalar", None), ("heading_rate_rps", "scalar", None), ("curvature", "scalar", None), ("front_wheel_angle_rad", "scalar", None), ("rear_wheel_angle_rad", "scalar", None)],
-    "Trajectory": [("header", "struct", 'Header'), ("points", "array_struct", 'TrajectoryPoint'), ("observed_horizon_s", "scalar", None)],
-    "PlannerInputs": [("t0_us", "scalar", None), ("lane_model", "received", "LaneModel"), ("object_list", "received", "ObjectList"), ("imu", "received", "ImuSignals"), ("steering", "received", "SteeringSignals"), ("speed", "received", "SpeedSignals"), ("vehicle_state", "received", "VehicleStateEstimate"), ("function_requests", "received", "FunctionRequests"), ("longitudinal_plan", "received", "LongitudinalPlan")],
-    "PlannerOutputs": [("trajectory", "sent", 'Trajectory'), ("path_status", "sent", 'PathStatus'), ("lateral_limits", "sent", 'LateralLimits')],
+    "Trajectory": [("header", "struct", 'Header'), ("points", "array_struct", 'TrajectoryPoint'), ("observed_horizon_s", "scalar", None), ("planner_id", "enum", 'PlannerId')],
+    "LccInputs": [("t0_us", "scalar", None), ("lane_model", "received", "LaneModel"), ("object_list", "received", "ObjectList"), ("lead_target", "received", "LeadTarget"), ("imu", "received", "ImuSignals"), ("steering", "received", "SteeringSignals"), ("speed", "received", "SpeedSignals"), ("vehicle_state", "received", "VehicleStateEstimate"), ("function_requests", "received", "FunctionRequests"), ("longitudinal_plan", "received", "LongitudinalPlan")],
+    "LccOutputs": [("trajectory", "sent", 'Trajectory'), ("lcc_status", "sent", 'LccStatus'), ("lateral_limits", "sent", 'LateralLimits')],
+    "LkaElkInputs": [("t0_us", "scalar", None), ("lane_model", "received", "LaneModel"), ("imu", "received", "ImuSignals"), ("steering", "received", "SteeringSignals"), ("speed", "received", "SpeedSignals"), ("vehicle_state", "received", "VehicleStateEstimate"), ("function_requests", "received", "FunctionRequests"), ("longitudinal_plan", "received", "LongitudinalPlan")],
+    "LkaElkOutputs": [("trajectory", "sent", 'Trajectory'), ("intervention_status", "sent", 'InterventionStatus')],
 }

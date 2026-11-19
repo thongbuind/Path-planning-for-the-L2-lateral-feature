@@ -57,5 +57,5 @@ def test_study_variants_become_build_sets():
 @pytest.mark.skipif(not library_path().exists(), reason="planner library not built")
 def test_built_library_names_itself():
     info = provenance.library_info(library_path())
-    assert info["build"].get("name") == "pp_planner"
+    assert info["build"].get("name") == "pp_lcc"
     assert info["build"]["commit"] and info["build"]["calibration"]

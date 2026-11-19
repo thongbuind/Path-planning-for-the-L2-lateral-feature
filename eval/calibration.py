@@ -14,9 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 CALIBRATION_FILE = ROOT / "planner" / "calibration" / "calibration.yaml"
 REQUIREMENT_PARAMETERS = (
     "epsilon_ay", "free_space_min", "gap_truck_min",  # PP-SWR-006, 051, 063, 055, 056
-    "T_end_hold", "v_lat_end", "heading_end", "ay_add_end",  # PP-SWR-032, 090
+    "T_end_hold", "v_lat_end", "d_end", "heading_end", "ay_add_end",  # PP-SWR-032, 084, 090
     "T_coast", "conf_ego", "conf_inferred",  # PP-SWR-124, 147 (F21)
     "conf_edge",  # PP-SWR-047
+    "offset_truck", "ttc_offset_start", "t_offset_hold",  # PP-SWR-065, 066
+    "follow_lat_max", "follow_vlat_max", "d_end", "dlc_offset_min",  # PP-SWR-170, 171, 084
 )
 _UNITS = {"deg": pi / 180.0, "ms": 1e-3}
 

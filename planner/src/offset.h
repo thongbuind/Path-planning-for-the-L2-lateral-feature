@@ -9,9 +9,12 @@
  * 3. Gap to a big vehicle each side: from the car body (+- vehicle_width/2 around the
  *    centre) to its near edge; the smallest if several; none if no big vehicle counts.
  * 4. o_lim = max(0, min(offset_max, s - dlc_offset_min)), s = (w - vehicle_width)/2;
- *    missing gap h = max(0, gap_truck_min - gap).
- * 5. One side: o = h away from it. Both sides, some h > 0: o = (gap_left - gap_right)/2.
- *    Clipped to +-o_lim; changes at most ref_rate per second (PP-ADR-008).
+ *    missing gap h = max(0, gap_truck_min - gap). A vehicle that is not a big vehicle, abreast
+ *    or about to be, in an adjacent lane counts as "a vehicle on that side" (held the same way).
+ * 5. Exactly one big vehicle with h > 0: o = min(offset_truck, o_lim) away from it, unless a
+ *    vehicle is on the other side, then 0 (PP-SWR-055, 065, 066). Two big vehicles, some
+ *    h > 0: o = (gap_left - gap_right)/2 (the earlier balanced rule). Clipped to +-o_lim;
+ *    changes at most ref_rate per second (PP-ADR-008, 020).
  * 6. No usable ObjectList: o back to 0 at the same rate.
  * Not yet: object positions moved from measurement time to t0 (100 ms at most).
  */
@@ -31,6 +34,8 @@ typedef struct {
     double hold_right_s;
     double gap_left;               /* [m] last gap to a counted big vehicle, for the hold */
     double gap_right;
+    double other_left_s;           /* Time a not-big vehicle on that side still counts */
+    double other_right_s;
 } pp_offset_state_t;
 
 void pp_offset_reset(pp_offset_state_t *st);

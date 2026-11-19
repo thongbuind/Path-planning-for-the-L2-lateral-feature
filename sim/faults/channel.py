@@ -17,8 +17,8 @@ messages the fault made unusable (PP-SWR-130).
 | counter_repeat | every `every`-th message delivered twice, the copy `value` ms later |
 | counter_jump | every `every`-th message: counter + `count`; later messages keep the offset, as a sender that skipped values |
 | counter_stuck | counter held at the value before the window |
-| invalid | header.valid = false; on a CAN frame qualifier FAULT (F16) |
-| crc | CAN frame with a wrong CRC (F17) |
+| invalid | every `every`-th message: header.valid = false; on a CAN frame qualifier FAULT (F16) |
+| crc | every `every`-th CAN frame with a wrong CRC (F17) |
 | drop_listed | the messages with index in `indices` are not delivered (loss-equivalent) |
 | out_of_range | LongitudinalPlan only: `field` (v or a) of points `indices` (all when empty) set to `value` (F23) |
 
@@ -29,7 +29,7 @@ On a pub/sub channel the planner checks the counter step against the largest acc
 of the input (Interface Control Document 4, AUTOSAR E2E Profile 5).
 """
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -37,8 +37,9 @@ import interfaces as I
 from sim.faults import trigger
 
 KINDS = ("drop", "burst", "jitter", "late", "stop", "future_stamp", "counter_repeat",
-         "counter_jump", "counter_stuck", "invalid", "crc", "drop_listed", "out_of_range")
-CHANNELS = ("lane_model", "object_list", "imu", "steering", "speed", "vehicle_state",
+         "counter_jump", "counter_stuck", "invalid", "crc", "drop_listed", "out_of_range",
+         "lead_id", "lead_class", "lead_noise")
+CHANNELS = ("lane_model", "object_list", "lead_target", "imu", "steering", "speed", "vehicle_state",
             "function_requests", "longitudinal_plan")
 # Faults whose correct handling equals the loss of the messages they hit (PP-SWR-130), or
 # equals no fault at all (PP-SWR-129).
@@ -47,6 +48,7 @@ NO_FAULT_EQUIVALENT = ("counter_repeat",)
 # Largest counter step a pub/sub input accepts (Interface Control Document 4).
 MAX_DELTA_COUNTER = {"lane_model": I.LANE_MODEL_MAX_DELTA_COUNTER,
                      "object_list": I.OBJECT_LIST_MAX_DELTA_COUNTER,
+                     "lead_target": I.LEAD_TARGET_MAX_DELTA_COUNTER,
                      "vehicle_state": I.VEHICLE_STATE_MAX_DELTA_COUNTER,
                      "function_requests": I.FUNCTION_REQUESTS_MAX_DELTA_COUNTER,
                      "longitudinal_plan": I.LONGITUDINAL_PLAN_MAX_DELTA_COUNTER}
@@ -69,6 +71,8 @@ class ChannelFault:
         trigger.check(self.trigger)
         if self.kind not in KINDS or self.channel not in CHANNELS:
             raise ValueError(f"unknown channel fault {self.kind!r} on {self.channel!r}")
+        if self.kind in ("lead_id", "lead_class", "lead_noise") and self.channel != "lead_target":
+            raise ValueError("lead_id and lead_class need channel lead_target")
         if self.kind == "out_of_range" and (self.channel != "longitudinal_plan" or self.field not in ("v", "a")):
             raise ValueError("out_of_range needs channel longitudinal_plan and field v or a")
         if self.every < 1 or self.count < 0 or self.start_s < 0 or (self.duration_s is not None and self.duration_s <= 0):
@@ -86,6 +90,7 @@ class _State:
     held_counter: int | None = None
     counter_offset: int = 0  # counter_jump: sum of the jumps so far
     hit: list[int] | None = None  # indices made unusable (loss-equivalent bookkeeping)
+    lead_stamps: list[int] = field(default_factory=list)
 
 
 class ChannelFaultInjector:
@@ -111,6 +116,8 @@ class ChannelFaultInjector:
             kind = fault.kind
             pick = k % fault.every == 0
             if kind == "stop" or (kind == "drop" and pick) or (kind == "drop_listed" and index in fault.indices):
+                if fault.channel == "lead_target":
+                    st.lead_stamps.append(message.header.stamp_us)
                 return []
             if kind == "burst" and k % fault.every < fault.count:
                 return []
@@ -132,16 +139,28 @@ class ChannelFaultInjector:
             elif kind == "counter_stuck" and last_counter is not None:
                 out = [(d, _with_counter(m, last_counter)) for d, m in out]
                 st.hit.append(index)
-            elif kind == "invalid":
+            elif kind == "invalid" and pick:
                 out = [(d, _with_valid(m, False)) for d, m in out]
                 st.hit.append(index)
-            elif kind == "crc":
+            elif kind == "crc" and pick:
                 out = [(d, m.with_bad_crc()) for d, m in out]
                 st.hit.append(index)
             elif kind == "out_of_range":
                 out = [(d, _with_points(m, fault)) for d, m in out]
                 st.hit.append(index)
+            elif kind == "lead_id":      # F25 c: the id jumps to another vehicle
+                out = [(d, replace(m, id=m.id + round(fault.value))) for d, m in out]
+                st.lead_stamps.append(message.header.stamp_us)
+            elif kind == "lead_noise":   # F25 d: position and heading noise `value` times the nominal
+                out = [(d, _lead_noise(m, fault.value, self._rng)) for d, m in out]
+                st.lead_stamps.append(message.header.stamp_us)
+            elif kind == "lead_class":   # F25 e: the class becomes `value` (LeadClass)
+                out = [(d, replace(m, classification=I.LeadClass(round(fault.value)))) for d, m in out]
+                st.lead_stamps.append(message.header.stamp_us)
         return out
+
+    def lead_fault_stamps(self) -> list[int]:
+        return sorted({stamp for state in self._states for stamp in state.lead_stamps})
 
     def fault_hits(self) -> list[list[int]]:
         """Per fault, in order: indices of the messages it made unusable."""
@@ -189,6 +208,20 @@ def _with_counter(message, counter: int):
     if _is_frame(message):
         return message.with_byte6(counter % 16, message.qualifier)
     return replace(message, header=replace(message.header, counter=counter % I.COUNTER_MODULO))
+
+
+def _lead_noise(message, scale: float, rng):
+    """LeadTarget with the noise of sim.sensors.lead_sensor raised from 1 to `scale` times: the extra
+    part is independent, so the total sigma is `scale` times the nominal one."""
+    from math import hypot, sqrt
+    from sim.sensors.lead_sensor import SIGMA_HEADING_RAD
+    from sim.sensors.object_sensor import SIGMA_X_M, SIGMA_X_REL, SIGMA_Y_M, SIGMA_Y_REL
+    extra = sqrt(max(scale * scale - 1.0, 0.0))
+    draws = rng.standard_normal(3)
+    r = hypot(message.x, message.y)
+    return replace(message, x=message.x + extra * (SIGMA_X_M + SIGMA_X_REL * r) * float(draws[0]),
+                   y=message.y + extra * (SIGMA_Y_M + SIGMA_Y_REL * r) * float(draws[1]),
+                   heading=message.heading + extra * SIGMA_HEADING_RAD * float(draws[2]))
 
 
 def _with_valid(message, valid: bool):

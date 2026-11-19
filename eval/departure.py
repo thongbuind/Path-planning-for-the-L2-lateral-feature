@@ -27,8 +27,8 @@ def configure(
         raise ValueError("invalid departure geometry")
     if any(type(flag) is not bool for flag in (indicated, passive_hands_on, late_request)):
         raise ValueError("departure flags must be boolean")
-    if target != "none" and (len(scenario.traffic) != 1 or v_lat_mps == 0 or boundary != "marking"):
-        raise ValueError("traffic departure requires one target and a marking")
+    if target != "none" and (not scenario.traffic or v_lat_mps == 0 or boundary != "marking"):
+        raise ValueError("traffic departure requires a target (the first vehicle) and a marking")
     if indicated and steer_start_s < 1.0:
         raise ValueError("the indicator needs one second before Tsteer")
 
@@ -82,7 +82,7 @@ def configure(
         target_s0 = aligned - obj.direction * (obj.length / 2 + obj.speed * meet)
         if not 0 <= target_s0 < sum(s.length for s in scenario.segments):
             raise ValueError("synchronized target starts outside the road")
-        traffic = (replace(obj, s0=target_s0, d=tgt_d),)
+        traffic = (replace(obj, s0=target_s0, d=tgt_d),) + scenario.traffic[1:]   # others stay where the scenario puts them
     events = scenario.request_events
     if late_request:
         if scenario.adas_mode != "scripted" or boundary != "marking" or v_lat_mps == 0:

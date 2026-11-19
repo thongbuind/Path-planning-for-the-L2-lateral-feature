@@ -24,7 +24,11 @@
     "S15",
     "S16",
     "S17",
-    "S19"
+    "S19",
+    "S20",
+    "S21",
+    "S22",
+    "S23"
   ],
   "faults": [
     "F01",
@@ -48,7 +52,8 @@
     "F20",
     "F21",
     "F22",
-    "F23"
+    "F23",
+    "F25"
   ],
   "methods": [
     "anchor",
@@ -114,5 +119,49 @@
   "event_profiles": "rotate",
   "combinations": [
     "G01"
-  ]
+  ],
+  "fault_host_overrides": {
+    "F25": [
+      [
+        "S22",
+        "a"
+      ]
+    ]
+  },
+  "standalone_planners": [
+    [
+      "S9",
+      "a"
+    ]
+  ],
+  "fault_event_groups": {
+    "F24": {
+      "hosts": [
+        [
+          "S4",
+          "a",
+          "lka_active"
+        ],
+        [
+          "S5",
+          "a",
+          "elk_active"
+        ],
+        [
+          "S6",
+          "a",
+          "elk_active"
+        ],
+        [
+          "S20",
+          "a",
+          "elk_active"
+        ]
+      ],
+      "offsets_s": [
+        0.0,
+        0.2
+      ]
+    }
+  }
 }

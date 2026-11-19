@@ -69,6 +69,7 @@ class Scenario:
     road_mu: float = 1.0  # tyre-road friction of the vehicle model (0.5 wet, 4.4)
     eps_delay_s: float | None = None  # real EPS delay; the planner still gets VehicleConfig's
     perception_noise_scale: float = 1.0  # ObjectList sigmas x this (rain 1.5, 4.5)
+    object_list_on_empty_road: bool = False  # Publish the standard sensor in PP-T7 empty-road cases
 
     def __post_init__(self) -> None:
         if self.adas_mode not in ("scripted", "A", "B"):

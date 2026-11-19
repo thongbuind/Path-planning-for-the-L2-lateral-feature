@@ -1,30 +1,38 @@
-"""Which planner library is under test (Software Qualification Test Specification 11).
+"""Which planner libraries are under test (Software Qualification Test Specification 11).
 
-The planner is any C library built against interfaces/c/pp_planner.h; eval/ is the only
-place that chooses it. Order: --planner PATH, then PP_PLANNER_LIB, then the in-repo build
-build/planner/libpp_planner.
+The planners are two C libraries built against interfaces/c/pp_planner.h, the LCC planner and
+the LKA/ELK planner (PP-ADR-016); eval/ is the only place that chooses them. Order: --planner
+LOCATION, then PP_PLANNER_LIB, then the in-repo build build/planner. A location is a directory
+with libpp_lcc and libpp_lkaelk, or one library file that exports both families.
 """
 
 import argparse
+from dataclasses import replace
 from pathlib import Path
 
-from adapters.sil.sil_planner import IncompatibleLibrary, PlannerLibrary, library_path
+from adapters.sil.sil_planner import IncompatibleLibrary, PlannerLibraries
+
+FAMILIES = ("lcc", "lkaelk")
 
 
 def add_argument(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--planner", type=Path, metavar="LIB",
-                        help="Planner library under test (.so/.dylib built against "
-                             "interfaces/c/pp_planner.h); default PP_PLANNER_LIB or "
-                             "build/planner/libpp_planner")
+    parser.add_argument("--planner", type=Path, metavar="LOCATION",
+                        help="Planners under test: a directory with libpp_lcc and libpp_lkaelk, or one "
+                             "library that exports pp_lcc_* and pp_lkaelk_* (built against "
+                             "interfaces/c/pp_planner.h); default PP_PLANNER_LIB or build/planner")
 
 
-def resolve(path: Path | None) -> PlannerLibrary:
-    """The planner under test; stops with a clear message if it cannot be called."""
-    chosen = Path(path) if path is not None else library_path()
-    if not chosen.is_file():
-        hint = "" if path is not None else " (build it, see README, or pass --planner)"
-        raise SystemExit(f"planner library not found: {chosen}{hint}")
-    planner = PlannerLibrary(chosen)
+def resolve(path: Path | None, only: str | None = None) -> PlannerLibraries:
+    """The planners under test; stops with a clear message if they cannot be called."""
+    planner = PlannerLibraries.at(path) if path is not None else PlannerLibraries.default()
+    if only is not None:
+        if only not in FAMILIES:
+            raise ValueError(f"unknown planner family {only!r}")
+        planner = replace(planner, only=only)
+    missing = [p for p in dict.fromkeys(p for p, _ in planner.paths()) if not p.is_file()]
+    if missing:
+        hint = "" if path is not None else " (build them, see README, or pass --planner)"
+        raise SystemExit(f"planner library not found: {', '.join(str(p) for p in missing)}{hint}")
     try:
         planner.load()
     except IncompatibleLibrary as error:
@@ -32,5 +40,11 @@ def resolve(path: Path | None) -> PlannerLibrary:
     return planner
 
 
-def from_args(args: argparse.Namespace) -> PlannerLibrary:
+def default_location() -> Path:
+    """Where the planners are looked for when --planner is not given."""
+    return PlannerLibraries.default().lcc.parent if PlannerLibraries.default().lcc == PlannerLibraries.default().lka_elk \
+        else PlannerLibraries.default().lcc.parent
+
+
+def from_args(args: argparse.Namespace) -> PlannerLibraries:
     return resolve(args.planner)

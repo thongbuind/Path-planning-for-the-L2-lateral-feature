@@ -9,7 +9,7 @@
   const words = {
     'SIL, chạy thời gian thực':'Real-time SIL', '0,5×':'0.5×', 'Đổi giao diện sáng tối':'Toggle light and dark theme',
     'Chọn ca mô phỏng':'Select a simulation case', 'Chạy planner':'Run planner', 'Chạy lại':'Run again',
-    'Đang kết nối server…':'Connecting to server…', 'Tình huống':'Scenario', 'Lỗi tiêm':'Injected faults',
+    'Đang kết nối server…':'Connecting to server…', 'Tình huống':'Scenario', 'Biến thể':'Variants', 'Lỗi tiêm':'Injected faults',
     'Tìm: S1, cua, xe tải, xi-nhan…':'Search: S1, curve, truck, turn signal…', 'Tìm tình huống':'Search scenarios',
     'Lọc theo chức năng':'Filter by function', 'Lỗi bắt đầu':'Fault trigger', 'Theo định nghĩa của lỗi':'As defined by the fault',
     'Khi LKA can thiệp':'When LKA intervenes', 'Khi ELK can thiệp':'When ELK intervenes', 'Khi LKA hoặc ELK can thiệp':'When LKA or ELK intervenes',
@@ -21,13 +21,13 @@
     'Thời gian mô phỏng, kéo để xem lại khi đã tạm dừng hoặc chạy xong':'Simulation time; drag to review when paused or finished',
     'Dạng hiển thị':'Display mode', 'Biểu đồ':'Chart', 'Bảng':'Table', 'Biểu đồ theo thời gian':'Time-series charts',
     'Biểu đồ chức năng, lệch tâm làn, a_y, góc vô lăng và thời gian tính, vẽ dần theo thời gian chạy':'Function, lane offset, a_y, steering wheel angle and computation time plotted during the run',
-    'Thông số':'Parameters', 'Kết quả':'Results', 'Tất cả':'All', 'Khác':'Other', 'Bỏ hết lỗi':'Clear all faults',
+    'Thông số':'Parameters', 'Kết quả':'Results', 'Bài thử đã chọn':'Selected test', 'Tất cả':'All', 'Khác':'Other', 'Bỏ hết lỗi':'Clear all faults',
     'Mặt đường ướt, μ = 0,5':'Wet road, μ = 0.5', 'Camera trễ 150 ms (mặc định 100)':'Camera latency 150 ms (default 100)',
     'Nhiễu cảm biến vật thể ×1,5 (mưa)':'Object sensor noise ×1.5 (rain)', 'Đang khởi động simulator…':'Starting simulator…',
     'Đang khởi động simulator và nạp planner…':'Starting simulator and loading planner…', 'Đang chấm kết quả…':'Evaluating results…',
     'Chọn tình huống và lỗi ở bên trái, rồi bấm Chạy planner. Planner thật chạy theo thời gian thực trên máy này.':'Select a scenario and faults on the left, then select Run planner. The actual planner runs in real time on this machine.',
     'Thông số của planner và của xe sẽ cập nhật theo từng chu kỳ 25 ms khi lượt chạy bắt đầu.':'Planner and vehicle parameters update every 25 ms once the run starts.',
-    'Chưa có lượt chạy.':'No run yet.', 'Tốc độ':'Speed', 'Lệch tâm làn, + trái':'Lane-center offset, + left', 'DLC trái':'Left DLC', 'DLC phải':'Right DLC',
+    'Chưa có lượt chạy.':'No run yet.', 'Tốc độ':'Speed', 'Vô lăng':'Steering wheel', 'Lệch tâm làn, + trái':'Lane-center offset, + left', 'DLC trái':'Left DLC', 'DLC phải':'Right DLC',
     'a_y, lọc R79':'a_y, R79-filtered', 'Góc vô lăng':'Steering wheel angle', 'Vào':'Inputs', 'Ra':'Outputs', 'mỗi 25 ms, 40 Hz':'every 25 ms, 40 Hz',
     'Yêu cầu chức năng':'Function requests', 'TLC của LKA, ELK':'LKA, ELK TLC', 'Tầm nhìn lane model':'Lane model view range',
     'Tuổi dữ liệu camera':'Camera data age', 'Chức năng đang lái':'Active steering function', 'Path hợp lệ':'Valid path', 'Path không hợp lệ':'Invalid path',
@@ -52,6 +52,7 @@
       .replace(/^Trang cần server để chạy planner thật\. Chạy: (.*?) rồi mở (.*)$/, 'The actual planner requires a server. Run: $1, then open $2')
       .replace(/^Không kết nối được server\. Mô phỏng cần máy chủ cục bộ\. Chạy: (.*?) rồi mở (.*)$/, 'Cannot connect to the server. Simulation requires a local server. Run: $1, then open $2')
       .replace(/^Server từ chối yêu cầu \((.*?)\)$/, 'Server rejected the request ($1)')
+      .replace(/(\d+) xe khác$/, '$1 other vehicles')
       .replace(/^Mất kết nối với server giữa chừng$/, 'Connection to the server was lost during the run')
       .replace(/^Lượt chạy kết thúc đột ngột$/, 'The run ended unexpectedly')
       .replace(/^Đặt lỗi (.*?) và môi trường của tổ hợp (.*)$/, 'Set faults $1 and the environment for combination $2')

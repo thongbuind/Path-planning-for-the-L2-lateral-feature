@@ -570,6 +570,11 @@ def fault_from_command(command):
     return fault
 
 
+# OpenSCENARIO vehicleCategory -> LeadTarget class of the vehicle (Interface Control Document 5.9).
+TRAFFIC_KIND = {'car': 'CAR', 'van': 'CAR', 'truck': 'TRUCK', 'semitrailer': 'TRUCK', 'bus': 'TRUCK',
+                'motorbike': 'MOTORCYCLE', 'bicycle': 'MOTORCYCLE'}
+
+
 def load_scenario(path, overrides=None):
     path = Path(path)
     root, params = resolve(parse(path), overrides)
@@ -639,7 +644,8 @@ def load_scenario(path, overrides=None):
                 raise ValueError('traffic heading must be relative to the road, 0 or pi')
             travel_direction = 1 if angle == 0 else -1
         traffic.append(TrafficSpec(i, number(pos.get('s')), number(pos.get('t')), number(spd.get('value')),
-                                   number(dims.get('length')), number(dims.get('width')), travel_direction))
+                                   number(dims.get('length')), number(dims.get('width')), travel_direction,
+                                   kind=TRAFFIC_KIND.get(obj.find('./Vehicle').get('vehicleCategory'), 'OTHER')))
     stop = root.find('./Storyboard/StopTrigger/ConditionGroup/Condition/ByValueCondition/SimulationTimeCondition')
     if stop is None:
         raise ValueError('time stop required')

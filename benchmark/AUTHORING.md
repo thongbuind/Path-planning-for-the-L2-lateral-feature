@@ -66,6 +66,13 @@ python3 -m eval.check_case F05 --host S4 a --at lka_active+0.2 --run
 | Bề rộng làn đổi dọc đường, tách nhánh, thêm làn | Đa thức `width` của lane trong OpenDRIVE (xem S6b) | S6b |
 | Rào chắn, mép đường, nhiều làn | OpenDRIVE `objects`, `lanes` (xem S6 d) | S6, S15 |
 | Xe khác đổi làn, cắt vào | `CustomCommandAction type="pp:traffic_lateral:v1"`: `{"entity": "Car1", "start_s": 4.0, "duration_s": 3.0, "target_offset_m": 0.0}` | S3b, S8b, S11 d |
+| Loại xe khác (LeadTarget) | `vehicleCategory` của xe: `car`, `van` là CAR; `truck`, `semitrailer`, `bus` là TRUCK; `motorbike`, `bicycle` là MOTORCYCLE. Dùng `$tham_số` khi neo đổi loại | S22, S23 |
+| Xe trước là mục tiêu ACC | `pp:acc` `on` và xe nằm trong hành lang của ACC (mục 4.7); perception gửi LeadTarget cho xe ACC chọn. `acc` `off` thì không có LeadTarget | S22, S23 |
+| Mất mọi biên làn trong một đoạn | Lệnh `pp:lane_fault:v1` `lose_line` với `lines` `[0,1,2,3]`, `edges` `[0,1]`, `start_s`, `duration_s` ngay trong kịch bản | S22, S23 |
+| Lỗi chọn phía đang trôi | `pp:lane_fault:v1` thêm `"side": "drift"`: lúc chạy, `lines` và `edges` đổi thành biên phía tài xế trôi tới, `value` là khoảng cách ra xa xe. `"ramp_s"` cho giá trị tăng dần (`c0_jump`) | F24 |
+| Lỗi trên LeadTarget | `pp:channel_fault:v1` kênh `lead_target`: `drop`, `stop`, `lead_id` (cộng `value` vào `id`), `lead_class` (`value` là LeadClass), `lead_noise` (nhiễu vị trí, heading nhân `value`) | F25 |
+| Nhiều xe trong ca trôi có xe mục tiêu | `pp:departure:v1` đồng bộ xe đầu tiên của kịch bản; xe còn lại đứng ở vị trí khai báo | S21 e |
+| Lỗi chạy trên host riêng | `fault_host_overrides` trong file bộ chạy: `{"F25": [["S22", "a"]]}` | F25 |
 
 Chưa có:
 

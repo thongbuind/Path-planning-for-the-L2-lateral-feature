@@ -1,4 +1,4 @@
-/* T8 Offset (offset.h). */
+/* T8 Offset (offset.h); one big vehicle gives offset_truck, PP-ADR-020. */
 
 #include <math.h>
 #include <stddef.h>
@@ -49,21 +49,45 @@ static void hold(double *hold_s, double *kept, double *gap, const pp_calibration
     }
 }
 
-/* Step 5 (Software Architectural Design 6): away from the big vehicle by the missing gap;
- * with big vehicles on both sides, equal gaps. Left positive. */
-static double offset_of(double gap_left, double gap_right, double gap_min)
+/*
+ * Step 5 (Software Architectural Design 6; PP-ADR-020). Left positive. One big vehicle that
+ * is too close: the fixed offset_truck away from it, unless a vehicle is on the other side.
+ * Two big vehicles: equal gaps, as before.
+ */
+static double offset_of(double gap_left, double gap_right, bool other_left, bool other_right,
+                        double o_lim, const pp_calibration_t *cal)
 {
-    const bool left = gap_left < PP_NO_GAP;
-    const bool right = gap_right < PP_NO_GAP;
-    const double miss_left = left ? fmax(0.0, gap_min - gap_left) : 0.0;
-    const double miss_right = right ? fmax(0.0, gap_min - gap_right) : 0.0;
+    const bool big_left = gap_left < PP_NO_GAP;
+    const bool big_right = gap_right < PP_NO_GAP;
+    const double miss_left = big_left ? fmax(0.0, (double)cal->gap_truck_min - gap_left) : 0.0;
+    const double miss_right = big_right ? fmax(0.0, (double)cal->gap_truck_min - gap_right) : 0.0;
+    const double fixed = fmin((double)cal->offset_truck, o_lim);
     double o = 0.0;
-    if (left && right) {
+    if (big_left && big_right) {
         o = ((miss_left > 0.0) || (miss_right > 0.0)) ? (0.5 * (gap_left - gap_right)) : 0.0;
+        o = fmin(o_lim, fmax(-o_lim, o));
+    } else if (big_left && (miss_left > 0.0)) {
+        o = other_right ? 0.0 : -fixed;
+    } else if (big_right && (miss_right > 0.0)) {
+        o = other_left ? 0.0 : fixed;
     } else {
-        o = miss_right - miss_left;
+        /* No big vehicle too close. */
     }
     return o;
+}
+
+/* Hold of a "vehicle on that side" flag for t_offset_hold. */
+static bool hold_flag(double *hold_s, bool now, const pp_calibration_t *cal, double dt)
+{
+    if (now) {
+        *hold_s = (double)cal->t_offset_hold;
+        return true;
+    }
+    if (*hold_s > 0.0) {
+        *hold_s -= dt;
+        return true;
+    }
+    return false;
 }
 
 double pp_offset_update(pp_offset_state_t *st, const pp_object_list_t *objects,
@@ -79,18 +103,25 @@ double pp_offset_update(pp_offset_state_t *st, const pp_object_list_t *objects,
     if (objects != NULL) {
         const uint8_t n = (objects->num_objects <= PP_MAX_OBJECTS) ? objects->num_objects
                                                                    : (uint8_t)PP_MAX_OBJECTS;
+        bool other_left = false;
+        bool other_right = false;
         for (uint8_t i = 0U; i < n; i++) {
             const pp_object_t *o = &objects->objects[i];
             pp_ref_point_t foot;
             double d = 0.0;
-            if (((double)o->width >= PP_BIG_VEHICLE_WIDTH_M) && counts(o, v, car_front, car_rear, cal)) {
+            if (counts(o, v, car_front, car_rear, cal)) {
                 pp_ref_project(ref, (double)o->x, (double)o->y, &foot, &d);
-                const double gap = fabs(d) - (0.5 * (double)o->width) - half_car;
                 const bool adjacent = (fabs(d) > (0.5 * w)) && (fabs(d) < (1.5 * w));
-                if (adjacent && (d > 0.0)) {
-                    gap_left = fmin(gap_left, gap);
+                if (adjacent && ((double)o->width >= PP_BIG_VEHICLE_WIDTH_M)) {
+                    const double gap = fabs(d) - (0.5 * (double)o->width) - half_car;
+                    if (d > 0.0) {
+                        gap_left = fmin(gap_left, gap);
+                    } else {
+                        gap_right = fmin(gap_right, gap);
+                    }
                 } else if (adjacent) {
-                    gap_right = fmin(gap_right, gap);
+                    other_left = other_left || (d > 0.0);
+                    other_right = other_right || (d <= 0.0);
                 } else {
                     /* Not in an adjacent lane: no effect on the ego lane. */
                 }
@@ -98,14 +129,17 @@ double pp_offset_update(pp_offset_state_t *st, const pp_object_list_t *objects,
         }
         hold(&st->hold_left_s, &st->gap_left, &gap_left, cal, dt);   /* Step 3 */
         hold(&st->hold_right_s, &st->gap_right, &gap_right, cal, dt);
-        target = offset_of(gap_left, gap_right, (double)cal->gap_truck_min);
+        other_left = hold_flag(&st->other_left_s, other_left, cal, dt);
+        other_right = hold_flag(&st->other_right_s, other_right, cal, dt);
         const double free_space = 0.5 * (w - vehicle_width);
         const double o_lim = fmax(0.0, fmin((double)cal->offset_max,
                                             free_space - (double)cal->dlc_offset_min));
-        target = fmin(o_lim, fmax(-o_lim, target));
+        target = offset_of(gap_left, gap_right, other_left, other_right, o_lim, cal);
     } else {
         st->hold_left_s = 0.0;                                /* Step 6 (PP-SWR-140) */
         st->hold_right_s = 0.0;
+        st->other_left_s = 0.0;
+        st->other_right_s = 0.0;
     }
     const double step = (double)cal->ref_rate * dt;
     st->offset += fmin(step, fmax(-step, target - st->offset));

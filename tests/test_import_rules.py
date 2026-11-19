@@ -12,8 +12,12 @@ ROOT = Path(__file__).resolve().parent.parent
 FORBIDDEN = {
     "interfaces": {"planner", "adapters", "sim", "benchmark", "eval"},
     "adapters": {"planner", "sim", "benchmark", "eval"},
-    "sim": {"planner", "adapters", "benchmark", "eval"},
-    "eval": {"planner"},
+    "sim": {"planner", "adapters", "benchmark", "eval", "execution", "workbench"},
+    "eval": {"planner", "workbench"},
+    # Execution core and workbench serve any system under test: no package of the path planner
+    # (SIM-REQ-140, 141); the SUT plugs in by its worker command.
+    "execution": {"interfaces", "planner", "adapters", "sim", "benchmark", "eval", "workbench"},
+    "workbench": {"interfaces", "planner", "adapters", "sim", "benchmark", "eval"},
 }
 
 
@@ -29,6 +33,16 @@ def _imports(path: Path):
                 yield alias.name.split(".")[0]
         elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
             yield node.module.split(".")[0]
+
+
+CODE_PACKAGES = {"interfaces", "planner", "adapters", "sim", "eval", "benchmark", "execution", "workbench"}
+
+
+def test_web_reads_no_source_code():
+    """web/ talks to the workbench over HTTP only (CLAUDE.md: web does not read the source code)."""
+    files = [p for p in (ROOT / "web").rglob("*.py") if "dist" not in p.parts and "__pycache__" not in p.parts]
+    bad = [f"{p.relative_to(ROOT)} imports {name}" for p in files for name in _imports(p) if name in CODE_PACKAGES]
+    assert not bad, "\n".join(bad)
 
 
 @pytest.mark.parametrize("package", sorted(FORBIDDEN))

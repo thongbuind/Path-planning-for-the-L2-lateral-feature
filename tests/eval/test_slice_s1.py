@@ -7,14 +7,14 @@ build/planner/libpp_planner; skipped otherwise.
 
 import pytest
 
-from adapters.sil.sil_planner import SilPlanner, library_path
+from adapters.sil.sil_planner import PlannerLibraries, library_path
 from eval import loader, metrics
 from sim.harness import Harness
 from sim.scenario import Scenario
 from sim.world.road import Segment
 
-pytestmark = pytest.mark.skipif(not library_path().exists(),
-                                reason=f"planner library not built: {library_path()}")
+pytestmark = pytest.mark.skipif(not (library_path("pp_lcc").exists() and library_path("pp_lkaelk").exists()),
+                                reason="planner libraries not built: build/planner")
 
 SHORT = Scenario(
     name="S1-short",
@@ -32,13 +32,13 @@ def _fingerprint(log):
 
 
 def test_same_seed_same_run():
-    a = Harness(SHORT, SilPlanner, seed=3).run()
-    b = Harness(SHORT, SilPlanner, seed=3).run()
+    a = Harness(SHORT, PlannerLibraries.default(), seed=3).run()
+    b = Harness(SHORT, PlannerLibraries.default(), seed=3).run()
     assert _fingerprint(a) == _fingerprint(b)
 
 
 def test_closed_loop_keeps_lane():
-    result = metrics.evaluate(Harness(SHORT, SilPlanner, seed=1).run())
+    result = metrics.evaluate(Harness(SHORT, PlannerLibraries.default(), seed=1).run())
     by_id = {c.id: c for c in result.criteria}
     assert result.info["init_result"] == 0
     assert result.info["first_hwa_s"] is not None
@@ -59,7 +59,7 @@ SHARP = Scenario(
 
 @pytest.fixture(scope="module")
 def sharp_result():
-    return metrics.evaluate(Harness(SHARP, SilPlanner, seed=1).run())
+    return metrics.evaluate(Harness(SHARP, PlannerLibraries.default(), seed=1).run())
 
 
 def test_sharp_curve_limits_path(sharp_result):

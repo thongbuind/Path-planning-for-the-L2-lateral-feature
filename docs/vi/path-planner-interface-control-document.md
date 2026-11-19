@@ -3,17 +3,17 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-ICD` |
-| Phiên bản | 1.12 |
+| Phiên bản | 1.13 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-14 |
+| Cập nhật | 2026-11-18 |
 
 ## 1. Purpose and scope {#icd-scope}
 
-- **Mục đích.** Định nghĩa mọi interface của path planner: message, trường, kiểu, đơn vị, hệ toạ độ, tần số, timeout.
-- **Phạm vi.** Input và output trực tiếp của planner: 8 input, 3 output.
-- **Ngoài phạm vi.** Interface giữa các khối khác (camera với lane model, khối Chức năng ADAS với HMI, EPS với Lateral Controller). Cách planner dùng dữ liệu nằm ở tài liệu Software Architectural Design.
+- **Mục đích.** Định nghĩa mọi interface của hai path planner (LCC planner và LKA/ELK planner): message, trường, kiểu, đơn vị, hệ toạ độ, tần số, timeout.
+- **Phạm vi.** Input và output trực tiếp của hai planner: 9 input, 4 output. Mỗi planner có contract gọi hàm riêng (mục 4).
+- **Ngoài phạm vi.** Interface giữa các khối khác (camera với lane model, khối Chức năng ADAS với HMI, arbitrator với Lateral Controller, EPS với Lateral Controller). Cách planner dùng dữ liệu nằm ở tài liệu Software Architectural Design.
 
 ## 2. References {#icd-references}
 
@@ -33,16 +33,20 @@
 | Message | Từ → tới | Truyền | Tần số | Timeout | Tuổi tối đa | Mục |
 |---|---|---|---|---|---|---|
 | LaneModel | Lane Model → Planner | Pub/sub | 20 Hz | 150 ms | 250 ms | 5.1 |
-| ObjectList | Perception → Planner | Pub/sub | 20 Hz | 150 ms | 250 ms | 5.2 |
+| ObjectList | Perception → LCC planner | Pub/sub | 20 Hz | 150 ms | 250 ms | 5.2 |
+| LeadTarget | Perception → LCC planner | Pub/sub | 20 Hz | 150 ms | 250 ms | 5.9 |
 | `IMU_Data`, `SAS_Steering`, `ESC_Speed` | Xe → Planner | CAN | 100, 100, 50 Hz | 30, 30, 60 ms | — | 5.3 |
 | VehicleStateEstimate | State Estimator → Planner | Pub/sub | 50 Hz | 60 ms | 30 ms | 5.4 |
 | EgoMotionQuery | Planner ↔ Ego-motion | Gọi hàm | Mỗi chu kỳ | — | — | 5.5 |
 | FunctionRequests | Chức năng ADAS → Planner | Pub/sub | 40 Hz | 75 ms | 45 ms | 5.6 |
 | LongitudinalPlan | Khối dọc → Planner | Pub/sub | 40 Hz | 75 ms | 45 ms | 5.7 |
 | VehicleConfig | Cấu hình xe → Planner | Đọc lúc khởi động | — | — | — | 5.8 |
-| Trajectory | Planner → Lateral Controller | Pub/sub | 40 Hz | 75 ms | — | 6.1 |
-| PathStatus | Planner → Chức năng ADAS, Lateral Controller | Pub/sub | 40 Hz | 75 ms | — | 6.2 |
-| LateralLimits | Planner → Khối dọc | Pub/sub | 40 Hz | 75 ms | — | 6.3 |
+| Trajectory | Mỗi planner → Arbitrator | Pub/sub | 40 Hz | 75 ms | — | 6.1 |
+| LccStatus | LCC planner → Chức năng ADAS, Arbitrator | Pub/sub | 40 Hz | 75 ms | — | 6.2 |
+| InterventionStatus | LKA/ELK planner → Chức năng ADAS, Arbitrator | Pub/sub | 40 Hz | 75 ms | — | 6.3 |
+| LateralLimits | LCC planner → Khối dọc | Pub/sub | 40 Hz | 75 ms | — | 6.4 |
+
+Arbitrator của hệ thống chọn Trajectory của một planner rồi gửi Lateral Controller; interface đó ngoài phạm vi (PP-ASM-022). Trong simulator có arbitrator chạy thử.
 
 | Quy tắc | Giá trị | Nguồn |
 |---|---|---|
@@ -50,11 +54,11 @@
 | Tần số planner và khối Chức năng ADAS | 40 Hz | mentor |
 | Timeout nhận | 3 chu kỳ danh định của message, tức cho phép mất 2 message liên tiếp | nhóm tự thống nhất |
 | Bước counter lớn nhất được nhận (MaxDeltaCounter) | ⌊(timeout + chu kỳ planner) / chu kỳ message⌋: LaneModel, ObjectList 3; VehicleStateEstimate, FunctionRequests, LongitudinalPlan 4 | Suy từ timeout nhận: không bỏ message mà timeout còn chấp nhận; AUTOSAR PRS E2E R22-11 [PRS_E2E_00654] để giá trị cho hệ thống chọn |
-| Tuổi tối đa | Trễ lớn nhất giả định (Software Requirements Specification mục 6) cộng 1 chu kỳ. LaneModel, ObjectList: 250 ms (PP-SWR-131) | nhóm tự thống nhất |
+| Tuổi tối đa | Trễ lớn nhất giả định (Software Requirements Specification mục 6) cộng 1 chu kỳ. LaneModel, ObjectList, LeadTarget: 250 ms (PP-SWR-131) | nhóm tự thống nhất |
 
 ## 4. Common conventions {#header}
 
-**Header của message nội bộ.** Mọi message pub/sub có header này. PathStatus, LateralLimits, FunctionRequests không có `frame_id`.
+**Header của message nội bộ.** Mọi message pub/sub có header này. LccStatus, InterventionStatus, LateralLimits, FunctionRequests không có `frame_id`.
 
 | Trường | Kiểu | Ý nghĩa |
 |---|---|---|
@@ -98,14 +102,14 @@
 
 - Message pub/sub có `valid = false` bị bỏ như mất message; counter của nó vẫn được theo dõi.
 
-**Contract gọi hàm của planner.** Planner là thư viện C11 (PP-ADR-013). Bên gọi cấp vùng nhớ trạng thái; planner không cấp phát động, không đọc file, không đọc đồng hồ hệ thống.
+**Contract gọi hàm của planner.** Mỗi planner là một thư viện C11 (PP-ADR-013, PP-ADR-016). Bên gọi cấp vùng nhớ trạng thái; planner không cấp phát động, không đọc file, không đọc đồng hồ hệ thống. Hai planner có bốn hàm cùng contract, khác tiền tố: `pp_lcc_` cho LCC planner, `pp_lkaelk_` cho LKA/ELK planner. Hai planner không chia sẻ trạng thái lúc chạy.
 
 | Hàm | Khi nào | Vào | Ra |
 |---|---|---|---|
-| `pp_state_size` | Trước khởi tạo | — | Số byte vùng nhớ trạng thái |
-| `pp_init` | Một lần lúc khởi động | Vùng nhớ trạng thái, VehicleConfig | Kết quả khởi tạo. Sai VehicleConfig hoặc calibration ngoài giới hạn thì planner không gửi Trajectory (PP-SWR-146) |
-| `pp_step` | Mỗi chu kỳ 25 ms, tại t0 | t0; với mỗi input: message mới nhất và `rx_us`, hoặc chưa nhận; hàm EgoMotionQuery | Trajectory, PathStatus, LateralLimits, mỗi output kèm cờ có gửi hay không |
-| `pp_version` | Bất cứ lúc nào | — | Chuỗi định danh bản build: phiên bản, commit mã nguồn, mã bộ calibration (R79 Annex 6 3.3.5) |
+| `pp_<planner>_state_size` | Trước khởi tạo | — | Số byte vùng nhớ trạng thái |
+| `pp_<planner>_init` | Một lần lúc khởi động | Vùng nhớ trạng thái, VehicleConfig | Kết quả khởi tạo. Sai VehicleConfig hoặc calibration ngoài giới hạn thì planner không gửi Trajectory (PP-SWR-146) |
+| `pp_<planner>_step` | Mỗi chu kỳ 25 ms, tại t0 | t0; với mỗi input: message mới nhất và `rx_us`, hoặc chưa nhận; hàm EgoMotionQuery | LCC planner: Trajectory, LccStatus, LateralLimits. LKA/ELK planner: Trajectory, InterventionStatus. Mỗi output kèm cờ có gửi hay không |
+| `pp_<planner>_version` | Bất cứ lúc nào | — | Chuỗi định danh bản build: phiên bản, commit mã nguồn, mã bộ calibration (R79 Annex 6 3.3.5) |
 
 Interface được định nghĩa một lần trong `interfaces/schema/` của mã nguồn. Từ đó sinh header C cho planner và kiểu Python cho simulator; cùng định nghĩa dùng được để sinh file `.msg`.
 
@@ -137,6 +141,7 @@ Interface được định nghĩa một lần trong `interfaces/schema/` của m
 
 ### 5.2 ObjectList {#perception}
 
+- Chỉ LCC planner dùng (dời tâm, PP-SWR-055). LKA/ELK planner không đọc ObjectList: nguy cơ ở làn bên do khối Chức năng ADAS xét.
 - Phủ cả phía sau nhờ radar góc. Vị trí là tâm vật thể, trong `base_link` tại thời điểm đo.
 - Vận tốc so với mặt đất, chiếu lên `base_link`. Xe ngược chiều có vx < 0. `heading` là góc của vector vận tốc.
 - `id` ổn định qua các frame.
@@ -195,14 +200,15 @@ Stamp là thời điểm ước lượng.
 
 ### 5.6 FunctionRequests {#function-requests}
 
-- `requests[3]` theo thứ tự HWA, LKA, ELK. Stamp là thời điểm gửi yêu cầu.
+- `requests[3]` theo thứ tự LCC, LKA, ELK. Stamp là thời điểm gửi yêu cầu.
 - Planner xử lý OFF, UNAVAILABLE, FAULT như nhau; log phân biệt được.
+- Cả hai planner đọc cùng message. LCC planner đọc state LCC, và đọc state LKA, ELK, `driver_override` để biết khi nào path phải bắt đầu từ vị trí xe (PP-SWR-039, 040). LKA/ELK planner đọc state LKA, ELK và `driver_override`.
 
 | Trường | Kiểu [đơn vị] | Ý nghĩa |
 |---|---|---|
 | `requests[3].state` | uint8 enum { OFF, UNAVAILABLE, STANDBY, REQUEST, FAULT } | OFF: tài xế tắt. UNAVAILABLE: bật nhưng điều kiện chưa thoả. FAULT: lỗi |
-| `requests[3].side` | uint8 enum { NONE, LEFT, RIGHT } | Phía xe đang trôi. HWA dùng NONE |
-| `requests[3].tlc` | float32 [s] | TLC do khối Chức năng ADAS tính. HWA bỏ qua |
+| `requests[3].side` | uint8 enum { NONE, LEFT, RIGHT } | Phía xe đang trôi. LCC dùng NONE |
+| `requests[3].tlc` | float32 [s] | TLC do khối Chức năng ADAS tính. LCC bỏ qua |
 | `requests[3].elk_reason` | uint8 enum { NONE, SOLID_LINE, ROAD_EDGE, ONCOMING, OVERTAKING } | Với yêu cầu ELK `ROAD_EDGE`, planner chọn `road_edges[]` theo `side` và kiểm PP-SWR-047. Các giá trị còn lại dùng để ghi log |
 | `requests[3].cancel_reason` | uint8 enum { NONE, DRIVER_OVERRIDE, INDICATOR, SPEED, LANE_QUALITY, ESC, FAULT } | Chỉ ghi log |
 | `driver_override` | bool | Tài xế đang ghi đè, chung cho message |
@@ -214,7 +220,7 @@ Stamp là thời điểm ước lượng.
 | `mode` | uint8 enum { OFF, CRUISE, FOLLOW, CURVE_LIMIT } | Chế độ của khối dọc |
 | `points[31].v` | float32 [m/s] | Tốc độ dự kiến, bước 0,1 s, cùng lưới với Trajectory. Dải 0–182,04 m/s, bằng dải tốc độ của `ESC_Speed` (mục 5.3) |
 | `points[31].a` | float32 [m/s²] | Gia tốc dự kiến. Dải ±32,767 m/s², bằng dải AccelX của `IMU_Data` (mục 5.3) |
-| `target_id` | uint32 | Vật thể đang bám; 0 nếu không có |
+| `target_id` | uint32 | Vật thể đang bám; 0 nếu không có. LCC planner so với `LeadTarget.id` để biết xe trước có là mục tiêu ACC (PP-SWR-170) |
 
 ### 5.8 VehicleConfig {#vehicle-config}
 
@@ -230,6 +236,21 @@ Stamp là thời điểm ước lượng.
 | `max_wheel_angle` | float32 [rad] | Góc bánh trước tối đa |
 | `max_steering_wheel_rate` | float32 [rad/s] | Tốc độ quay vô lăng tối đa |
 | `actuator_delay` | float32 [s] | Trễ chấp hành danh định của EPS |
+
+### 5.9 LeadTarget {#lead-target}
+
+- Chỉ LCC planner dùng, để bám xe trước khi mất vạch làn mình (PP-SWR-170 đến 177). Perception gửi xe đang là mục tiêu ACC; không có thì `valid = false`.
+- Vị trí là tâm xe trước, trong `base_link` tại thời điểm đo. Vận tốc tương đối là vận tốc xe trước trừ vận tốc xe mình, chiếu lên `base_link`.
+
+| Trường | Kiểu [đơn vị] | Ý nghĩa |
+|---|---|---|
+| `id` | uint32 | Ổn định qua các frame; so với `LongitudinalPlan.target_id` |
+| `classification` | uint8 enum { UNKNOWN, CAR, TRUCK, MOTORCYCLE, OTHER } | Chỉ CAR và TRUCK được bám (điều kiện V1, M6) |
+| `x`, `y` | float32 [m] | Tâm xe trước |
+| `gap` | float32 [m] | Từ bumper trước xe mình tới bumper sau xe trước (điều kiện V2) |
+| `heading` | float32 [rad] | Hướng xe trước so với trục x của `base_link` |
+| `vx_rel`, `vy_rel` | float32 [m/s] | Vận tốc tương đối; x dọc, y ngang |
+| `existence_probability` | float32 [0..1] | Độ tin cậy; dưới `exist_min` thì coi như không có xe trước |
 
 ## 6. Output {#icd-output}
 
@@ -251,30 +272,46 @@ Stamp là thời điểm ước lượng.
 | `points[31].curvature` | float32 [1/m] | Độ cong |
 | `points[31].front_wheel_angle_rad` | float32 [rad] | Góc bánh trước gợi ý cho feedforward |
 | `points[31].rear_wheel_angle_rad` | float32 [rad] | Luôn bằng 0 |
-| `observed_horizon_s` | float32 [s] | Thời điểm trên path mà path ra khỏi tầm nhìn lane model báo; phần sau là ngoại suy và không giữ liên tục giữa hai chu kỳ (PP-SWR-018, PP-ASM-021) |
+| `observed_horizon_s` | float32 [s] | Thời điểm trên path mà path ra khỏi tầm nhìn lane model báo; phần sau là ngoại suy và không giữ liên tục giữa hai chu kỳ (PP-SWR-018, PP-ASM-021). Khi bám xe trước, là thời điểm path tới xe trước |
+| `planner_id` | uint8 enum { LCC, LKA_ELK } | Planner đã gửi message (PP-SWR-019) |
 
-### 6.2 PathStatus {#path-status}
+`header.valid`: LCC planner đặt bằng `path_valid`. LKA/ELK planner đặt true chỉ khi `active_function` khác NONE và path dùng được (PP-SWR-180).
 
-- Bên nhận: khối Chức năng ADAS và Lateral Controller. Lateral Controller chỉ điều khiển khi `path_valid = true` và `active_function` khác NONE.
+### 6.2 LccStatus {#path-status}
+
+- Bên nhận: khối Chức năng ADAS và arbitrator. Lateral Controller chỉ điều khiển theo path của LCC planner khi arbitrator chọn path đó, `path_valid = true` và `lcc_mode` khác NONE.
 
 | Trường | Kiểu | Ý nghĩa |
 |---|---|---|
 | `path_valid` | bool | Path dùng được. False khi hết `T_coast` hoặc input bắt buộc không hợp lệ (PP-SWR-124, 142 đến 145) |
-| `active_function` | uint8 enum { NONE, HWA, LKA, ELK } | Kết quả arbitration: chức năng đang lái. NONE khi `path_valid = false` |
-| `lka_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha LKA. ACTIVE khi LKA đang lái. COMPLETED giữ tới khi LKA rời REQUEST |
-| `elk_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha ELK. ACTIVE khi ELK đang lái. COMPLETED giữ tới khi ELK rời REQUEST |
-| `lateral_limit_reached` | bool | Path đang bị giới hạn vì a_y cần vượt giới hạn của chức năng đang lái (PP-SWR-007, 009; target 008, 064) |
+| `lcc_mode` | uint8 enum { NONE, LANE, INFERRED, FOLLOW, COAST } | Chế độ dựng path. NONE khi LCC không ở REQUEST hoặc `path_valid = false`. LANE: tâm làn từ vạch làn mình. INFERRED: tâm làn suy ra từ biên khác. FOLLOW: bám xe trước (PP-SWR-170 đến 177). COAST: bám path cũ, tối đa `T_coast` |
+| `follow_distance` | float32 [m] | Quãng đường đã đi từ lúc vào FOLLOW; 0 khi không ở FOLLOW. Chỉ để ghi log và hiển thị |
+| `lateral_limit_reached` | bool | Path đang bị giới hạn vì a_y cần vượt giới hạn của LCC (PP-SWR-007, 009; target 008, 064) |
 | `lane_too_narrow` | bool | Khoảng trống mỗi bên nhỏ hơn `free_space_min` (PP-SWR-063) |
 
-Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một PathStatus, pha của chức năng vừa hoàn tất có thể là COMPLETED đồng thời pha của chức năng tiếp quản là ACTIVE.
+### 6.3 InterventionStatus {#intervention-status}
 
-### 6.3 LateralLimits {#lateral-limits}
+- Bên nhận: khối Chức năng ADAS và arbitrator.
+
+| Trường | Kiểu | Ý nghĩa |
+|---|---|---|
+| `path_valid` | bool | Input bắt buộc hợp lệ, planner dựng được path khi có yêu cầu. Không có nghĩa là đang can thiệp (PP-SWR-124, 142 đến 145) |
+| `active_function` | uint8 enum { NONE, LKA, ELK } | Kết quả intervention selection (PP-SWR-030): chức năng đang lái. NONE khi không có yêu cầu hoặc `path_valid = false` |
+| `lka_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha LKA. ACTIVE khi LKA đang lái. COMPLETED giữ tới khi LKA rời REQUEST |
+| `elk_phase` | uint8 enum { NONE, ACTIVE, COMPLETED } | Pha ELK. ACTIVE khi ELK đang lái. COMPLETED giữ tới khi ELK rời REQUEST |
+| `lateral_limit_reached` | bool | Path bị cắt vì giới hạn a_y hoặc jerk của LKA hoặc ELK. Chỉ để ghi log |
+
+Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một InterventionStatus, pha của chức năng vừa hoàn tất có thể là COMPLETED đồng thời pha của chức năng tiếp quản là ACTIVE.
+
+### 6.4 LateralLimits {#lateral-limits}
+
+LCC planner gửi, kể cả khi LKA/ELK planner đang được chọn.
 
 | Trường | Kiểu [đơn vị] | Ý nghĩa |
 |---|---|---|
-| `v_max` | float32 [m/s] | √(giới hạn a_y của chức năng đang lái / κ_max), κ_max là độ cong lớn nhất của đường tham chiếu trong tầm nhìn (PP-SWR-151) |
+| `v_max` | float32 [m/s] | √(aysmax / κ_max), κ_max là độ cong lớn nhất của đường tham chiếu trong tầm nhìn (PP-SWR-151) |
 | `distance` | float32 [m] | Khoảng cách dọc tới điểm có κ_max (PP-SWR-152) |
-| `lateral_limit_reached` | bool | Cùng giá trị với PathStatus của cùng chu kỳ (PP-SWR-009) |
+| `lateral_limit_reached` | bool | Cùng giá trị với LccStatus của cùng chu kỳ (PP-SWR-009) |
 
 ## Revision history {#revision-history}
 
@@ -293,3 +330,4 @@ Khi hủy can thiệp, pha của chức năng bị hủy về NONE. Trong một 
 | 1.10 | 2026-11-13 | Mục 5.7: dải của `v`, `a` trong LongitudinalPlan; ngoài dải planner xử lý như chưa nhận (PP-SWR-156) |
 | 1.11 | 2026-11-14 | Mục 3, 4: kiểm counter của message pub/sub theo AUTOSAR E2E Profile 5, MaxDeltaCounter suy từ timeout nhận; bên nhận giữ message dùng được gần nhất; `valid = false` như mất message. Lý do: PP-PR-035, nghĩa của counter nhảy chưa rõ. Ảnh hưởng: PP-SWR-129, 130; Software Detailed Design T1; F15 |
 | 1.12 | 2026-11-14 | Mục 4: message đầu tiên sau khi message đang giữ quá timeout được nhận dù bước counter lớn hơn MaxDeltaCounter (bước 0 vẫn bỏ). Lý do: PP-PR-047. Ảnh hưởng: PP-SWR-153; T1 |
+| 1.13 | 2026-11-18 | Hai planner. Mục 3, 4: contract gọi hàm theo từng planner (`pp_lcc_`, `pp_lkaelk_`), arbitrator nhận Trajectory của cả hai. Mục 5: thêm LeadTarget (5.9); ObjectList chỉ cho LCC planner; FunctionRequests đổi tên HWA thành LCC. Mục 6: PathStatus tách thành LccStatus (có `lcc_mode`, `follow_distance`) và InterventionStatus (`active_function` chỉ NONE, LKA, ELK); Trajectory thêm `planner_id`; LateralLimits chỉ từ LCC planner. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24, PP-ADR-016). Ảnh hưởng: PP-SWR-009, 019, 150, 170 đến 178, 180, 181; schema trong `interfaces/schema/` và C API cần sinh lại |

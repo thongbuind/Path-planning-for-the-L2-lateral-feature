@@ -29,14 +29,26 @@
   // phase: idle, connecting, running, paused, finishing, done, stopped, error
   const S = {
     phase: 'idle', cat: null, d: null, rate: 1, review: null, ac: null, runId: 0, lastK: -1, dirty: true, err: '',
+    run: null, seq: 0, ended: false,   // lượt chạy trên server (run_id), seq của sự kiện cuối đã nhận
+    playback: null, playCfg: false,    // run đang phát lại từ bundle: không chạy planner
     fnFilter: '', q: '',
     sel: { scen: 'S1/c', faults: { F01: 'c', F04: 'a' }, trigger: '', env: { mu: true, cam: true, noise: false }, veh: 'VP-0', seed: 1, acc: '' },
   };
   const R = {};   // phần tử cập nhật theo khung
-  const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp' };
+  const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp', lcc_follow: 'LCC vào FOLLOW' };
+  const curScen = () => (S.playback && !S.playCfg ? null : S.cat.scenarios.find((x) => x.id === S.sel.scen));
+  const resText = (res) => (res.passed ? 'Đạt' : res.judged === false ? 'Không được chấm' : 'Không đạt');
 
   // ---------- Gọi server ----------
+  // Lượt chạy thuộc về server, không thuộc về tab: đóng tab không dừng lượt chạy; mở lại thì nối tiếp.
   const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }).catch(() => null);
+  const runApi = (tail) => 'api/runs/' + S.run + tail;
+  const control = (body) => (S.run ? post(runApi('/control'), body) : null);
+  const ACTIVE = ['QUEUED', 'RUNNING', 'PAUSED'];
+  const RUN_KEY = 'pp-sim-run';
+  function remember() { try { localStorage.setItem(RUN_KEY, JSON.stringify({ run: S.run, sel: S.sel })); } catch (err) { /* không lưu được */ } }
+  function forget() { try { localStorage.removeItem(RUN_KEY); } catch (err) { /* không lưu được */ } }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function config() {
     const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
@@ -51,29 +63,153 @@
   }
 
   // ---------- Menu ----------
-  function buildMenu(cat) {
-    // tình huống
-    const fns = ['Tất cả', ...['HWA', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => cat.scenarios.some((s) => s.fn === f))];
+  const scenarioGroups = new Map();
+  let openGroup = null;
+  let hoverTimer;
+
+  function closeScenarioOptions(restoreFocus = false) {
+    clearTimeout(hoverTimer);
+    if (!openGroup) return;
+    const { trigger, panel } = openGroup;
+    openGroup = null;
+    trigger.setAttribute('aria-expanded', 'false');
+    panel.hidePopover();
+    if (restoreFocus) trigger.focus({ preventScroll: true });
+  }
+
+  function positionScenarioOptions() {
+    const { trigger, panel } = openGroup;
+    const rect = trigger.getBoundingClientRect();
+    const listRect = $('m-scen').getBoundingClientRect();
+    const menuBottom = trigger.closest('.menu').getBoundingClientRect().bottom;
+    const { clientWidth, clientHeight } = document.documentElement;
+    const top = Math.max(listRect.top, document.querySelector('.runbox').getBoundingClientRect().bottom, 0);
+    const bottom = Math.min(listRect.bottom, menuBottom, clientHeight);
+    if (rect.bottom <= top || rect.top >= bottom) {
+      closeScenarioOptions();
+      return;
+    }
+
+    const edge = 8;
+    const rightSpace = clientWidth - rect.right - edge;
+    const beside = rightSpace >= 264;
+    const width = Math.min(336, beside ? rightSpace : clientWidth - 2 * edge);
+    const above = Math.max(rect.top, top) - edge;
+    const below = clientHeight - Math.min(rect.bottom, bottom) - edge;
+    const belowRow = below >= 220 || below >= above;
+    const height = beside ? clientHeight - 2 * edge : (belowRow ? below : above);
+    panel.style.width = width + 'px';
+    panel.style.maxHeight = Math.min(360, height) + 'px';
+    panel.style.left = (beside ? rect.right : Math.max(edge, Math.min(rect.left, clientWidth - width - edge))) + 'px';
+    const y = beside ? Math.min(Math.max(rect.top, top), clientHeight - panel.offsetHeight - edge) :
+      (belowRow ? Math.min(rect.bottom, bottom) : Math.max(rect.top, top) - panel.offsetHeight);
+    panel.style.top = Math.max(edge, y) + 'px';
+  }
+
+  function openScenarioOptions(group) {
+    clearTimeout(hoverTimer);
+    if (openGroup === group) return;
+    closeScenarioOptions();
+    openGroup = group;
+    group.trigger.setAttribute('aria-expanded', 'true');
+    group.panel.showPopover();
+    group.panel.scrollTop = 0;
+    positionScenarioOptions();
+  }
+
+  function buildScenarioMenu(scenarios) {
+    const fns = ['Tất cả', ...['LCC', 'LKA', 'ELK', 'LKA+ELK', 'Khác'].filter((f) => scenarios.some((s) => s.fn === f))];
     const chips = $('fn-chips');
     fns.forEach((f) => {
       const b = h('button', { type: 'button', role: 'radio', 'aria-checked': String(f === 'Tất cả'), 'data-f': f === 'Tất cả' ? '' : f, text: f });
       b.addEventListener('click', (e) => { S.fnFilter = b.dataset.f; filterScen(); [...chips.children].forEach((c) => c.setAttribute('aria-checked', String(c === b))); if (e.detail) b.blur(); });
       chips.appendChild(b);
     });
-    const list = $('m-scen');
-    const dotCls = { HWA: 'hwa', LKA: 'lka', ELK: 'elk', 'LKA+ELK': 'mix' };
-    const frag = document.createDocumentFragment();
-    cat.scenarios.forEach((s) => {
-      const b = h('button', {
-        class: 'srow', type: 'button', role: 'radio', 'aria-checked': 'false', 'data-id': s.id, 'data-fn': s.fn,
-        'data-q': norm(s.code + ' ' + s.desc + ' ' + s.fn),
-        title: s.code + ' · ' + s.desc + ' · ' + s.speed + ' km/h, ' + PP.f(s.dur, 0) + ' s' + (s.traffic ? ', ' + s.traffic + ' xe khác' : ''),
-      }, h('i', { class: 'dot ' + (dotCls[s.fn] || '') }), h('span', { class: 'code', text: s.code }), h('span', { class: 'desc', text: PP.vn(s.desc) }));
-      b.addEventListener('click', (e) => { S.sel.scen = s.id; syncMenu(); if (e.detail) b.blur(); });
-      frag.appendChild(b);
+
+    const bySid = new Map();
+    scenarios.forEach((s) => {
+      if (!bySid.has(s.sid)) bySid.set(s.sid, []);
+      bySid.get(s.sid).push(s);
     });
-    list.appendChild(frag);
+    const list = $('m-scen');
+    const dotCls = { LCC: 'hwa', LKA: 'lka', ELK: 'elk', 'LKA+ELK': 'mix' };
+    bySid.forEach((variants, sid) => {
+      const base = variants.find((s) => s.v === 'a') || variants[0];
+      const id = 'scen-options-' + sid;
+      const trigger = h('button', { class: 'srow', type: 'button', 'aria-controls': id, 'aria-expanded': 'false' },
+        h('i', { class: 'dot ' + (dotCls[base.fn] || ''), 'aria-hidden': 'true' }),
+        h('span', { class: 'code', text: sid }), h('span', { class: 'desc', text: PP.vn(base.desc) }));
+      const panel = h('section', { class: 'scen-options', id, popover: 'manual', 'aria-labelledby': id + '-title' },
+        h('h3', { id: id + '-title' }, h('b', { text: sid }), h('span', { text: 'Biến thể' })));
+      const row = h('div', { class: 'sgroup' }, trigger, panel);
+      const options = variants.map((s) => {
+        const desc = PP.vn(s.desc);
+        const meta = PP.f(s.speed, 0) + ' km/h · ' + PP.f(s.dur, 0) + ' s' + (s.traffic ? ' · ' + s.traffic + ' xe khác' : '');
+        const button = h('button', { class: 'soption', type: 'button', 'aria-pressed': 'false' },
+          h('span', { class: 'code', text: s.code }),
+          h('span', { class: 'desc', text: desc }),
+          h('span', { class: 'smeta', text: meta }));
+        button.addEventListener('click', () => {
+          S.sel.scen = s.id;
+          closeScenarioOptions(panel.contains(document.activeElement));
+          syncMenu();
+        });
+        panel.appendChild(button);
+        return { scenario: s, button, query: norm([s.code, s.sid + s.v, s.id, desc, s.fn].join(' ')) };
+      });
+      const group = { row, trigger, panel, options };
+      scenarioGroups.set(sid, group);
+
+      // Khoảng chờ ngắn để con trỏ đi từ hàng sang bảng.
+      const leave = () => {
+        if (openGroup !== group) return;
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(() => {
+          if (openGroup === group && !panel.contains(document.activeElement)) closeScenarioOptions();
+        }, 180);
+      };
+      trigger.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'touch') return;
+        clearTimeout(hoverTimer);
+        if (!openGroup) openScenarioOptions(group);
+        else if (openGroup !== group) {
+          hoverTimer = setTimeout(() => {
+            if (!openGroup || openGroup.panel.contains(document.activeElement)) return;
+            if (trigger.matches(':hover')) openScenarioOptions(group);
+            else if (!openGroup.row.matches(':hover')) closeScenarioOptions();
+          }, 220);
+        }
+      });
+      trigger.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') leave(); });
+      panel.addEventListener('pointerenter', () => clearTimeout(hoverTimer));
+      panel.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') leave(); });
+      trigger.addEventListener('click', (e) => {
+        openScenarioOptions(group);
+        if (!e.detail && openGroup === group) panel.querySelector('.soption:not([hidden])')?.focus();
+      });
+      row.addEventListener('focusout', (e) => {
+        if (openGroup === group && e.relatedTarget && !row.contains(e.relatedTarget)) closeScenarioOptions();
+      });
+      list.appendChild(row);
+    });
+
     $('q').addEventListener('input', (e) => { S.q = norm(e.target.value.trim()); filterScen(); });
+    document.addEventListener('pointerdown', (e) => {
+      if (openGroup && !openGroup.row.contains(e.target)) closeScenarioOptions();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !openGroup) return;
+      e.preventDefault();
+      closeScenarioOptions(openGroup.row.contains(document.activeElement));
+    });
+    window.addEventListener('resize', () => { if (openGroup) positionScenarioOptions(); });
+    window.addEventListener('scroll', (e) => {
+      if (openGroup && e.target !== openGroup.panel) positionScenarioOptions();
+    }, true);
+  }
+
+  function buildMenu(cat) {
+    buildScenarioMenu(cat.scenarios);
 
     // lỗi
     const mf = $('m-faults');
@@ -135,13 +271,16 @@
   }
 
   function filterScen() {
+    closeScenarioOptions();
     let n = 0;
-    $('m-scen').querySelectorAll('.srow').forEach((b) => {
-      const ok = (!S.fnFilter || b.dataset.fn === S.fnFilter) && (!S.q || b.dataset.q.includes(S.q));
-      b.hidden = !ok;
-      if (ok) n++;
+    scenarioGroups.forEach(({ row, options }) => {
+      options.forEach(({ scenario, button, query }) => {
+        button.hidden = Boolean((S.fnFilter && scenario.fn !== S.fnFilter) || (S.q && !query.includes(S.q)));
+      });
+      row.hidden = options.every(({ button }) => button.hidden);
+      if (!row.hidden) n++;
     });
-    $('n-scen').textContent = n + ' / ' + S.cat.scenarios.length;
+    $('n-scen').textContent = n + ' / ' + scenarioGroups.size;
   }
 
   function applyCombo(c) {
@@ -150,13 +289,17 @@
     const sim = c.sim || {};
     S.sel.env = { mu: (sim.road_mu ?? 1) < 1, cam: (sim.camera_latency_ms ?? 100) !== 100, noise: (sim.perception_noise_scale ?? 1) > 1 };
     if (!c.hosts.some(([a, b]) => a + '/' + b === S.sel.scen)) S.sel.scen = c.hosts[0][0] + '/' + c.hosts[0][1];
-    syncMenu();
+    syncMenu(true);
   }
 
-  function syncMenu() {
-    $('m-scen').querySelectorAll('.srow').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.id === S.sel.scen)));
-    const sel = $('m-scen').querySelector('.srow[aria-checked="true"]');
-    if (sel && !sel.hidden) sel.scrollIntoView({ block: 'nearest' });
+  function syncMenu(revealScenario = false) {
+    scenarioGroups.forEach(({ row, trigger, options }) => {
+      const selected = options.some(({ scenario }) => scenario.id === S.sel.scen);
+      trigger.toggleAttribute('data-selected', selected);
+      options.forEach(({ scenario, button }) => button.setAttribute('aria-pressed', String(scenario.id === S.sel.scen)));
+      if (revealScenario && selected && !row.hidden) row.scrollIntoView({ block: 'nearest' });
+    });
+    syncScenarioDescription();
     let nf = 0;
     S.cat.faults.forEach((f) => {
       const lvl = S.sel.faults[f.id];
@@ -178,6 +321,17 @@
     document.querySelectorAll('#m-combo .combo:not(.ghost)').forEach((b, i) => b.classList.toggle('on', !!combo && S.cat.combos[i] === combo));
     $('trigger').closest('label').hidden = !nf;
     if (S.phase === 'idle') setRunState();
+  }
+
+  function syncScenarioDescription() {
+    const scenario = S.cat.scenarios.find((s) => s.id === S.sel.scen);
+    const description = window.PP_SCENARIO_DESCRIPTIONS?.[scenario?.id]?.[document.documentElement.lang];
+    $('scenario-description').hidden = !description;
+    if (!description) return;
+    const code = $('scenario-description-code');
+    if (code.textContent === scenario.code) return;
+    code.textContent = scenario.code;
+    $('scenario-description-text').textContent = description;
   }
 
   // ---------- Pha và nút ----------
@@ -213,7 +367,7 @@
       running: () => `Đang chạy · ${PP.f(t, 1)} / ${PP.f(d.dur, 0)} s · ${S.rate ? PP.vn(S.rate) + '×' : 'tối đa'}`,
       paused: () => `Tạm dừng ở ${PP.f(S.review != null ? d.t[S.review] : t, 1)} s`,
       finishing: () => 'Đang chấm kết quả…',
-      done: () => 'Xong · ' + (d.res.passed ? 'Đạt' : 'Không đạt'),
+      done: () => (S.playback ? 'Phát lại · ' : 'Xong · ') + resText(d.res),
       stopped: () => `Đã dừng ở ${PP.f(t, 1)} s`,
       error: () => S.err,
     }[S.phase]();
@@ -227,7 +381,9 @@
       tr: { dims: m.tr.dims, pos: [] }, faults: m.faults.map((f) => Object.assign({}, f, { t0: null, t1: null })),
       conds: m.conds, env: m.env, acc: m.acc, trigger: m.trigger,
       n: 0, t: [], ego: { x: [], y: [], yaw: [] }, v: [], ay: [], ayf: [], whl: [], off: [], dl: [], dr: [], fn: [], lk: [], el: [],
+      steeringAngle: [], steeringSystemShare: [],
       pv: [], tv: [], lim: [], nar: [], vmax: [], dist: [], hor: [], cms: [], view: [], age: [], rq: [], tlc: [], ovr: [], traj: [], fa: [], lm: [], lmk: [],
+      ch: [], alt: [], lcc: [], ka: [], lead: [], cl: [], ck: [],
       enums: { phase: ['NONE'], rq: ['OFF'] }, pre: { off: [], dlc: [], ay: [], cms: [] }, run: { mo: 0, md: Infinity, ma: 0, mc: 0 },
       res: null, lim_ay: null,
     };
@@ -238,6 +394,8 @@
     const d = S.d;
     d.t.push(m.t); d.ego.x.push(m.x); d.ego.y.push(m.y); d.ego.yaw.push(m.yaw);
     d.v.push(m.v); d.ay.push(m.ay); d.ayf.push(m.ayf); d.whl.push(m.whl); d.off.push(m.off); d.dl.push(m.dl); d.dr.push(m.dr);
+    d.steeringAngle.push(m.steering_angle ?? m.whl * (d.veh.sr || 15));
+    d.steeringSystemShare.push(m.steering_system_share);
     d.fn.push(Math.max(0, PP.FN.indexOf(m.fn))); d.lk.push(idx(d.enums.phase, m.lk)); d.el.push(idx(d.enums.phase, m.el));
     d.pv.push(m.pv); d.tv.push(m.tv); d.lim.push(m.lim); d.nar.push(m.nar); d.vmax.push(m.vmax); d.dist.push(m.dist);
     d.hor.push(m.hor); d.cms.push(m.cms); d.view.push(m.view); d.age.push(m.age);
@@ -248,6 +406,8 @@
     for (const v of m.fa) d.fa.push(v);
     if (m.lm) d.lm.push(m.lm);          // chỉ có khi camera gửi frame mới; các chu kỳ sau dùng lại frame đó
     d.lmk.push(d.lm.length - 1);
+    d.ch.push(m.ch ?? null); d.alt.push(m.alt ?? null); d.lcc.push(m.lcc ?? null); d.ka.push(m.ka ?? null);
+    d.lead.push(m.lead ?? null); d.cl.push(m.cl ?? null); d.ck.push(m.ck ?? null);
     const r = d.run;
     r.mo = Math.max(r.mo, Math.abs(m.off)); r.md = Math.min(r.md, m.dl, m.dr); r.ma = Math.max(r.ma, Math.abs(m.ayf)); r.mc = Math.max(r.mc, m.cms);
     d.pre.off.push(r.mo * 100); d.pre.dlc.push(r.md * 100); d.pre.ay.push(r.ma); d.pre.cms.push(r.mc);
@@ -271,7 +431,7 @@
       $('scrub').value = '0';
       S.lastK = -1;
       setPhase('running');
-      if (S.rate !== config().rate) post('api/control', { cmd: 'rate', value: S.rate });
+      if (!S.playback && S.rate !== config().rate) control({ cmd: 'rate', value: S.rate });
     } else if (m.type === 'f') {
       if (S.d) pushFrame(m);
     } else if (m.type === 'done') {
@@ -284,59 +444,108 @@
       buildResultsFinal(d);
       setPhase('done');
     } else if (m.type === 'error') {
-      setPhase('error', m.message);
+      if (!S.playback) setPhase('error', m.message);
+    } else if (m.type === 'state') {
+      onState(m);
     }
+  }
+
+  // Trạng thái thực thi do server báo; kết luận đánh giá đến riêng trong 'done'.
+  function onState(m) {
+    if (S.playback) { if (!ACTIVE.includes(m.state) && m.state !== 'PAUSED') S.ended = true; return; }
+    if (m.state === 'PAUSED' && S.phase === 'running') setPhase('paused');
+    else if (m.state === 'RUNNING' && S.phase === 'paused') setPhase('running');
+    if (ACTIVE.includes(m.state)) return;
+    S.ended = true;
+    forget();
+    if (m.state === 'FAILED') setPhase('error', 'Lượt chạy lỗi (' + m.failure + ')' + (m.message ? ': ' + m.message : ''));
+    else if (m.state === 'TIMED_OUT') setPhase('error', 'Lượt chạy quá thời gian cho phép');
+    else if (m.state === 'CANCELLED' && !['stopped', 'idle'].includes(S.phase)) setPhase(S.d && S.d.n ? 'stopped' : 'idle');
   }
 
   async function start() {
     if (!S.cat) return;
     if (S.ac) S.ac.abort();
     const id = ++S.runId;
-    S.d = null; S.review = null; S.lastK = -1;
+    S.d = null; S.review = null; S.lastK = -1; S.playback = null;
     PP.charts.reset(); PP.scene.clear(); resetPanels();
     $('crumb').textContent = '';
     setPhase('connecting');
-    const ac = (S.ac = new AbortController());
     let res;
     try {
-      res = await fetch('api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config()), signal: ac.signal });
+      res = await fetch('api/runs', {
+        method: 'POST', body: JSON.stringify({ config: config() }),
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': Date.now() + '-' + Math.random().toString(16).slice(2) },
+      });
     } catch (e) {
-      if (id === S.runId) setPhase('error', 'Không kết nối được server. Mô phỏng cần máy chủ cục bộ. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      if (id === S.runId) setPhase('error', 'Không kết nối được server. Mô phỏng cần máy chủ cục bộ. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       return;
     }
-    if (!res.ok) { if (id === S.runId) setPhase('error', 'Server từ chối yêu cầu (' + res.status + ')'); return; }
-    const reader = res.body.getReader(), dec = new TextDecoder();
-    let buf = '';
-    try {
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        let i;
-        while ((i = buf.indexOf('\n')) >= 0) {
-          const line = buf.slice(0, i);
-          buf = buf.slice(i + 1);
-          if (line) onMsg(JSON.parse(line), id);
-        }
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json()).error || ''; } catch (err) { /* không phải JSON */ }
+      if (id === S.runId) setPhase('error', detail || 'Server từ chối yêu cầu (' + res.status + ')');
+      return;
+    }
+    S.run = (await res.json()).run_id;
+    S.seq = 0; S.ended = false;
+    remember();
+    follow(id);
+  }
+
+  // Đọc luồng sự kiện của lượt chạy từ seq đã nhận; mất kết nối thì nối lại, không chạy lại.
+  async function follow(id) {
+    for (let attempt = 0; attempt < 6 && id === S.runId && !S.ended; attempt++) {
+      const ac = (S.ac = new AbortController());
+      let res;
+      try {
+        res = await fetch(runApi('/events?from=' + S.seq), { signal: ac.signal });
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        await sleep(1000);
+        continue;
       }
-    } catch (e) {
-      if (id === S.runId && !ac.signal.aborted) setPhase('error', 'Mất kết nối với server giữa chừng');
-      return;
+      if (!res.ok) { if (id === S.runId) setPhase('error', 'Server từ chối yêu cầu (' + res.status + ')'); return; }
+      const reader = res.body.getReader(), dec = new TextDecoder();
+      let buf = '';
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let i;
+          while ((i = buf.indexOf('\n')) >= 0) {
+            const line = buf.slice(0, i);
+            buf = buf.slice(i + 1);
+            if (!line) continue;          // giữ kết nối
+            const m = JSON.parse(line);
+            if (m.seq) S.seq = m.seq;
+            onMsg(m, id);
+          }
+        }
+        attempt = -1;                     // nhận được dữ liệu: đếm lại số lần thử
+      } catch (e) {
+        if (ac.signal.aborted) return;
+      }
+      if (!S.ended) await sleep(500);
     }
-    if (id === S.runId && ['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) setPhase('error', 'Lượt chạy kết thúc đột ngột');
+    if (id === S.runId && !S.ended && ['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) {
+      setPhase('error', 'Mất kết nối với server giữa chừng');
+    }
   }
 
   function stop() {
     if (!['connecting', 'running', 'paused', 'finishing'].includes(S.phase)) return;
     S.runId++;
     if (S.ac) S.ac.abort();
-    post('api/stop');
+    if (S.run) post(runApi('/cancel'));
+    forget();
     if (S.d && S.d.n) { S.review = null; setPhase('stopped'); } else setPhase('idle');
   }
 
   function togglePause() {
-    if (S.phase === 'running') { post('api/control', { cmd: 'pause' }); setPhase('paused'); }
-    else if (S.phase === 'paused') { S.review = null; post('api/control', { cmd: 'resume' }); setPhase('running'); }
+    if (S.phase === 'running') { control({ cmd: 'pause' }); setPhase('paused'); }
+    else if (S.phase === 'paused') { S.review = null; control({ cmd: 'resume' }); setPhase('running'); }
   }
 
   // Xem lại khung k: chỉ khi không chạy trực tiếp
@@ -346,14 +555,69 @@
     S.dirty = true;
   }
   PP.charts.onSeek = seek;
+  // Tới khung gần thời điểm t nhất, lệch tối đa nửa chu kỳ planner.
+  function seekTime(t) {
+    const d = S.d;
+    if (t == null || !isFinite(t) || !d || !d.n) return;
+    seek(Math.round((t - d.t[0]) / d.dt));
+  }
+
+  function applyConfig(cfg) {
+    const id = cfg && cfg.scenario ? cfg.scenario.sid + '/' + cfg.scenario.v : null;
+    S.playCfg = !!(id && S.cat.scenarios.some((x) => x.id === id));
+    if (!S.playCfg) return;
+    const sim = cfg.sim || {};
+    S.sel = { scen: id, faults: Object.fromEntries(cfg.faults || []), trigger: cfg.trigger || '',
+      env: { mu: sim.road_mu === 0.5, cam: sim.camera_latency_ms === 150, noise: sim.perception_noise_scale === 1.5 },
+      veh: cfg.vehicle || 'VP-0', seed: cfg.seed || 1, acc: cfg.acc || '' };
+    syncMenu(true);
+  }
+
+  // Phát lại run đã xong từ luồng khung hình trong bundle: không sinh worker, không gọi planner.
+  async function play(runId, t) {
+    if (S.playback === runId && S.d && S.d.n && S.phase !== 'connecting') { seekTime(t); return; }
+    if (S.ac) S.ac.abort();
+    const id = ++S.runId;
+    S.d = null; S.review = null; S.lastK = -1; S.run = null; S.seq = 0; S.ended = false; S.playback = runId; S.playCfg = false;
+    forget();
+    PP.charts.reset(); PP.scene.clear(); resetPanels();
+    $('crumb').textContent = '';
+    setPhase('connecting');
+    let info, text;
+    try {
+      const a = await fetch('api/runs/' + runId);
+      if (!a.ok) throw new Error('HTTP ' + a.status);
+      info = await a.json();
+      const b = await fetch('api/runs/' + runId + '/events?from=0');
+      if (!b.ok) throw new Error('HTTP ' + b.status);
+      text = await b.text();
+    } catch (e) {
+      if (id === S.runId) setPhase('error', 'Không đọc được run ' + runId + ': ' + e.message);
+      return;
+    }
+    if (id !== S.runId) return;
+    applyConfig(info.request && info.request.config);
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]) onMsg(JSON.parse(lines[i]), id);
+      if (i % 200 === 199) { await sleep(0); if (id !== S.runId) return; }
+    }
+    if (!S.d || !S.d.n) { setPhase('error', 'Run này không có khung hình để phát lại.'); return; }
+    if (S.phase !== 'done') setPhase('stopped');
+    seekTime(t);
+  }
 
   // ---------- Đầu trang và bảng thông số ----------
   function header(d) {
-    const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
+    const sc = curScen();
     const crumb = $('crumb');
     crumb.textContent = '';
+    if (S.playback) {
+      crumb.appendChild(h('span', { class: 'replay', text: 'Phát lại từ bundle, không chạy planner' }));
+      crumb.appendChild(h('i', { text: '/' }));
+    }
     crumb.appendChild(h('strong', { text: (sc ? sc.fn + ' · ' + sc.code : d.name) }));
-    crumb.appendChild(h('span', { text: PP.vn((S.cat.scenarios.find((x) => x.id === S.sel.scen) || {}).desc || d.desc) }));
+    crumb.appendChild(h('span', { text: PP.vn((sc || {}).desc || d.desc) }));
     const fl = d.faults.map((f) => f.short);
     if (fl.length || d.conds.length) {
       crumb.appendChild(h('i', { text: '/' }));
@@ -380,7 +644,7 @@
   function buildPanel(d) {
     const root = $('pane-live');
     root.textContent = '';
-    const sc = S.cat.scenarios.find((x) => x.id === S.sel.scen);
+    const sc = curScen();
     R.pill = h('span', { class: 'pill run' });
     R.pillState = '';
     root.appendChild(h('div', { class: 'case-head' }, h('div', { class: 'case-title', text: sc ? PP.vn(sc.desc) : d.name }), R.pill));
@@ -390,14 +654,20 @@
       ['v', 'Tốc độ', 'km/h'], ['off', 'Lệch tâm làn, + trái', 'cm'], ['dl', 'DLC trái', 'cm'], ['dr', 'DLC phải', 'cm'],
       ['ay', 'a_y, lọc R79', 'm/s²'], ['st', 'Góc vô lăng', '°']])));
 
-    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Vào', h('em', { text: 'mỗi 25 ms, 40 Hz' })), kv([
-      ['rq', 'Yêu cầu chức năng', ''], ['tlc', 'TLC của LKA, ELK', 's'], ['view', 'Tầm nhìn lane model', 'm'], ['age', 'Tuổi dữ liệu camera', 'ms']])));
-    const rq = h('span', { class: 'rq' }, ['HWA', 'LKA', 'ELK'].map((f) => h('span', { 'data-f': f, 'data-s': 'OFF', text: f })));
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Vào', h('em', { text: 'planner nhận, mỗi 25 ms' })), kv([
+      ['rq', 'Yêu cầu chức năng', ''], ['tlc', 'TLC của LKA, ELK', 's'], ['view', 'Tầm nhìn lane model', 'm'], ['age', 'Tuổi dữ liệu camera', 'ms'], ['lead', 'LeadTarget', '']])));
+    const rq = h('span', { class: 'rq' }, ['LCC', 'LKA', 'ELK'].map((f) => h('span', { 'data-f': f, 'data-s': 'OFF', text: f })));
     R.rq_dd.replaceChildren(rq);
     R.rq_chips = [...rq.children];
 
-    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Ra', h('em', { text: 'pp_step()' })), kv([
-      ['fn', 'Chức năng đang lái', ''], ['pv', 'Path hợp lệ', ''], ['lim', 'Giới hạn ngang', ''], ['hor', 'Horizon quan sát', 's'], ['cms', 'Thời gian tính', 'ms']])));
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Path được chọn', h('em', { text: 'arbitrator chạy thử' })), kv([
+      ['ch', 'Planner được chọn', ''], ['fn', 'Chức năng đang lái', ''], ['pv', 'Path hợp lệ', ''], ['lim', 'Giới hạn ngang', ''], ['hor', 'Horizon quan sát', 's']])));
+
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'LCC planner', h('em', { text: 'output LccStatus' })), kv([
+      ['lcm', 'Chế độ', ''], ['lcv', 'Path hợp lệ', ''], ['lcd', 'Quãng đã bám xe', 'm'], ['lct', 'Thời gian tính', 'ms']])));
+
+    root.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'LKA/ELK planner', h('em', { text: 'output InterventionStatus' })), kv([
+      ['kaf', 'Chức năng', ''], ['kap', 'Pha', ''], ['kav', 'Path hợp lệ', ''], ['kat', 'Thời gian tính', 'ms']])));
 
     const cs = h('ul', { class: 'conds' });
     R.conds = [];
@@ -431,15 +701,22 @@
   const sig = (v) => PP.f(v, Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : Math.abs(v) >= 1 ? 2 : Math.abs(v) >= 0.1 ? 3 : 4);
   function buildResultsFinal(d) {
     const crit = d.res.criteria, bad = crit.filter((c) => !c.passed);
+    const unjudged = d.res.judged === false && !bad.length;
     const body = h('div', {});
     body.appendChild(h('div', { class: 'case-head', style: 'margin-top:14px' },
-      h('div', { class: 'case-title', text: d.res.passed ? 'Đạt toàn bộ tiêu chí áp dụng' : 'Trượt ' + bad.length + ' tiêu chí' }),
-      h('span', { class: 'pill ' + (d.res.passed ? 'ok' : 'bad') }, use(d.res.passed ? 'i-check' : 'i-x'), d.res.passed ? 'Đạt' : 'Không đạt')));
+      h('div', { class: 'case-title', text: d.res.passed ? 'Đạt toàn bộ tiêu chí áp dụng' : unjudged ? 'Ca không được chấm' : 'Trượt ' + bad.length + ' tiêu chí' }),
+      h('span', { class: 'pill ' + (d.res.passed ? 'ok' : unjudged ? 'idle' : 'bad') }, use(d.res.passed ? 'i-check' : unjudged ? 'i-warn' : 'i-x'), resText(d.res))));
     body.appendChild(h('div', { class: 'case-sub', text: crit.length + ' tiêu chí áp dụng cho ca này' + (bad.length ? '. Trượt: ' + bad.map((c) => c.id).join(', ') : '') }));
+    (d.res.not_judged || []).forEach((t) => body.appendChild(h('p', { class: 'note', text: t })));
     const list = h('ul', { class: 'crit' });
     [...bad, ...crit.filter((c) => c.passed)].forEach((c) => {
-      list.appendChild(h('li', { class: c.passed ? 'ok' : 'bad' }, use(c.passed ? 'i-check' : 'i-x'),
-        h('span', {}, h('span', { class: 'm', text: c.metric }), h('span', { class: 'd', text: c.id + ' · đo ' + sig(c.value) + ' · giới hạn ' + PP.limit(c.limit) }))));
+      const info = h('span', {}, h('span', { class: 'm', text: c.metric }), h('span', { class: 'd', text: c.id + ' · đo ' + sig(c.value) + ' · giới hạn ' + PP.limit(c.limit) }));
+      if (!c.passed && c.first_fail_s != null) {
+        const jump = h('button', { class: 'jump', type: 'button', text: 'Tới lần trượt đầu, t = ' + PP.f(c.first_fail_s, 2) + ' s' });
+        jump.addEventListener('click', () => seekTime(c.first_fail_s));
+        info.appendChild(jump);
+      }
+      list.appendChild(h('li', { class: c.passed ? 'ok' : 'bad' }, use(c.passed ? 'i-check' : 'i-x'), info));
     });
     body.appendChild(h('div', { class: 'sec' }, h('h4', {}, 'Tiêu chí', h('em', { text: 'cả lượt chạy, trượt xếp trước' })), list));
     const tg = h('dl', { class: 'kv' });
@@ -458,7 +735,7 @@
     if (!R.pill) return;
     const d = S.d;
     const st = S.phase === 'done' ? (d.res.passed ? 'ok' : 'bad') : S.phase === 'stopped' ? 'stop' : S.phase === 'paused' ? 'pause' : S.phase === 'finishing' ? 'run' : 'run';
-    const txt = { ok: 'Đạt', bad: 'Không đạt', stop: 'Đã dừng', pause: 'Tạm dừng', run: S.phase === 'finishing' ? 'Đang chấm' : 'Đang chạy' }[st];
+    const txt = { ok: 'Đạt', bad: S.phase === 'done' ? resText(d.res) : 'Không đạt', stop: 'Đã dừng', pause: 'Tạm dừng', run: S.phase === 'finishing' ? 'Đang chấm' : 'Đang chạy' }[st];
     if (R.pillState === st + txt) return;
     R.pillState = st + txt;
     R.pill.className = 'pill ' + (st === 'pause' || st === 'stop' ? 'idle' : st);
@@ -497,7 +774,17 @@
     }
     setT(R.lim, d.lim[k] ? 'Chạm' + (d.vmax[k] ? ', v_max ' + PP.f(d.vmax[k] * 3.6, 0) + ' km/h' : '') : '—');
     setT(R.hor, PP.f(d.hor[k], 2));
-    setT(R.cms, PP.f(d.cms[k], 2));
+    const lc = d.lcc[k], ka = d.ka[k], ld = d.lead[k];
+    setT(R.ch, d.ch[k] == null ? '—' : d.ch[k] === 'LCC' ? 'LCC planner' : 'LKA/ELK planner');
+    setT(R.lead, !ld ? '—' : ld.c + ' #' + ld.id + ', cách ' + PP.f(ld.gap, 1) + ' m' + (ld.v ? '' : ', không hợp lệ'));
+    setT(R.lcm, lc ? lc.m : '—');
+    setT(R.lcv, lc ? (lc.v ? 'Có' : 'Không') : '—');
+    setT(R.lcd, lc ? PP.f(lc.d, 1) : '—');
+    setT(R.lct, PP.f(d.cl[k], 2));
+    setT(R.kaf, ka ? ka.f : '—');
+    setT(R.kap, !ka ? '—' : ka.f === 'ELK' ? ka.el : ka.f === 'LKA' ? ka.lk : 'NONE');
+    setT(R.kav, ka ? (ka.v ? 'Có' : 'Không') : '—');
+    setT(R.kat, PP.f(d.ck[k], 2));
 
     const nf = d.faults.length;
     R.conds.forEach((c) => c.li.classList.toggle('on', !!d.fa[k * nf + c.i]));
@@ -518,17 +805,24 @@
     setT($('chip-path-t'), d.pv[k] ? 'Path hợp lệ' : 'Path không hợp lệ');
     $('chip-path').classList.toggle('warn', !d.pv[k]);
     setT($('hud-v'), PP.f(d.v[k] * 3.6, 0));
+    // Mô hình lấy chiều trái là dương; SVG xoay theo chiều kim đồng hồ khi góc dương.
+    $('hud-steering-rotor').setAttribute('transform', `rotate(${-d.steeringAngle[k] * 180 / Math.PI} 24 24)`);
+    const systemShare = d.steeringSystemShare[k];
+    $('hud-steering').style.color = systemShare == null ? '' :
+      `color-mix(in srgb, var(--scr-steering-driver), var(--scr-steering-system) ${systemShare * 100}%)`;
     const act = [];
     for (let i = 0; i < nf; i++) if (d.fa[k * nf + i]) act.push(d.faults[i].short);
     $('fault-flag').classList.toggle('on', act.length > 0);
     setT($('fault-flag-t'), act.join(' · '));
     const br = $('hud-br');
     if (br.dataset.k !== String(k)) {
-      br.replaceChildren(
+      br.replaceChildren(...[
         h('div', { text: 'Tầm nhìn lane model ' + (d.view[k] == null ? '—' : PP.f(d.view[k], 0) + ' m') }),
         h('div', { text: 'Quỹ đạo ' + PP.f(d.hor[k], 1) + ' s, 31 điểm' }),
-        h('div', { class: 'key' }, 'vạch thật', h('i')),
-        h('div', { class: 'key' }, 'vạch lane model', h('i', { class: 'lm' })));
+        d.alt[k] ? h('div', { text: 'Nét đứt: path của planner không được chọn' }) : null,
+        h('div', { class: 'key' }, 'vạch thật (truth)', h('i')),
+        h('div', { class: 'key' }, 'lane model planner nhận', h('i', { class: 'lm' })),
+      ].filter(Boolean));
       br.dataset.k = String(k);
     }
   }
@@ -570,7 +864,7 @@
     if (!b) return;
     S.rate = parseFloat(b.dataset.r);
     [...$('rate').children].forEach((x) => x.setAttribute('aria-checked', String(x === b)));
-    if (S.phase === 'running' || S.phase === 'paused') post('api/control', { cmd: 'rate', value: S.rate });
+    if (S.phase === 'running' || S.phase === 'paused') control({ cmd: 'rate', value: S.rate });
     setRunState();
     if (e.detail) b.blur();
   });
@@ -628,7 +922,7 @@
     PP.scene.clear();
     requestAnimationFrame(loop);
     if (location.protocol === 'file:') {
-      setPhase('error', 'Trang cần server để chạy planner thật. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      setPhase('error', 'Trang cần server để chạy planner thật. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       $('run').disabled = true;
       return;
     }
@@ -661,14 +955,32 @@
         });
       }
     } catch (e) {
-      setPhase('error', 'Không đọc được danh mục từ server (' + e.message + '). Mô phỏng cần máy chủ cục bộ. Chạy: python3 web/serve.py rồi mở http://127.0.0.1:8770/simulation/');
+      setPhase('error', 'Không đọc được danh mục từ server (' + e.message + '). Mô phỏng cần máy chủ cục bộ. Chạy: python3 -m workbench.server rồi mở http://127.0.0.1:8793/');
       $('run').disabled = true;
       return;
     }
     buildMenu(S.cat);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); } catch (err) { /* không đọc được */ }
+    if (saved && saved.sel) S.sel = saved.sel;
     filterScen();
-    syncMenu();
+    syncMenu(true);
     setPhase('idle');
+    if (saved && saved.run) resume(saved.run);
   }
-  boot();
+
+  // Tab mở lại khi lượt chạy cũ còn chạy trên server: nối tiếp từ đầu luồng sự kiện.
+  async function resume(runId) {
+    try {
+      const r = await fetch('api/runs/' + runId);
+      const st = r.ok ? await r.json() : null;
+      if (!st || !ACTIVE.includes(st.state)) { forget(); return; }
+    } catch (err) { return; }
+    S.run = runId; S.seq = 0; S.ended = false;
+    const id = ++S.runId;
+    setPhase('connecting');
+    follow(id);
+  }
+  const booted = boot();
+  PP.sim = { play: async (runId, t) => { await booted; if (S.cat) await play(runId, t); } };
 })();

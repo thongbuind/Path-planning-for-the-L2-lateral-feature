@@ -1,0 +1,20 @@
+# Evaluation plan of PP-TS-022 (research/README.md, step 2). Points of study.md section 3
+# agreed and locked 2026-11-17: baseline is PP-PR-058 and option B of PP-PR-057, committed
+# and regressed first; V2 (per-segment lambda) is not built again; fault durations as they are.
+# Tuning budget: none; every variant at the start calibration (cont_margin 0.9).
+id: PP-TS-022
+locked: 2026-11-17
+suite: PP-TS-022        # benchmark/suites/PP-TS-022.yaml: its tuning and test runs, seeds and scope
+parts: [tuning, test]
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+variants:
+  V0:
+    description: Một λ; mọi điểm so với ngưỡng đoạn 0–1 s (bản hiện tại)
+    calibration: {}
+    cmake: {}
+  V1:
+    description: Một λ; mỗi điểm so với ngưỡng của đoạn mình
+    calibration: {}
+    cmake: {PP_T4_BLEND: banded}

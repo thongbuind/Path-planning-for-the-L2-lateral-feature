@@ -1,8 +1,12 @@
-"""SIL adapter: the C planner library behind the Python Planner contract.
+"""SIL adapter: the two C planner libraries behind the Python planner contract.
 
-The simulator calls exactly the library that would be delivered (PP-ADR-013). This is
-the only place that knows the planner is C. A real vehicle needs its own adapter for
-its platform instead (PP-ASM-019).
+The simulator calls exactly the libraries that would be delivered (PP-ADR-013, PP-ADR-016):
+the LCC planner (pp_lcc_*) and the LKA/ELK planner (pp_lkaelk_*). This is the only place that
+knows the planners are C. A real vehicle needs its own adapter for its platform instead
+(PP-ASM-019).
+
+A planner under test is a directory with libpp_lcc and libpp_lkaelk, or one file that exports
+both families (a stub or a bait planner of the evaluation).
 """
 
 import ctypes
@@ -17,20 +21,33 @@ from adapters.sil.convert import from_c, to_c
 from interfaces import (
     EgoMotionQuery,
     InitResult,
-    PlannerInputs,
-    PlannerOutputs,
+    LccInputs,
+    LccOutputs,
+    LkaElkInputs,
+    LkaElkOutputs,
+    PlannerSet,
     VehicleConfig,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD_DIR = ROOT / "build" / "planner"
 STATE_ALIGNMENT = 8  # PP_STATE_ALIGNMENT in interfaces/c/pp_planner.h
-# Calls of interfaces/c/pp_planner.h needed to run a planner at all. pp_version is also part
-# of the contract; a library without it still runs, conformance C1 reports it.
-REQUIRED_SYMBOLS = ("pp_state_size", "pp_init", "pp_step")
-# In-house builds known to use an older PathStatus layout (before independent LKA and ELK
-# phases). Other libraries are not judged by name; layout is checked by conformance C1.
-_INCOMPATIBLE_VERSIONS = ("pp_planner 0.0.", "pp_planner 0.1.")
+
+
+@dataclass(frozen=True)
+class Family:
+    """One planner family of interfaces/c/pp_planner.h."""
+
+    name: str      # "lcc", "lkaelk"
+    prefix: str    # C symbol prefix
+    library: str   # library name without lib and suffix
+    inputs: str    # interface type names, see adapters/sil/pp_ctypes.py
+    outputs: str
+
+
+LCC = Family("lcc", "pp_lcc", "pp_lcc", "LccInputs", "LccOutputs")
+LKAELK = Family("lkaelk", "pp_lkaelk", "pp_lkaelk", "LkaElkInputs", "LkaElkOutputs")
+FAMILIES = (LCC, LKAELK)
 
 _EGO_MOTION_FN = ctypes.CFUNCTYPE(
     None,
@@ -40,111 +57,142 @@ _EGO_MOTION_FN = ctypes.CFUNCTYPE(
 )
 
 
-def library_path(name: str = "pp_planner") -> Path:
-    """Built library; PP_PLANNER_LIB overrides the default build location."""
-    override = os.environ.get("PP_PLANNER_LIB") if name == "pp_planner" else None
-    if override:
-        return Path(override)
-    suffix = ".dylib" if sys.platform == "darwin" else ".so"
-    return BUILD_DIR / f"lib{name}{suffix}"
+def _suffix() -> str:
+    return ".dylib" if sys.platform == "darwin" else ".so"
+
+
+def library_path(name: str = "pp_lcc") -> Path:
+    """A library of the in-repo build, by its name (pp_lcc, pp_lkaelk, pp_layout_probe)."""
+    return BUILD_DIR / f"lib{name}{_suffix()}"
 
 
 class IncompatibleLibrary(ValueError):
     """The file is not a planner library that can be called through pp_planner.h."""
 
 
-def load_library(path: Path | None = None) -> ctypes.CDLL:
-    path = Path(path or library_path())
+def load_library(path: Path, family: Family = LCC) -> ctypes.CDLL:
+    path = Path(path)
     if not path.is_file():
         raise IncompatibleLibrary(f"planner library not found: {path}")
     try:
         lib = ctypes.CDLL(str(path))
     except OSError as error:
         raise IncompatibleLibrary(f"cannot load {path}: {error}") from error
-    missing = [name for name in REQUIRED_SYMBOLS if not hasattr(lib, name)]
+    p = family.prefix
+    missing = [f"{p}_{name}" for name in ("state_size", "init", "step") if not hasattr(lib, f"{p}_{name}")]
     if missing:
         raise IncompatibleLibrary(f"{path}: missing {', '.join(missing)} (interfaces/c/pp_planner.h)")
-    lib.pp_state_size.restype = ctypes.c_size_t
-    lib.pp_state_size.argtypes = []
-    lib.pp_init.restype = ctypes.c_uint8
-    lib.pp_init.argtypes = [ctypes.c_void_p, ctypes.c_size_t,
-                            ctypes.POINTER(pp_ctypes.VehicleConfigC)]
-    lib.pp_step.restype = None
-    lib.pp_step.argtypes = [ctypes.c_void_p, ctypes.POINTER(pp_ctypes.PlannerInputsC),
-                            _EGO_MOTION_FN, ctypes.c_void_p,
-                            ctypes.POINTER(pp_ctypes.PlannerOutputsC)]
-    if hasattr(lib, "pp_version"):  # libraries built before pp_version() lack it
-        lib.pp_version.restype = ctypes.c_char_p
-        lib.pp_version.argtypes = []
+    size = getattr(lib, f"{p}_state_size")
+    size.restype = ctypes.c_size_t
+    size.argtypes = []
+    init = getattr(lib, f"{p}_init")
+    init.restype = ctypes.c_uint8
+    init.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.POINTER(pp_ctypes.VehicleConfigC)]
+    step = getattr(lib, f"{p}_step")
+    step.restype = None
+    step.argtypes = [ctypes.c_void_p, ctypes.POINTER(getattr(pp_ctypes, f"{family.inputs}C")),
+                     _EGO_MOTION_FN, ctypes.c_void_p, ctypes.POINTER(getattr(pp_ctypes, f"{family.outputs}C"))]
+    if hasattr(lib, f"{p}_version"):  # a library without it still runs, conformance C1 reports it
+        version = getattr(lib, f"{p}_version")
+        version.restype = ctypes.c_char_p
+        version.argtypes = []
     return lib
 
 
-def library_version(path: Path | None = None) -> str | None:
-    """Identification string of a built library (pp_version()), None if it has none."""
-    lib = load_library(path)
-    return lib.pp_version().decode("ascii", errors="replace") if hasattr(lib, "pp_version") else None
-
-
-def check_version(lib: ctypes.CDLL) -> str | None:
-    """pp_version() of a loaded library; refuses known incompatible in-house builds."""
-    if not hasattr(lib, "pp_version"):
-        return None
-    version = lib.pp_version().decode("ascii", errors="replace")
-    if version.startswith(_INCOMPATIBLE_VERSIONS):
-        raise IncompatibleLibrary(f"Incompatible PathStatus ABI in {lib._name}: {version}")
-    return version
+def library_version(path: Path, family: Family = LCC) -> str | None:
+    """Identification string of a built library (pp_<planner>_version()), None if it has none."""
+    lib = load_library(Path(path), family)
+    fn = getattr(lib, f"{family.prefix}_version", None)
+    return fn().decode("ascii", errors="replace") if fn is not None else None
 
 
 @functools.lru_cache(maxsize=None)
-def _cached_library(path: str) -> ctypes.CDLL:
-    lib = load_library(Path(path))
-    check_version(lib)
-    return lib
+def _cached_library(path: str, family_name: str) -> ctypes.CDLL:
+    family = next(f for f in FAMILIES if f.name == family_name)
+    return load_library(Path(path), family)
 
 
 @dataclass(frozen=True)
-class PlannerLibrary:
-    """Planner factory (interfaces.PlannerFactory) for any C library built against
-    interfaces/c/pp_planner.h. Picklable, so a worker process loads the library itself;
-    each process loads one path once. Instances of one library share its process image,
-    as two instances on one ECU would."""
+class PlannerLibraries:
+    """Planner factory (interfaces.PlannerFactory) for the two C libraries built against
+    interfaces/c/pp_planner.h. Picklable, so a worker process loads the libraries itself; each
+    process loads a path once. Instances of one library share its process image, as two
+    instances on one ECU would. `lcc` and `lka_elk` may be the same file."""
 
-    path: Path
+    lcc: Path
+    lka_elk: Path
+    only: str | None = None
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "path", Path(self.path).resolve())
+        object.__setattr__(self, "lcc", Path(self.lcc).resolve())
+        object.__setattr__(self, "lka_elk", Path(self.lka_elk).resolve())
 
-    def load(self) -> ctypes.CDLL:
-        return _cached_library(str(self.path))
+    @classmethod
+    def at(cls, location: Path) -> "PlannerLibraries":
+        """A directory with libpp_lcc and libpp_lkaelk, or one file exporting both families."""
+        location = Path(location)
+        if location.is_dir():
+            return cls(location / f"libpp_lcc{_suffix()}", location / f"libpp_lkaelk{_suffix()}")
+        return cls(location, location)
+
+    @classmethod
+    def default(cls) -> "PlannerLibraries":
+        """PP_PLANNER_LIB, else the in-repo build."""
+        override = os.environ.get("PP_PLANNER_LIB")
+        return cls.at(Path(override) if override else BUILD_DIR)
+
+    @property
+    def path(self) -> Path:
+        """The LCC library: the one to show where a single path is wanted."""
+        return self.paths()[0][0]
+
+    @property
+    def location(self) -> Path:
+        return self.lcc if self.lcc == self.lka_elk else self.lcc.parent
+
+    def paths(self) -> tuple[tuple[Path, Family], ...]:
+        """Each library once with the family it is read for; a file with both families once per family."""
+        libraries = ((self.lcc, LCC), (self.lka_elk, LKAELK))
+        return tuple((path, family) for path, family in libraries
+                     if self.only is None or self.only == family.name)
+
+    def load(self) -> tuple[ctypes.CDLL, ...]:
+        return tuple(_cached_library(str(path), family.name) for path, family in self.paths())
 
     def version(self) -> str | None:
-        return check_version(self.load())
+        """Both identification strings, joined with ' | '; None when a library has none."""
+        texts = [library_version(path, family) for path, family in self.paths()]
+        return None if any(t is None for t in texts) else " | ".join(texts)
 
-    def __call__(self, vehicle_config: VehicleConfig | None) -> "SilPlanner":
-        return SilPlanner(vehicle_config, library=self.load())
+    def __call__(self, vehicle_config: VehicleConfig | None) -> PlannerSet:
+        instances = {family.name: SilPlanner(vehicle_config, library, family)
+                     for (_, family), library in zip(self.paths(), self.load())}
+        return PlannerSet(instances.get(LCC.name), instances.get(LKAELK.name))
 
 
 class SilPlanner:
-    """One planner instance in the C library; meets interfaces.Planner."""
+    """One planner instance in a C library; meets interfaces.LccPlanner or LkaElkPlanner."""
 
-    def __init__(self, vehicle_config: VehicleConfig | None, library: ctypes.CDLL | None = None) -> None:
-        self._lib = library or _cached_library(str(library_path()))
-        check_version(self._lib)
-        size = int(self._lib.pp_state_size())
+    def __init__(self, vehicle_config: VehicleConfig | None, library: ctypes.CDLL, family: Family) -> None:
+        self._lib = library
+        self._family = family
+        p = family.prefix
+        self._step = getattr(library, f"{p}_step")
+        size = int(getattr(library, f"{p}_state_size")())
         words = (size + STATE_ALIGNMENT - 1) // STATE_ALIGNMENT
         self._state = (ctypes.c_uint64 * words)()  # 8-byte aligned, owned here, no heap in C
         config = (ctypes.pointer(to_c(vehicle_config, "VehicleConfig"))
                   if vehicle_config is not None else None)
         self._init_result = InitResult(
-            self._lib.pp_init(self._state, ctypes.sizeof(self._state), config))
-        self._inputs = pp_ctypes.PlannerInputsC()
-        self._outputs = pp_ctypes.PlannerOutputsC()
+            getattr(library, f"{p}_init")(self._state, ctypes.sizeof(self._state), config))
+        self._inputs = getattr(pp_ctypes, f"{family.inputs}C")()
+        self._outputs = getattr(pp_ctypes, f"{family.outputs}C")()
 
     @property
     def init_result(self) -> InitResult:
         return self._init_result
 
-    def step(self, inputs: PlannerInputs, ego_motion: EgoMotionQuery) -> PlannerOutputs:
+    def step(self, inputs: LccInputs | LkaElkInputs, ego_motion: EgoMotionQuery) -> LccOutputs | LkaElkOutputs:
         errors: list[BaseException] = []
 
         def answer(_context, request_ptr, response_ptr) -> None:
@@ -156,9 +204,8 @@ class SilPlanner:
                 response_ptr.contents.valid = False
 
         callback = _EGO_MOTION_FN(answer)  # kept alive for the duration of the call
-        to_c(inputs, "PlannerInputs", self._inputs)
-        self._lib.pp_step(self._state, ctypes.byref(self._inputs), callback, None,
-                          ctypes.byref(self._outputs))
+        to_c(inputs, self._family.inputs, self._inputs)
+        self._step(self._state, ctypes.byref(self._inputs), callback, None, ctypes.byref(self._outputs))
         if errors:
             raise errors[0]
-        return from_c(self._outputs, "PlannerOutputs")
+        return from_c(self._outputs, self._family.outputs)

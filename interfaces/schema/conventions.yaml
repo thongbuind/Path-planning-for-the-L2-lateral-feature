@@ -18,7 +18,7 @@ structs:
       - {name: valid, type: bool, doc: "Validity of the whole message"}
       - {name: frame_id, type: FrameId, doc: "BASE_LINK: rear axle centre, x forward, y left, z up"}
   BasicHeader:
-    doc: "Header without frame_id (PathStatus, LateralLimits, FunctionRequests, chassis signals)"
+    doc: "Header without frame_id (LccStatus, InterventionStatus, LateralLimits, FunctionRequests, chassis signals)"
     fields:
       - {name: stamp_us, type: uint64, unit: us}
       - {name: counter, type: uint8}

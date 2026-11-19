@@ -6,7 +6,7 @@ model sends no flag for any of them (PP-ASM-009).
 | kind | Effect while active |
 |---|---|
 | noise | c0 += N(0, sigma_c0), c1 += N(0, sigma_c1) per line and frame; reported variance = sigma^2 |
-| c0_jump | c0 += value on the chosen lines |
+| c0_jump | c0 += value on the chosen lines and edges; with `ramp_s` > 0 the value is reached linearly over that time (F24 e) |
 | lose_line | chosen lines LOST, confidence 0 |
 | fade_line | confidence falls linearly to 0 over `value` seconds, then LOST |
 | c2_error, c3_error | c2 or c3 += value on the chosen lines |
@@ -48,14 +48,37 @@ class LaneFault:
     sigma_c1: float = 0.0
     edges: tuple[int, ...] = ()
     trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
+    ramp_s: float = 0.0  # c0_jump: time to reach `value`; 0 is a step
+    # "drift": the boundary on the side the scenario's driver drifts to (F24: lines and edges are chosen
+    # when the run starts, and `value` is the distance away from the car, so its sign follows the side)
+    side: str = ""
 
     def __post_init__(self) -> None:
+        if self.ramp_s < 0 or self.side not in ("", "drift"):
+            raise ValueError("ramp_s must not be negative; side is empty or drift")
         if self.kind not in KINDS:
             raise ValueError(f"unknown lane fault {self.kind!r}")
         trigger.check(self.trigger)
 
     def active(self, t_s: float) -> bool:
         return t_s >= self.start_s and (self.duration_s is None or t_s < self.start_s + self.duration_s)
+
+
+def resolve_side(fault: LaneFault, drift_curvature: float | None) -> LaneFault:
+    """A fault with side "drift" becomes one on the left boundaries when the driver drifts left
+    (drift_curvature > 0), else on the right ones; value is away from the car."""
+    if fault.side != "drift":
+        return fault
+    left = drift_curvature is not None and drift_curvature > 0
+    return replace(fault, side="", lines=(1,) if left else (2,), edges=(0,) if left else (1,),
+                   value=fault.value if left else -fault.value)
+
+
+def _ramp(fault: LaneFault, t_s: float) -> float:
+    """Share of `value` reached at t_s: 1 for a step, linear over ramp_s otherwise."""
+    if fault.ramp_s <= 0.0:
+        return 1.0
+    return min(1.0, max(0.0, (t_s - fault.start_s) / fault.ramp_s))
 
 
 class LaneFaultInjector:
@@ -102,7 +125,7 @@ class LaneFaultInjector:
             for i in fault.lines:
                 line = lines[i]
                 if fault.kind == "c0_jump":
-                    lines[i] = replace(line, c0=line.c0 + fault.value)
+                    lines[i] = replace(line, c0=line.c0 + fault.value * _ramp(fault, t_s))
                 elif fault.kind == "c2_error":
                     lines[i] = replace(line, c2=line.c2 + fault.value)
                 elif fault.kind == "c3_error":
@@ -144,6 +167,8 @@ class LaneFaultInjector:
                                 else replace(edge, confidence=edge.confidence * left))
                 elif fault.kind == "confidence" and edge.status != LineStatus.LOST:
                     edges[i] = replace(edge, confidence=fault.value)
+                elif fault.kind == "c0_jump" and edge.status != LineStatus.LOST:
+                    edges[i] = replace(edge, c0=edge.c0 + fault.value * _ramp(fault, t_s))
             if fault.kind == "confidence":
                 for i in fault.lines:
                     if lines[i].status != LineStatus.LOST:

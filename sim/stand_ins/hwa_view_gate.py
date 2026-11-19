@@ -1,8 +1,10 @@
-"""HWA view-range availability (ADAS Function Specification 7, 13), test side.
+"""LCC (HWA) view-range availability (ADAS Function Specification 7, 13), test side.
 
 Preview time = common view range end of the two ego-lane lines (L1, R1) / speed. Below
-`t_view_hwa` for longer than `t_view_hold`, HWA leaves REQUEST for UNAVAILABLE, and it
-returns by itself once the preview is long enough again (ADAS Function Specification 9.1).
+`t_view_hwa` for longer than `t_view_hold`, LCC leaves REQUEST for UNAVAILABLE, and it
+returns by itself once the preview is long enough again (ADAS Function Specification 9.1). The rule
+is not applied while the LCC planner follows the lead vehicle (lcc_mode FOLLOW): the lines are lost
+on purpose there (ADAS Function Specification 7).
 Used with scripted requests, where the scenario otherwise holds HWA in REQUEST.
 """
 
@@ -46,8 +48,11 @@ class HwaViewGate:
         return now_us - self._short_since_us <= round(self.cal.t_view_hold * _US_PER_S)
 
     def apply(self, request: FunctionRequest, now_us: int, lane: LaneModel | None,
-              speed_mps: float) -> FunctionRequest:
-        """HWA request after the view rule; call once per FunctionRequests cycle."""
+              speed_mps: float, following: bool = False) -> FunctionRequest:
+        """LCC request after the view rule; call once per FunctionRequests cycle."""
+        if following:
+            self._short_since_us = None
+            return request
         ok = self.available(now_us, lane, speed_mps)
         if request.state == RequestState.REQUEST and not ok:
             return replace(request, state=RequestState.UNAVAILABLE)

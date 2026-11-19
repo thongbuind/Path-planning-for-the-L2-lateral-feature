@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<OpenSCENARIO>
+  <FileHeader author="Path Planner" date="2026-11-18T00:00:00Z" description="S23" revMajor="1" revMinor="3" />
+  <ParameterValueDistribution>
+    <ScenarioFile filepath="S23.xosc" />
+    <Deterministic>
+      <DeterministicSingleParameterDistribution parameterName="loss_duration_s">
+        <DistributionRange stepWidth="0.5">
+          <Range lowerLimit="1.5" upperLimit="3.0" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="lead_s_m">
+        <DistributionRange stepWidth="5.0">
+          <Range lowerLimit="16.9" upperLimit="74.9" />
+        </DistributionRange>
+      </DeterministicSingleParameterDistribution>
+      <DeterministicSingleParameterDistribution parameterName="profile">
+        <DistributionSet>
+          <Element value="VP-0" />
+          <Element value="VP-1" />
+          <Element value="VP-2" />
+          <Element value="VP-3" />
+          <Element value="VP-4" />
+          <Element value="VP-5" />
+        </DistributionSet>
+      </DeterministicSingleParameterDistribution>
+    </Deterministic>
+  </ParameterValueDistribution>
+</OpenSCENARIO>

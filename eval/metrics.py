@@ -10,7 +10,7 @@ not applicable. Information only: a_y and jerk on the vehicle as R79 Annex 8, 2.
 (r79_vehicle), until a requirement points to it.
 """
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from math import cos, hypot, isfinite, sin
 
 import numpy as np
@@ -18,10 +18,11 @@ import numpy as np
 from eval.calibration import requirement_parameters
 from interfaces import (
     FUNCTION_REQUESTS_MAX_AGE_US, FUNCTION_REQUESTS_TIMEOUT_US, PLANNER_PERIOD_US,
-    TRAJECTORY_STEP_S, ActiveFunction, ElkReason, FunctionRequest, InterventionPhase, LineStatus, RequestState,
-    RoadEdgeType, Side,
+    TRAJECTORY_STEP_S, ElkReason, FunctionRequest, InterventionFunction, InterventionPhase, LccMode, LineStatus,
+    PlannerId, RequestState, RoadEdgeType, Side,
 )
 from sim.harness import PlannerCycle, RunLog, plan_in_range
+from sim.stand_ins.arbitrator import ActiveFunction
 from sim.stand_ins.eps import HANDOVER_S
 from sim.world.road import lane_boundaries
 from sim.world.traffic import Traffic
@@ -44,11 +45,15 @@ RECENTER_MAX_M = 0.5  # PP-SWR-052: HWA starts with the car up to 0.5 m off cent
 TRUTH_STEP = 10  # Ground truth samples (1 ms) per offset sample, 10 ms
 GRID_STEP_S = float(TRAJECTORY_STEP_S)
 BIG_VEHICLE_WIDTH_M = 2.3  # Software Requirements Specification 4, "Xe lớn"
+OTHER_SIDE_OFFSET_M = 0.02  # PP-SWR-065 (a vehicle on the other side: no offset)
+DLC_REVERSAL_MAX_M = 0.1  # PP-SWR-094, 3 sigma of c0 by day (PP-ASM-011)
+OFFSET_TOLERANCE_M = 0.02  # PP-SWR-066: offset_truck plus this
 BODY_OVERHANG_M = 1.0  # Software Qualification Test Specification 8.1: car body = rear axle - 1 m .. front axle + 1 m
 INTERVENTION_FUNCTIONS = (ActiveFunction.LKA, ActiveFunction.ELK)
 INTERVENTION_LIMITS = {ActiveFunction.LKA: (3.0, 1.5, 5.0),
                        ActiveFunction.ELK: (4.0, 3.0, 10.0)}  # PP-SWR-110 to 115
-ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-031, 080
+ENTRY_D_M = ENTRY_V_LAT_MPS = 0.1  # PP-SWR-080
+ENTRY_KAPPA = 0.0003  # PP-SWR-049 [1/m]
 MARK_DTLE_MIN_M = -0.3  # PP-SWR-086, 091
 EDGE_DTLE_MIN_M = -0.1  # PP-SWR-086, 091
 EPS_DELAY_MAX_S = 0.1  # PP-SWR-091
@@ -59,7 +64,7 @@ FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132
 # PP-SWR-030 over-refusal (Software Qualification Test Specification 5.3): priority, inputs whose
 # loss allows path_valid = false (PP-SWR-124, 142, 145), and the time after such an input is
 # usable again during which not driving is not counted: upper limit of T_coast (SRS 7).
-FUNCTION_PRIORITY = (ActiveFunction.ELK, ActiveFunction.LKA, ActiveFunction.HWA)
+FUNCTION_PRIORITY = (ActiveFunction.ELK, ActiveFunction.LKA, ActiveFunction.LCC)
 INPUTS_FOR_PATH = ("lane_model", "imu", "steering", "speed", "function_requests", "ego_motion")
 RECOVERY_GRACE_S = 1.0
 
@@ -110,7 +115,10 @@ class Result:
     def passed(self) -> bool | None:
         if not self.scored:
             return None
-        return not self.case_failures and all(c.passed for c in self.criteria if c.applicable)
+        if (any(i["kind"] != ISSUE_NOT_JUDGED for i in self.issues)
+                or any(c.applicable and not c.passed for c in self.criteria)):
+            return False
+        return None if self.case_failures else True
 
     def to_dict(self) -> dict:
         return {"scenario": self.scenario, "seed": self.seed, "passed": self.passed,
@@ -161,8 +169,10 @@ def _nonfinite(value, path: str) -> str | None:
 def execution_fault(cycles) -> tuple[float, str] | None:
     """First cycle whose sent outputs hold NaN or infinity: (t0 [s], field)."""
     for c in cycles:
-        for name in ("trajectory", "path_status", "lateral_limits"):
-            message = getattr(c, name)
+        # The chosen Trajectory first, then each planner's own outputs (a planner that is not chosen can fault too).
+        for name in ("trajectory", "lateral_limits", "lcc_trajectory", "lcc_status", "ka_trajectory",
+                     "intervention_status"):
+            message = getattr(c, name, None)
             found = None if message is None else _nonfinite(message, name)
             if found:
                 return c.t0_us * 1e-6, found
@@ -175,7 +185,7 @@ def _valid(c: PlannerCycle) -> bool:
 
 
 def _hwa(c: PlannerCycle) -> bool:
-    return _valid(c) and c.path_status.active_function == ActiveFunction.HWA
+    return _valid(c) and c.path_status.active_function == ActiveFunction.LCC
 
 
 class _Truth:
@@ -293,6 +303,8 @@ class _BigVehicles:
     away_058: float | None = None  # Offset away when an approaching big vehicle becomes abreast
     clearance_057: float = np.inf  # Smallest true clearance from the car body while abreast
     return_059: float | None = None  # From the end of abreast to the car within 0.1 m of centre
+    offset_066: float = -np.inf  # Largest path offset while exactly one big vehicle is too close, other side empty
+    other_065: float = -np.inf  # Largest path offset while one is too close and a vehicle is on the other side
 
 
 def _barrier_clearance(log: RunLog, cycles, truth: _Truth) -> float | None:
@@ -317,7 +329,8 @@ def _barrier_clearance(log: RunLog, cycles, truth: _Truth) -> float | None:
     return float(best) if np.isfinite(best) else None
 
 
-def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> _BigVehicles | None:
+def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float, ttc_s: float = 3.0,
+                  hold_s: float = 1.0) -> _BigVehicles | None:
     road, w = log.road, log.road.lane_width
     geometry = road.layout.geometry
     specs = [sp for sp in log.scenario.traffic if sp.width >= BIG_VEHICLE_WIDTH_M
@@ -325,12 +338,16 @@ def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> 
     if not specs:
         return None
     traffic = Traffic(road._road if geometry is not None else road, tuple(specs))
+    others = Traffic(road._road if geometry is not None else road, tuple(
+        sp for sp in log.scenario.traffic if sp.width < BIG_VEHICLE_WIDTH_M and sp.direction == 1
+        and (geometry is not None or w / 2 < abs(sp.d) < 1.5 * w)))
     half_car = 0.5 * log.vehicle_width
     n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
     out = _BigVehicles()
     s_hint = None
     was_abreast = None
     end_us = None
+    other_until = {1: -np.inf, -1: -np.inf}
     for c, p in zip(cycles, paths):
         rear, front = truth.rear_at(c.t0_us), truth.front_at(c.t0_us)
         pr = road.project(rear[0], rear[1], s_hint)
@@ -356,6 +373,23 @@ def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> 
                     out.clearance_057 = min(out.clearance_057,
                                             abs(v.d - d_car) - 0.5 * v.width - half_car)
         abreast = bool(np.isfinite(gaps[1]) or np.isfinite(gaps[-1]))
+        # A vehicle that is not a big one, abreast or about to be, in an adjacent lane (Software Requirements Specification 4)
+        other = {1: False, -1: False}
+        v_ego = float(log.speed[truth.index(c.t0_us)])
+        for v in others.at(c.t0_us * 1e-6):
+            side = 1 if v.d > 0 else -1
+            ahead = (v.s - 0.5 * v.length) - body[1]
+            behind = body[0] - (v.s + 0.5 * v.length)
+            if ahead <= 0 <= behind + v.length + (body[1] - body[0]):
+                other[side] = other[side] or behind <= 0
+            if ahead > 0 and v_ego - v.speed > 0 and ahead / (v_ego - v.speed) <= ttc_s:
+                other[side] = True
+            if behind > 0 and v.speed - v_ego > 0 and behind / (v.speed - v_ego) <= ttc_s:
+                other[side] = True
+        for side in (1, -1):   # a vehicle that has just passed still counts for t_offset_hold (Software Architectural Design 6)
+            if other[side]:
+                other_until[side] = c.t0_us * 1e-6 + hold_s
+            other[side] = c.t0_us * 1e-6 <= other_until[side]
         if was_abreast and not abreast and _hwa(c):
             end_us = c.t0_us
         if end_us is not None and out.return_059 is None and abs(pr.d) <= CENTRED_M:
@@ -366,8 +400,11 @@ def _big_vehicles(log: RunLog, cycles, paths, truth: _Truth, gap_min: float) -> 
             one_side = not np.isfinite(gaps[-near])
             if gaps[near] < gap_min:
                 out.toward_056 = max(out.toward_056, -offset_away)
-                if one_side:
+                if one_side and other[-near]:
+                    out.other_065 = max(out.other_065, abs(offset_away))
+                elif one_side:
                     out.away_055 = min(out.away_055, offset_away)
+                    out.offset_066 = max(out.offset_066, float(np.max(np.abs(p.d[:n_window]))))
                     if was_abreast is False:
                         out.away_058 = offset_away if out.away_058 is None else min(out.away_058, offset_away)
         was_abreast = abreast if _hwa(c) else None
@@ -554,7 +591,7 @@ def boundary_fallback_criteria(log: RunLog, cycles, cal: dict[str, float]) -> li
             continue
         if all(c.inputs_ok.get(name, True) for name in INPUTS_FOR_PATH):
             active["PP-SWR-147"][1].append(c)
-            if not _valid(c):
+            if not _some_path_valid(c):
                 bad["PP-SWR-147"].append(c)
         status = c.path_status
         if status is None or not status.header.valid:
@@ -584,7 +621,8 @@ def boundary_fallback_criteria(log: RunLog, cycles, cal: dict[str, float]) -> li
             for rid, (metric, judged) in active.items()]
 
 
-def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal: dict | None = None) -> Criterion:
+def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal: dict | None = None,
+                 *, lcc_enabled: bool = True) -> Criterion:
     """PP-SWR-030 in cases labelled drive or drive_limited (Software Qualification Test
     Specification 5.3): at each cycle the function that drives (NONE when path_valid is false)
     must be the one chosen by priority among the functions in REQUEST. LKA and ELK count once
@@ -598,6 +636,7 @@ def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal
             or any(c.inputs_ok is None for c in cycles):
         return Criterion("PP-SWR-030", metric, float("nan"), "= 0", True, applicable=False)
     started = {ActiveFunction.LKA: False, ActiveFunction.ELK: False}
+    priority = FUNCTION_PRIORITY if lcc_enabled else INTERVENTION_FUNCTIONS[::-1]
     grace_us = round(RECOVERY_GRACE_S * 1e6)
     last_bad_us, previous, wrong, judged, first = None, None, 0, 0, None
     for c in cycles:
@@ -607,14 +646,14 @@ def over_refusal(cycles, expected_outcome: str | None, init_ok: bool = True, cal
             # PP-SWR-045: after the input recovers, LKA and ELK start only on a new REQUEST.
             started = {f: False for f in started}
         message = c.function_requests.message if c.inputs_ok["function_requests"] else None
-        requested = [f for f in FUNCTION_PRIORITY
+        requested = [f for f in priority
                      if message is not None and message.requests[int(f) - 1].state == RequestState.REQUEST]
         for f in started:
             if f not in requested or _phase(c, f) == InterventionPhase.COMPLETED:
                 started[f] = False
         status = c.path_status
         actual = status.active_function if _valid(c) else ActiveFunction.NONE
-        candidates = [f for f in requested if f == ActiveFunction.HWA or started[f]]
+        candidates = [f for f in requested if f == ActiveFunction.LCC or started[f]]
         expected = candidates[0] if candidates else ActiveFunction.NONE
         # Starting a requested function of higher priority is a choice by PP-SWR-030, not a refusal.
         starting = (actual in started and actual in requested and not started[actual]
@@ -690,7 +729,7 @@ def _request_change_criteria(cycles) -> list:
             continue
         rx = c.function_requests
         if previous is not None and rx.rx_us != previous.rx_us:
-            for function in (ActiveFunction.HWA, ActiveFunction.LKA, ActiveFunction.ELK):
+            for function in (ActiveFunction.LCC, ActiveFunction.LKA, ActiveFunction.ELK):
                 was = previous.message.requests[int(function) - 1].state == RequestState.REQUEST
                 now = rx.message.requests[int(function) - 1].state == RequestState.REQUEST
                 if was != now:
@@ -709,7 +748,7 @@ def _request_change_criteria(cycles) -> list:
         if not entering:
             n += 1
             ok += active != function
-        elif (function == ActiveFunction.HWA and not requests.driver_override and c.path_status.path_valid
+        elif (function == ActiveFunction.LCC and not requests.driver_override and c.path_status.path_valid
               and not c.path_status.lane_too_narrow
               and all(requests.requests[int(f) - 1].state != RequestState.REQUEST
                       for f in (ActiveFunction.LKA, ActiveFunction.ELK))):
@@ -812,6 +851,11 @@ def _lane_reason(c, cal: dict | None = None) -> str | None:
     return "PP-SWR-124"
 
 
+def _following(c) -> bool:
+    """The LCC planner built this cycle's path by following the lead vehicle."""
+    return c.lcc_status is not None and c.lcc_status.lcc_mode == LccMode.FOLLOW
+
+
 def lane_loss_criteria(cycles, t_coast_s: float, cal: dict | None = None) -> list[Criterion]:
     """PP-SWR-124 (131, 132 make the input not valid, then the same rule): when the lane model
     stops being usable, path_valid stays true for T_coast, then false; one cycle tolerance."""
@@ -826,10 +870,14 @@ def lane_loss_criteria(cycles, t_coast_s: float, cal: dict | None = None) -> lis
             continue
         start, reason = i, reasons[i]
         coasting = i > 0 and _valid(cycles[i - 1])
+        anchor_us = cycles[start].t0_us  # T_coast counts from the loss, or from the last FOLLOW cycle (PP-SWR-173)
         while i < len(cycles) and usable_once[i]:
-            dt = cycles[i].t0_us - cycles[start].t0_us
+            if i > start and _following(cycles[i - 1]):
+                anchor_us = cycles[i].t0_us
+            dt = cycles[i].t0_us - anchor_us
             valid = _valid(cycles[i])
-            wrong = (coasting and not valid and dt < coast_us - tol_us) or (valid and dt > coast_us + tol_us)
+            wrong = ((coasting and not valid and dt < coast_us - tol_us)
+                     or (valid and dt > coast_us + tol_us and not _following(cycles[i])))   # FOLLOW is a path of its own (PP-SWR-170)
             st = stats[reason]
             st[1] = True
             if wrong:
@@ -925,6 +973,26 @@ def _path_at(cycle, t_us, truth):
     return projected.d, v_lat, ay_add
 
 
+def _some_path_valid(c: PlannerCycle) -> bool:
+    """A planner has a usable path: the LCC planner's Trajectory, or the LKA/ELK planner's path_valid (it can
+    build one from a road edge on request, PP-SWR-047). A path is judged on the planner that is relevant."""
+    lcc = c.lcc_trajectory is not None and c.lcc_status is not None and c.lcc_trajectory.header.valid \
+        and c.lcc_status.path_valid
+    return bool(_valid(c) or lcc or (c.intervention_status is not None and c.intervention_status.path_valid))
+
+
+def _same_planner_pair(prev: PlannerCycle, cur: PlannerCycle) -> bool:
+    """Both paths come from the same planner (Software Requirements Specification 1.24, "Hai path liên tiếp")."""
+    return (prev.path_status is not None and cur.path_status is not None
+            and prev.path_status.chosen == cur.path_status.chosen)
+
+
+def _lcc_holds_at_car(c: PlannerCycle) -> bool:
+    """The path is the LCC planner's and LKA or ELK is in REQUEST: it starts at the car each cycle."""
+    return (c.path_status is not None and c.path_status.chosen == PlannerId.LCC
+            and any(_state(c, f) == RequestState.REQUEST for f in INTERVENTION_FUNCTIONS))
+
+
 def _overriding(cycles) -> set[int]:
     """Cycles with driver_override = true, as for PP-SWR-039: read from usable
     FunctionRequests, the last usable value held in between."""
@@ -993,6 +1061,26 @@ def _min_dlc(truth, start_us, stop_us, side, *, edge=False):
     return value
 
 
+def _dlc_reversal(truth, start_us, stop_us, side, *, edge=False) -> float:
+    """PP-SWR-094: after the smallest true DLC of the intervention, how far the DLC falls back from
+    the largest value it reached since (the car pushed back, then pulled out again)."""
+    road = truth.log.road
+    lo, hi = truth.index(start_us), truth.index(stop_us)
+    hint, series = None, []
+    for x, y, _ in truth.front[lo:hi + 1]:
+        p = road.project(x, y, hint)
+        hint = p.s
+        series.append(_dlc(truth.log, p, side, edge=edge))
+    if not series:
+        return 0.0
+    k = int(np.argmin(series))
+    best, worst = -np.inf, 0.0
+    for value in series[k:]:
+        best = max(best, value)
+        worst = max(worst, best - value)
+    return float(worst)
+
+
 def _handover_end_us(truth, stop_us, next_start_us):
     stop = truth.index(stop_us)
     upper = truth.index(next_start_us)
@@ -1008,6 +1096,7 @@ def _end_condition(truth, prev, cur, side, edge, cal):
     pf = road.project(front[0], front[1])
     pr = road.project(rear[0], rear[1], pf.s)
     if (min(_dlc(truth.log, pf, side, edge=edge), _dlc(truth.log, pf, _opposite(side))) < 0
+            or abs(pr.d) > cal["d_end"]  # near the lane centre (PP-SWR-032, PP-ASM-028)
             or abs(truth.lateral_velocity(i, pf.heading, front=True)) > cal["v_lat_end"]
             or abs(_wrap(rear[2] - pr.heading)) > cal["heading_end"]):
         return False
@@ -1167,8 +1256,8 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
             if (_phase(prev, f) == InterventionPhase.ACTIVE and _state(prev, f) == RequestState.REQUEST
                     and _state(c, f) not in (None, RequestState.REQUEST)):
                 windows.append((c.t0_us, "036"))
-        if _state(prev, ActiveFunction.HWA) == RequestState.REQUEST and \
-                _state(c, ActiveFunction.HWA) not in (None, RequestState.REQUEST):
+        if _state(prev, ActiveFunction.LCC) == RequestState.REQUEST and \
+                _state(c, ActiveFunction.LCC) not in (None, RequestState.REQUEST):
             windows.append((c.t0_us, "042"))
     for start_us, kind in windows:
         judged = [c for c in cycles if start_us + PLANNER_PERIOD_US < c.t0_us <= start_us + PLANNER_PERIOD_US + window_us]
@@ -1179,38 +1268,42 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
             if any(v is None for v in states.values()):
                 continue
             requested = [f for f in FUNCTION_PRIORITY if states[f] == RequestState.REQUEST]
-            actual = c.path_status.active_function if _valid(c) else ActiveFunction.NONE
             if kind == "036":
-                expected = ActiveFunction.HWA if ActiveFunction.HWA in requested else ActiveFunction.NONE
-                # Starting another requested intervention is a new choice (PP-SWR-030), not a fault.
-                if actual in INTERVENTION_FUNCTIONS and actual in requested and actual != expected:
-                    continue
+                ka = c.intervention_status
+                actual = ActiveFunction.NONE if ka is None or ka.active_function == InterventionFunction.NONE \
+                    else ActiveFunction[ka.active_function.name]
+                eligible = [f for f in (ActiveFunction.ELK, ActiveFunction.LKA)
+                            if f in requested and _phase(c, f) != InterventionPhase.COMPLETED]
+                expected = eligible[0] if eligible else ActiveFunction.NONE
                 seen["036"] += 1
                 bad["036"] += actual != expected
-                if not requested:
+                if not eligible:
                     seen["037"] += 1
-                    bad["037"] += not (c.path_status is not None and c.path_status.path_valid
-                                       and c.path_status.active_function == ActiveFunction.NONE)
+                    bad["037"] += not (ka is not None and ka.path_valid
+                                       and ka.active_function == InterventionFunction.NONE)
             elif not requested:
                 seen["042"] += 1
-                bad["042"] += not (c.path_status is not None and c.path_status.path_valid
-                                   and c.path_status.active_function == ActiveFunction.NONE)
-    # 039, 040
-    was_override = False
+                lcc = c.lcc_status                   # PP-SWR-042 is a property of the LCC planner
+                bad["042"] += not (lcc is not None and lcc.path_valid and lcc.lcc_mode == LccMode.NONE)
+    # 039, 040 (PP-SWR-039, 040): the LCC planner's own path, whichever the arbitrator chooses
+    was_hold = False
     for c in cycles:
         usable = (c.inputs_ok or {}).get("function_requests") and c.function_requests is not None
         override = bool(usable and c.function_requests.message.driver_override)
-        if _valid(c) and c.trajectory is not None:
-            y0 = abs(c.trajectory.points[0].pose.y)
-            if override:
+        hold = override or any(_state(c, f) == RequestState.REQUEST for f in INTERVENTION_FUNCTIONS)
+        lcc_ok = (c.lcc_trajectory is not None and c.lcc_status is not None and c.lcc_trajectory.header.valid
+                  and c.lcc_status.path_valid)
+        if lcc_ok:
+            y0 = abs(c.lcc_trajectory.points[0].pose.y)
+            if hold:
                 starts_039.append(y0)
-            elif was_override and _hwa(c):
+            elif was_hold and _state(c, ActiveFunction.LCC) == RequestState.REQUEST:
                 starts_040.append(y0)
         if usable:
-            was_override = override
+            was_hold = hold
     # 054
     for c in cycles:
-        if _state(c, ActiveFunction.HWA) != RequestState.REQUEST or not _inputs_ok(c, cal):
+        if _state(c, ActiveFunction.LCC) != RequestState.REQUEST or not _inputs_ok(c, cal):
             continue
         speed = log.speed[int(np.clip(np.searchsorted(t, c.t0_us), 0, len(t) - 1))]
         if 0.0 <= speed <= HWA_LOW_SPEED_MPS:
@@ -1241,10 +1334,10 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
         count("037", "Chu kỳ không có NONE với path hợp lệ sau khi chức năng can thiệp rời REQUEST"),
         count("042", "Chu kỳ không có NONE với path hợp lệ sau khi HWA rời REQUEST"),
         count("054", "Chu kỳ không có path HWA hợp lệ khi HWA ở REQUEST và tốc độ 0–60 km/h"),
-        Criterion("PP-SWR-039", "Lệch ngang điểm đầu path so với xe khi driver_override [m]",
+        Criterion("PP-SWR-039", "Lệch ngang điểm đầu path LCC so với xe khi driver_override hoặc LKA, ELK ở REQUEST [m]",
                   float(max(starts_039, default=float("nan"))), f"<= {OVERRIDE_START_M}",
                   max(starts_039, default=0.0) <= OVERRIDE_START_M, applicable=bool(starts_039)),
-        Criterion("PP-SWR-040", "Lệch ngang điểm đầu path HWA khi hết driver_override [m]",
+        Criterion("PP-SWR-040", "Lệch ngang điểm đầu path LCC khi hết driver_override hoặc LKA, ELK rời REQUEST [m]",
                   float(max(starts_040, default=float("nan"))), f"<= {OVERRIDE_START_M}",
                   max(starts_040, default=0.0) <= OVERRIDE_START_M, applicable=bool(starts_040)),
         Criterion("PP-SWR-061", "Lệch ngang giữa hai path liên tiếp khi lane model sang làn mới / ngưỡng của khoảng",
@@ -1253,6 +1346,237 @@ def switch_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criter
                   cont[1], "<= 1", cont[1] <= 1.0, applicable=n_061 > 0),
         Criterion("PP-SWR-061", "Lệch độ cong giữa hai path liên tiếp khi lane model sang làn mới / ngưỡng của khoảng",
                   cont[2], "<= 1", cont[2] <= 1.0, applicable=n_061 > 0),
+    ]
+
+
+def planner_criteria(cycles, cal: dict | None = None) -> list[Criterion]:
+    """Per-planner outputs (PP-SWR-019, 067, 180; PP-ADR-016).
+
+    - 019: Trajectory.planner_id is the planner that sent it.
+    - 067: LCC in REQUEST, path_valid true and the needed inputs usable: lcc_mode is not NONE.
+    - 180: while the LKA/ELK planner reports active_function NONE, its Trajectory is not valid."""
+    id_bad = id_seen = mode_bad = mode_seen = valid_bad = valid_seen = 0
+    for c in cycles:
+        for traj, expected in ((c.lcc_trajectory, PlannerId.LCC), (c.ka_trajectory, PlannerId.LKA_ELK)):
+            if traj is not None:
+                id_seen += 1
+                id_bad += traj.planner_id != expected
+        if (c.lcc_status is not None and _state(c, ActiveFunction.LCC) == RequestState.REQUEST
+                and c.lcc_status.path_valid and _inputs_ok(c, cal)):
+            mode_seen += 1
+            mode_bad += c.lcc_status.lcc_mode == LccMode.NONE
+        if c.intervention_status is not None and c.ka_trajectory is not None:
+            if c.intervention_status.active_function == InterventionFunction.NONE:
+                valid_seen += 1
+                valid_bad += bool(c.ka_trajectory.header.valid)
+    return [
+        Criterion("PP-SWR-019", "Chu kỳ có planner_id khác planner đã gửi", float(id_bad), "= 0", id_bad == 0,
+                  applicable=id_seen > 0),
+        Criterion("PP-SWR-067", "Chu kỳ LCC ở REQUEST, path_valid mà lcc_mode = NONE", float(mode_bad), "= 0",
+                  mode_bad == 0, applicable=mode_seen > 0),
+        Criterion("PP-SWR-180", "Chu kỳ LKA/ELK planner báo NONE mà Trajectory hợp lệ", float(valid_bad), "= 0",
+                  valid_bad == 0, applicable=valid_seen > 0),
+    ]
+
+
+FOLLOW_SPEED_MAX_MPS = 60 / 3.6  # M3
+FOLLOW_WHEEL_MAX_RAD = np.radians(20.0)  # M4
+FOLLOW_DISTANCE_MAX_M = 30.0  # M5
+FOLLOW_PATH_DEV_M = 0.8  # M1
+FOLLOW_GAP_M = (2.0, 50.0)  # V2
+_FOLLOW_KINDS = ("CAR", "TRUCK")
+
+
+def _follow_coast(log, truth, cycles, following, cal) -> Criterion:
+    """PP-SWR-173: time COAST from the first cycle out of FOLLOW with the boundaries still lost."""
+    coast_us = round(cal.get("T_coast", 1.0) * 1e6)
+    start = first = None
+    tested = False
+    bad = 0
+    distance = last_step = 0.0
+    distance_case = log.scenario.name.startswith(("S22b", "S22-b-"))
+    for i, c in enumerate(cycles):
+        if following[i]:
+            start = None
+            last_step = log.speed[truth.index(c.t0_us)] * PLANNER_PERIOD_US * 1e-6
+            distance += last_step
+            continue
+        if lane_usable(c, cal):
+            start, distance = None, 0.0
+            continue
+        if i > 0 and following[i - 1]:
+            if not distance_case or distance + last_step >= FOLLOW_DISTANCE_MAX_M:
+                start = c.t0_us
+            distance = 0.0
+        if start is None:
+            continue
+        elapsed = c.t0_us - start
+        tested |= elapsed > coast_us + PLANNER_PERIOD_US
+        valid = c.lcc_status.path_valid
+        wrong = ((not valid and elapsed < coast_us - PLANNER_PERIOD_US)
+                 or (valid and elapsed > coast_us + PLANNER_PERIOD_US))
+        if wrong:
+            bad += 1
+            if first is None:
+                first = c.t0_us * 1e-6
+    return Criterion("PP-SWR-173", "Chu kỳ path_valid sai thời hạn T_coast sau FOLLOW", float(bad),
+                     "= 0", bad == 0, applicable=tested or bad > 0, first_fail_s=first)
+
+
+def _follow_path_criteria(log, truth, cycles, following, cal) -> list[Criterion]:
+    """PP-SWR-175 uses LCC's own path irrespective of which path is selected."""
+    ay, jerk, continuity = 0.0, 0.0, 0.0
+    dlc = np.inf
+    missing = n_paths = n_pairs = 0
+    previous = None
+    overrides = _overriding(cycles)
+    truth_times = truth.t
+    for i, c in enumerate(cycles):
+        if not following[i]:
+            previous = None
+            continue
+        traj = c.lcc_trajectory
+        if not (c.lcc_status.path_valid and traj is not None and traj.header.valid and _nonfinite(traj, "") is None):
+            missing += 1
+            previous = None
+            continue
+        cur = replace(c, trajectory=traj)
+        path, _ = _path_truth(cur, truth, log.road, None)
+        n_paths += 1
+        ay = max(ay, float(np.max(np.abs(path.ay))))
+        jerk = max(jerk, _jerk_max(path.ay))
+        if i not in overrides and not any(_state(c, f) == RequestState.REQUEST for f in INTERVENTION_FUNCTIONS):
+            if previous is not None:
+                continuity = max(continuity, *_continuity(previous, cur, truth))
+                n_pairs += 1
+        previous = cur
+        free_space = (log.road.lane_width - log.vehicle_width) * 0.5
+        if i in overrides or np.max(np.abs(path.ay_need)) > AYSMAX or free_space < cal.get("free_space_min", 0.0):
+            continue
+        if c.path_status is None or c.path_status.active_function != ActiveFunction.LCC:
+            continue
+        start = int(np.searchsorted(truth_times, c.t0_us))
+        end = int(np.searchsorted(truth_times, cycles[i + 1].t0_us)) if i + 1 < len(cycles) else len(truth_times)
+        for front in truth.front[start:end]:
+            projection = log.road.project(front[0], front[1])
+            dlc = min(dlc, _dlc(log, projection, Side.LEFT), _dlc(log, projection, Side.RIGHT))
+    rid = "PP-SWR-175"
+    return [
+        Criterion(rid, "Chu kỳ FOLLOW thiếu path LCC hợp lệ", float(missing), "= 0", missing == 0,
+                  applicable=any(following)),
+        Criterion(rid, "Gia tốc ngang lớn nhất của path FOLLOW [m/s²]", ay, f"<= {AYSMAX}",
+                  ay <= AYSMAX, applicable=n_paths > 0),
+        Criterion(rid, "Jerk ngang lớn nhất của path FOLLOW [m/s³]", jerk, f"<= {JERK_MAX_HWA}",
+                  jerk <= JERK_MAX_HWA, applicable=n_paths > 0),
+        Criterion(rid, "DLC nhỏ nhất khi xe chạy theo path FOLLOW [m]", float(dlc), ">= 0", dlc >= 0,
+                  applicable=isfinite(dlc) and log.scenario.loop == "closed"),
+        Criterion(rid, "Sai khác lớn nhất giữa hai path FOLLOW, chia cho giới hạn", continuity, "<= 1",
+                  continuity <= 1.0, applicable=n_pairs > 0),
+    ]
+
+
+def follow_criteria(log: RunLog, cycles, cal: dict | None = None) -> list[Criterion]:
+    """Follow the lead vehicle, PP-SWR-170 to 172, 174, 176, 177 (Software Requirements Specification 8.13).
+
+    The entry conditions V1 to V6 and the keep conditions M3 to M6 are judged from ground truth and from the
+    LeadTarget and LongitudinalPlan as the planner got them; M1 and M2 are inside the planner and not judged.
+    One cycle of reaction is allowed (170, 172, 176)."""
+    cal = cal or {}
+    if not cycles or any(c.lcc_status is None for c in cycles):
+        return []
+    truth = _Truth(log)
+    traffic = Traffic(log.road, tuple(log.scenario.traffic)) if log.scenario.traffic else None
+    lat_max, vlat_max = cal.get("follow_lat_max", 1.0), cal.get("follow_vlat_max", 0.6)
+    conf_ego = cal.get("conf_ego", 0.0)
+    n = len(cycles)
+    mode = [c.lcc_status.lcc_mode for c in cycles]
+    following = [m == LccMode.FOLLOW for m in mode]
+    entry, entry_loose, keep_ok = [False] * n, [False] * n, [True] * n
+    # M1: the path stays within min(0.8 m, free space - dlc_offset_min) of the original centre; the lead's own
+    # offset is the part of it the evaluator can see. Clear margins (0.8 x, 1.25 x) keep the borderline out.
+    free = 0.5 * (log.road.lane_width - log.vehicle_width) - cal.get("dlc_offset_min", 0.3)
+    m1_limit = min(FOLLOW_PATH_DEV_M, free)
+    lines_back = [False] * n
+    entry_id, driven = None, 0.0
+    for i, c in enumerate(cycles):
+        if c.lane_boundaries is None or c.inputs_ok is None:
+            continue
+        both = all(c.lane_boundaries[k][0] == LineStatus.MEASURED and c.lane_boundaries[k][1] >= conf_ego for k in EGO_LINES)
+        lines_back[i] = both and c.inputs_ok.get("lane_model", True)
+        lost = not lane_usable(c, cal)
+        k = truth.index(c.t0_us)
+        speed = log.speed[k]
+        wheel = abs(log.wheel_angle[k] * log.steering_ratio)
+        msg = c.lead_target.message if c.lead_target is not None else None
+        usable = bool((c.inputs_ok or {}).get("lead_target")) and msg is not None
+        plan = c.longitudinal_plan.message if c.longitudinal_plan is not None else None
+        m_ok = speed < FOLLOW_SPEED_MAX_MPS and wheel < FOLLOW_WHEEL_MAX_RAD
+        if following[i]:
+            driven += speed * PLANNER_PERIOD_US * 1e-6
+            if entry_id is not None and usable:
+                m_ok = m_ok and msg.id == entry_id and msg.classification.name in _FOLLOW_KINDS
+            keep_ok[i] = m_ok and driven < FOLLOW_DISTANCE_MAX_M and (usable or i == 0 or not following[i - 1])
+            entry_id = entry_id if entry_id is not None else (msg.id if usable else None)
+        else:
+            driven, entry_id = 0.0, None
+        if not (lost and _state(c, ActiveFunction.LCC) == RequestState.REQUEST and usable and m_ok
+                and plan is not None and msg.id == plan.target_id and msg.classification.name in _FOLLOW_KINDS):
+            continue
+        lead = None
+        if traffic is not None and plan.target_id:
+            lead = next((v for v in traffic.at(c.t0_us * 1e-6) if v.id == plan.target_id), None)
+        if lead is None or lead.kind not in _FOLLOW_KINDS:
+            continue
+        front, rear = truth.front[k], truth.rear[k]
+        pf = log.road.project(front[0], front[1])
+        pr = log.road.project(rear[0], rear[1], pf.s)
+        after = traffic.at(c.t0_us * 1e-6 + 0.1)
+        ahead = next((v for v in after if v.id == lead.id), lead)
+        gap = lead.s - 0.5 * lead.length - (pf.s + BODY_OVERHANG_M)
+        conditions = (FOLLOW_GAP_M[0] <= gap <= FOLLOW_GAP_M[1] and abs(lead.d - pr.d) < lat_max
+                      and abs(ahead.d - lead.d) / 0.1 < vlat_max)
+        entry[i] = bool(conditions and abs(lead.d) < 0.8 * m1_limit)
+        entry_loose[i] = bool(conditions and abs(lead.d) < 1.25 * m1_limit)
+    # 170: when the entry conditions start to hold, FOLLOW within one cycle. M1 and M2 are inside the planner
+    # and not judged here, so a later cycle out of FOLLOW is not counted against it.
+    late = sum(1 for i in range(1, n - 1) if entry[i] and not entry[i - 1] and not any(following[i:i + 2]))
+    held = sum(entry)
+    # 171: FOLLOW starts while the entry conditions do not hold
+    wrong_entry = sum(1 for i in range(1, n) if following[i] and not following[i - 1] and not entry_loose[i]
+                      and (cycles[i].inputs_ok or {}).get("lane_model", True) is not None
+                      and cycles[i].lane_boundaries is not None)
+    # 172: a keep condition fails and FOLLOW lasts longer than one cycle
+    stay = sum(1 for i in range(2, n) if following[i] and following[i - 1] and not keep_ok[i] and not keep_ok[i - 1])
+    # 174: both ego lines trusted for three cycles while still FOLLOW
+    back = sum(1 for i in range(2, n) if following[i] and lines_back[i] and lines_back[i - 1] and lines_back[i - 2])
+    # 176: LeadTarget not usable, FOLLOW lasts longer than one cycle
+    unusable = [not (c.inputs_ok or {}).get("lead_target", True) for c in cycles]
+    leave_176 = sum(1 for i in range(n) if following[i] and unusable[i]
+                    and (i == 0 or not following[i - 1] or unusable[i - 1]))
+    judged_176 = any(bad and (following[i] or i > 0 and following[i - 1]) for i, bad in enumerate(unusable))
+    # 177: the mode is the one the lane model allows
+    wrong_mode = 0
+    for i, c in enumerate(cycles):
+        if c.lane_boundaries is None or c.inputs_ok is None or mode[i] == LccMode.NONE:
+            continue
+        ego = [c.lane_boundaries[k][0] == LineStatus.MEASURED and c.lane_boundaries[k][1] >= conf_ego for k in EGO_LINES]
+        usable_lane = lane_usable(c, cal)
+        wrong_mode += ((mode[i] == LccMode.LANE and not any(ego))
+                       or (mode[i] == LccMode.INFERRED and (any(ego) or not usable_lane))
+                       or (mode[i] in (LccMode.FOLLOW, LccMode.COAST) and usable_lane))
+    judged_modes = any(m != LccMode.NONE for m in mode)
+    any_follow = any(following)
+    return [
+        Criterion("PP-SWR-170", "Chu kỳ đủ điều kiện vào bám xe mà không ở FOLLOW", float(late), "= 0", late == 0, applicable=held >= 3),
+        Criterion("PP-SWR-171", "Lần vào FOLLOW khi điều kiện vào không thoả", float(wrong_entry), "= 0", wrong_entry == 0,
+                  applicable=any_follow or any(not e for e in entry) and any(c.lane_boundaries is not None and not lane_usable(c, cal) for c in cycles)),
+        Criterion("PP-SWR-172", "Chu kỳ còn FOLLOW khi một điều kiện duy trì không thoả", float(stay), "= 0", stay == 0, applicable=any_follow),
+        _follow_coast(log, truth, cycles, following, cal),
+        Criterion("PP-SWR-174", "Chu kỳ còn FOLLOW khi hai vạch làn mình đủ tin trở lại", float(back), "= 0", back == 0, applicable=any_follow),
+        Criterion("PP-SWR-176", "Chu kỳ vào hoặc còn FOLLOW khi LeadTarget không hợp lệ", float(leave_176), "= 0",
+                  leave_176 == 0, applicable=judged_176),
+        Criterion("PP-SWR-177", "Chu kỳ lcc_mode không khớp trạng thái lane model", float(wrong_mode), "= 0", wrong_mode == 0, applicable=judged_modes),
+        *(_follow_path_criteria(log, truth, cycles, following, cal) if any_follow else []),
     ]
 
 
@@ -1409,7 +1733,8 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
             issue(ISSUE_NOT_JUDGED, "PP-SWR-089: lốp trước chưa qua vạch hơn 0,3 m tại lúc nhận REQUEST")
 
     starts = []
-    opposite_dlcs, completed_dlcs = [], []
+    start_kappa = []
+    opposite_dlcs, completed_dlcs, completed_offsets, reversals = [], [], [], []
     dtle_mark, dtle_edge, dtle_lka = [], [], []
     times_to_complete = {f: [] for f in INTERVENTION_FUNCTIONS}
     end_judged = late_completion = early_completion = n_completed = 0
@@ -1431,10 +1756,16 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         edge = req.elk_reason == ElkReason.ROAD_EDGE
         lka = function == ActiveFunction.LKA
         starts.append(_entry_errors(cycles[episode.start], start_us, truth))
+        if _finite_outputs(cycles[episode.start]):
+            # PP-SWR-049: curvature at point 0 against the curvature the car drives, r / v.
+            i_t = truth.index(start_us)
+            car_kappa = truth.log.yaw_rate[i_t] / max(truth.log.speed[i_t], 1.0)
+            start_kappa.append(abs(float(_points(cycles[episode.start].trajectory)[4][0]) - car_kappa))
         elapsed_s = (stop_us - episode.request.rx_us) * 1e-6  # information; no duration limit (PP-TS-016)
         handover_us = _handover_end_us(truth, stop_us, next_us)
         opposite_dlcs.append(_min_dlc(truth, start_us, handover_us, _opposite(req.side)))
         dtle = _min_dlc(truth, start_us, stop_us, req.side, edge=edge)
+        reversals.append(_dlc_reversal(truth, start_us, stop_us, req.side, edge=edge))
         if lka:
             dtle_lka.append(dtle)
         if edge:
@@ -1444,9 +1775,11 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
         if episode.completed:
             n_completed += 1
             times_to_complete[function].append((stop_us - start_us) * 1e-6)
-            if lka:
-                front = truth.front_at(stop_us)
-                completed_dlcs.append(_dlc(log, log.road.project(front[0], front[1]), req.side))
+            front = truth.front_at(stop_us)
+            projected = log.road.project(front[0], front[1])
+            completed_dlcs.append(_dlc(log, projected, req.side))        # PP-SWR-084: both sides, LKA and ELK
+            completed_dlcs.append(_dlc(log, projected, _opposite(req.side)))
+            completed_offsets.append(abs(log.road.project(*truth.rear_at(stop_us)[:2]).d))
         reached, late, early = _completion_errors(truth, episode, cal, edge)
         end_judged += reached
         late_completion += late
@@ -1469,10 +1802,13 @@ def _score_interventions(result, truth, paths, episodes, requests, cal, cycle_ti
 
     upper("PP-SWR-080", "Lệch vị trí ngang tại điểm đầu [m]", [d for d, _ in starts], ENTRY_D_M)
     upper("PP-SWR-080", "Lệch vận tốc ngang tại điểm đầu [m/s]", [v for _, v in starts], ENTRY_V_LAT_MPS)
+    upper("PP-SWR-049", "Lệch độ cong điểm đầu so với xe khi LKA, ELK bắt đầu [1/m]", start_kappa, ENTRY_KAPPA)
     upper("PP-SWR-032", "Lần chưa báo COMPLETED trong T_end_late sau tick đủ điều kiện", [late_completion] if end_judged else [], 0)
     upper("PP-SWR-090", "Lần báo COMPLETED khi chưa đủ điều kiện", [early_completion] if n_completed else [], 0)
-    lower("PP-SWR-084", "DLC phía trôi khi LKA COMPLETED [m]", completed_dlcs, 0)
+    lower("PP-SWR-084", "DLC nhỏ nhất ở hai phía khi LKA hoặc ELK COMPLETED [m]", completed_dlcs, 0)
+    upper("PP-SWR-084", "Lệch tâm khi LKA hoặc ELK COMPLETED [m]", completed_offsets, 2 * cal["d_end"])
     lower("PP-SWR-085", "DLC phía đối diện qua bàn giao EPS [m]", opposite_dlcs, 0)
+    upper("PP-SWR-094", "DLC thật giảm lại lớn nhất sau điểm nhỏ nhất của lần can thiệp [m]", reversals, DLC_REVERSAL_MAX_M)
     lower("PP-SWR-086", "DTLE vạch nhỏ nhất [m]", dtle_mark, MARK_DTLE_MIN_M)
     lower("PP-SWR-086", "DTLE mép đường nhỏ nhất [m]", dtle_edge, EDGE_DTLE_MIN_M)
     # PP-SWR-091: the real EPS of the case is slower than the VehicleConfig value, up to 100 ms (S13).
@@ -1623,6 +1959,60 @@ def _widening_dlc(log, road):
                      minimum >= 0, applicable=isfinite(minimum), first_fail_s=first_fail_s)
 
 
+def _score_fault_exposure(result: Result, log: RunLog) -> None:
+    names = [log.scenario.name, *log.scenario.notes.get("faults", [])]
+    cycles = log.cycles
+    if any(name.startswith("F24") for name in names):
+        stamps = set(log.fault_frames.get("lane_model", []))
+        exposure = next((c.t0_us for prev, c in zip(cycles, cycles[1:])
+                         if (c.input_times or {}).get("lane_model", (None,))[0] in stamps
+                         and prev.path_status is not None
+                         and prev.path_status.active_function in INTERVENTION_FUNCTIONS), None)
+        checks = [c for c in result.criteria if c.applicable and c.id in ("PP-SWR-085", "PP-SWR-086")]
+        judged = exposure is not None and len({c.id for c in checks}) == 2 and log.scenario.loop == "closed"
+        result.info["fault_exposure_s"] = None if exposure is None else exposure * 1e-6
+        if not judged:
+            add_issue(result, ISSUE_NOT_JUDGED, "F24: thiếu frame biên bị đổi trong lúc can thiệp hoặc thiếu đo DLC/DTLE")
+        else:
+            failed = sum(not c.passed for c in checks)
+            result.criteria.append(Criterion("PP-SWR-093", "Tiêu chí DLC và DTLE trượt sau khi nhận lỗi F24",
+                                              float(failed), "= 0", failed == 0))
+    if any(name.startswith("F25") for name in names):
+        start = log.fault_events.get("lcc_follow")
+        stamps = set(log.fault_frames.get("lead_target", []))
+        loss = any(f.channel == "lead_target" and f.kind in ("drop", "stop") for f in log.scenario.channel_faults)
+        previous_stamp = exposure = None
+        for c in cycles:
+            if start is None or c.t0_us <= start or c.lead_target is None:
+                continue
+            stamp = c.lead_target.message.header.stamp_us
+            if stamp in stamps or (loss and previous_stamp is not None
+                                   and any(previous_stamp < s < stamp for s in stamps)):
+                exposure = c.t0_us
+                break
+            if loss and stamps and (c.inputs_ok or {}).get("lead_target") is False and stamp < min(stamps):
+                exposure = c.t0_us
+                break
+            previous_stamp = stamp
+        result.info["fault_exposure_s"] = None if exposure is None else exposure * 1e-6
+        if exposure is None:
+            add_issue(result, ISSUE_NOT_JUDGED, "F25: chưa xác nhận lỗi LeadTarget tới planner sau khi vào FOLLOW")
+
+
+def score_standalone(result: Result, scope: set[str]) -> None:
+    """PP-SWR-181 summarizes the requirements exercised by one isolated S9a run."""
+    failed = {c.id for c in result.criteria if c.id in scope and c.applicable and not c.passed}
+    failed.update(i["requirement"] for i in result.issues
+                  if i["kind"] == ISSUE_REQUIREMENT and i["requirement"] in scope)
+    observed = {c.id for c in result.criteria if c.applicable}
+    required = {"PP-SWR-039", "PP-SWR-040"} if result.info["planner_only"] == "lcc" else {"PP-SWR-030", "PP-SWR-180"}
+    judged = required <= observed and not any(i["kind"] == ISSUE_NOT_JUDGED for i in result.issues)
+    if not judged and not failed:
+        add_issue(result, ISSUE_NOT_JUDGED, "PP-SWR-181: thiếu điều kiện để chấm planner chạy độc lập")
+    result.criteria.append(Criterion("PP-SWR-181", "Yêu cầu trượt khi chỉ chạy một planner", float(len(failed)),
+                                      "= 0", not failed, applicable=judged or bool(failed)))
+
+
 def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result:
     """`calibration`: values of the build under test that requirements point to; by
     default read from the delivered calibration data set."""
@@ -1652,12 +2042,17 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     need_max = np.array([p.ay_need_max if p is not None else 0.0 for p in paths])
 
     # PP-SWR-010, 150: outputs every cycle; PP-SWR-009 same flag in both.
-    sent_every_cycle = all(c.trajectory is not None and c.path_status is not None for c in cycles)
+    lcc_enabled = log.planner_only != "lkaelk"
+    intervention_enabled = log.planner_only != "lcc"
+    missing_outputs = [c for c in cycles
+                       if (lcc_enabled and (c.lcc_trajectory is None or c.lcc_status is None))
+                       or (intervention_enabled and (c.ka_trajectory is None or c.intervention_status is None))]
+    sent_every_cycle = not missing_outputs
     limits_every_cycle = all(c.lateral_limits is not None for c in cycles)
     flag_status = np.array([bool(c.path_status.lateral_limit_reached) if c.path_status else False
                             for c in cycles])
-    flag_same = all(c.lateral_limits is None or c.path_status is None
-                    or c.lateral_limits.lateral_limit_reached == c.path_status.lateral_limit_reached
+    flag_same = all(c.lateral_limits is None or c.lcc_status is None
+                    or c.lateral_limits.lateral_limit_reached == c.lcc_status.lateral_limit_reached
                     for c in cycles)
 
     # PP-SWR-001, 003, 006 while HWA drives; 116, 117 on every valid path; 050 target.
@@ -1666,13 +2061,13 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     def mark(requirement: str, time_s: float) -> None:
         first.setdefault(requirement, float(time_s))
 
+    if missing_outputs:
+        mark("PP-SWR-010", missing_outputs[0].t0_us * 1e-6)
     for i, c in enumerate(cycles):
-        if c.trajectory is None or c.path_status is None:
-            mark("PP-SWR-010", t_s[i])
         if c.lateral_limits is None:
             mark("PP-SWR-150", t_s[i])
-        if (c.lateral_limits is not None and c.path_status is not None
-                and c.lateral_limits.lateral_limit_reached != c.path_status.lateral_limit_reached):
+        if (c.lateral_limits is not None and c.lcc_status is not None
+                and c.lateral_limits.lateral_limit_reached != c.lcc_status.lateral_limit_reached):
             mark("PP-SWR-009", t_s[i])
 
     ay_max = jerk_max = wheel_max = wheel_rate_max = deviation_max = 0.0
@@ -1777,11 +2172,13 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     for i in range(1, len(cycles)):
         if valid[i - 1] and valid[i] and finite[i - 1] and finite[i]:
             if i in intervention_starts:
-                d, v_lat = _entry_errors(cycles[i - 1], cycles[i].t0_us, truth)
-                if d > ENTRY_D_M or v_lat > ENTRY_V_LAT_MPS:
-                    continue  # PP-SWR-031: exception only at the first tick
+                continue  # PP-SWR-031 (SRS 1.23): first cycle of LKA or ELK, judged by 080 and 049
             if i in override_cycles:
                 continue  # Hai path liên tiếp (SRS 1.16, PP-TS-017): not judged while the driver overrides
+            if not _same_planner_pair(cycles[i - 1], cycles[i]):
+                continue  # Hai path liên tiếp: both from one planner (SRS 1.24); the arbitrator's switch is not judged
+            if _lcc_holds_at_car(cycles[i]):
+                continue  # PP-SWR-039, 040: the LCC path starts at the car while LKA or ELK is in REQUEST
             for j, value in enumerate(_continuity(cycles[i - 1], cycles[i], truth)):
                 cont[j] = max(cont[j], value)
                 if value > 1.0:
@@ -1898,7 +2295,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                 curvature_ratio = max(curvature_ratio, ratio)
 
     # PP-SWR-055, 056, 058; targets 057, 059: big vehicle in an adjacent lane.
-    big = _big_vehicles(log, cycles, paths, truth, cal["gap_truck_min"])
+    big = _big_vehicles(log, cycles, paths, truth, cal["gap_truck_min"], cal.get("ttc_offset_start", 3.0), cal.get("t_offset_hold", 1.0))
 
     compute_ms = np.array([c.compute_ns for c in cycles]) * 1e-6
     # Histogram for the suite report (Software Qualification Test Specification 10): counts per
@@ -1913,7 +2310,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     long_view_valid = (sum(c.path_status is not None and c.path_status.path_valid for c in long_view) / len(long_view)
                        if long_view else 1.0)
     criteria = [
-        Criterion("PP-SWR-010", "Trajectory và PathStatus mỗi chu kỳ", float(sent_every_cycle),
+        Criterion("PP-SWR-010", "Trajectory và LccStatus, InterventionStatus mỗi chu kỳ", float(sent_every_cycle),
                   "= 1", sent_every_cycle),
         Criterion("PP-SWR-048", "Tỉ lệ chu kỳ quá timeout từ FunctionRequests dùng được gần nhất có NONE và path không hợp lệ",
                   timeout_share, "= 1", timeout_share == 1.0, applicable=timeout_judged),
@@ -1923,8 +2320,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Criterion("PP-SWR-017", "Tỉ lệ chu kỳ có path hợp lệ khi lane model báo tầm nhìn > 126 m",
                   long_view_valid, "= 1", long_view_valid == 1.0, applicable=bool(long_view)),
         Criterion("PP-SWR-150", "LateralLimits mỗi chu kỳ", float(limits_every_cycle), "= 1",
-                  limits_every_cycle),
-        Criterion("PP-SWR-009", "Cờ giới hạn giống nhau ở PathStatus và LateralLimits",
+                  limits_every_cycle, applicable=lcc_enabled),
+        Criterion("PP-SWR-009", "Cờ giới hạn giống nhau ở LccStatus và LateralLimits",
                   float(flag_same), "= 1", flag_same),
         Criterion("PP-SWR-051", "DLC nhỏ nhất so với làn thật [m]", dlc_min, ">= 0",
                   dlc_min >= 0.0, applicable=bool(np.any(judged_051) if geometry is None else np.isfinite(dlc_min))),
@@ -1949,12 +2346,20 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
                   big.away_055 if big else float("nan"), "> 0", bool(big and big.away_055 > 0.0),
                   applicable=bool(big and np.isfinite(big.away_055))),
         Criterion("PP-SWR-056", "Lệch path về phía xe lớn gần nhất, 0–1 s, lớn nhất khi khoảng hở < gap_truck_min [m]",
-                  big.toward_056 if big else float("nan"), "<= 0", bool(big and big.toward_056 <= 0.0),
+                  big.toward_056 if big else float("nan"), f"<= {OTHER_SIDE_OFFSET_M}", bool(big and big.toward_056 <= OTHER_SIDE_OFFSET_M),
                   applicable=bool(big and np.isfinite(big.toward_056))),
         Criterion("PP-SWR-058", "Lệch path về phía xa xe lớn lúc xe lớn tới ngang hàng [m]",
                   big.away_058 if big and big.away_058 is not None else float("nan"), "> 0",
                   bool(big and big.away_058 is not None and big.away_058 > 0.0),
                   applicable=bool(big and big.away_058 is not None)),
+        Criterion("PP-SWR-065", "Lệch ngang lớn nhất của path khi một xe lớn quá gần và có xe ở làn bên kia [m]",
+                  big.other_065 if big else float("nan"), f"<= {OTHER_SIDE_OFFSET_M}",
+                  bool(big and big.other_065 <= OTHER_SIDE_OFFSET_M),
+                  applicable=bool(big and np.isfinite(big.other_065))),
+        Criterion("PP-SWR-066", "Lệch ngang lớn nhất của path khi dời vì đúng một xe lớn [m]",
+                  big.offset_066 if big else float("nan"), f"<= {cal['offset_truck'] + OFFSET_TOLERANCE_M:.2f}",
+                  bool(big and big.offset_066 <= cal["offset_truck"] + OFFSET_TOLERANCE_M),
+                  applicable=bool(big and np.isfinite(big.offset_066))),
         Criterion("PP-SWR-100", "Lệch ngang giữa hai path liên tiếp / ngưỡng của khoảng", cont[0],
                   "<= 1", cont[0] <= 1.0),
         Criterion("PP-SWR-101", "Lệch hướng giữa hai path liên tiếp / ngưỡng của khoảng", cont[1],
@@ -2034,14 +2439,19 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     for c in criteria:
         if c.applicable and not c.passed:
             c.first_fail_s = first.get(c.id)
-    criteria.append(over_refusal(cycles, log.scenario.notes.get("expected_outcome"),
-                                 log.init_result == 0, cal))
+    if intervention_enabled:
+        criteria.append(over_refusal(cycles, log.scenario.notes.get("expected_outcome"),
+                                     log.init_result == 0, cal, lcc_enabled=lcc_enabled))
     criteria.extend(fault_reaction_criteria(cycles, cal.get("T_coast", 1.0), cal))
     criteria.extend(boundary_fallback_criteria(log, cycles, cal))
     result = Result(log.scenario.name, log.seed, criteria, targets, info)
+    if log.planner_only:
+        result.info["planner_only"] = log.planner_only
     result.info["compute_hist"] = compute_hist
     result.criteria.extend(longitudinal_criteria(log, cycles))
     result.criteria.extend(switch_criteria(log, cycles, cal))
+    result.criteria.extend(planner_criteria(cycles, cal))
+    result.criteria.extend(follow_criteria(log, cycles, cal))
     adas = adas_requests(log)
     if adas is not None:
         result.info["adas_requests"] = adas
@@ -2049,7 +2459,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     if fault is not None:
         add_issue(result, ISSUE_EXECUTION, f"Lỗi thực thi: {fault[1]} không hữu hạn tại t = {fault[0]:.3f} s",
                   first_fail_s=fault[0])
-    _score_interventions(result, truth, paths, episodes, requests, cal, t_s)
+    if intervention_enabled:
+        _score_interventions(result, truth, paths, episodes, requests, cal, t_s)
     # Faults started by a planner-output event (Software Qualification Test Specification 6).
     events = getattr(log, "fault_events", None) or {}
     if events:
@@ -2057,12 +2468,21 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         missing = sorted(k for k, v in events.items() if v is None)
         if missing:
             result.info["faults_not_injected"] = missing
+    _score_fault_exposure(result, log)
+    if (log.scenario.name.startswith(("S22b", "S22-b-"))
+            and not any(c.id == "PP-SWR-173" and c.applicable for c in result.criteria)):
+        add_issue(result, ISSUE_NOT_JUDGED, "S22b: chưa quan sát FOLLOW tới giới hạn 30 m rồi hết cửa sổ T_coast")
     # PP-SWR-062: at an end of the ODD (label L1), every requirement of the run holds.
     from eval import labels
     if labels.difficulty(log.scenario) == "L1":
         failed = [c.id for c in result.criteria if c.applicable and not c.passed] + list(result.case_failures)
         result.criteria.append(Criterion("PP-SWR-062", "Requirement trượt ở biên ODD", float(len(failed)), "= 0",
                                          not failed))
+    # A fault that never started says nothing about the planner under that fault (PP-PR-069).
+    # Criteria stay scored: a planner that never entered ACTIVE still fails the intervention ones.
+    if result.info.get("faults_not_injected"):
+        add_issue(result, ISSUE_NOT_JUDGED,
+                  "Lỗi chưa được bơm: sự kiện " + ", ".join(result.info["faults_not_injected"]) + " không xảy ra")
     if getattr(log.scenario, "loop", "closed") == "open":
         for c in result.criteria:
             if c.id in VEHICLE_CRITERIA:

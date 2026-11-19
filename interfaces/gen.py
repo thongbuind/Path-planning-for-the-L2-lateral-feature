@@ -387,8 +387,8 @@ def gen_python_init(schema: Schema) -> str:
         if public:
             out.append(f"from interfaces.{module} import {', '.join(public)}")
             names += public
-    out.append("from interfaces.planner import EgoMotionQuery, Planner, PlannerFactory")
-    names += ["EgoMotionQuery", "Planner", "PlannerFactory"]
+    out.append("from interfaces.planner import EgoMotionQuery, LccPlanner, LkaElkPlanner, PlannerFactory, PlannerSet")
+    names += ["EgoMotionQuery", "LccPlanner", "LkaElkPlanner", "PlannerFactory", "PlannerSet"]
     out += ["", "__all__ = ["] + [f'    "{n}",' for n in sorted(names)] + ["]", ""]
     return "\n".join(out)
 

@@ -17,6 +17,8 @@ from pathlib import Path
 
 import numpy
 
+from eval import credibility
+
 ROOT = Path(__file__).resolve().parents[1]
 RUNS_DIR = ROOT / "research" / "runs"
 INDEX = RUNS_DIR / "INDEX.md"
@@ -59,7 +61,7 @@ def _rel(path: Path) -> str:
 
 
 def parse_version(text: str | None) -> dict:
-    """'pp_planner 0.1.0 commit <sha>[-dirty] calibration <id>' -> fields."""
+    """'pp_lcc 0.3.0 commit <sha>[-dirty] calibration <id>' -> fields."""
     if not text:
         return {}
     words = text.split()
@@ -72,12 +74,17 @@ def parse_version(text: str | None) -> dict:
     return fields
 
 
-def library_info(path: Path, external: bool = False) -> dict:
+def library_info(path: Path, external: bool = False, family=None) -> dict:
     """external: chosen with --planner; may come from outside this repository."""
-    from adapters.sil.sil_planner import library_version  # loads the library
-    text = library_version(Path(path))
+    from adapters.sil.sil_planner import LCC, library_version  # loads the library
+    text = library_version(Path(path), family or LCC)
     return {"path": _rel(path), "sha256": sha256(path), "pp_version": text,
             "build": parse_version(text), "external": external}
+
+
+def library_infos(planner, external: bool = False) -> list[dict]:
+    """One entry per planner library: the LCC planner and the LKA/ELK planner (PP-ADR-016)."""
+    return [library_info(path, external, family) for path, family in planner.paths()]
 
 
 def _known_commit(commit: str | None) -> bool:
@@ -102,6 +109,7 @@ def make(kind: str, target: str, extra: dict | None = None) -> dict:
     run_id = f"{stamp}-{kind}-{target}-{git['short'] or 'nogit'}" + ("-dirty" if git["dirty"] else "")
     return {"run_id": run_id, "kind": kind, "target": target, "started": now(),
             "command": [Path(sys.argv[0]).name] + sys.argv[1:], "git": git, "libraries": [],
+            "simulator": credibility.simulator_info(git),
             "inputs": input_files(),
             "environment": {"python": platform.python_version(), "numpy": numpy.__version__,
                             "platform": platform.platform(), "machine": platform.machine()},

@@ -14,7 +14,8 @@ BENCHMARK = openx.ROOT / 'benchmark'
 
 
 def test_all_old_scenario_values_preserved():
-    for old in json.loads((FIXTURES / 'legacy_scenarios.json').read_text()).values():
+    duration_changes = {'S1ba': 17, 'S1bb': 17, 'S1bc': 15}  # PP-TS-020 lengthened these anchors
+    for name, old in json.loads((FIXTURES / 'legacy_scenarios.json').read_text()).items():
         p = old['parameters']
         s = loader.load(p['scenario_id'], p['variant'])
         assert [[seg.kind, seg.length, seg.curvature_end] for seg in s.segments] == old['segments']
@@ -22,7 +23,8 @@ def test_all_old_scenario_values_preserved():
                                  ('duration_s', 'duration_s'), ('hwa_request_s', 'hwa_request_s'),
                                  ('start_s', 'start_s_m'), ('start_offset_m', 'start_offset_m'),
                                  ('start_heading_rad', 'start_heading_rad')]:
-            assert getattr(s, field) == pytest.approx(p[parameter]), (s.name, field)
+            expected = duration_changes.get(name, p[parameter]) if field == 'duration_s' else p[parameter]
+            assert getattr(s, field) == pytest.approx(expected), (s.name, field)
         for key in ('profile', 'acc', 'hold_until_hwa'):
             assert getattr(s, key) == p[key]
 
@@ -194,7 +196,8 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
         for folder in ('scenarios', 'faults'):
             for sid in p['definition'][folder]:
                 anchors = openx.anchors(BENCHMARK / folder / f'{sid}.xosc')
-                assert {c['anchor'] for c in p['cases'] if c['family'] == sid and c['anchor']} == set(anchors)
+                selected = p['definition'].get('fault_anchors', {}).get(sid, anchors)
+                assert {c['anchor'] for c in p['cases'] if c['family'] == sid and c['anchor']} == set(selected)
         assert all(r['case'] in case_by_id for r in p['runs'])
     assert {'anchor', 'boundary', 'pairwise', 'lhs', 'protocol'} == {m for c in plans['full']['cases'] for m in c['methods']}
     for p in plans.values():
@@ -319,13 +322,31 @@ def test_lane_faults_run_on_every_host_anchor():
         p = generate.plan(name)
         hosts = {f'{sid}{v}' for sid, v in p['definition']['fault_hosts']}
         assert hosts == {'S1a', 'S1c'}
+        overrides = p['definition'].get('fault_host_overrides', {})   # a fault with its own host (F25 on S22a)
         for fid in p['definition']['faults']:
-            anchors = set(openx.anchors(BENCHMARK / 'faults' / f'{fid}.xosc'))
-            for host in hosts:
+            anchors = openx.anchors(BENCHMARK / 'faults' / f'{fid}.xosc')
+            selected = p['definition'].get('fault_anchors', {}).get(fid, anchors)
+            own = {f'{sid}{v}' for sid, v in overrides.get(fid, [])}
+            for host in own or hosts:
                 cases = [c for c in p['cases'] if c['family'] == fid and c['host'] == host]
-                assert {c['anchor'] for c in cases if c['anchor']} == anchors
+                assert {c['anchor'] for c in cases if c['anchor']} == set(selected)
                 assert all(c['parameters']['fault_start_s'] < c['parameters']['duration_s'] for c in cases)
                 assert all(f'-{host}-' in c['id'] for c in cases)
+
+
+def test_scope_of_new_qualification_runs():
+    for name in ('smoke', 'regression', 'full'):
+        cases = generate.plan(name)['cases']
+        f24 = [c for c in cases if c['family'] == 'F24']
+        f25 = [c for c in cases if c['family'] == 'F25']
+        standalone = [c for c in cases if c.get('planner_only')]
+        assert {c['planner_only'] for c in standalone} == {'lcc', 'lkaelk'}
+        assert all((c['family'], c['anchor']) == ('S9', 'a') for c in standalone)
+        assert {c['host'].split('@')[0] for c in f24} == (
+            {'S20a'} if name == 'smoke' else {'S4a', 'S5a', 'S6a', 'S20a'})
+        assert {c['host'] for c in f25} == {'S22a'}
+        if name == 'smoke':
+            assert len(f24) == len(f25) == 1
 
 
 def test_f21_preserves_geometry_needed_by_its_fault_anchors():

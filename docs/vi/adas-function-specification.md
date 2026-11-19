@@ -3,36 +3,36 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `ADAS-FS` |
-| Phiên bản | 1.8 |
+| Phiên bản | 1.10 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-13 |
+| Cập nhật | 2026-11-18 |
 
 ## 1. Purpose and scope {#adas-scope}
 
-- **Mục đích:** Quy định khi nào khối Chức năng ADAS gửi yêu cầu HWA, LKA, ELK cho path planner, phía nào, với ngưỡng nào.
+- **Mục đích:** Quy định khi nào khối Chức năng ADAS gửi yêu cầu LCC, LKA, ELK cho hai path planner (LCC planner, LKA/ELK planner), phía nào, với ngưỡng nào.
 - **Phạm vi:** Điều kiện khả dụng, ý định tài xế, quyết định kích hoạt, kết thúc và kích hoạt lại, cảnh báo tài xế, message `FunctionRequests`.
-- **Ngoài phạm vi:** Lập path, arbitration, giới hạn a_y (Software Architectural Design); HMI thật; khối dọc.
+- **Ngoài phạm vi:** Lập path, giới hạn a_y (Software Architectural Design); arbitrator chọn path giữa hai planner (của công ty, PP-ASM-022); HMI thật; khối dọc.
 - **Trong simulator:** Khối chạy thử dùng đúng các ngưỡng ở tài liệu này và gửi đúng `FunctionRequests` như khối thật; không có camera trong xe, không có HMI thật. Cách chọn input của khối chạy thử (chế độ A, B) ở Software Qualification Test Specification.
 
 ## 2. References {#adas-references}
 
 | Tài liệu | Dùng cho |
 |---|---|
-| [UN R79, OJ L 2025/3](https://upload.wikimedia.org/wikipedia/commons/f/f3/OJ_L_202500003_of_2025_-_EN_English.pdf) | HWA là ACSF B1 (5.6.2), LKA và ELK vạch là CSF (5.1.6.1), ELK vật thể là ESF (5.1.6.2); ghi đè, cảnh báo |
+| [UN R79, OJ L 2025/3](https://upload.wikimedia.org/wikipedia/commons/f/f3/OJ_L_202500003_of_2025_-_EN_English.pdf) | LCC (HWA) là ACSF B1 (5.6.2), LKA và ELK vạch là CSF (5.1.6.1), ELK vật thể là ESF (5.1.6.2); ghi đè, cảnh báo |
 | [EU 2021/646 (ELKS)](https://eur-lex.europa.eu/eli/reg_impl/2021/646/2021-04-20/eng) | Dải tốc độ 70–130 km/h, mặc định bật, cách tắt, điều kiện được chặn |
 | [Euro NCAP LSS Test Protocol v4.3](https://cdn.euroncap.com/cars/assets/euro_ncap_lss_test_protocol_v43_f2ddd5f6d6.pdf), [Assessment Protocol SA v10.4.1](https://cdn.euroncap.com/cars/assets/euro_ncap_assessment_protocol_sa_collision_avoidance_v1041_fafe1dd418.pdf) | Kịch bản thử, DTLE, mô-men ghi đè 3,5 Nm, ELK khi có xi-nhan, DIM |
 | [ISO 17361:2017](https://standards.iteh.ai/catalog/standards/iso/c3d927a6-f4e1-4b4d-91d2-548cf5953983/iso-17361-2017) (trang tóm tắt) | Không cảnh báo sớm hơn khoảng TLC 1,5 s |
 | ISO 21448:2022 (SOTIF) | Không can thiệp sai khi perception kém |
 | [UN R171 (DCAS)](https://eur-lex.europa.eu/eli/reg/2025/1899/oj/eng) (trang tóm tắt) | Điều kiện hãng tự khai báo để vào chế độ active |
-| [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=vi), [Software Requirements Specification](report.html?doc=path-planner-software-requirements-specification&lang=vi), [Software Architectural Design](report.html?doc=path-planner-software-architectural-design&lang=vi) | Schema `FunctionRequests`, `PathStatus`; yêu cầu của planner; cách planner can thiệp |
+| [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=vi), [Software Requirements Specification](report.html?doc=path-planner-software-requirements-specification&lang=vi), [Software Architectural Design](report.html?doc=path-planner-software-architectural-design&lang=vi) | Schema `FunctionRequests`, `LccStatus`, `InterventionStatus`; yêu cầu của planner; cách planner can thiệp |
 
 ## 3. Phân loại theo quy định {#adas-classification}
 
 | Chức năng | Khái niệm trong quy định | Bật, tắt |
 |---|---|---|
-| HWA | ACSF Category B1 (R79); thuộc R171 khi kết hợp ACC | Tài xế bật bằng nút, cần ACC đang bật; tắt bằng một thao tác (R79 5.6.2.1.2) |
+| LCC (HWA) | ACSF Category B1 (R79); thuộc R171 khi kết hợp ACC | Tài xế bật bằng nút, cần ACC đang bật; tắt bằng một thao tác (R79 5.6.2.1.2) |
 | LKA | CSF dựa trên vạch (R79 2.3.4.2 c) | Mặc định bật; tắt qua menu |
 | ELK, vạch liền và mép đường | CSF và ELKS | Mặc định bật mỗi lần khởi động; tắt qua ít nhất hai thao tác (EU 2021/646 Annex I 3.2.1) |
 | ELK, xe ngược chiều và xe đang vượt | ESF (R79 2.3.4.3 a) | Như dòng trên |
@@ -41,13 +41,14 @@
 
 | Việc | Khối Chức năng ADAS | Path planner |
 |---|---|---|
-| Cài đặt (nút HWA, menu LKA, ELK) | Đọc | Không biết |
+| Cài đặt (nút LCC, menu LKA, ELK) | Đọc | Không biết |
 | Điều kiện khả dụng (mục 7) | Kiểm | Nhận kết quả qua `state` |
 | DLC, v_lat, TLC kèm độ bất định (mục 5) | Tính, riêng với planner (PP-ADR-014) | Dùng TLC để chọn thời lượng path; tự tính trạng thái ngang của mình |
 | Bên kia vạch có nguy hiểm không (mục 6) | Xét | Không xét |
 | Ý định tài xế (mục 8) | Đoán | Nhận `driver_override` |
-| Cảnh báo tài xế (mục 10) | Gửi HMI | Báo `lateral_limit_reached`, `path_valid` |
-| Arbitration, path, giới hạn, kết thúc can thiệp | Không | Làm |
+| Cảnh báo tài xế (mục 10) | Gửi HMI | Báo `lateral_limit_reached`, `path_valid`, `lcc_mode` |
+| Path, giới hạn, kết thúc can thiệp, điều kiện vào và duy trì bám xe trước | Không | Làm, ở hai planner |
+| Chọn path giữa LCC planner và LKA/ELK planner | Không | Không: arbitrator của công ty (PP-ASM-022) |
 | Lọc cảm biến | Không lọc lại; lane model, state estimator, ego-motion đã lọc và gửi kèm phương sai. Phải chịu được phần lỗi còn lại | Như khối Chức năng ADAS |
 
 ## 5. Đại lượng khối Chức năng ADAS tính {#adas-quantities}
@@ -92,19 +93,21 @@ v: tốc độ; v_y: vận tốc ngang tại tâm trục sau; r: yaw rate; x_f: 
 
 Không thoả thì chức năng không được gửi REQUEST. Ngoài dải tốc độ (EU ELKS), quy định không cho số; R79 5.6.2.3.1.1 để hãng tự khai báo.
 
-| Điều kiện | HWA | LKA | ELK | Nguồn |
+| Điều kiện | LCC | LKA | ELK | Nguồn |
 |---|---|---|---|---|
 | Cài đặt | Tài xế đã bật, ACC đang bật | Đang bật trong menu | Đang bật | R79 5.6.2.1.2; EU 2021/646 3.2.1 |
 | Tốc độ | 10–130 km/h; dưới 10 km/h thì chờ | Kích hoạt từ 70 km/h, giữ tới dưới 65 km/h, tối đa 130 km/h | Như LKA | EU 2021/646 3.6.1; R79 B1 |
-| Biên làn | Hai vạch; hoặc một vạch cộng bề rộng nhớ được; hoặc tâm làn planner suy ra từ vạch làn bên, mép đường | Vạch phía đang trôi: MEASURED, confidence ≥ `conf_ego`, tầm nhìn / tốc độ ≥ `t_view_min` | Như LKA. ELK mép đường dùng mép trực tiếp MEASURED, confidence ≥ `conf_edge`, với biên đối diện đủ tin hoặc bề rộng đã nhớ khi mép đã được gắn với làn đang chạy | mentor, PP-SWR-047, PP-TS-007 |
+| Biên làn | Hai vạch; hoặc một vạch cộng bề rộng nhớ được; hoặc tâm làn planner suy ra từ vạch làn bên, mép đường; hoặc LCC planner đang bám xe trước (`lcc_mode = FOLLOW`) | Vạch phía đang trôi: MEASURED, confidence ≥ `conf_ego`, tầm nhìn / tốc độ ≥ `t_view_min` | Như LKA. ELK mép đường dùng mép trực tiếp MEASURED, confidence ≥ `conf_edge`, với biên đối diện đủ tin hoặc bề rộng đã nhớ khi mép đã được gắn với làn đang chạy | mentor, PP-SWR-047, PP-TS-007 |
 | Biên kém tin | — | UNAVAILABLE | UNAVAILABLE ở phía đó | mentor |
-| Tầm nhìn | Thời gian nhìn trước = điểm cuối tầm nhìn chung của hai biên làn / tốc độ ≥ `t_view_hwa`. Thấp hơn liên tục quá `t_view_hold` thì UNAVAILABLE; ngắn hơn thì HWA vẫn lái | Theo `t_view_min` ở dòng Biên làn | Như LKA | R171 5.3.7.1.4 (không mất trợ lực lái đột ngột); ngưỡng nhóm tự thống nhất |
+| Tầm nhìn | Thời gian nhìn trước = điểm cuối tầm nhìn chung của hai biên làn / tốc độ ≥ `t_view_hwa`. Thấp hơn liên tục quá `t_view_hold` thì UNAVAILABLE; ngắn hơn thì LCC vẫn lái. Không áp khi `lcc_mode = FOLLOW`, vì không còn vạch để đo | Theo `t_view_min` ở dòng Biên làn | Như LKA | R171 5.3.7.1.4 (không mất trợ lực lái đột ngột); ngưỡng nhóm tự thống nhất |
 | Khoảng trống | `lane_too_narrow = false` | — | — | PP-SWR-063 |
-| ESC | ESC can thiệp: HWA tiếp tục | ESC can thiệp hoặc bị tắt: chặn | Như LKA | EU 2021/646 3.2.2, 3.3.2 |
-| Input | LaneModel, IMU, tốc độ, góc lái hợp lệ | Như HWA, cộng VehicleStateEstimate | Như LKA; phần vật thể cần thêm ObjectList | PP-SWR-140 đến 144 |
+| ESC | ESC can thiệp: LCC tiếp tục | ESC can thiệp hoặc bị tắt: chặn | Như LKA | EU 2021/646 3.2.2, 3.3.2 |
+| Input | LaneModel, IMU, tốc độ, góc lái hợp lệ | Như LCC, cộng VehicleStateEstimate | Như LKA; phần vật thể cần thêm ObjectList | PP-SWR-140 đến 144 |
 | `path_valid` | — | true | true | PP-SWR-043 |
 
-**Vào HWA.** Khi tài xế bấm nút, HWA chỉ vào khi thêm các điều kiện sau thoả; không thì từ chối và báo tài xế:
+**Bám xe trước.** Khi LCC planner báo `lcc_mode = FOLLOW`, khối Chức năng ADAS giữ LCC ở REQUEST và bỏ qua điều kiện tầm nhìn. Planner kiểm đủ điều kiện vào và duy trì ở Software Requirements Specification mục 8.13 (xe trước, khoảng cách, tốc độ dưới 60 km/h, góc vô lăng dưới 20°, tối đa 30 m); khối Chức năng ADAS không kiểm lại. Planner rời FOLLOW mà vẫn mất vạch thì hết `T_coast` báo `path_valid = false` (mục 9, 10).
+
+**Vào LCC.** Khi tài xế bấm nút, LCC chỉ vào khi thêm các điều kiện sau thoả; không thì từ chối và báo tài xế:
 
 | Điều kiện | Ngưỡng | Nguồn |
 |---|---|---|
@@ -122,10 +125,10 @@ Theo DIM của Euro NCAP, chỉ dùng tín hiệu có trên xe: mô-men tài x�
 |---|---|---|---|
 | Lơ đãng, xe tự trôi | Mô-men < `torque_passive` và tốc độ quay vô lăng < 15 °/s, giữ 0,5 s | Được kích hoạt | Euro NCAP: vô lăng 0 ± 15 °/s trước lúc trôi |
 | Chuyển làn có xi-nhan | Xi-nhan về phía đang trôi, hoặc vừa tắt chưa tới `t_indicator` | Chặn LKA và ELK vạch; ELK vật thể theo mục 6, bước 5 | Euro NCAP (xi-nhan 1,0 ± 0,5 s trước lúc đánh lái) |
-| Chuyển làn không xi-nhan | Mô-men ≥ `torque_intent` về phía vạch, giữ 0,2 s; hoặc tốc độ quay vô lăng ≥ 30 °/s về phía vạch | Như dòng trên | nhóm tự thống nhất |
+| Chuyển làn không xi-nhan | Mô-men ≥ `torque_intent` về phía vạch, giữ 0,2 s; hoặc tốc độ quay vô lăng ≥ 30 °/s về phía vạch khi LKA, ELK không đang can thiệp (lúc can thiệp, vô lăng do hệ thống quay) | Như dòng trên | nhóm tự thống nhất |
 | Ghi đè lúc đang can thiệp | Mô-men ≥ `torque_override` ngược chiều can thiệp, giữ 0,1 s | Gửi OFF, bật `driver_override`; không kích hoạt lại cùng phía trong `t_reactivate_override` | R79 5.1.6; Euro NCAP ≤ 3,5 Nm |
 | Bẻ lái gấp tránh vật | v_lat > `v_lat_swerve`, xi-nhan tắt | Chặn cả LKA và ELK, kể cả khi làn bên có xe; chỉ cảnh báo | R79 5.1.6: tài xế luôn được ghi đè |
-| Tay rời vô lăng | Mô-men < 0,3 Nm liên tục | HWA: cảnh báo hình sau `t_hands_off_visual`, âm thanh sau `t_hands_off_acoustic`, tắt sau `t_hands_off_off`. LKA, ELK vẫn can thiệp | R79 5.6.2.2.5 (giới hạn chậm nhất) |
+| Tay rời vô lăng | Mô-men < 0,3 Nm liên tục | LCC: cảnh báo hình sau `t_hands_off_visual`, âm thanh sau `t_hands_off_acoustic`, tắt sau `t_hands_off_off`. LKA, ELK vẫn can thiệp | R79 5.6.2.2.5 (giới hạn chậm nhất) |
 
 Tài xế giữ vô lăng với mô-men ≥ `torque_override` thì mọi can thiệp đều hủy, kể cả khi tài xế cố ý lái vào xe khác: ở L2 tài xế chịu trách nhiệm.
 
@@ -141,7 +144,7 @@ Mỗi chu kỳ 25 ms, xét từng phía và từng chức năng. Gửi REQUEST k
 | ELK, xe ngược chiều hoặc đang vượt | TLC ≤ `tlc_elk_object` tới vạch, và làn bên không an toàn (mục 6) | Euro NCAP: không va chạm, khoảng cách ngang ≥ 0,3 m |
 
 - Hai phía cùng có yêu cầu: gửi phía có TLC nhỏ hơn.
-- ELK vẫn được yêu cầu khi HWA đang chạy (EU 2021/646 3.3.2 cho phép chặn; dự án không chặn).
+- ELK vẫn được yêu cầu khi LCC đang chạy (EU 2021/646 3.3.2 cho phép chặn; dự án không chặn).
 - Xe khác cắt vào làn mà xe mình không trôi: không gửi ELK; planner dời tâm, khối dọc giữ khoảng cách.
 
 | Sự kiện | Khối Chức năng ADAS làm gì |
@@ -154,6 +157,8 @@ Mỗi chu kỳ 25 ms, xét từng phía và từng chức năng. Gửi REQUEST k
 | Mất một vạch giữa lúc can thiệp, vạch còn lại đủ tin | Giữ REQUEST; planner dùng vạch còn lại cộng bề rộng nhớ được |
 | Mất hai vạch làn mình giữa lúc can thiệp, còn biên khác đủ tin | Hủy can thiệp dựa trên vạch. ELK mép đường tiếp tục nếu còn đủ điều kiện biên theo mục 7 |
 | Không còn biên đủ tin giữa lúc can thiệp | Giữ REQUEST; planner bám path cũ tối đa `T_coast` rồi báo path không hợp lệ (PP-SWR-124) |
+| LCC planner báo `lcc_mode = FOLLOW` | Giữ LCC ở REQUEST, bỏ qua điều kiện tầm nhìn (mục 7); cảnh báo bám xe (mục 10) |
+| LCC planner rời FOLLOW mà vẫn mất vạch | Chờ planner: hết `T_coast` thì `path_valid = false`; yêu cầu tài xế cầm lái (mục 10) |
 
 ### 9.1 Trạng thái chức năng {#adas-modes}
 
@@ -168,11 +173,11 @@ Giá trị `state` trong `FunctionRequests` ([Interface Control Document 5.6](re
 | REQUEST | STANDBY | Planner báo COMPLETED | LKA, ELK | Mục 9 |
 | REQUEST | OFF | Tài xế ghi đè | LKA, ELK | Mục 8, 9 |
 | OFF | STANDBY | Hết `t_reactivate_override` sau lần ghi đè | LKA, ELK | Mục 9 |
-| OFF | REQUEST | Tài xế bấm nút khi ACC đang bật, điều kiện khả dụng và điều kiện vào HWA thoả | HWA | Mục 3, 7 |
-| REQUEST | OFF | Tay rời vô lăng quá `t_hands_off_off`, hoặc tài xế tắt bằng một thao tác | HWA | Mục 3, 8 |
-| REQUEST | UNAVAILABLE | Một điều kiện khả dụng không thoả | HWA | Mục 7 |
-| UNAVAILABLE | REQUEST | Điều kiện khả dụng và điều kiện vào HWA thoả lại; tài xế không phải bấm nút | HWA | nhóm tự thống nhất, như Toyota LTA, Volvo Pilot Assist |
-| Mọi trạng thái | FAULT | Khối Chức năng ADAS lỗi | HWA, LKA, ELK | Interface Control Document 5.6 |
+| OFF | REQUEST | Tài xế bấm nút khi ACC đang bật, điều kiện khả dụng và điều kiện vào LCC thoả | LCC | Mục 3, 7 |
+| REQUEST | OFF | Tay rời vô lăng quá `t_hands_off_off`, hoặc tài xế tắt bằng một thao tác | LCC | Mục 3, 8 |
+| REQUEST | UNAVAILABLE | Một điều kiện khả dụng không thoả | LCC | Mục 7 |
+| UNAVAILABLE | REQUEST | Điều kiện khả dụng và điều kiện vào LCC thoả lại; tài xế không phải bấm nút | LCC | nhóm tự thống nhất, như Toyota LTA, Volvo Pilot Assist |
+| Mọi trạng thái | FAULT | Khối Chức năng ADAS lỗi | LCC, LKA, ELK | Interface Control Document 5.6 |
 
 ## 10. Cảnh báo tài xế {#adas-warnings}
 
@@ -185,11 +190,13 @@ Trong simulator chỉ ghi log qua message `HmiStatus`.
 | Lần can thiệp thứ hai trong 180 s mà tài xế không đánh lái | Âm thanh từ lần thứ hai; từ lần thứ ba, mỗi lần dài hơn lần trước ít nhất 10 s | R79 5.1.6.1.2.2 |
 | ELK vật thể (ESF) | Đèn và âm thanh hoặc rung, suốt can thiệp | R79 5.1.6.2.6 |
 | Chuyển làn có xi-nhan, xe sau còn phanh kịp | Cảnh báo kiểu điểm mù, không lái | nhóm tự thống nhất |
-| HWA chạm aysmax và lốp trước bắt đầu đè vạch | Vẫn hỗ trợ trong khả năng; đèn kèm âm thanh hoặc rung. Dùng `lateral_limit_reached` và DLC | R79 5.6.2.2.3 |
+| LCC chạm aysmax và lốp trước bắt đầu đè vạch | Vẫn hỗ trợ trong khả năng; đèn kèm âm thanh hoặc rung. Dùng `lateral_limit_reached` và DLC | R79 5.6.2.2.3 |
 | `path_valid = false` | Yêu cầu tài xế cầm lái | nhóm tự thống nhất |
-| `lane_too_narrow = true` khi tài xế bấm HWA | Báo HWA không khả dụng | nhóm tự thống nhất |
-| HWA chuyển sang UNAVAILABLE | Đèn HWA đổi sang trạng thái chờ; tự trở lại khi điều kiện thoả | nhóm tự thống nhất |
-| HWA chuyển sang OFF vì tay rời vô lăng | Báo HWA đã tắt; tài xế phải bấm nút để bật lại | R79 5.6.2.2.5 |
+| LCC planner chuyển sang `lcc_mode = FOLLOW` | Đèn LCC đổi sang trạng thái bám xe; âm thanh một lần | nhóm tự thống nhất |
+| LCC planner rời FOLLOW mà mất vạch (`lcc_mode = COAST`) | Âm thanh, yêu cầu tài xế cầm lái trước khi hết `T_coast` | nhóm tự thống nhất |
+| `lane_too_narrow = true` khi tài xế bấm LCC | Báo LCC không khả dụng | nhóm tự thống nhất |
+| LCC chuyển sang UNAVAILABLE | Đèn LCC đổi sang trạng thái chờ; tự trở lại khi điều kiện thoả | nhóm tự thống nhất |
+| LCC chuyển sang OFF vì tay rời vô lăng | Báo LCC đã tắt; tài xế phải bấm nút để bật lại | R79 5.6.2.2.5 |
 | Tài xế tắt ELK | Đèn báo liên tục | EU 2021/646 3.2.3 |
 
 ## 11. Edge cases {#adas-edge-cases}
@@ -198,10 +205,10 @@ Số thứ tự trùng với mục Edge cases của Software Architectural Desig
 
 | # | Tình huống | Khối Chức năng ADAS làm gì |
 |---|---|---|
-| 1a | HWA đang chạy, xe trôi về phía làn bên có xe | Gửi ELK như bình thường |
+| 1a | LCC đang chạy, xe trôi về phía làn bên có xe | Gửi ELK như bình thường |
 | 1b | Xe khác lấn sang làn mình, xe mình ở giữa | Không gửi ELK (TLC lớn) |
-| 2 | HWA vào cua gắt hơn aysmax | Cảnh báo khi lốp bắt đầu đè vạch; gửi ELK nếu tới ngưỡng ELK và bên kia nguy hiểm |
-| 3 | Tài xế ghi đè HWA | Bật `driver_override`; HWA vẫn bật |
+| 2 | LCC vào cua gắt hơn aysmax | Cảnh báo khi lốp bắt đầu đè vạch; gửi ELK nếu tới ngưỡng ELK và bên kia nguy hiểm |
+| 3 | Tài xế ghi đè LCC | Bật `driver_override`; LCC vẫn bật |
 | 4 | Xi-nhan chuyển làn, xe đang vượt từ phía sau | Theo mục 6, bước 5; không gửi nếu lốp trước đã qua vạch quá 0,3 m |
 | 5 | Xi-nhan, đè vạch liền hoặc ra lề có chủ đích | Chưa can thiệp: không kích hoạt. Đang can thiệp: gửi OFF, `cancel_reason = INDICATOR` |
 | 6 | Trôi qua lại nhiều lần | Mỗi lần trôi là một yêu cầu mới, cùng ngưỡng; cảnh báo tăng dần theo R79 |
@@ -209,16 +216,19 @@ Số thứ tự trùng với mục Edge cases của Software Architectural Desig
 | 8 | c0 jump làm DLC nhảy | Khối tự kiểm tính nhất quán của biên, riêng với planner, và đánh dấu frame nhảy: không kích hoạt, không hủy dựa trên frame đó; dùng DLC mới khi frame sau xác nhận; quá 0,5 s không xác nhận thì UNAVAILABLE |
 | 9 | Vật thể ảo | Lọc bằng `exist_min` và `n_track` |
 | 10 | Xe ngược chiều nhưng xe mình không trôi | Không gửi ELK |
-| 11 | Mất hai vạch làn mình giữa lúc can thiệp | Còn biên khác đủ tin: hủy LKA, ELK, HWA tiếp tục. Không còn biên: giữ REQUEST; khi `path_valid = false` thì yêu cầu tài xế cầm lái |
+| 11 | Mất hai vạch làn mình giữa lúc can thiệp | Còn biên khác đủ tin: hủy LKA, ELK, LCC tiếp tục. Không còn biên: giữ REQUEST; khi `path_valid = false` thì yêu cầu tài xế cầm lái |
 | 12 | ESC can thiệp trong lúc LKA hoặc ELK can thiệp | Gửi OFF, nhường ESC |
 | 13 | Tốc độ dưới 65 km/h giữa lúc can thiệp | Giữ yêu cầu tới COMPLETED |
-| 13b | Tắc đường 0–60 km/h | LKA, ELK UNAVAILABLE; HWA vẫn chạy nếu đang bật |
-| 15 | Bấm HWA khi xe lệch tâm 0,4 m | Cho vào HWA nếu ≤ `hwa_entry_offset` |
+| 13b | Tắc đường 0–60 km/h | LKA, ELK UNAVAILABLE; LCC vẫn chạy nếu đang bật |
+| 15 | Bấm LCC khi xe lệch tâm 0,4 m | Cho vào LCC nếu ≤ `hwa_entry_offset` |
 | 16 | Bẻ lái gấp tránh vật, làn bên có xe | Chặn LKA, ELK; chỉ cảnh báo |
+| 17 | Mất hai vạch làn mình, có xe trước đủ điều kiện | Giữ LCC ở REQUEST, không áp điều kiện tầm nhìn; planner báo FOLLOW |
+| 18 | Biên phía nguy hiểm nhảy ra xa lúc LKA hoặc ELK can thiệp | Không đổi yêu cầu; không hủy dựa trên frame nghi nhảy (như edge case 8); planner giữ hành lang can thiệp |
+| 19 | Xe trước đổi làn hoặc không còn là mục tiêu ACC giữa lúc bám | Planner rời FOLLOW; còn mất vạch thì hết `T_coast` báo `path_valid = false` |
 
 ## 12. Interface {#function-requests}
 
-- **Output.** `FunctionRequests` gửi path planner, 40 Hz; schema ở [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=vi#function-requests). Nhận lại `PathStatus`.
+- **Output.** `FunctionRequests` gửi hai path planner, 40 Hz; schema ở [Interface Control Document](report.html?doc=path-planner-interface-control-document&lang=vi#function-requests). Nhận lại `LccStatus` và `InterventionStatus`.
 - **Log.** `HmiStatus`: cảnh báo đèn, âm thanh, mức cảnh báo tay rời vô lăng, số lần can thiệp trong 180 s. Chỉ để đánh giá.
 - **Tín hiệu tài xế**, theo signal list nhóm Motion (mentor):
 
@@ -228,7 +238,7 @@ Số thứ tự trùng với mục Edge cases của Software Architectural Desig
 | Góc vô lăng | 100 Hz | ° | Log |
 | Tốc độ quay vô lăng | 100 Hz | °/s | Mục 8 |
 | Tốc độ xe | 50 Hz | km/h | Mục 7 |
-| Xi-nhan, nút HWA, trạng thái ESC | Không có trong signal list; simulator lấy từ file kịch bản | — | Mục 7, 8 |
+| Xi-nhan, nút LCC, trạng thái ESC | Không có trong signal list; simulator lấy từ file kịch bản | — | Mục 7, 8 |
 
 Khối chạy 40 Hz nên mỗi chu kỳ nhận 1–2 mẫu mô-men; ngưỡng tính theo thời gian giữ, không theo số chu kỳ.
 
@@ -310,3 +320,5 @@ Phần lớn nhiễu đến từ c1 nhân tốc độ. Với `k_sigma` = 2, ban 
 | 1.6 | 2026-11-12 | Mục 13: `t_view_hwa` ≥ 0,7 s theo PP-ASM-021; dải quét 0,7–1,5 s |
 | 1.7 | 2026-11-12 | Mục 7, 13: `view_min` (20 m) thay bằng `t_view_min` (1,0 s, ≥ 0,7 s) để phần path quan sát đủ cho controller ở mọi tốc độ (PP-ASM-021) |
 | 1.8 | 2026-11-13 | Mục 6, bước 5: điều kiện xe sau xét ở mọi chu kỳ tới khi lốp trước qua vạch quá 0,3 m (PP-PR-027) |
+| 1.9 | 2026-11-18 | Hai planner: HWA gọi là LCC (HWA); bỏ arbitration khỏi phần việc của planner, arbitrator thuộc công ty (PP-ASM-022). Mục 7: LCC khả dụng khi planner báo `lcc_mode = FOLLOW`, không áp điều kiện tầm nhìn. Mục 9, 10, 11: sự kiện, cảnh báo và edge case 17 đến 19 cho bám xe trước và biên nhảy. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-124, 170 đến 177 |
+| 1.10 | 2026-11-18 | Mục 8: tốc độ quay vô lăng không tính là ý định tài xế khi LKA, ELK đang can thiệp (PP-PR-063) |

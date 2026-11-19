@@ -114,10 +114,12 @@ def load_suite(name):
     return suite
 
 
-def fault_hosts(suite):
-    """[(name, parameters)] of the host anchors lane faults run on; default S1a."""
+def fault_hosts(suite, fault=None):
+    """[(name, parameters)] of the host anchors lane faults run on; default S1a. `fault_host_overrides`
+    gives a fault its own hosts (F24 on LKA and ELK hosts, F25 on the follow-lead host S22a)."""
     hosts = []
-    for sid, variant in suite.get('fault_hosts', [['S1', 'a']]):
+    entries = suite.get('fault_host_overrides', {}).get(fault) or suite.get('fault_hosts', [['S1', 'a']])
+    for sid, variant in entries:
         path = BENCHMARK / 'scenarios' / f'{sid}.xosc'
         params = openx.resolve(openx.parse(path), openx.anchors(path)[variant])[1]
         hosts.append((f'{sid}{variant}', {k: params[k] for k in HOST_KEYS}
@@ -148,8 +150,9 @@ def plan(name):
                 if nominal['profile'] not in family_profiles:
                     raise ValueError(f'{sid}: nominal profile outside the suite profiles')
                 space = {**space, 'profile': Domain(nominal['profile'], values=tuple(family_profiles))}
-            selections = [('anchor', dict(openx.resolve(raw, values)[1]))
-                          for values in openx.anchors(path).values()]
+            anchors = openx.anchors(path)
+            selected_anchors = suite.get('fault_anchors', {}).get(sid, anchors) if folder == 'faults' else anchors
+            selections = [('anchor', dict(openx.resolve(raw, anchors[v])[1])) for v in selected_anchors]
             for method in suite['methods']:
                 if method == 'anchor':
                     continue
@@ -181,7 +184,7 @@ def plan(name):
                                                                      host_params.get('host_expected_outcome'))
                     return merged
                 selections = [(method, on_host(params, host_params), host)
-                              for host, host_params in fault_hosts(suite) for method, params in selections]
+                              for host, host_params in fault_hosts(suite, sid) for method, params in selections]
                 for _, params, host in selections:
                     if not params['fault_start_s'] < params['duration_s']:
                         raise ValueError(f'{sid}: fault starts after the end of host {host}')
@@ -219,6 +222,13 @@ def plan(name):
                     for seed in seeds:
                         runs.append({'case': case_id, 'seed': seed})
     _injected_cases(suite, cases, runs)
+    for sid, anchor in suite.get('standalone_planners', []):
+        hosts = [case for case in cases if case['family'] == sid and case['anchor'] == anchor]
+        for host in hosts:
+            for family in ('lcc', 'lkaelk'):
+                case_id = f"{host['id']}-{family}-only"
+                cases.append({**host, 'id': case_id, 'file': f'cases/{case_id}.xosc', 'planner_only': family})
+                runs.extend({'case': case_id, 'seed': run['seed']} for run in list(runs) if run['case'] == host['id'])
     return {'format': 1, 'suite': name, 'definition': suite, 'inputs': provenance.input_files(),
             'cases': cases, 'runs': runs}
 
@@ -250,6 +260,12 @@ def _injected_cases(suite, cases, runs):
         for fsid in suite.get('event_faults', []):
             for fvariant in openx.anchors(BENCHMARK / 'faults' / f'{fsid}.xosc'):
                 for offset in suite.get('event_offsets_s', [0.0]):
+                    jobs.append((fsid, fvariant, (host_sid, host_variant), [(fsid, fvariant)],
+                                 event, float(offset), {}, f'{host_sid}{host_variant}@{event}+{float(offset):g}'))
+    for fsid, group in suite.get('fault_event_groups', {}).items():
+        for host_sid, host_variant, event in group['hosts']:
+            for fvariant in group.get('anchors', openx.anchors(BENCHMARK / 'faults' / f'{fsid}.xosc')):
+                for offset in group['offsets_s']:
                     jobs.append((fsid, fvariant, (host_sid, host_variant), [(fsid, fvariant)],
                                  event, float(offset), {}, f'{host_sid}{host_variant}@{event}+{float(offset):g}'))
     for cid in suite.get('combinations', []):

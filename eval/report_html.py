@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from eval import conclusion, presentation, severity
+from eval import conclusion, credibility, presentation, severity
 from eval.report_strings import translate, conformance_detail, conformance_title
 from eval.metrics import COMPUTE_BINS_MS
 from interfaces.planner_io import PLANNER_PERIOD_US
@@ -113,7 +113,7 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang trong ngưỡng",
              "PP-SWR-115": "Jerk path ELK ≤ 10 m/s³", "PP-SWR-005": "Giữ HWA khi cua gắt hơn aysmax",
              "PP-SWR-062": "Đạt mọi requirement trong toàn ODD",
              "PP-SWR-055": "Dời xa xe lớn khi khoảng hở nhỏ", "PP-SWR-058": "Bắt đầu dời trước khi xe lớn ngang hàng",
-             "PP-SWR-080": "LKA, ELK: điểm đầu path khớp xe", "PP-SWR-018": "observed_horizon_s không quá tầm nhìn",
+             "PP-SWR-080": "LKA, ELK: điểm đầu path khớp xe", "PP-SWR-049": "LKA, ELK: độ cong điểm đầu khớp xe", "PP-SWR-018": "observed_horizon_s không quá tầm nhìn",
              "PP-SWR-130": "Counter nhảy, đứng yên, valid sai, CRC sai: output như ca mất message",
              "PP-SWR-142": "IMU, tốc độ, góc lái không hợp lệ: path_valid = false trong ≤ 1 chu kỳ"}
 def srs_text(lang="vi") -> dict[str, str]:
@@ -1555,6 +1555,8 @@ class Report:
                 (self.tr("Tạo báo cáo"), self.generated), (self.tr("Phiên bản trình bày"), REPORT_VERSION),
                 ('Planner', version or self.tr("Chưa ghi nhận")), (self.tr("Nguồn nhận diện planner"), version_source),
                 ('SHA-256 binary', lib.get('sha256') or self.tr("Chưa ghi nhận cho lượt chạy này")),
+                (self.tr("Simulator"), credibility.simulator_text(m['simulator']) if m.get('simulator') else self.tr("Chưa ghi nhận cho lượt chạy này")),
+                (self.tr("Validation của model"), '; '.join(f"{x['name']}: {x['validation']}" for x in m['simulator']['models']) if m.get('simulator') else self.tr("Chưa ghi nhận cho lượt chạy này")),
                 ('Benchmark commit', (m.get('git') or {}).get('commit') or self.tr("Chưa ghi nhận cho lượt chạy này")),
                 (self.tr("Dấu vân tay bộ đầu vào"), fingerprint + self.tr(" (SHA-256 của danh sách hash trong generation)")),
                 ('Calibration', build.get('calibration') or self.d['generation'].get('inputs',{}).get('planner/calibration/calibration.yaml',self.tr("Chưa ghi nhận"))),

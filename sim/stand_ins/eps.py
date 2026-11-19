@@ -28,8 +28,10 @@ class Eps:
         self._command: SteeringRequest | None = None
         self._inactive_since_us: int | None = None if moving_driver_target else 0
         self._last_active_angle = 0.0
+        self._last_active_system_share = 0.0
         self.angle = 0.0  # [rad] steering wheel angle
         self.rate = 0.0  # [rad/s]
+        self.system_steering_share = 0.0  # fraction of the target attributed to system steering
         self.driver_angle = 0.0  # [rad] the fake driver's steering wheel angle
         self.driver_torque = 0.0  # [Nm] the fake driver's torque; at override level the driver steers
 
@@ -53,19 +55,24 @@ class Eps:
             elif self.controlling:
                 self._inactive_since_us = now_us
                 self._last_active_angle = self.angle
+                self._last_active_system_share = self.system_steering_share
             self._command = cmd
 
         if self.controlling and abs(self.driver_torque) >= OVERRIDE_TORQUE_NM:
             # The driver overrides (ADAS Function Specification 8, R79 5.1.6): the steering
             # follows the driver while the torque lasts; the command takes over again after.
             target = self.driver_angle
+            self.system_steering_share = 0.0
         elif self.controlling:
             target = self._command.steering_wheel_angle_rad
+            self.system_steering_share = 1.0
         elif self._inactive_since_us is not None:
             h = min(1.0, (now_us - self._inactive_since_us) / (HANDOVER_S * 1e6))
             target = (1 - h) * self._last_active_angle + h * self.driver_angle
+            self.system_steering_share = (1 - h) * self._last_active_system_share
         else:
             target = self.driver_angle
+            self.system_steering_share = 0.0
 
         v = self.vehicle
         max_rate = v.max_steering_wheel_rate

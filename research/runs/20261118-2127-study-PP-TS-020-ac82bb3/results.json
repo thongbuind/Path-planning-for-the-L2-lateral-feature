@@ -1,0 +1,2533 @@
+[
+ {
+  "set": "V0",
+  "values": {
+   "ay_margin_hwa": 0.0
+  },
+  "cmake": {},
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V0/build",
+  "summary": {
+   "failed": 4,
+   "failed_ids": [
+    "S1c_F08a [profile=VP-5]:PP-SWR-051",
+    "S1c_F08a:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.3712938448486244,
+    "PP-SWR-003": 0.9660871000960469,
+    "PP-SWR-064": 2.432999999999999,
+    "PP-SWR-053": 0.833,
+    "PP-SWR-002": 0.33467895264038816
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014909616503032417,
+     "PP-SWR-003": 0.17899594240589067
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014882836652606283,
+     "PP-SWR-003": 0.17902097170008346
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04075744834092684,
+     "PP-SWR-003": 0.7001764606684446
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04270143487954811,
+     "PP-SWR-003": 0.7001141784712672
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05216609574691549,
+     "PP-SWR-003": 0.7002032361924648
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05444364361954794,
+     "PP-SWR-003": 0.7001435733400285
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03550708281318809,
+     "PP-SWR-003": 0.5862682883162051
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03540390149125345,
+     "PP-SWR-003": 0.5861904355697334
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.432999999999999,
+     "PP-SWR-003": 0.8727196836844087
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.4259999999999993,
+     "PP-SWR-003": 0.8726664236746728
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.3629999999999995,
+     "PP-SWR-003": 0.7603377162013203
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.356,
+     "PP-SWR-003": 0.7602268306072801
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.833,
+     "PP-SWR-002": 0.33467895264038816,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.826,
+     "PP-SWR-002": 0.3332520282128826,
+     "PP-SWR-003": 0.34159067581640556
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3712938448486244,
+     "PP-SWR-003": 0.904891494428739
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.29163007426919857,
+     "PP-SWR-003": 0.9655760368332267
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3558645617695034,
+     "PP-SWR-003": 0.9049262007465586
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2761671832114945,
+     "PP-SWR-003": 0.9660871000960469
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6605207454413176
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6607755494769663
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6588557153008878
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6592844147235155
+    }
+   }
+  ]
+ },
+ {
+  "set": "V0",
+  "values": {
+   "ay_margin_hwa": 0.0
+  },
+  "cmake": {},
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V0/build",
+  "summary": {
+   "failed": 8,
+   "failed_ids": [
+    "S1bb [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1",
+    "S1c_F06e [profile=VP-5]:PP-SWR-051",
+    "S1c_F08b [profile=VP-5]:PP-SWR-051",
+    "S1c_F08b:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.37665006277081114,
+    "PP-SWR-003": 1.5813386562513188,
+    "PP-SWR-064": 2.5460000000000003,
+    "PP-SWR-053": 1.9809999999999999,
+    "PP-SWR-002": 0.09404040611116216,
+    "PP-SWR-125": 0.05441509613184781
+   }
+  },
+  "runs": [
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3641317418267231,
+     "PP-SWR-003": 1.5813386562513188
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37665006277081114,
+     "PP-SWR-003": 1.5756211359985173
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5260000000000007,
+     "PP-SWR-003": 1.2819498078897595
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5460000000000003,
+     "PP-SWR-003": 1.2950270320288837
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.0060000000000002,
+     "PP-SWR-003": 1.0667767775311514
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 1.976,
+     "PP-SWR-003": 1.0670058965349778
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9916546502732402
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9894155374613129
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8250039011172334
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.824428689658647
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.7001229096204042
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.700476230122149
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6959386519156396
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6962614133954048
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3516219386749122,
+     "PP-SWR-003": 0.9641589713282883
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2979547618398284,
+     "PP-SWR-003": 0.9953739936463535
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.342101987511113,
+     "PP-SWR-003": 0.9585013322066516
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.28166055945395396,
+     "PP-SWR-003": 0.9937360300682485
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05437553340852263,
+     "PP-SWR-003": 1.320290903095156
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05441509613184781,
+     "PP-SWR-003": 1.3132284220773727
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-125": 0.05397493005761382,
+     "PP-SWR-003": 1.3231567572802305
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-125": 0.05400736776750703,
+     "PP-SWR-003": 1.3161462265998125
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003544305916876
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699903757777065
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003347855061293
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700767122907564
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1a",
+  "values": {
+   "ay_margin_hwa": 0.1
+  },
+  "cmake": {},
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1a/build",
+  "summary": {
+   "failed": 0,
+   "failed_ids": [],
+   "worst": {
+    "PP-SWR-050": 0.11909472703375892,
+    "PP-SWR-003": 0.9660871000960469,
+    "PP-SWR-064": 2.432999999999999,
+    "PP-SWR-053": 0.833,
+    "PP-SWR-002": 0.33467895264038816
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014909616503032417,
+     "PP-SWR-003": 0.17899594240589067
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014882836652606283,
+     "PP-SWR-003": 0.17902097170008346
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.040676380833837955,
+     "PP-SWR-003": 0.7001764606684446
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04262800046136907,
+     "PP-SWR-003": 0.7001141784712672
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05216609574691549,
+     "PP-SWR-003": 0.7002032361924648
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05444364361954794,
+     "PP-SWR-003": 0.7001435733400285
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03550708281318809,
+     "PP-SWR-003": 0.5862682883162051
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03540390149125345,
+     "PP-SWR-003": 0.5861904355697334
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.432999999999999,
+     "PP-SWR-003": 0.8727196836844087
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.4259999999999993,
+     "PP-SWR-003": 0.8726664236746728
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.3629999999999995,
+     "PP-SWR-003": 0.7603377162013203
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.356,
+     "PP-SWR-003": 0.7602268306072801
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.833,
+     "PP-SWR-002": 0.33467895264038816,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.826,
+     "PP-SWR-002": 0.3332520282128826,
+     "PP-SWR-003": 0.34159067581640556
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11300660790194325,
+     "PP-SWR-003": 0.904891494428739
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11152787114385997,
+     "PP-SWR-003": 0.9655760368332267
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11290439550952894,
+     "PP-SWR-003": 0.9049262007465586
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11909472703375892,
+     "PP-SWR-003": 0.9660871000960469
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6605207454413176
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6607755494769663
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6588557153008878
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6592844147235155
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1a",
+  "values": {
+   "ay_margin_hwa": 0.1
+  },
+  "cmake": {},
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1a/build",
+  "summary": {
+   "failed": 5,
+   "failed_ids": [
+    "S1bb [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1",
+    "S1c_F08b [profile=VP-5]:PP-SWR-051",
+    "S1c_F08b:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.37665006277081114,
+    "PP-SWR-003": 1.5813386562513188,
+    "PP-SWR-064": 2.5460000000000003,
+    "PP-SWR-053": 1.9809999999999999,
+    "PP-SWR-002": 0.09404040611116216,
+    "PP-SWR-125": 0.053892061431925334
+   }
+  },
+  "runs": [
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3641317418267231,
+     "PP-SWR-003": 1.5813386562513188
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37665006277081114,
+     "PP-SWR-003": 1.5756211359985173
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5260000000000007,
+     "PP-SWR-003": 1.3227798626758158
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5460000000000003,
+     "PP-SWR-003": 1.3334007235243917
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.0060000000000002,
+     "PP-SWR-003": 1.0667767775311514
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 1.976,
+     "PP-SWR-003": 1.0670058965349778
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9916546502732402
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9894155374613129
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8250039011172334
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.824428689658647
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.7186536095105112
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.714827619958669
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.7186460425145924
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.7208925671875477
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.15163825787677085,
+     "PP-SWR-003": 0.9641589713282883
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11775208695794653,
+     "PP-SWR-003": 0.9953312110155821
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.1516162622419319,
+     "PP-SWR-003": 0.9585013322066516
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11766729162574377,
+     "PP-SWR-003": 0.9936987771652639
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.053845542931464374,
+     "PP-SWR-003": 1.2880210124421865
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.053892061431925334,
+     "PP-SWR-003": 1.283475721720606
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.053446624557500176,
+     "PP-SWR-003": 1.2905240873806179
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05348568252933008,
+     "PP-SWR-003": 1.286182668991387
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003544305916876
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699903757777065
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003347855061293
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700767122907564
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1b",
+  "values": {
+   "ay_margin_hwa": 0.2
+  },
+  "cmake": {},
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1b/build",
+  "summary": {
+   "failed": 2,
+   "failed_ids": [
+    "S1ba [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.12171385939421203,
+    "PP-SWR-003": 0.9660871000960469,
+    "PP-SWR-064": 2.432999999999999,
+    "PP-SWR-053": 0.833,
+    "PP-SWR-002": 0.33467895264038816
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014909616503032417,
+     "PP-SWR-003": 0.17899594240589067
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014882836652606283,
+     "PP-SWR-003": 0.17902097170008346
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.040676380833837955,
+     "PP-SWR-003": 0.7001764606684446
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04262800046136907,
+     "PP-SWR-003": 0.7001141784712672
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05216609574691549,
+     "PP-SWR-003": 0.7002032361924648
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05444364361954794,
+     "PP-SWR-003": 0.7001435733400285
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03550708281318809,
+     "PP-SWR-003": 0.5862682883162051
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03540390149125345,
+     "PP-SWR-003": 0.5861904355697334
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.432999999999999,
+     "PP-SWR-003": 0.8727196836844087
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.4259999999999993,
+     "PP-SWR-003": 0.8726664236746728
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.3629999999999995,
+     "PP-SWR-003": 0.7603377162013203
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.356,
+     "PP-SWR-003": 0.7602268306072801
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.833,
+     "PP-SWR-002": 0.33467895264038816,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.826,
+     "PP-SWR-002": 0.3332520282128826,
+     "PP-SWR-003": 0.34159067581640556
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12171385939421203,
+     "PP-SWR-003": 0.904891494428739
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11152787114385997,
+     "PP-SWR-003": 0.9655760368332267
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12154334096529869,
+     "PP-SWR-003": 0.9049262007465586
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11909472703375892,
+     "PP-SWR-003": 0.9660871000960469
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6605207454413176
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6607755494769663
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6588557153008878
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6592844147235155
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1b",
+  "values": {
+   "ay_margin_hwa": 0.2
+  },
+  "cmake": {},
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1b/build",
+  "summary": {
+   "failed": 4,
+   "failed_ids": [
+    "S1bb [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1",
+    "S1bc [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.37665006277081114,
+    "PP-SWR-003": 1.5813386562513188,
+    "PP-SWR-064": 2.5460000000000003,
+    "PP-SWR-053": 1.9809999999999999,
+    "PP-SWR-002": 0.09404040611116216,
+    "PP-SWR-125": 0.05341952241932133
+   }
+  },
+  "runs": [
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3641317418267231,
+     "PP-SWR-003": 1.5813386562513188
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37665006277081114,
+     "PP-SWR-003": 1.5756211359985173
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5260000000000007,
+     "PP-SWR-003": 1.2110528768971562
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5460000000000003,
+     "PP-SWR-003": 1.2077830615453422
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.0060000000000002,
+     "PP-SWR-003": 1.0667767775311514
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 1.976,
+     "PP-SWR-003": 1.0670058965349778
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9916546502732402
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9894155374613129
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8250039011172334
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.824428689658647
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7001229096204042
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700476230122149
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6959386519156396
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6962614133954048
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.15163825787677085,
+     "PP-SWR-003": 0.9641589713282883
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12023023200357696,
+     "PP-SWR-003": 0.9953326662071049
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.1516162622419319,
+     "PP-SWR-003": 0.9585013322066516
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12019746552177119,
+     "PP-SWR-003": 0.9937005233950913
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05336713050833293,
+     "PP-SWR-003": 1.2816934031434357
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05341952241932133,
+     "PP-SWR-003": 1.28276675241068
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05296939178800882,
+     "PP-SWR-003": 1.2884702300652862
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05301383012232747,
+     "PP-SWR-003": 1.2897085980512202
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003544305916876
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699903757777065
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003347855061293
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700767122907564
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1c",
+  "values": {
+   "ay_margin_hwa": 0.3
+  },
+  "cmake": {},
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1c/build",
+  "summary": {
+   "failed": 2,
+   "failed_ids": [
+    "S1ba [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.12076662945588837,
+    "PP-SWR-003": 0.9660871000960469,
+    "PP-SWR-064": 2.432999999999999,
+    "PP-SWR-053": 0.833,
+    "PP-SWR-002": 0.33467895264038816
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014909616503032417,
+     "PP-SWR-003": 0.17899594240589067
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014882836652606283,
+     "PP-SWR-003": 0.17902097170008346
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.040676380833837955,
+     "PP-SWR-003": 0.7001764606684446
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04262800046136907,
+     "PP-SWR-003": 0.7001141784712672
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05216609574691549,
+     "PP-SWR-003": 0.7002032361924648
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05444364361954794,
+     "PP-SWR-003": 0.7001435733400285
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03550708281318809,
+     "PP-SWR-003": 0.5862682883162051
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03540390149125345,
+     "PP-SWR-003": 0.5861904355697334
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.432999999999999,
+     "PP-SWR-003": 0.8727196836844087
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.4259999999999993,
+     "PP-SWR-003": 0.8726664236746728
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.3629999999999995,
+     "PP-SWR-003": 0.7603377162013203
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.356,
+     "PP-SWR-003": 0.7602268306072801
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.833,
+     "PP-SWR-002": 0.33467895264038816,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.826,
+     "PP-SWR-002": 0.3332520282128826,
+     "PP-SWR-003": 0.34159067581640556
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12076662945588837,
+     "PP-SWR-003": 0.904891494428739
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11152787114385997,
+     "PP-SWR-003": 0.9655760368332267
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12063797456408393,
+     "PP-SWR-003": 0.9049262007465586
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.11909472703375892,
+     "PP-SWR-003": 0.9660871000960469
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6605207454413176
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6607755494769663
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6588557153008878
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6592844147235155
+    }
+   }
+  ]
+ },
+ {
+  "set": "V1c",
+  "values": {
+   "ay_margin_hwa": 0.3
+  },
+  "cmake": {},
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V1c/build",
+  "summary": {
+   "failed": 4,
+   "failed_ids": [
+    "S1bb [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1",
+    "S1bc [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.37665006277081114,
+    "PP-SWR-003": 1.5813386562513188,
+    "PP-SWR-064": 2.5460000000000003,
+    "PP-SWR-053": 1.9809999999999999,
+    "PP-SWR-002": 0.09404040611116216,
+    "PP-SWR-125": 0.05299412507503866
+   }
+  },
+  "runs": [
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3641317418267231,
+     "PP-SWR-003": 1.5813386562513188
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37665006277081114,
+     "PP-SWR-003": 1.5756211359985173
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5260000000000007,
+     "PP-SWR-003": 1.2110528768971562
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5460000000000003,
+     "PP-SWR-003": 1.2077830615453422
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.0060000000000002,
+     "PP-SWR-003": 1.0667767775311514
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 1.976,
+     "PP-SWR-003": 1.0670058965349778
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9916546502732402
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9894155374613129
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8250039011172334
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.824428689658647
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7001229096204042
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700476230122149
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6959386519156396
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.6962614133954048
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.15163825787677085,
+     "PP-SWR-003": 0.9641589713282883
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12276989149544368,
+     "PP-SWR-003": 0.9953326662071049
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.1516162622419319,
+     "PP-SWR-003": 0.9585013322066516
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.12278270391257559,
+     "PP-SWR-003": 0.9937005233950913
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05293706426439015,
+     "PP-SWR-003": 1.2865616008639336
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05299412507503866,
+     "PP-SWR-003": 1.287437480641529
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.0525395003331138,
+     "PP-SWR-003": 1.29328400362283
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05258958763513211,
+     "PP-SWR-003": 1.294301764573902
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003544305916876
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699903757777065
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003347855061293
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700767122907564
+    }
+   }
+  ]
+ },
+ {
+  "set": "V2",
+  "values": {
+   "ay_margin_hwa": 0.2
+  },
+  "cmake": {
+   "PP_AY_MARGIN_GATE": "ON"
+  },
+  "part": "tuning",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V2/build",
+  "summary": {
+   "failed": 4,
+   "failed_ids": [
+    "S1c_F08a [profile=VP-5]:PP-SWR-051",
+    "S1c_F08a:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.3712938448486244,
+    "PP-SWR-003": 0.9660871000960469,
+    "PP-SWR-064": 2.432999999999999,
+    "PP-SWR-053": 0.833,
+    "PP-SWR-002": 0.33467895264038816
+   }
+  },
+  "runs": [
+   {
+    "run": "S1a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014909616503032417,
+     "PP-SWR-003": 0.17899594240589067
+    }
+   },
+   {
+    "run": "S1a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.014882836652606283,
+     "PP-SWR-003": 0.17902097170008346
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04075744834092684,
+     "PP-SWR-003": 0.7001764606684446
+    }
+   },
+   {
+    "run": "S1c",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.04270143487954811,
+     "PP-SWR-003": 0.7001141784712672
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05216609574691549,
+     "PP-SWR-003": 0.7002032361924648
+    }
+   },
+   {
+    "run": "S1c [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.05444364361954794,
+     "PP-SWR-003": 0.7001435733400285
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03550708281318809,
+     "PP-SWR-003": 0.5862682883162051
+    }
+   },
+   {
+    "run": "S1g",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.03540390149125345,
+     "PP-SWR-003": 0.5861904355697334
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.432999999999999,
+     "PP-SWR-003": 0.8727196836844087
+    }
+   },
+   {
+    "run": "S1ba [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.4259999999999993,
+     "PP-SWR-003": 0.8726664236746728
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.3629999999999995,
+     "PP-SWR-003": 0.7603377162013203
+    }
+   },
+   {
+    "run": "S1bf [acc=ignore_limits]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.356,
+     "PP-SWR-003": 0.7602268306072801
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.833,
+     "PP-SWR-002": 0.33467895264038816,
+     "PP-SWR-003": 0.34271211916347966
+    }
+   },
+   {
+    "run": "S2b",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 0.826,
+     "PP-SWR-002": 0.3332520282128826,
+     "PP-SWR-003": 0.34159067581640556
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3712938448486244,
+     "PP-SWR-003": 0.904891494428739
+    }
+   },
+   {
+    "run": "S12a",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.29163007426919857,
+     "PP-SWR-003": 0.9655760368332267
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 1,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3558645617695034,
+     "PP-SWR-003": 0.9049262007465586
+    }
+   },
+   {
+    "run": "S12a [profile=VP-5]",
+    "seed": 2,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2761671832114945,
+     "PP-SWR-003": 0.9660871000960469
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6605207454413176
+    }
+   },
+   {
+    "run": "S1c_F08a",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6607755494769663
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 1,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6588557153008878
+    }
+   },
+   {
+    "run": "S1c_F08a [profile=VP-5]",
+    "seed": 2,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6592844147235155
+    }
+   }
+  ]
+ },
+ {
+  "set": "V2",
+  "values": {
+   "ay_margin_hwa": 0.2
+  },
+  "cmake": {
+   "PP_AY_MARGIN_GATE": "ON"
+  },
+  "part": "test",
+  "library": "/Users/thongbui.nd/Documents/Tài liệu - Nidai/Thong Bui/vinuni/ADAS/g1-path-planning/build/study/PP-TS-020/V2/build",
+  "summary": {
+   "failed": 8,
+   "failed_ids": [
+    "S1bb [acc=ignore_limits]:PP-TS-020/R79-5.6.2.1.1",
+    "S1c_F06e [profile=VP-5]:PP-SWR-051",
+    "S1c_F08b [profile=VP-5]:PP-SWR-051",
+    "S1c_F08b:PP-SWR-051"
+   ],
+   "worst": {
+    "PP-SWR-050": 0.37665006277081114,
+    "PP-SWR-003": 1.5813386562513188,
+    "PP-SWR-064": 2.5460000000000003,
+    "PP-SWR-053": 1.9809999999999999,
+    "PP-SWR-002": 0.09404040611116216,
+    "PP-SWR-125": 0.05341952241932133
+   }
+  },
+  "runs": [
+   {
+    "run": "S1f",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3641317418267231,
+     "PP-SWR-003": 1.5813386562513188
+    }
+   },
+   {
+    "run": "S1f",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.37665006277081114,
+     "PP-SWR-003": 1.5756211359985173
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5260000000000007,
+     "PP-SWR-003": 1.2819498078897595
+    }
+   },
+   {
+    "run": "S1bb [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [
+     "PP-TS-020/R79-5.6.2.1.1"
+    ],
+    "values": {
+     "PP-SWR-064": 2.5460000000000003,
+     "PP-SWR-003": 1.2950270320288837
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 2.0060000000000002,
+     "PP-SWR-003": 1.0667767775311514
+    }
+   },
+   {
+    "run": "S1bc [acc=ignore_limits]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-064": 1.976,
+     "PP-SWR-003": 1.0670058965349778
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9916546502732402
+    }
+   },
+   {
+    "run": "S1be [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.9894155374613129
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S2a",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-053": 1.9809999999999999,
+     "PP-SWR-002": 0.09404040611116216,
+     "PP-SWR-003": 0.17135693269665353
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.8250039011172334
+    }
+   },
+   {
+    "run": "S14a [acc=on]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.824428689658647
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.7001229096204042
+    }
+   },
+   {
+    "run": "S1c_F08b",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.700476230122149
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6959386519156396
+    }
+   },
+   {
+    "run": "S1c_F08b [profile=VP-5]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-003": 0.6962614133954048
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.3516213047779789,
+     "PP-SWR-003": 0.9641589713282883
+    }
+   },
+   {
+    "run": "S1c_F01c",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.29795463344086726,
+     "PP-SWR-003": 0.9953739936463535
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.34210184887417616,
+     "PP-SWR-003": 0.9585013322066516
+    }
+   },
+   {
+    "run": "S1c_F01c [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-050": 0.2816610002139843,
+     "PP-SWR-003": 0.9937357390299439
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05336713050833293,
+     "PP-SWR-003": 1.3174912601243705
+    }
+   },
+   {
+    "run": "S1c_F06e",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-125": 0.05341952241932133,
+     "PP-SWR-003": 1.3116130139678717
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 3,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-125": 0.05296939178800882,
+     "PP-SWR-003": 1.320562296314165
+    }
+   },
+   {
+    "run": "S1c_F06e [profile=VP-5]",
+    "seed": 4,
+    "failed": [
+     "PP-SWR-051"
+    ],
+    "values": {
+     "PP-SWR-125": 0.05301383012232747,
+     "PP-SWR-003": 1.3147269783075899
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003544305916876
+    }
+   },
+   {
+    "run": "S1c_F17b",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.699903757777065
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 3,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.7003347855061293
+    }
+   },
+   {
+    "run": "S1c_F17b [profile=VP-5]",
+    "seed": 4,
+    "failed": [],
+    "values": {
+     "PP-SWR-003": 0.700767122907564
+    }
+   }
+  ]
+ }
+]

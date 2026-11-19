@@ -1,9 +1,7 @@
 import pytest
 
-from interfaces import (
-    ActiveFunction, BasicHeader, InitResult, InterventionPhase, PathStatus, PlannerOutputs,
-    RequestState,
-)
+from interfaces import RequestState
+from tests.sim import fakes
 from sim.faults.lane import LaneFault
 from sim.harness import Harness
 from sim.scenario import Scenario
@@ -11,18 +9,7 @@ from sim.stand_ins.driver import DriverSpec
 from sim.world.road import Segment
 
 
-class _ReportsValidPath:
-    init_result = InitResult.OK
-
-    def __init__(self, _config):
-        self.counter = 0
-
-    def step(self, inputs, _ego_motion):
-        header = BasicHeader(inputs.t0_us, self.counter, True)
-        self.counter += 1
-        status = PathStatus(header, True, ActiveFunction.NONE,
-                            InterventionPhase.NONE, InterventionPhase.NONE, False, False)
-        return PlannerOutputs(path_status=status)
+_ReportsValidPath = fakes.planner_set()   # both planners report a usable path and drive nothing
 
 
 @pytest.mark.parametrize("mode, expect_request", [("A", False), ("B", True)])

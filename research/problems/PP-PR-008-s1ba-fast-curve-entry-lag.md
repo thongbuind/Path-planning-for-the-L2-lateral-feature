@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân; sửa qua PP-TS-003 |
+| Trạng thái | Còn mở; xe rời làn ở 130 km/h kéo theo mất path |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-006 |
 | Tái hiện | 20261111-1443-suite-regression-ef8bf4b, `S1b-a-VP-*` (speed 36,1 m/s, ACC off), seed 1, 2 |
@@ -27,3 +27,9 @@ T7 C bám a_y cần vì ràng buộc a_y nằm trong cùng bài toán. Lần ch�
 |---|---|
 
 Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): ca lấy mẫu `S1b-a-VP-0-693b15015bfa` (130 km/h, ACC tắt, camera 80 m) còn trượt PP-SWR-005 (mất path hoặc HWA trong cua gắt, từ 8,0 s), 006 (−0,14 m/s²), 030 (25 chu kỳ) và 100 (0,052 m). Cần xem vì sao path mất ở 8,0 s.
+
+## Xác nhận 20261118-2030-suite-regression-e3158a5
+
+| Run ID | Kết quả |
+|---|---|
+| 20261118-2030-suite-regression-e3158a5 | S1b a VP-0 còn trượt PP-SWR-005, 006, 007, 030 |

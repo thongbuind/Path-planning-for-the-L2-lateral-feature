@@ -40,18 +40,18 @@ def test_closed_loop_run_is_logged(tmp_path):
     from sim.scenario import Scenario
     from sim.world.road import Segment
     sys.path.insert(0, str(ROOT))
-    from adapters.sil.sil_planner import PlannerLibrary
+    from adapters.sil.sil_planner import PlannerLibraries
     lib = tmp_path / "libstub.so"
     subprocess.run(["cc", "-std=c11", "-shared", "-fPIC", f"-I{ROOT / 'interfaces' / 'c'}",
                     str(ROOT / "tests" / "eval" / "stub" / "stub_planner.c"), "-o", str(lib), "-lm"], check=True)
     scenario = Scenario(name="short", segments=(Segment("straight", 200.0),), lane_width=3.5,
                         speed_mps=20.0, duration_s=1.5)
-    log = Harness(scenario, PlannerLibrary(lib), seed=1).run()
+    log = Harness(scenario, PlannerLibraries.at(lib), seed=1).run()
     path = run_log.write(log, tmp_path / "run.mcap", {"rerun": "x"})
     data = mcap_writer.read(path)
     topics = {t for t, _, _ in data["messages"]}
-    assert {"/planner/trajectory", "/planner/path_status", "/planner/lateral_limits",
-            "/planner/cycle", "/truth/vehicle"} <= topics
+    assert {"/planner/trajectory", "/planner/path_status", "/planner/lcc_status", "/planner/intervention_status",
+            "/planner/lateral_limits", "/planner/cycle", "/truth/vehicle"} <= topics
     assert data["metadata"]["run"]["scenario"] == "short" and data["metadata"]["run"]["rerun"] == "x"
     truth = [m for t, _, m in data["messages"] if t == "/truth/vehicle"]
     assert len(truth) == pytest.approx(150, abs=2) and abs(truth[0]["lane_offset_m"]) < 0.5

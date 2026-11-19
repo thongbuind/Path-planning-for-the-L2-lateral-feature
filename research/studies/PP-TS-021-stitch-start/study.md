@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đang chạy |
+| Trạng thái | Đã quyết: V7 |
 | Mở ngày | 2026-11-16 |
 | Khóa ngày | 2026-11-16 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-16 |
 | Liên quan | PP-SWR-100, 101, 102, 001, 051; R79 5.6.2.1.1, Annex 8 3.2.2; `stitch_reset`, `cont_margin`, T4; PP-PR-056; PP-TS-019 (V3, V4), PP-TS-020 |
 
 ## 1. Câu hỏi
@@ -83,6 +83,7 @@ Cài V3 (`PP_T4_BLEND=segments`, `pp_stitch_blend`):
 |---|---|---|
 | [20261116-1702-study-PP-TS-021-f51044d](../../runs/20261116-1702-study-PP-TS-021-f51044d/summary.md) | V0 đến V4 | Theo plan khóa 2026-11-16. Chạy trong git worktree sạch ở f51044d, vì `web/` có thay đổi ngoài study; bản ghi chép về thư mục chính |
 | [20261116-1724-study-PP-TS-021-0a1d8c9](../../runs/20261116-1724-study-PP-TS-021-0a1d8c9/summary.md) | V0 đến V6 | Khóa lại: thêm V5, V6. Cùng cách chạy trong worktree. V0 đến V4 cho đúng số của lần trước |
+| [20261116-1748-study-PP-TS-021-8726b80](../../runs/20261116-1748-study-PP-TS-021-8726b80/summary.md) | V0 đến V8 | Khóa lại: thêm V7, V8 (reset mềm). Cùng cách chạy trong worktree. V0 đến V6 cho đúng số của lần trước |
 
 ## 5. Kết quả
 
@@ -164,9 +165,40 @@ Lệch ngang của path so với tâm làn thật (PP-SWR-050), lớn nhất the
 - Lần vượt 0,05 m: T4 đo lệch trên path cũ dời bằng ego-motion của planner, bên chấm dời bằng chuyển động thật. Khác vài mm, lớn hơn phần biên 10 % của `cont_margin`. V0 cũng tới 0,99 ở cuối S1b a.
 - Ngưỡng reset nhị phân càng nhỏ thì càng dễ dao động quanh ngưỡng. Chọn giá trị khác cho `stitch_reset` không gỡ được cơ chế này.
 
+**Lần chạy với reset mềm** [20261116-1748-study-PP-TS-021-8726b80](../../runs/20261116-1748-study-PP-TS-021-8726b80/summary.md). Số lượt trượt (chỉnh / kiểm): V0 4 / 5; V1 6 / 6; V2 4 / 2; V3 4 / 6; V4 4 / 4; V5 3 / 3; V6 4 / 4; **V7 2 / 2; V8 2 / 2**. Đứng đầu ở bộ kiểm: V7.
+
+| Ca (2 seed mỗi ô) | V0 | V2 | V6 | V7 | V8 |
+|---|---|---|---|---|---|
+| S1b a, bài R79 | R79 | Đạt | 100 | Đạt | Đạt |
+| S1b b, bài R79 | R79 | R79 | R79 | R79 | R79 |
+| S2 b | Đạt | 100 | Đạt | Đạt | Đạt |
+| S14 e | 051 (1 seed) | Đạt | Đạt | Đạt | Đạt |
+| Mọi ca còn lại | Đạt | Đạt | Đạt | Đạt | Đạt |
+
+| Đại lượng | V0 | V2 | V6 | V7 | V8 |
+|---|---|---|---|---|---|
+| a_y xe trừ path, S1b a / c [m/s²] | 0,50 / 0,52 | 0,16 / 0,11 | 0,29 / 0,29 | 0,36 / 0,33 | 0,34 / 0,29 |
+| PP-SWR-050, S1 c [m] | 0,33 | 0,15 | 0,05 | 0,04 | 0,08 |
+| PP-SWR-050, S12 a [m] | 0,50 | 0,30 | 0,33 | 0,34 | 0,30 |
+| PP-SWR-050, S1 f (cua chữ S) [m] | 0,28 | 0,82 | 0,36 | 0,39 | 0,49 |
+| PP-SWR-050, xấu nhất bộ chỉnh / kiểm [m] | 0,50 / 0,45 | 0,30 / 0,82 | 0,38 / 0,36 | 0,34 / 0,39 | 0,30 / 0,49 |
+| PP-SWR-053, bộ chỉnh [s] | 3,29 | 0,78 | 0,88 | 0,83 | 0,80 |
+
+- V7, V8 chỉ trượt S1b b, ca trượt ở mọi phương án. Reset mềm gỡ dao động của V5, V6 ở S1b a và giữ được S2 b.
+- V7 tốt hơn V8 ở ca xấu nhất bộ kiểm (S1 f: 0,39 so với 0,49 m). V8 tốt hơn ở vài ca mưa, nhiễu (S12 a, S1 c + F01 c), kém hơn ở S1 c, F02 b.
+- So với V0: lệch tâm làn ở họ S1c giảm từ 0,33–0,50 xuống 0,04–0,34 m; S1 f xấu hơn 0,11 m (sai số khớp đa thức của lane model, PP-PR-004, PP-TS-005).
+- a_y xe trừ path ở S1b a, c còn 0,33–0,36 m/s², cao hơn V2 (0,11–0,16) nhưng R79 đạt.
+
 ## 6. Đề xuất
 
-2026-11-16, sau chẩn đoán V6, chờ người dùng:
+2026-11-16, sau lần chạy 20261116-1748, chờ người dùng quyết định (bước 7):
+
+- Chọn V7: reset mềm, `stitch_soft_min` 0,02 m, `stitch_reset` 0,1 m, trộn một λ như cũ.
+- Lý do: cùng số trượt ít nhất với V8 (chỉ S1b b, chung cho mọi phương án); lệch tâm làn xấu nhất ở bộ kiểm nhỏ hơn V8; gỡ R79 ở S1b a, dao động của V5, V6, và S2 b của V2.
+- Khi đưa vào (bước 8): Software Detailed Design mục 7 (T4 bước 2 reset mềm) và mục 15 (`stitch_soft_min`); Software Architectural Design mục 11 (`stitch_reset` khởi đầu 0,1 m); calibration; bỏ `PP_T4_BLEND`, `PP_T4_START=hard` khỏi code giao; đóng phần T4 của PP-TS-019; hồi quy.
+- Sau đó: chạy lại PP-TS-020 trên baseline mới; mở problem report cho S1b b.
+
+Đề xuất trước đó (2026-11-16, sau chẩn đoán V6):
 
 - Loại V5, V6: dao động theo chu kỳ ở S1b a. V2 không dao động nhưng mang sai số lane model vào path (S1 f, S2 b).
 - Phương án mới, cần mở lại khóa và cài code: reset mềm. Điểm đầu = trạng thái path cũ + w · (trạng thái đo − trạng thái path cũ), w tăng liên tục từ 0 tới 1 theo độ lệch giữa hai trạng thái (ví dụ 0 dưới 0,02 m, 1 từ 0,1 m). Không có ngưỡng nhị phân nên không dao động; V0 và V2 là hai đầu của cách này.
@@ -191,8 +223,8 @@ Lệch ngang của path so với tâm làn thật (PP-SWR-050), lớn nhất the
 
 ## 7. Quyết định
 
-- Người quyết, ngày:
-- Chọn:
-- Lý do:
-- Đưa vào: Software Detailed Design mục 7 (T4), Software Architectural Design mục 11 (`stitch_reset`), calibration
-- Hồi quy: run ID
+- Người quyết, ngày: thongbui, 2026-11-16.
+- Chọn: V7. Reset mềm ở T4 bước 2: điểm đầu = path cũ + w · (trạng thái đo − path cũ), w từ 0 ở `stitch_soft_min` = 0,02 m tới 1 ở `stitch_reset` = 0,1 m. T4 bước 4 giữ một λ cho cả path.
+- Lý do: theo đề xuất ở mục 6, lần chạy 20261116-1748-study-PP-TS-021-8726b80.
+- Đưa vào: Software Detailed Design mục 7, 15; Software Architectural Design mục 4.2, 11; PP-ADR-004; calibration; code giao bỏ `PP_T4_BLEND`, `PP_T4_START`. Phần T4 của PP-TS-019 đóng theo quyết định này.
+- Hồi quy: chờ.

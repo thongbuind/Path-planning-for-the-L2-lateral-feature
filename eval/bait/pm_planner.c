@@ -3,18 +3,19 @@
  * Specification 12). Written on the test side against interfaces/c/pp_planner.h only; it
  * shares nothing with planner/.
  *
- * Without a PM_xx define this is PM-00, the control: a simple HWA planner that meets the
- * call contract. It follows the lane centre (mean of L1 and R1), low-pass filtered across
+ * One library exports both planner families (pp_lcc_* and pp_lkaelk_*), as eval/planner_choice.py
+ * accepts for a bait planner. Without a PM_xx define this is PM-00, the control: a simple LCC
+ * planner and LKA/ELK planner that meet the call contract. It follows the lane centre (mean of L1 and R1), low-pass filtered across
  * camera frames and moved to t0 with EgoMotionQuery, and cuts curvature so that the path
- * a_y stays below aysmax. On an LKA or ELK REQUEST it drives the same centre path as that
- * function, phase ACTIVE until the car is back near the centre, then COMPLETED while the
- * request stays. Each PM_xx define adds one fault:
+ * a_y stays below aysmax. The LKA/ELK planner drives the same centre path on an LKA or ELK
+ * REQUEST, phase ACTIVE until the car is back near the centre, then COMPLETED while the request
+ * stays; its Trajectory is valid only while it intervenes. Each PM_xx define adds one fault:
  *
  *   PM_01  0.3 m lateral step added to the path every 40 cycles
  *   PM_02  no a_y limit
  *   PM_03  path_valid stays true when ego-motion is invalid
- *   PM_04  path_valid = false whenever HWA is in REQUEST
- *   PM_05  PathStatus counter does not increase
+ *   PM_04  path_valid = false whenever LCC is in REQUEST
+ *   PM_05  status counter (LccStatus, InterventionStatus) does not increase
  *   PM_06  Trajectory sent although pp_init reported a bad VehicleConfig
  *   PM_07  state kept in a global variable
  *   PM_08  writes past the end of the state memory
@@ -47,7 +48,7 @@ typedef struct {
     uint64_t capture_us; /* capture stamp of the filtered centre */
     uint8_t have_centre;
     uint8_t ok;
-    uint8_t counter[3];  /* Trajectory, PathStatus, LateralLimits */
+    uint8_t counter[3];  /* Trajectory, status, LateralLimits */
     uint32_t cycles;
     float wheelbase;
     float max_wheel_angle;
@@ -71,7 +72,7 @@ static pm_state_t *state_of(void *memory)
 #endif
 }
 
-size_t pp_state_size(void)
+static size_t pm_state_size(void)
 {
 #ifdef PM_07
     return 8U;
@@ -80,12 +81,15 @@ size_t pp_state_size(void)
 #endif
 }
 
+size_t pp_lcc_state_size(void) { return pm_state_size(); }
+size_t pp_lkaelk_state_size(void) { return pm_state_size(); }
+
 static int finite_positive(float x) { return isfinite(x) && x > 0.0F; }
 
-pp_init_result_t pp_init(void *memory, size_t size, const pp_vehicle_config_t *config)
+static pp_init_result_t pm_init(void *memory, size_t size, const pp_vehicle_config_t *config)
 {
     pm_state_t *s;
-    if (memory == NULL || size < pp_state_size()) {
+    if (memory == NULL || size < pm_state_size()) {
         return PP_INIT_RESULT_BAD_ARGUMENT;
     }
     s = state_of(memory);
@@ -150,8 +154,36 @@ static motion_t ego(pp_ego_motion_fn fn, void *ctx, uint64_t t1, uint64_t t2)
 
 static int fresh(uint64_t t0, uint64_t rx, uint64_t timeout) { return rx <= t0 && t0 - rx <= timeout; }
 
-void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, void *ctx,
-             pp_planner_outputs_t *out)
+pp_init_result_t pp_lcc_init(void *memory, size_t size, const pp_vehicle_config_t *config)
+{
+    return pm_init(memory, size, config);
+}
+
+pp_init_result_t pp_lkaelk_init(void *memory, size_t size, const pp_vehicle_config_t *config)
+{
+    return pm_init(memory, size, config);
+}
+
+/* What both planners read, and what the common step finds out. */
+typedef struct {
+    uint64_t t0_us;
+    pp_received_lane_model_t lane_model;
+    pp_received_speed_signals_t speed;
+    pp_received_function_requests_t function_requests;
+} pm_inputs_t;
+
+typedef struct {
+    int trajectory_sent;
+    pp_trajectory_t trajectory;
+    int valid;                         /* A usable path */
+    int hwa;                           /* LCC in REQUEST */
+    int iv;                            /* 1 LKA, 2 ELK, 0 none */
+    pp_intervention_phase_t phase;     /* Of that function */
+    int limited;
+    pp_lateral_limits_t lateral_limits;
+} pm_outputs_t;
+
+static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, void *ctx, pm_outputs_t *out)
 {
     pm_state_t *s = state_of(memory);
     const uint64_t t0 = in->t0_us;
@@ -309,32 +341,13 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
             tr->header.counter = s->counter[0]++;
         }
     }
-    {
-        pp_path_status_t *ps = &out->path_status;
-        ps->header.stamp_us = t0;
-        ps->header.valid = true;
-        ps->header.counter = s->counter[1];
-#ifndef PM_05
-        s->counter[1]++;
-#endif
-        ps->path_valid = valid != 0;
-        ps->active_function = !valid ? PP_ACTIVE_FUNCTION_NONE
-                              : iv == 1 ? PP_ACTIVE_FUNCTION_LKA : iv == 2 ? PP_ACTIVE_FUNCTION_ELK
-                              : hwa ? PP_ACTIVE_FUNCTION_HWA : PP_ACTIVE_FUNCTION_NONE;
-        ps->lka_phase = PP_INTERVENTION_PHASE_NONE;
-        ps->elk_phase = PP_INTERVENTION_PHASE_NONE;
-        if (valid && iv) {
-            pp_intervention_phase_t phase = (s->done[iv - 1] != 0U) ? PP_INTERVENTION_PHASE_COMPLETED
-                                                                    : PP_INTERVENTION_PHASE_ACTIVE;
-            if (iv == 1) {
-                ps->lka_phase = phase;
-            } else {
-                ps->elk_phase = phase;
-            }
-        }
-        ps->lateral_limit_reached = valid && limited;
-        ps->lane_too_narrow = false;
-        out->path_status_sent = true;
+    out->valid = valid;
+    out->hwa = hwa;
+    out->iv = valid ? iv : 0;
+    out->limited = valid && limited;
+    out->phase = PP_INTERVENTION_PHASE_NONE;
+    if (valid && iv) {
+        out->phase = (s->done[iv - 1] != 0U) ? PP_INTERVENTION_PHASE_COMPLETED : PP_INTERVENTION_PHASE_ACTIVE;
     }
     {
         pp_lateral_limits_t *ll = &out->lateral_limits;
@@ -344,15 +357,84 @@ void pp_step(void *memory, const pp_planner_inputs_t *in, pp_ego_motion_fn fn, v
         ll->header.counter = s->counter[2]++;
         ll->v_max = (k_view > 1e-6F) ? fminf(sqrtf(AY_TARGET / k_view), V_MAX_MPS) : V_MAX_MPS;
         ll->distance = 0.0F;
-        ll->lateral_limit_reached = out->path_status.lateral_limit_reached;
-        out->lateral_limits_sent = true;
+        ll->lateral_limit_reached = out->limited != 0;
     }
 #ifdef PM_08
-    ((uint8_t *)memory)[pp_state_size()] = (uint8_t)s->cycles;
+    ((uint8_t *)memory)[pm_state_size()] = (uint8_t)s->cycles;
 #endif
 #ifdef PM_09
     s->compute_s = (double)(clock() - started) / CLOCKS_PER_SEC;
 #endif
 }
 
-const char *pp_version(void) { return "bait_planner " PM_NAME " commit none calibration none"; }
+/* The status counter of both planners: one counter per instance, as the contract wants. */
+static uint8_t status_counter(void *memory)
+{
+    pm_state_t *s = state_of(memory);
+    const uint8_t value = s->counter[1];
+#ifndef PM_05
+    s->counter[1]++;
+#endif
+    return value;
+}
+
+static void common_inputs(pm_inputs_t *c, uint64_t t0, const pp_received_lane_model_t *lane,
+                          const pp_received_speed_signals_t *speed,
+                          const pp_received_function_requests_t *requests)
+{
+    c->t0_us = t0;
+    c->lane_model = *lane;
+    c->speed = *speed;
+    c->function_requests = *requests;
+}
+
+void pp_lcc_step(void *memory, const pp_lcc_inputs_t *in, pp_ego_motion_fn fn, void *ctx,
+                 pp_lcc_outputs_t *out)
+{
+    pm_inputs_t c;
+    pm_outputs_t o;
+    common_inputs(&c, in->t0_us, &in->lane_model, &in->speed, &in->function_requests);
+    pm_step(memory, &c, fn, ctx, &o);
+    memset(out, 0, sizeof *out);
+    out->trajectory_sent = o.trajectory_sent != 0;
+    out->trajectory = o.trajectory;
+    out->trajectory.planner_id = PP_PLANNER_ID_LCC;
+    out->trajectory.header.valid = o.valid != 0;
+    out->lcc_status_sent = true;
+    out->lcc_status.header.stamp_us = in->t0_us;
+    out->lcc_status.header.valid = true;
+    out->lcc_status.header.counter = status_counter(memory);
+    out->lcc_status.path_valid = o.valid != 0;
+    out->lcc_status.lcc_mode = (o.valid && o.hwa) ? PP_LCC_MODE_LANE : PP_LCC_MODE_NONE;
+    out->lcc_status.lateral_limit_reached = o.limited != 0;
+    out->lateral_limits_sent = true;
+    out->lateral_limits = o.lateral_limits;
+}
+
+void pp_lkaelk_step(void *memory, const pp_lka_elk_inputs_t *in, pp_ego_motion_fn fn, void *ctx,
+                    pp_lka_elk_outputs_t *out)
+{
+    pm_inputs_t c;
+    pm_outputs_t o;
+    common_inputs(&c, in->t0_us, &in->lane_model, &in->speed, &in->function_requests);
+    pm_step(memory, &c, fn, ctx, &o);
+    memset(out, 0, sizeof *out);
+    out->trajectory_sent = o.trajectory_sent != 0;
+    out->trajectory = o.trajectory;
+    out->trajectory.planner_id = PP_PLANNER_ID_LKA_ELK;
+    out->trajectory.header.valid = o.valid != 0 && o.iv != 0;     /* PP-SWR-180 */
+    out->intervention_status_sent = true;
+    out->intervention_status.header.stamp_us = in->t0_us;
+    out->intervention_status.header.valid = true;
+    out->intervention_status.header.counter = status_counter(memory);
+    out->intervention_status.path_valid = o.valid != 0;
+    out->intervention_status.active_function = (o.iv == 1) ? PP_INTERVENTION_FUNCTION_LKA
+                                               : (o.iv == 2) ? PP_INTERVENTION_FUNCTION_ELK
+                                               : PP_INTERVENTION_FUNCTION_NONE;
+    out->intervention_status.lka_phase = (o.iv == 1) ? o.phase : PP_INTERVENTION_PHASE_NONE;
+    out->intervention_status.elk_phase = (o.iv == 2) ? o.phase : PP_INTERVENTION_PHASE_NONE;
+    out->intervention_status.lateral_limit_reached = o.limited != 0;
+}
+
+const char *pp_lcc_version(void) { return "bait_planner " PM_NAME " commit none calibration none"; }
+const char *pp_lkaelk_version(void) { return "bait_planner " PM_NAME " commit none calibration none"; }
