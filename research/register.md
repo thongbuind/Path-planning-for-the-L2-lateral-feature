@@ -122,3 +122,6 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-074 | Vào lại FOLLOW chậm sau lỗi LeadTarget | Mở | PP-SWR-170 | [report](problems/PP-PR-074-follow-reentry-after-fault.md) |
 | PP-PR-075 | S22 a: độ cong đổi quá ngưỡng giữa hai path | Mở | PP-SWR-102 | [report](problems/PP-PR-075-s22a-curvature-step.md) |
 | PP-PR-076 | G01 trên S1c, VP-5: DLC âm nhẹ | Mở | PP-SWR-051 | [report](problems/PP-PR-076-g01-s1c-vp5-departure.md) |
+| PP-PR-077 | PP-SWR-094 trượt 146 lượt ELK vì xe làn bên (S7, S8, S8b, S12, S21), ngoài phạm vi chấm; tăng từ 97 sau PP-TS-026 V4 | Mở; chờ quyết định phạm vi hoặc sửa planner | PP-SWR-094; PP-TS-026 | [report](problems/PP-PR-077-094-outside-checked-scenarios.md) |
+| PP-PR-078 | `lcc_mode` = COAST khoảng 1 s mỗi lần camera mất một vạch, dù vạch làn mình còn đo được; 200 lượt trượt PP-SWR-177 ngoài phạm vi | Mở; đã tái hiện trên S1b b, nguyên nhân gốc chưa xác nhận | PP-SWR-177, 121, 124 | [report](problems/PP-PR-078-coast-label-while-lines-measured.md) |
+| PP-PR-079 | S22 e: vào FOLLOW khi xe trước lệch tâm 0,8 đến 0,9 m, 6 lượt | Mở; chưa phân tích | PP-SWR-171; PP-ASM-025, 026 | [report](problems/PP-PR-079-s22e-follow-entry-off-centre.md) |
