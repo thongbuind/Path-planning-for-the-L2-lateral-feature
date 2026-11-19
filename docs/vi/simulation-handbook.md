@@ -145,6 +145,7 @@ Một lần chạy: dựng ca (`resolve`), mô phỏng (`simulate`), chấm (`ev
 | Đường | Tập con OpenDRIVE 1.8.1: đường cong, làn đổi bề rộng, vạch liền, đứt, kép, mép đường, rào chắn |
 | Kịch bản | Tập con OpenSCENARIO 1.3.1, một ego; mở rộng riêng bằng `pp:*` |
 | Vòng chạy | Vòng kín, vòng hở |
+| Workbench | Chạy một ca, mở lại ca của suite, phát lại, run con; so hai lần chạy suite hoặc hai campaign; campaign tới 40 run chạy qua một supervisor (mục 18, SIM-REQ-091 đến 096) |
 | Giao thông | Xe theo kịch bản, không phản ứng với xe thử |
 | Môi trường | μ mặt đường, nhiễu ObjectList, trễ camera, gió ngang, đường nghiêng |
 | Bên chấm | Criterion theo Software Requirements Specification, performance target, kiểm B0, kiểm bên chấm bằng planner mồi |
@@ -158,6 +159,7 @@ Ngoài khả năng của công cụ:
 | Chế độ thời gian thực nhiều tiến trình | Không kiểm jitter của hệ điều hành |
 | Chuyển tải, hệ treo, mặt đường gồ ghề, phanh gấp | Chỉ đúng ở a_y thấp của LCC, LKA, ELK (mục 9.1) |
 | Chấm lại từ MCAP | Chấm lại bằng chạy lại tất định |
+| Campaign | Tối đa 40 run, chỉ chạy qua workbench; độ phủ chưa có mức "điều kiện xảy ra thật" vì kết quả của run chưa ghi lỗi nào thật sự được bơm |
 | Hai hệ điều hành cho cùng bit | `behavior_checksum` chỉ so trong cùng máy |
 
 ## 9. Giả định, giới hạn và nguồn uncertainty theo model {#hb-models}
@@ -454,6 +456,12 @@ Yêu cầu của chính công cụ kiểm thử, không phải của planner. S�
 | SIM-REQ-088 | Workbench phải đặt overlay lane model theo tư thế xe tại thời điểm lấy mẫu toàn cục của khung camera | Test | Đạt | `test_lane_model_is_placed_at_the_global_capture_time` |
 | SIM-REQ-089 | Workbench phải hiển thị định danh của mọi thư viện SUT trong một run hoặc một lần chạy suite | Test | Một phần | Đo ngày 18/11/2026: hiển thị cả hai thư viện; chưa có test tự động |
 | SIM-REQ-090 | Khi SUT có nhiều thành phần, workbench phải hiển thị output trạng thái của từng thành phần | Inspection | Đạt | Inspection ngày 18/11/2026, xem lại ngày 19/11/2026 (màn Điều tra: output của từng planner, arbitrator chạy thử) |
+| SIM-REQ-091 | Khi người dùng so hai lần chạy suite hoặc hai campaign, workbench phải liệt kê mọi điểm khác của môi trường (thư viện SUT, calibration, commit, bộ đầu vào, hệ điều hành, Python, numpy) trước kết quả so sánh | Test, Inspection | Đạt | `test_the_environments_are_listed_before_the_result`; xem trên trình duyệt ngày 19/11/2026 (khối Môi trường của hai bên đứng trước tóm tắt) |
+| SIM-REQ-092 | Khi so hai bên, workbench phải ghép theo ca và seed (suite) hoặc theo cấu hình của run (campaign), phân loại mỗi requirement của mỗi lượt ghép được là mới trượt, hết trượt hoặc còn trượt, và phải đưa lượt chỉ có ở một bên hoặc khác `case_hash` ra riêng, không so | Test | Đạt | `test_a_suite_comparison_classifies_every_requirement`, `test_two_campaigns_compare_by_configuration`, `test_kinds_are_not_mixed` |
+| SIM-REQ-093 | Khi người dùng tạo một campaign, workbench phải đóng băng danh sách run, gửi mọi run qua cùng supervisor, không quá N_max run chạy cùng lúc, và báo trạng thái thực thi của từng run | Test | Đạt | `test_a_campaign_runs_through_the_one_supervisor_and_reports_each_run`, `test_a_matrix_expands_to_its_product_and_is_bounded`, `test_a_bad_campaign_is_refused` |
+| SIM-REQ-094 | Khi người dùng hủy một campaign, workbench phải hủy mọi run chưa kết thúc của campaign đó và không được hủy run nào ngoài campaign | Test | Đạt | `test_cancelling_a_campaign_leaves_other_runs_alone` |
+| SIM-REQ-095 | Workbench phải báo cho mỗi campaign số run đã thiết kế, đã lên lịch, đã chạy xong và chấm được, và phải ghi rõ mức "điều kiện xảy ra thật" chưa đo | Test | Đạt | `test_a_campaign_runs_through_the_one_supervisor_and_reports_each_run`; `condition_observed` là `null` |
+| SIM-REQ-096 | Workbench phải giữ run của một campaign khỏi bị retention xóa cho tới khi campaign bị xóa, và không cho xóa campaign còn run đang chạy hoặc đang chờ | Test | Đạt | `test_repeat_makes_a_new_campaign_with_the_same_list_and_delete_unpins`, `test_delete_is_refused_while_a_run_is_active` |
 | SIM-REQ-100 | Nền tảng phải cài và chạy được trên Linux và macOS theo các lệnh ghi trong README và runbook, không dùng Docker | Demonstration | Một phần | macOS: cài và chạy theo README và Simulation Runbook trên máy phát triển; Linux: chưa chạy, chờ CI |
 | SIM-REQ-101 | Mỗi push lên `main` phải chạy build planner, pytest, quy tắc import và conformance B0 trong CI | Inspection | Một phần | `.github/workflows/tests.yml` có đủ bước (build, test C, pytest gồm quy tắc import, B0, golden); chưa chạy trên GitHub |
 | SIM-REQ-102 | Nền tảng phải xóa run thường cũ nhất khi `build/runs` vượt N_keep run hoặc S_max | Test | Đạt | `test_retention_keeps_newest_and_pinned` |
@@ -483,4 +491,4 @@ Yêu cầu của chính công cụ kiểm thử, không phải của planner. S�
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
-| 1.0 | 2026-11-19 | Bản đầu: bố cục theo UN R171 Annex 5 §4.1; chín model và trạng thái validation; criticality, tool confidence; verification, sensitivity; 58 yêu cầu nền tảng |
+| 1.0 | 2026-11-19 | Bản đầu: bố cục theo UN R171 Annex 5 §4.1; chín model và trạng thái validation; criticality, tool confidence; verification, sensitivity; 64 yêu cầu nền tảng (gồm so sánh và campaign của workbench) |

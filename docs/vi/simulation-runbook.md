@@ -67,6 +67,7 @@ Khoảng 15 phút.
 | 4 | Màn Suite và regression, chọn lần chạy, mục Điều tra một ca trượt, bấm Mở lại ở một ca trượt | Run mới chạy lại ca từ file đã đóng băng, so `behavior_checksum` với kết quả ghi trong suite và ghi khớp hay không |
 | 5 | Mở run vừa tạo, tab Điều tra, bấm Phát lại từ đầu | Scene, tín hiệu và tiêu chí ở cùng một mốc thời gian; nhãn nguồn: truth của simulator, planner nhận, output của từng planner, arbitrator chạy thử |
 | 6 | Màn Độ tin cậy | Golden set, kiểm bên chấm, verification; hồ sơ model ở Simulation Handbook |
+| 7 | Màn So sánh và campaign, tab So sánh hai lần chạy: chọn hai lần chạy suite (baseline, candidate) rồi bấm So sánh | Khối Môi trường của hai bên (thư viện, calibration, commit, bộ đầu vào, máy), rồi số lượt mới trượt, hết trượt, còn trượt và lượt đổi hành vi; mỗi dòng có nút Mở lại ở candidate |
 
 Lần chạy chính thức cuối cùng của dự án có sẵn trong `research/runs/`; `report.md` ở đó là báo cáo đã dùng để review.
 
@@ -90,6 +91,22 @@ Lần chạy chính thức cuối cùng của dự án có sẵn trong `research
 | 3 | Mở run đã xong, bấm Phát lại | Phát lại từ bundle, không chạy planner |
 | 4 | Tab Run con và giả thuyết, bấm Tạo run con, đổi một tham số | Run mới có `parent_run_id` |
 | 5 | Thấy hành vi sai | Mở problem report theo `research/README.md`, ghi `run_id` |
+
+### Campaign
+
+Dùng khi cần chạy cùng lúc nhiều ca (một nhóm tình huống, lỗi, xe, seed) rồi so với lần chạy sau khi đổi planner.
+
+| Bước | Việc | Kết quả |
+|---|---|---|
+| 1 | Màn So sánh và campaign, tab Campaign: nhập tên, chọn tình huống, lỗi, xe, seed | Số run hiện ngay (tối đa 40) |
+| 2 | Bấm Tạo và chạy campaign | Danh sách run đóng băng; các run chạy qua cùng supervisor, vài run cùng lúc, còn lại chờ |
+| 3 | Đóng tab, mở lại | Campaign vẫn chạy; trang tiến độ cập nhật mỗi 2 giây |
+| 4 | Đọc Độ phủ: thiết kế, đã lên lịch, đã chạy xong, chấm được | Mức điều kiện xảy ra thật chưa đo |
+| 5 | Hủy campaign nếu cần | Chỉ run của campaign này bị hủy |
+| 6 | Sau khi đổi planner hoặc calibration và build lại, bấm Lặp lại trên bản hiện tại | Campaign mới với đúng danh sách cũ |
+| 7 | Bấm So với campaign gốc | Tab So sánh với hai campaign: ghép theo cấu hình của run |
+
+Run của campaign được ghim nên không bị dọn; bấm Xóa campaign khi không cần nữa.
 
 Đọc riêng hai thông tin: Thực thi (có chạy hết không) và Kết luận (đạt hay trượt tiêu chí nào). Thời điểm trượt chỉ gợi ý chỗ cần nhìn; kết luận nguyên nhân cần run đối chứng.
 
@@ -154,9 +171,8 @@ Việc kèm theo: viết bộ planner mồi riêng cho SUT (`eval/bait/`), thêm
 | Việc | Ước lượng (ngày công, sai số khoảng ±50 %) | Mở khi |
 |---|---|---|
 | `eval.suite` ghi bundle cho từng lượt | 2 đến 3 | Cần playback cho mọi ca suite |
-| So sánh hai lần chạy trên workbench | 3 đến 5 | Có người dùng ngoài tác giả |
-| Độ phủ: đã lên lịch, đã chạy, điều kiện thật sự xảy ra, chấm được | 4 đến 6 | Cần đo độ phủ |
-| Campaign trên workbench | 5 đến 8 | Chạy campaign trên web là nhu cầu thật |
+| Campaign lớn hơn 40 run, hàng đợi qua đêm | 2 đến 3 | Cần chạy nhiều hơn một lượt |
+| Ghi lỗi thật sự được bơm vào kết quả của run, để độ phủ của campaign có mức điều kiện xảy ra thật | 2 đến 3 | Cần đo độ phủ đủ năm mức |
 | Quét K, tỉ số lái, trễ chấp hành theo dải có nguồn (PP-TS-023) | 3 đến 5, cộng thời gian chạy | Có nguồn dải đặc tính xe |
 | Thư viện MCAP chính thức thay writer tự viết | 2 | Cần nén, chunk, seek |
 | Đối chiếu hình học với esmini | 5 đến 10 | Cần chứng minh tập con OpenDRIVE |
@@ -171,4 +187,4 @@ Việc kèm theo: viết bộ planner mồi riêng cho SUT (`eval/bait/`), thêm
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
-| 1.0 | 2026-11-19 | Bản đầu: cài đặt, kiểm cài đặt, ba hành trình, lần chạy chính thức, gói bàn giao, thêm SUT mới, xử lý sự cố, việc để sau |
+| 1.0 | 2026-11-19 | Bản đầu: cài đặt, kiểm cài đặt, ba hành trình, so sánh và campaign, lần chạy chính thức, gói bàn giao, thêm SUT mới, xử lý sự cố, việc để sau |
