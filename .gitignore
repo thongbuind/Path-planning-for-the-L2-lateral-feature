@@ -13,6 +13,10 @@ htmlcov/
 .venv/
 venv/
 
+# ASAM schemas: fetched by eval.fetch_schemas, not redistributed (benchmark/schema/sources.json)
+/benchmark/schema/opendrive-1.8.1/
+/benchmark/schema/openscenario-1.3.1/
+
 # Local build output
 /build/
 /web/dist/

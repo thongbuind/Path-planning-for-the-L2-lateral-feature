@@ -36,10 +36,14 @@ jobs:
           python-version: '3.13'
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
+      - name: Fetch ASAM schemas (checked against sources.json)
+        run: python -m eval.fetch_schemas
       - name: Build planner
         run: |
           cmake -S planner -B build/planner -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE="$(which python)"
-          cmake --build build/planner --target pp_lcc pp_lkaelk pp_layout_probe
+          cmake --build build/planner
+      - name: C unit tests of the planner
+        run: ctest --test-dir build/planner --output-on-failure
       - name: Unit and integration tests
         run: python -m pytest -q
       - name: Conformance B0

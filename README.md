@@ -50,11 +50,14 @@ Chạy từ thư mục gốc của repo trên Linux hoặc macOS. Cần Python 3
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt matplotlib
+python -m eval.fetch_schemas
 
 cmake -S planner -B build/planner -DCMAKE_BUILD_TYPE=Release \
   -DPython3_EXECUTABLE="$VIRTUAL_ENV/bin/python"
 cmake --build build/planner --target pp_lcc pp_lkaelk
 ```
+
+`eval.fetch_schemas` tải các XSD của ASAM từ ASAM và kiểm SHA-256; các file này không nằm trong git vì điều khoản giấy phép của ASAM.
 
 CMake tạo `build/planner/libpp_lcc` và `build/planner/libpp_lkaelk` (đuôi `.so` trên Linux, `.dylib` trên macOS). Bộ calibration đi kèm được biên dịch vào thư viện. Sửa YAML rồi build lại để áp dụng giá trị mới. [Calibration](planner/calibration/calibration.yaml)
 
