@@ -113,7 +113,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 | PP-PR-065 | HUD web: khoảng hở dùng nửa bề rộng làn cố định, lệch tới 1,425 m ở S6b d | Đóng (eb73eee) | Chỉ hiển thị | [report](problems/PP-PR-065-hud-clearance-fixed-lane-width.md) |
 | PP-PR-066 | HUD web: tỉ lệ đóng góp lái gán 0,5 khi có lực tài xế | Đóng (eb73eee) | Chỉ hiển thị | [report](problems/PP-PR-066-steering-share-fixed-half.md) |
 | PP-PR-067 | Overlay lane model trên web tra tư thế bằng stamp đồng hồ camera; tới 2,5 cm dưới F14 | Đóng (eb73eee) | Chỉ hiển thị | [report](problems/PP-PR-067-lane-overlay-clock-domain.md) |
-| PP-PR-068 | SQTS 4.1 mô tả chế độ thời gian thực (python-can `udp_multicast`) chưa có trong code | Mở; chờ quyết định A, B, C | SQTS 4.1 | [report](problems/PP-PR-068-realtime-mode-not-implemented.md) |
+| PP-PR-068 | SQTS 4.1 mô tả chế độ thời gian thực (python-can `udp_multicast`) chưa có trong code | Đóng 2026-11-19: hướng A, SQTS 1.50 ghi chưa triển khai | SQTS 4.1 | [report](problems/PP-PR-068-realtime-mode-not-implemented.md) |
 | PP-PR-069 | Lỗi gắn trigger không được bơm nhưng ca vẫn được chấm như đã bơm | Đóng (f819db1); xác nhận ở 20261118-1546-suite-regression-edb02b8 | SQTS 6, 8.4 | [report](problems/PP-PR-069-uninjected-fault-still-judged.md) |
 | PP-PR-070 | S22b rời FOLLOW trước giới hạn 30 m. F25c và F25e báo path mất hiệu lực sớm sau FOLLOW | Phần F25 đóng (e3158a5). S22b vẫn không được chấm vì chưa quan sát được FOLLOW tới 30 m | PP-SWR-170, 173 | [report](problems/PP-PR-070-follow-coast-timing.md) |
 | PP-PR-071 | S20a và F24a trên S20a có DLC phía can thiệp giảm lại quá 0,1 m | Đóng (e395662, PP-TS-026) | PP-SWR-094 | [report](problems/PP-PR-071-s20a-dlc-reversal.md) |

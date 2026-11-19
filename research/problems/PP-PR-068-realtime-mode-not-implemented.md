@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; chờ quyết định |
+| Trạng thái | Đóng 2026-11-19: hướng A |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | Không có requirement của planner; Software Qualification Test Specification 4.1 |
 | Tái hiện | Tìm `udp_multicast`, `python-can` trong `sim/`, `eval/`, `tools/`, `web/simulation/` tại sim-up-g0 |
@@ -29,3 +29,4 @@ Ba hướng, người phụ trách quyết:
 
 | Run ID | Kết quả |
 |---|---|
+| Không có lần chạy | Software Qualification Test Specification 1.50, mục 4.1: dòng "Chế độ thời gian thực" ghi chưa triển khai. Hướng C để backlog |
