@@ -27,7 +27,7 @@ Framework chạy thư viện planner trong môi trường Software-in-the-Loop (
 - **Simulator.** Mô phỏng đường, xe, cảm biến (có LeadTarget), thời gian truyền tín hiệu và các khối ADAS, ACC, arbitrator chạy thử, điều khiển ngang, EPS. Bộ mô phỏng dùng seed để lặp lại điều kiện chạy và có thể đưa lỗi vào cảm biến hoặc kênh truyền. [`sim/`](sim/)
 - **Evaluator.** Đọc dữ liệu benchmark, sinh ca cụ thể, chạy từng ca với thư viện đã chọn, rồi tính chỉ số và xuất kết quả đạt/trượt cùng dashboard. [`eval/`](eval/)
 - **Lõi thực thi.** Dùng chung cho mọi hệ thống được kiểm, không biết path planner: định danh run, bundle kết quả (ghi tạm rồi đổi tên, `SHA256SUMS`), vòng đời run trong tiến trình riêng, phân loại lỗi. Chỉ dùng thư viện chuẩn. [`execution/`](execution/)
-- **Workbench.** Server cục bộ của web mô phỏng: lượt chạy thuộc về server, không thuộc về tab; mỗi lượt để lại bundle ở `build/runs/<run_id>/`. Chạy `python3 -m workbench.server`. [`workbench/`](workbench/) · [Web mô phỏng](web/simulation/README.md)
+- **Workbench.** Server cục bộ của web mô phỏng: lượt chạy thuộc về server, không thuộc về tab; mỗi lượt để lại bundle ở `build/runs/<run_id>/`. Có màn so sánh hai lần chạy suite (hoặc hai campaign) và campaign (danh sách run đóng băng, tối đa 40 run, lưu ở `build/campaigns/`). Chạy `python3 -m workbench.server`. Hướng dẫn dùng: [Simulation Runbook](docs/vi/simulation-runbook.md). [`workbench/`](workbench/) · [Web mô phỏng](web/simulation/README.md)
 
 ## Path Planner
 
