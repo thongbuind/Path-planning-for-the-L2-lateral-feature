@@ -37,7 +37,8 @@ jobs:
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
       - name: Fetch ASAM schemas (checked against sources.json)
-        run: python -m eval.fetch_schemas
+        run: |
+          python -m eval.fetch_schemas > fetch.log 2>&1 || { echo "::error::$(tail -n 6 fetch.log | tr '\n' ' ')"; exit 1; }
       - name: Build planner
         run: |
           cmake -S planner -B build/planner -DCMAKE_BUILD_TYPE=Release -DPython3_EXECUTABLE="$(which python)"

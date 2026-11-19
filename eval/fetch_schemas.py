@@ -15,6 +15,7 @@ import io
 import json
 from pathlib import Path
 import sys
+import time
 import urllib.request
 import zipfile
 
@@ -38,22 +39,38 @@ def check() -> list[str]:
     return problems
 
 
+def _download(url: str, attempts: int = 3) -> bytes:
+    """The official ASAM URL; a few tries, a named client, and the reason in the error text."""
+    last = None
+    for attempt in range(attempts):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "path-planning-schema-fetch/1"})
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return response.read()
+        except OSError as error:   # URLError, HTTPError and timeouts are all OSError
+            last = error
+            time.sleep(2 * (attempt + 1))
+    raise SystemExit(f"{url}: {type(last).__name__}: {last}")
+
+
 def fetch() -> None:
     for source in json.loads((SCHEMA / "sources.json").read_text(encoding="utf-8")):
         folder = SCHEMA / source["directory"]
         if all((folder / n).is_file() for n in source["files"]):
             continue
-        with urllib.request.urlopen(source["url"], timeout=60) as response:  # official ASAM URL
-            data = response.read()
+        data = _download(source["url"])
         if _sha(data) != source["archive_sha256"]:
             raise SystemExit(f"{source['url']}: archive SHA-256 differs from sources.json")
         folder.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
-            members = {Path(m).name: m for m in archive.namelist()}
             for name, digest in source["files"].items():
-                content = archive.read(members[name])
-                if _sha(content) != digest:
-                    raise SystemExit(f"{name}: SHA-256 differs from sources.json")
+                # An archive can hold one file under several folders (the ASAM OpenDRIVE one has
+                # xsd_schema/ and xsd_schema/local_schema/): take the copy whose hash is recorded.
+                copies = [archive.read(m) for m in archive.namelist() if Path(m).name == name]
+                content = next((c for c in copies if _sha(c) == digest), None)
+                if content is None:
+                    raise SystemExit(f"{name}: no copy in the archive has the SHA-256 of sources.json "
+                                     f"({len(copies)} copies found)")
                 (folder / name).write_bytes(content)
 
 
