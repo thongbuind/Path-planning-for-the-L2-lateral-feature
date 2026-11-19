@@ -303,7 +303,7 @@ Hai việc đã làm ở mục 13 và 14 (hội tụ bộ giải, độ nhạy t
 
 | Hạng mục (Annex 5 §3.6.2) | Bằng chứng | Kết quả |
 |---|---|---|
-| Unit test của simulator, bên chấm, lõi thực thi, workbench | `python -m pytest` | 528 test trong 52 file, đạt hết |
+| Unit test của simulator, bên chấm, lõi thực thi, workbench | `python -m pytest` | 548 test trong 53 file, đạt hết (cả trên clone sạch) |
 | Unit test của planner | `ctest --test-dir build/planner` | 17/17 đạt |
 | Ca giải tích | `test_steady_state_yaw_rate`: r = v·δ / (L + K·v²) và a_y = v·r | Khớp trong sai số tương đối 1e-3 (r) và 2e-3 (a_y) |
 | Hội tụ bộ giải | Mục 13 | Bậc 4,0 ở tốc độ quay và a_y |
@@ -462,7 +462,7 @@ Yêu cầu của chính công cụ kiểm thử, không phải của planner. S�
 | SIM-REQ-094 | Khi người dùng hủy một campaign, workbench phải hủy mọi run chưa kết thúc của campaign đó và không được hủy run nào ngoài campaign | Test | Đạt | `test_cancelling_a_campaign_leaves_other_runs_alone` |
 | SIM-REQ-095 | Workbench phải báo cho mỗi campaign số run đã thiết kế, đã lên lịch, đã chạy xong và chấm được, và phải ghi rõ mức "điều kiện xảy ra thật" chưa đo | Test | Đạt | `test_a_campaign_runs_through_the_one_supervisor_and_reports_each_run`; `condition_observed` là `null` |
 | SIM-REQ-096 | Workbench phải giữ run của một campaign khỏi bị retention xóa cho tới khi campaign bị xóa, và không cho xóa campaign còn run đang chạy hoặc đang chờ | Test | Đạt | `test_repeat_makes_a_new_campaign_with_the_same_list_and_delete_unpins`, `test_delete_is_refused_while_a_run_is_active` |
-| SIM-REQ-100 | Nền tảng phải cài và chạy được trên Linux và macOS theo các lệnh ghi trong README và runbook, không dùng Docker | Demonstration | Một phần | macOS: cài và chạy theo README và Simulation Runbook trên máy phát triển; Linux: chưa chạy, chờ CI |
+| SIM-REQ-100 | Nền tảng phải cài và chạy được trên Linux và macOS theo các lệnh ghi trong README và runbook, không dùng Docker | Demonstration | Một phần | macOS: clone sạch ngày 19/11/2026 chạy đủ các lệnh của Simulation Runbook (build, ctest, B0, golden, pytest, smoke); Linux: chưa chạy, chờ CI |
 | SIM-REQ-101 | Mỗi push lên `main` phải chạy build planner, pytest, quy tắc import và conformance B0 trong CI | Inspection | Một phần | `.github/workflows/tests.yml` có đủ bước (build, test C, pytest gồm quy tắc import, B0, golden); chưa chạy trên GitHub |
 | SIM-REQ-102 | Nền tảng phải xóa run thường cũ nhất khi `build/runs` vượt N_keep run hoặc S_max | Test | Đạt | `test_retention_keeps_newest_and_pinned` |
 | SIM-REQ-103 | Nền tảng không được xóa run đã được ghim | Test | Đạt | `test_retention_keeps_newest_and_pinned` |
