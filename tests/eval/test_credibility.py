@@ -1,6 +1,12 @@
 """Simulator identity and model validation state in every report (SIM-REQ-120, 121)."""
 
+import re
+from pathlib import Path
+
 from eval import conclusion, credibility, provenance
+
+ROOT = Path(__file__).resolve().parents[2]
+HANDBOOK = ROOT / "docs" / "vi" / "simulation-handbook.md"
 
 
 def test_models_are_unique_and_say_their_validation():
@@ -37,3 +43,15 @@ def test_every_conclusion_names_the_simulator():
     given = conclusion.markdown(c, "lib", simulator="commit x")
     assert "- Simulator: commit x" in given
 
+
+def test_handbook_has_an_entry_for_every_model():
+    text = HANDBOOK.read_text(encoding="utf-8")
+    for model in credibility.MODELS:
+        assert "{#" + model.anchor + "}" in text, f"{model.id}: no section {{#{model.anchor}}} in the handbook"
+
+
+def test_handbook_lists_every_requirement_with_a_status():
+    text = HANDBOOK.read_text(encoding="utf-8")
+    rows = re.findall(r"^\| (SIM-REQ-\d{3}) \|.*\| (Đạt|Một phần|Chưa làm) \|", text, re.M)
+    assert len({r[0] for r in rows}) == 58 and len(rows) == 58
+    assert "<<" not in text, "placeholder left in the handbook"

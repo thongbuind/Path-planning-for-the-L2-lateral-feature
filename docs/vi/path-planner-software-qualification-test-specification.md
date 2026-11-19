@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.49 |
+| Phiên bản | 1.50 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-18 |
+| Cập nhật | 2026-11-19 |
 
 ## 1. Purpose and scope {#test-scope}
 
@@ -47,12 +47,14 @@
 
 ## 4. Test environment {#simulation-design}
 
+Mục này ghi cấu hình simulator dùng cho phép thử. Giả định, miền dùng, nguồn tham số, verification và trạng thái validation của từng model nằm ở [Simulation Handbook](report.html?doc=simulation-handbook&lang=vi#hb-models).
+
 ### 4.1 Cách chạy {#benchmark-run}
 
 | Mục | Quy định |
 |---|---|
 | Chế độ chấm điểm | Tất định, một tiến trình, bước 1 ms. Cùng seed thì cùng kết quả. Chỉ số chính thức lấy từ chế độ này |
-| Chế độ thời gian thực | Mỗi ECU một tiến trình, socket thật, bus CAN ảo `udp_multicast` của `python-can`. Chỉ để kiểm tích hợp |
+| Chế độ thời gian thực | Chưa triển khai. Kiểm tích hợp dùng chế độ chấm điểm; không kiểm jitter của hệ điều hành |
 | Vòng hở | Xe đi theo quỹ đạo định sẵn, không theo path; đo chất lượng path |
 | Vòng kín | Path qua Lateral Controller và EPS chạy thử vào mô hình xe. Khối chạy thử cố định cho mọi kỹ thuật |
 | Độ mượt | Luôn tính trên output của planner, kể cả ở vòng kín |
@@ -77,7 +79,7 @@
 | Fault injection theo kênh | Mất chuỗi, thêm trễ, gửi trùng, đảo thứ tự, ngừng gửi, CRC sai, counter đứng yên |
 | Thời gian tính của planner | Mô phỏng là 5 ms; thời gian thật đo riêng (mục 8.2) |
 | Seed | `numpy.random.SeedSequence.spawn` |
-| Đồng hồ ECU | Mỗi ECU trôi tới ±100 ppm; lệch ban đầu tới ±10 ms; đồng bộ kiểu gPTP mỗi 125 ms, sai số sau đồng bộ tới ±50 µs |
+| Đồng hồ ECU | Mỗi ECU trôi tới ±100 ppm; lệch ban đầu tới ±10 ms; đồng bộ kiểu gPTP mỗi 125 ms, sai số sau đồng bộ tới ±50 µs. Chỉ bật ở lỗi F14 và ca có `pp:realism`; kịch bản danh định dùng đồng hồ lý tưởng |
 
 ### 4.3 Bus CAN ảo {#sim-can}
 
@@ -647,7 +649,7 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 
 ## 12. Kiểm bên chấm {#evaluator-check}
 
-- Benchmark là công cụ kiểm chứng, nên phải chứng minh được nó phát hiện lỗi (ISO 26262-8:2018, mục 11).
+- Benchmark là công cụ kiểm chứng, nên phải chứng minh được nó phát hiện lỗi (ISO 26262-8:2018, mục 11). Tool confidence của bên chấm và các tool khác: [Simulation Handbook](report.html?doc=simulation-handbook&lang=vi#hb-tool-confidence).
 - Bên test giữ một bộ planner mồi. Mỗi planner mồi là thư viện C theo `pp_planner.h`, viết riêng ở phía test, cố ý sai một điểm. Planner đối chứng PM-00 lái LCC, LKA, ELK theo tâm làn và không cố ý sai.
 - Planner mồi chấm qua kịch bản (PM-01 đến PM-04, PM-10) chạy trên hai ca. Một planner mồi bị phát hiện khi trượt requirement ở bảng với đúng mức, còn PM-00 không trượt requirement đó ở cùng ca.
 - Benchmark chỉ được dùng khi mọi planner mồi bị báo đúng requirement và đúng mức ở bảng dưới. Trượt thêm ở chỗ khác không ảnh hưởng.
@@ -727,3 +729,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.47 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 4: arbitrator chạy thử, mô hình cảm biến LeadTarget, stand-in bám xe. Mục 5: thêm S20 (ELK trong cua), S21 (trôi khi làn bên có xe), S22, S23 (bám xe trước); S3, S9 đổi theo luật dời 10 cm và arbitrator chạy thử. Mục 6: thêm F24 (biên nhảy lúc can thiệp), F25 (lỗi LeadTarget). Mục 8.1: chỉ số COMPLETED theo `d_end`, đảo chiều DLC, bám xe, dời tâm khi làn bên kia có xe; cặp path theo từng planner. PM-04 trỏ PP-SWR-067. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: kịch bản, bộ chạy, planner mồi, adapter trong `benchmark/`, `eval/`, `sim/` cần cập nhật; baseline cũ không so trực tiếp được |
 | 1.48 | 2026-11-18 | S9a thêm lượt độc lập cho LCC và LKA/ELK. S22b kéo dài đoạn mất vạch để chấm PP-SWR-173. F24 mở rộng ca chủ và xác nhận frame có lỗi đã tới planner. F25 bơm sau khi vào FOLLOW. |
 | 1.49 | 2026-11-18 | Mục 6: ca có lỗi theo sự kiện mà lỗi không được bơm thì không tính là đạt dưới lỗi (PP-PR-069). |
+| 1.50 | 2026-11-19 | Mục 4: trỏ sang Simulation Handbook cho giả định, miền dùng và validation của model. Mục 4.1: chế độ thời gian thực chưa triển khai (PP-PR-068). Mục 4.2: đồng hồ ECU chỉ trôi ở F14 và ca có `realism`. Mục 12: trỏ sang tool confidence của Simulation Handbook. |
