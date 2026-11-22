@@ -14,7 +14,7 @@
 
 ## 2. Nguyên nhân
 
-Chưa phân tích.
+Trong [hồi quy bb08d77](../runs/20261119-0948-suite-regression-bb08d77/report.md), LCC đang ở COAST và cờ đã bật trước khi `path_valid` mất ở 7,858 s. Nhánh path không hợp lệ xóa trạng thái cờ. Path trở lại ở 8,583 s, PP-SWR-007 trượt ở 8,641 s và cờ bật lại ở 8,658 s. Cần phân tích vì sao path mất trước khi đánh giá cách giữ cờ qua giai đoạn mất path.
 
 ## 3. Cách sửa
 
@@ -24,3 +24,4 @@ So log của d7ed84c và 0776bad cho lượt này.
 
 | Run ID | Kết quả |
 |---|---|
+| [20261119-0948-suite-regression-bb08d77](../runs/20261119-0948-suite-regression-bb08d77/report.md) | S1b a VP-0 seed 1 còn trượt tại 8,641 s |
