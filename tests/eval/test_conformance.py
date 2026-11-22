@@ -1,6 +1,3 @@
-"""Conformance B0 (Software Qualification Test Specification 11) finds contract faults of
-a planner library and survives a library that crashes."""
-
 import pytest
 
 from eval import conformance
@@ -26,7 +23,7 @@ def test_conformant_library_passes_and_is_integrable(judge):
     r = judge()
     assert failed(r) == set()
     assert not r["blocked"] and r["integrable"]
-    assert r["status"]["C1.layout"] == "not_checked"  # not observable from the binary
+    assert r["status"]["C1.layout"] == "not_checked"
 
 
 @pytest.mark.parametrize("define, expected, blocked", [
@@ -56,11 +53,10 @@ def test_crash_in_the_library_is_a_failure_not_an_evaluator_crash(judge):
 def test_missing_required_call_skips_the_checks_that_need_it(judge):
     r = judge("STUB_NO_STEP")
     assert r["status"]["C2.counter"] == "not_checked"
-    assert r["status"]["C3.symbols"] == "pass"  # read from the file, no call needed
+    assert r["status"]["C3.symbols"] == "pass"
 
 
 def test_chassis_signals_use_the_can_range_others_the_type_range():
-    # Interface Control Document 5.3: what the CAN encoding can deliver after scaling to SI.
     from eval import contract_io as io
     high = io.Sequence("x", 1, extreme=("imu", "high")).frame(0).imu.message
     assert high.yaw_rate_rps == pytest.approx(327.67 * 3.141592653589793 / 180, rel=1e-6)
@@ -71,4 +67,4 @@ def test_chassis_signals_use_the_can_range_others_the_type_range():
         == pytest.approx(655.35 / 3.6, rel=1e-6)
     plan = io.Sequence("x", 1, extreme=("longitudinal_plan", "high")).frame(0).longitudinal_plan.message
     assert plan.points[0].v == io.FLT_MAX
-    assert high.header.valid  # the header stays valid so the payload is used
+    assert high.header.valid

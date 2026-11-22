@@ -1,6 +1,3 @@
-"""Test-side mechanisms of the two-planner product: arbitrator stand-in, LeadTarget sensor and its
-faults, lane faults on the drifting side (F24), traffic class (S22, S23)."""
-
 from dataclasses import replace
 
 import numpy as np
@@ -36,7 +33,6 @@ def test_arbitrator_picks_lka_elk_only_while_it_drives_with_a_valid_trajectory()
                                                           phase=I.InterventionPhase.ACTIVE))
     assert trajectory.planner_id == I.PlannerId.LKA_ELK
     assert status.active_function == ActiveFunction.LKA and status.lka_phase == I.InterventionPhase.ACTIVE
-    # An active function without a valid Trajectory is not chosen (PP-SWR-180's other side).
     _, status = arb.choose(50_000, lcc, _ka_out(function=I.InterventionFunction.LKA, valid=False))
     assert status.chosen == I.PlannerId.LCC
     assert status.header.counter == 2
@@ -59,7 +55,7 @@ def test_lead_sensor_reports_the_acc_target_with_its_class_and_gap():
     assert abs(msg.vx_rel) < 1.5
     none = sensor.capture(2_000, (10.0, 0.0, 0.0), (13.9, 0.0), [car], None)
     assert not none.header.valid and none.header.counter == msg.header.counter + 1
-    assert not sensor.capture(3_000, (10.0, 0.0, 0.0), (13.9, 0.0), [car], 99).header.valid   # a ghost
+    assert not sensor.capture(3_000, (10.0, 0.0, 0.0), (13.9, 0.0), [car], 99).header.valid
 
 
 def _lead(i=7, cls=I.LeadClass.CAR):
@@ -83,7 +79,7 @@ def test_drift_side_fault_picks_the_boundary_the_driver_drifts_to_and_ramps():
     fault = LaneFault("c0_jump", start_s=1.0, lines=(1,), edges=(0,), value=0.6, ramp_s=0.5, side="drift")
     left, right = resolve_side(fault, 1 / 500), resolve_side(fault, -1 / 500)
     assert left.lines == (1,) and left.edges == (0,) and left.value == 0.6 and left.side == ""
-    assert right.lines == (2,) and right.edges == (1,) and right.value == -0.6        # away from the car
+    assert right.lines == (2,) and right.edges == (1,) and right.value == -0.6
     assert resolve_side(replace(fault, side=""), 1.0) is not None
     assert _ramp(left, 1.0) == 0.0 and _ramp(left, 1.25) == pytest.approx(0.5) and _ramp(left, 3.0) == 1.0
     assert _ramp(replace(left, ramp_s=0.0), 1.0) == 1.0

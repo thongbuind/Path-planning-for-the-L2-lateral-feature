@@ -1,5 +1,3 @@
-/* Unit tests of planner/src/pp_math.c. */
-
 #include "pp_math.h"
 #include "pp_test.h"
 

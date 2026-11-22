@@ -1,12 +1,8 @@
-/* Màn hình mô phỏng 2D: nhìn từ trên xuống, xe ở bên trái màn hình và hướng sang phải, đường chạy ngang.
-   Tỉ lệ đẳng hướng (1 m ngang = 1 m dọc). Vẽ khung d (chỉ số k) của lượt chạy đang diễn ra: hình học đường
-   (Road của sim), pose xe (ground truth), quỹ đạo 31 điểm của planner (khung xe tại stamp), xe khác.
-   Không tính lại gì của planner. */
 (() => {
   'use strict';
   const PP = window.PP;
 
-  const AHEAD_M = 96;           // bề rộng cảnh theo mét; xe đứng ở 14% từ trái: ~13 m phía sau, ~83 m phía trước
+  const AHEAD_M = 96;
   const CAR_X = 0.14;
   const CAR_FRONT = 0.9, CAR_REAR = 0.95;
   const PAINT_HALF = 0.075;
@@ -16,7 +12,7 @@
   const mm = document.getElementById('minimap');
   const mctx = mm.getContext('2d');
 
-  let W = 0, H = 0, dpr = 1, S = 8, UX = 0, VY = 0;   // S: px mỗi mét
+  let W = 0, H = 0, dpr = 1, S = 8, UX = 0, VY = 0;
   let C = {};
   let cur = null, curK = -1;
   let road = null, sHint = -1;
@@ -43,20 +39,19 @@
     S = W / AHEAD_M;
     UX = W * CAR_X;
     VY = H / 2;
-    mm.width = Math.round(190 * dpr);     // kích thước CSS cố định; không đo khi HUD đang ẩn
+    mm.width = Math.round(190 * dpr);
     mm.height = Math.round(104 * dpr);
     rain = Array.from({ length: 110 }, () => ({ x: Math.random(), y: Math.random(), l: 8 + Math.random() * 14, v: 0.7 + Math.random() * 0.9 }));
     if (cur && curK >= 0) render(cur, curK); else clear();
   }
 
-  // Khung xe (x tiến, y trái, gốc ở trục sau) -> điểm ảnh
+  // Đổi từ khung trục sau (x tiến, y trái) sang điểm ảnh SVG.
   const Q = (x, y) => [UX + x * S, VY - y * S];
   const toEgo = (wx, wy) => {
     const rx = wx - ego.x, ry = wy - ego.y;
     return [rx * ego.c + ry * ego.s, -rx * ego.s + ry * ego.c];
   };
 
-  // ---------- Đường ----------
   function setCase(d) {
     cur = d;
     curK = -1;
@@ -96,7 +91,7 @@
     }
     return [best, bd];
   }
-  // Vị trí xe dọc đường (m). Tìm quanh vị trí khung trước cho nhanh; khi xem lại ở chỗ xa thì tìm lại toàn đường.
+  // Tìm quanh vị trí của frame trước; khi phát lại sang vị trí xa, tìm lại toàn bộ đường.
   function nearestS(x, y) {
     const n = road.x.length;
     let r = sHint >= 0 ? scan(x, y, Math.max(0, sHint - 40), Math.min(n - 1, sHint + 60)) : null;
@@ -105,7 +100,6 @@
     return r[0];
   }
 
-  // Dải giữa hai độ lệch ngang o1, o2 so với tim làn, từ s0 tới s1
   function strip(o1, o2, s0, s1, step) {
     const A = [], B = [];
     s0 = Math.max(0, s0); s1 = Math.min(road.len, s1);
@@ -129,18 +123,15 @@
     for (const l of road.lines) if (l) { lo = Math.min(lo, l.o); hi = Math.max(hi, l.o); }
     for (const e of road.edges) if (e) { lo = Math.min(lo, e.o); hi = Math.max(hi, e.o); }
     if (!isFinite(lo)) { lo = -road.w / 2; hi = road.w / 2; }
-    // không có vạch ngoài ở một bên: coi như đường còn tiếp tục (làn bên cạnh)
     if (!road.lines[0] && !road.edges[0]) hi += road.w;
     if (!road.lines[3] && !road.edges[1]) lo -= road.w;
     return [lo - 0.5, hi + 0.5];
   }
   const isDash = (t) => /DASH/i.test(t || '');
   const isDouble = (t) => /DOUBLE/i.test(t || '');
-  // Nét đứt: DASH_ON m có sơn, hết chu kỳ DASH_PERIOD m, tính theo toạ độ dọc tim đường.
-  // Vạch thật và vạch lane model dùng chung nên đứt đúng chỗ của nhau.
+  // Vạch thật và vạch lane model dùng chung pha nét đứt tính theo s.
   const DASH_PERIOD = 12, DASH_ON = 4;
 
-  // Dải mặt đường: độ lệch hằng số, hoặc theo từng mét khi làn đổi bề rộng
   function asphalt(sA, sB) {
     if (!road.ext) { const [lo, hi] = extents(); return strip(lo, hi, sA, sB, 2); }
     const A = [], B = [];
@@ -152,7 +143,6 @@
     return [A, B];
   }
 
-  // Mép đường: BARRIER là gờ liền dày; GRASS_GRAVEL, CURB... là hàng chấm thưa
   function drawEdge(e, sA, sB) {
     ctx.beginPath();
     let first = true;
@@ -168,7 +158,6 @@
     ctx.setLineDash([]); ctx.globalAlpha = 1;
   }
 
-  // Vạch sơn trên đường có độ lệch hằng số: liền, đứt, hoặc kép (hai vạch liền song song)
   function paintStrips(ln, lost, sA, sB) {
     const dash = isDash(ln.t) || lost, dbl = isDouble(ln.t) && !lost;
     const half = lost ? 0.04 : dbl ? 0.05 : PAINT_HALF;
@@ -192,14 +181,13 @@
     if (any) { ctx.fillStyle = C.paint; ctx.globalAlpha = lost ? 0.6 : 1; ctx.fill(); ctx.globalAlpha = 1; }
   }
 
-  // Toạ độ dọc tim đường của chân đường vuông góc hạ từ một điểm thế giới; hint là chỉ số mẫu gần đó
   function footS(wx, wy, hint) {
     const n = road.x.length;
     let r = null;
     if (hint != null) {
       const lo = Math.max(0, Math.round(hint) - 8), hi = Math.min(n - 1, Math.round(hint) + 8);
       r = scan(wx, wy, lo, hi);
-      if ((r[0] === lo && lo > 0) || (r[0] === hi && hi < n - 1)) r = null;   // chạm biên cửa sổ: tìm lại toàn đường
+      if ((r[0] === lo && lo > 0) || (r[0] === hi && hi < n - 1)) r = null;
     }
     if (r === null) r = scan(wx, wy, 0, n - 1);
     const i = r[0], j = Math.min(i + 1, n - 1);
@@ -208,7 +196,6 @@
     return i + u;
   }
 
-  // Một polyline qua các điểm khung xe (E: [x,y]); on(sm) cho biết đoạn đó có sơn không, theo toạ độ s
   function strokeDashed(E, hintS, dash, onLen) {
     ctx.beginPath();
     let prevS = null, prev = null, open = false, hint = null;
@@ -226,7 +213,6 @@
     ctx.stroke();
   }
 
-  // Vạch sơn của đường có hình học đoạn (làn đổi bề rộng): polyline theo toạ độ thế giới
   function paintPoly(ln, lost, sE) {
     const dash = isDash(ln.t) || lost;
     ctx.strokeStyle = C.paint; ctx.lineCap = 'butt'; ctx.lineJoin = 'round';
@@ -258,7 +244,6 @@
 
     for (const e of road.edges) if (e) drawEdge(e, sA, sB);
 
-    // tim làn mình, nét chấm mờ, để thấy xe lệch bao nhiêu
     ctx.beginPath();
     for (let s = Math.max(0, sA); s <= Math.min(road.len, sB); s += 2) {
       const e = toEgo(...roadPt(s, 0)), p = Q(e[0], e[1]);
@@ -267,7 +252,6 @@
     ctx.strokeStyle = C.text2; ctx.globalAlpha = 0.45; ctx.lineWidth = 1; ctx.setLineDash([1, 7]); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha = 1;
 
-    // vạch kẻ của đường thật
     road.lines.forEach((ln, i) => {
       if (!ln) return;
       const lost = lostNow.has(i);
@@ -284,7 +268,6 @@
       }
     });
 
-    // vùng ngoài tầm nhìn của camera: planner không thấy
     const vx = Q(view, 0)[0];
     if (vx < W) {
       ctx.fillStyle = 'rgba(0,0,0,.30)';
@@ -297,15 +280,13 @@
     }
   }
 
-  // ---------- Vạch và mép đường mà lane model báo cho planner ----------
-  // Toạ độ thế giới, đặt theo tư thế xe lúc camera chụp. Kiểu nét theo `type` mà lane model báo:
-  // D đứt, S liền, B kép (hai nét liền song song), U chưa rõ (chấm), E gờ liền, G cỏ sỏi (chấm). PREDICTED vẽ mờ hơn.
+  // Tọa độ thế giới của lane model dựa trên pose lúc chụp. Vạch PREDICTED vẽ mờ hơn.
   function drawLaneModel(d, k, sE) {
     const li = d.lmk[k];
     if (li < 0) return;
     ctx.strokeStyle = C.lm; ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
     for (const ln of d.lm[li].ls) {
-      // đa thức đã lấy mẫu mỗi 4 m; nội suy tuyến tính mỗi 0,5 m để nét đứt khớp pha với vạch thật
+      // Nội suy điểm từ lưới 4 m xuống 0,5 m để pha nét đứt khớp với vạch thật.
       const W0 = [];
       const pts = ln.pts;
       for (let j = 0; j + 3 < pts.length; j += 2) {
@@ -337,10 +318,9 @@
     ctx.globalAlpha = 1;
   }
 
-  // ---------- Quỹ đạo của planner ----------
   function drawPath(d, k) {
     const alt = d.alt && d.alt[k];
-    if (alt) {   // Path của planner còn lại: có hiệu lực nhưng arbitrator không chọn.
+    if (alt) {
       const ca = Math.cos(d.ego.yaw[k]), sa = Math.sin(d.ego.yaw[k]);
       ctx.globalAlpha = 0.6;
       ctx.strokeStyle = C.text;
@@ -388,8 +368,7 @@
     }
   }
 
-  // ---------- Xe ----------
-  function rectPath(cx, cy, yaw, L, Wd) {   // tâm và hướng trong khung xe
+  function rectPath(cx, cy, yaw, L, Wd) {
     const c = Math.cos(yaw), s = Math.sin(yaw), hl = L / 2, hw = Wd / 2;
     return [[-hl, -hw], [hl, -hw], [hl, hw], [-hl, hw]].map(([lx, ly]) => Q(cx + lx * c - ly * s, cy + lx * s + ly * c));
   }
@@ -404,15 +383,15 @@
   function drawEgo(d, k) {
     const wb = d.veh.wb, L = wb + CAR_FRONT + CAR_REAR, Wd = d.veh.w * 0.93;
     const cx = (wb + CAR_FRONT - CAR_REAR) / 2;
-    fillPoly(rectPath(cx + 0.12, -0.12, 0, L + 0.3, Wd + 0.2), 'rgba(0,0,0,.35)');       // bóng
-    const ang = d.whl[k];                                                                  // bánh trước xoay theo góc lái thật
+    fillPoly(rectPath(cx + 0.12, -0.12, 0, L + 0.3, Wd + 0.2), 'rgba(0,0,0,.35)');
+    const ang = d.whl[k];
     for (const [ax, yaw] of [[0, 0], [wb, ang]]) {
       for (const sg of [-1, 1]) fillPoly(rectPath(ax, sg * (Wd / 2 - 0.05), yaw, 0.7, 0.26), '#0b0d11');
     }
     fillPoly(rectPath(cx, 0, 0, L, Wd), '#d9dde4', 'rgba(0,0,0,.25)');
-    fillPoly(rectPath(wb - 0.35, 0, 0, 1.1, Wd * 0.82), '#2a303a');                          // kính chắn gió
-    fillPoly(rectPath(-CAR_REAR + 0.35, 0, 0, 0.5, Wd * 0.78), '#2a303a');                  // kính sau
-    const o = Q(0, 0);                                                                       // trục sau: gốc khung xe
+    fillPoly(rectPath(wb - 0.35, 0, 0, 1.1, Wd * 0.82), '#2a303a');
+    fillPoly(rectPath(-CAR_REAR + 0.35, 0, 0, 0.5, Wd * 0.78), '#2a303a');
+    const o = Q(0, 0);
     ctx.fillStyle = '#0e1116';
     ctx.beginPath(); ctx.arc(o[0], o[1], 2.2, 0, 6.2832); ctx.fill();
   }
@@ -454,7 +433,6 @@
     ctx.fillText('20 m', x0 + 10 * S, y - 7);
   }
 
-  // ---------- Bản đồ nhỏ ----------
   function drawMini(d, k) {
     const w = mm.width / dpr, h = mm.height / dpr;
     mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -493,7 +471,6 @@
     mctx.beginPath(); mctx.arc(X(d.ego.x[k]), Y(d.ego.y[k]), 4, 0, 6.2832); mctx.stroke(); mctx.fill();
   }
 
-  // ---------- Vẽ một khung ----------
   function render(d, k) {
     if (!d || !W || k < 0 || k >= d.n) return;
     cur = d; curK = k;

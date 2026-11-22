@@ -1,6 +1,3 @@
-"""MCAP run log (Software Qualification Test Specification 4.1): valid file layout, and a
-short closed-loop run written with every topic."""
-
 import shutil
 import subprocess
 import sys
@@ -27,9 +24,9 @@ def test_layout_and_round_trip(tmp_path):
     assert [(t, ns) for t, ns, _ in data["messages"]] == [("/a", 1_000), ("/b", 2_000), ("/a", 3_000)]
     assert data["metadata"]["run"] == {"seed": "3"}
     assert data["ops"][0] == mcap_writer.OP_HEADER and data["ops"][-1] == mcap_writer.OP_FOOTER
-    # Footer points at the summary section, which starts with a Schema record.
+    # Footer trỏ đến phần summary bắt đầu bằng record Schema.
     assert raw[data["summary_start"]] == mcap_writer.OP_SCHEMA
-    assert data["message_count"] == 3  # Statistics record of the summary
+    assert data["message_count"] == 3
 
 
 @pytest.mark.skipif(shutil.which("cc") is None, reason="no C compiler")

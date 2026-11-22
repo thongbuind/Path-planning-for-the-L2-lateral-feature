@@ -1,5 +1,3 @@
-"""Calibration sweep logic (eval/sweep.py), without building or running."""
-
 from eval import sweep
 
 
@@ -8,7 +6,7 @@ def test_one_at_a_time_skips_start_values():
     sets = sweep.one_at_a_time(suite)
     assert sets[0].name == "start" and sets[0].values == {}
     names = [s.name for s in sets]
-    assert "k_jump=3" not in names and "k_jump=2" in names     # 3 is the start value
+    assert "k_jump=3" not in names and "k_jump=2" in names
     assert all(len(s.values) == 1 for s in sets[1:])
     assert len(sets) == 1 + sum(len(v) - 1 for v in suite["parameters"].values())
 
@@ -143,7 +141,7 @@ def test_pp_ts_020_suite_loads_and_names_its_proposed_criteria():
     assert "PP-SWR-001" not in {i for ids in suite["scope"].values() for i in ids}
     for part in ("tuning", "test"):
         names = [sweep.load_run(run).name for run in suite[part]["runs"]]
-        assert len(names) == len(set(names))                # every run is told apart
+        assert len(names) == len(set(names))
 
 
 def test_matrix_block_sim_is_held_for_every_level():

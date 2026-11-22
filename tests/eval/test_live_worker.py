@@ -1,6 +1,3 @@
-"""The live worker (eval.live) under execution.supervisor with stub planner libraries: a complete
-bundle, and a planner that crashes in pp_step classified as SUT_EXECUTION (SIM-REQ-006, 020)."""
-
 import json
 import os
 import sys
@@ -70,7 +67,7 @@ def test_complete_bundle_from_the_live_worker(tmp_path, build_stub):
     assert manifest["libraries"][0]["pp_version"].startswith("stub_planner ")
     assert manifest["simulator"]["models"] and manifest["simulator"]["checksum_version"].startswith("behavior_checksum/")
     assert (folder / "trace.mcap").is_file() and (folder / "frames.ndjson.gz").is_file()
-    # SIM-REQ-028: every listed exception to the sim clock is a field that the trace really has
+    # Mọi ngoại lệ clock domain nêu trong SIM-REQ-028 phải có trường tương ứng trong trace.
     domains = manifest["bundle"]["time_domains"]
     assert domains == run_bundle.TIME_DOMAINS and domains["default"] == "sim"
     assert set(domains["exceptions"].values()) <= set(domains["domains"])
@@ -91,4 +88,4 @@ def test_planner_crash_is_sut_execution(tmp_path, build_stub):
     ex = status["execution"]
     assert ex["state"] == "FAILED" and ex["failure"] == "SUT_EXECUTION" and not ex["complete"], ex
     assert "adapters/sil" in (folder / "worker.log").read_text(errors="replace")
-    assert (folder / "resolved-case.json").is_file()  # partial artifacts are kept
+    assert (folder / "resolved-case.json").is_file()

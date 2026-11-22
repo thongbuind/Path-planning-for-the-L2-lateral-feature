@@ -1,6 +1,3 @@
-"""Timing and integrity fault mechanisms (Software Qualification Test Specification 4.2, 4.3,
-4.5, 6: F05, F07, F08, F10 to F21)."""
-
 import numpy as np
 import pytest
 
@@ -47,12 +44,12 @@ def test_counter_faults_and_their_reference_twins():
     repeat = ChannelFaultInjector((ChannelFault("counter_repeat", "imu", every=3, value=2.0),))
     got = _deliver_all(Channel("imu", faults=repeat), 6)
     assert [m[0] for m in got] == [0, 0, 1, 2, 3, 3, 4, 5]
-    assert equivalent(repeat.faults[0], []) is None  # PP-SWR-129: like no fault
+    assert equivalent(repeat.faults[0], []) is None
     stuck = ChannelFaultInjector((ChannelFault("counter_stuck", "imu", start_s=0.02, duration_s=0.03),))
     got = _deliver_all(Channel("imu", faults=stuck), 6)
     assert [m[0] for m in got] == [0, 1, 1, 1, 1, 5]
     twin = equivalent(stuck.faults[0], stuck.fault_hits()[0])
-    assert twin.kind == "drop_listed" and twin.indices == (2, 3, 4)  # PP-SWR-130: loss of those messages
+    assert twin.kind == "drop_listed" and twin.indices == (2, 3, 4)
 
 
 def test_future_stamp_and_invalid():
@@ -64,7 +61,6 @@ def test_future_stamp_and_invalid():
 
 
 def test_longitudinal_plan_out_of_range():
-    """F23: the field of the chosen points gets the value; the range check of PP-SWR-156."""
     from sim.harness import plan_in_range
     points = tuple(I.LongitudinalPoint(20.0, 0.0) for _ in range(I.LONGITUDINAL_PLAN_POINTS))
     plan = I.LongitudinalPlan(I.Header(0, 0, True, I.FrameId.BASE_LINK), I.LongitudinalMode.CRUISE, points, 0)
@@ -78,21 +74,21 @@ def test_longitudinal_plan_out_of_range():
     assert [p.a for p in hit.points].count(50.0) == 1 and hit.points[30].a == 50.0 and not plan_in_range(hit)
     edge = tuple(I.LongitudinalPoint(I.LONGITUDINAL_PLAN_V_MAX_MPS, -I.LONGITUDINAL_PLAN_A_MAX_MPS2)
                  for _ in range(I.LONGITUDINAL_PLAN_POINTS))
-    assert plan_in_range(I.LongitudinalPlan(plan.header, plan.mode, edge, 0))  # range ends are in range
+    assert plan_in_range(I.LongitudinalPlan(plan.header, plan.mode, edge, 0))
     with pytest.raises(ValueError):
         ChannelFault("out_of_range", "imu", field="v")
 
 
 def test_can_frames_round_by_the_dbc_and_the_receiver_checks_crc_and_counter():
-    assert crc8_j1850(b"123456789") == 0x4B  # SAE J1850 check value
+    assert crc8_j1850(b"123456789") == 0x4B  # Giá trị kiểm tra chuẩn của CRC SAE J1850.
     tx, rx = CanSender(), CanReceiver()
     msg = rx.decode(tx.imu(0.123456, 0.0, 1.23456), 1000)
     assert msg.yaw_rate_rps == pytest.approx(round(0.123456 / (np.pi / 180) / 0.01) * 0.01 * np.pi / 180)
     assert msg.accel_y_mps2 == pytest.approx(1.235) and msg.header.valid
     frame = tx.imu(0.0, 0.0, 0.0)
-    assert rx.decode(frame.with_bad_crc(), 2000) is None  # F17: dropped
-    assert rx.decode(frame, 3000) is not None and rx.decode(frame, 4000) is None  # repeated counter: dropped
-    assert rx.decode(tx.imu(0, 0, 0).with_byte6(frame.counter + 3, 3), 5000).header.valid is False  # FAULT
+    assert rx.decode(frame.with_bad_crc(), 2000) is None
+    assert rx.decode(frame, 3000) is not None and rx.decode(frame, 4000) is None
+    assert rx.decode(tx.imu(0, 0, 0).with_byte6(frame.counter + 3, 3), 5000).header.valid is False
     assert rx.lost[0x1A0] == 2
 
 
@@ -101,7 +97,7 @@ def test_ecu_clock_drifts_between_synchronisations_and_without_them():
     for t in range(0, 2_000_000, 7_919):
         assert abs(c.local(t) - t) <= 50 + 100e-6 * SYNC_PERIOD_US + 1
     lost = EcuClock(drift_ppm=100.0, residual_us=50.0, seed=1, sync_loss=((1_000_000, 11_000_000),))
-    assert lost.local(10_999_999) - 10_999_999 == pytest.approx(1000, abs=60)  # 100 ppm x 10 s
+    assert lost.local(10_999_999) - 10_999_999 == pytest.approx(1000, abs=60)
     assert abs(lost.to_global(lost.local(5_000_000)) - 5_000_000) <= 1
     assert all(k.ideal for k in clocks(1, False, ()).values())
 

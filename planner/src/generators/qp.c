@@ -1,5 +1,3 @@
-/* T7 technique C: unified QP solved by ADMM (generators/qp.h). */
-
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -10,16 +8,14 @@
 #define N PP_QP_N
 #define DT PP_GRID_STEP_S
 #define QP_INF (1.0e9)
-#define QP_MIN_Q (0.1)            /* Smallest 1 - kappa d, as in T11 */
-#define QP_SIGMA (1.0e-6)          /* ADMM regularisation of x */
-#define QP_ALPHA (1.6)             /* Over-relaxation */
-#define QP_RHO_EVERY (25U)         /* Iterations between rho updates */
+#define QP_MIN_Q (0.1)
+#define QP_SIGMA (1.0e-6)
+#define QP_ALPHA (1.6)
+#define QP_RHO_EVERY (25U)
 #define QP_RHO_MIN (1.0e-3)
 #define QP_RHO_MAX (1.0e4)
-#define QP_RHO_CHANGE (5.0)        /* Refactor only when rho changes by this factor */
-/* rho of each row block relative to ws->rho (row scaling as in OSQP): the a_y rows bind
- * near aysmax and need a stiffer penalty, the jerk rows a softer one. Equal within the
- * pairs a-s, a+s and d-e, d+e, so the KKT matrix stays block diagonal. */
+#define QP_RHO_CHANGE (5.0)
+/* Tiền phạt ADMM lớn hơn cho các hàng a_y sát aysmax, nhỏ hơn cho các hàng jerk. */
 static const double rho_block[8] = {10.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.1};
 
 void pp_qp_reset(pp_qp_ws_t *ws)
@@ -30,7 +26,7 @@ void pp_qp_reset(pp_qp_ws_t *ws)
     }
 }
 
-/* Exact integration of piecewise-constant jerk: d''(t_k), d(t_k), d'(t_N) per unit jerk. */
+/* Tích phân chính xác jerk hằng từng đoạn để lập các ma trận của d'', d và d' cuối path. */
 static void integrators(pp_qp_ws_t *ws)
 {
     for (size_t k = 0U; k < N; k++) {
@@ -55,8 +51,6 @@ static double ramp(const pp_calibration_t *cal, size_t k)
     return fmin(1.0, t / (double)cal->qp_T_ramp);
 }
 
-/* P_jj = w_jerk dt I + Md' (w_dev R + w_cont C) Md + w_term_d md md' + w_term_v mv mv',
- * C the points where the previous path is known. */
 static void jerk_cost(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb)
 {
     for (size_t a = 0U; a < N; a++) {
@@ -75,8 +69,6 @@ static void jerk_cost(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_p
     }
 }
 
-/* Cholesky of K_jj = P_jj + sigma I + rho (ra Ma'Ma + rd Md'Md + rj I), ra, rd, rj the sums of
- * rho_block over the rows of a and d and the jerk rows. False if not positive definite. */
 static bool factor(pp_qp_ws_t *ws)
 {
     for (size_t a = 0U; a < N; a++) {
@@ -125,7 +117,7 @@ static void chol_solve(const pp_qp_ws_t *ws, double r[N])
     }
 }
 
-/* z = A x, rows in 8 blocks: a, a-s, a+s, s, e, d-e, d+e, j (a = Ma j, d = Md j). */
+/* z = A x. Thứ tự nhóm hàng là a, a-s, a+s, s, e, d-e, d+e, j. */
 static void mul_a(const pp_qp_ws_t *ws, const double x[3U * N], double z[PP_QP_ROWS])
 {
     const double *j = &x[0];
@@ -149,7 +141,6 @@ static void mul_a(const pp_qp_ws_t *ws, const double x[3U * N], double z[PP_QP_R
     }
 }
 
-/* out = A' y. */
 static void mul_at(const pp_qp_ws_t *ws, const double y[PP_QP_ROWS], double out[3U * N])
 {
     for (size_t i = 0U; i < N; i++) {
@@ -187,7 +178,7 @@ typedef struct {
     double q[3U * N];
     double lo[PP_QP_ROWS];
     double hi[PP_QP_ROWS];
-    double d_free[N];              /* d(t_k) with zero jerk */
+    double d_free[N];
 } qp_data_t;
 
 static void bounds(const pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb,
@@ -197,10 +188,9 @@ static void bounds(const pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_q
     const double v0 = pb->start.d_dot;
     const double a0 = pb->start.d_ddot;
     const double ac = (double)cal->qp_a_comfort;
-    const double eps = 0.5 * (double)cal->epsilon_ay;                 /* PP-SWR-006 */
+    const double eps = 0.5 * (double)cal->epsilon_ay;
     const double keep = pb->ay_limit - eps;
-    /* The previous path moved with the change of the T8 offset, so continuity does not hold
-     * the path against a target that moves (at most ref_rate dt per cycle). */
+    /* Dịch path cũ cùng lượng đổi offset T8 để continuity không ghìm path về mục tiêu cũ. */
     const double shift = ws->warm ? (pb->d_target - ws->d_target) : 0.0;
     double rd[N];
     for (size_t k = 0U; k < N; k++) {
@@ -210,23 +200,20 @@ static void bounds(const pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_q
         const double need = pb->v[k] * pb->v[k] * pb->kappa[k];
         rd[k] = ((double)cal->qp_w_dev * ramp(cal, k) * (d_free - pb->d_target))
                 + (pb->has_old[k] ? ((double)cal->qp_w_cont * (d_free - (pb->d_old[k] + shift))) : 0.0);
-        /* a_y of the path as T11 writes it (s_dot = v): d''/q^2 + v^2 kappa / q, q = 1 - kappa d
-         * taken at the previous path (else the zero-jerk path), so the rows stay linear. Bounds
-         * on a_y map to bounds on d'' - a0 = Ma j. */
+        /* Tuyến tính hóa a_y = d''/q² + v² kappa/q với q = 1 - kappa d lấy từ path cũ hoặc path
+         * jerk bằng 0. */
         const double d_bar = pb->has_old[k] ? pb->d_old[k] : d_free;
         const double q = fmax(1.0 - (pb->kappa[k] * d_bar), QP_MIN_Q);
         const double q2 = q * q;
         const double ref = need / q;
-        /* |a_y| <= limit; where the need is beyond it, keep assisting near the limit. */
         const double lo_ay = (need > keep) ? (fmin(need, pb->ay_limit) - eps) : -pb->ay_limit;
         const double hi_ay = (need < -keep) ? (fmax(need, -pb->ay_limit) + eps) : pb->ay_limit;
         data->lo[k] = (q2 * (lo_ay - ref)) - a0;
         data->hi[k] = (q2 * (hi_ay - ref)) - a0;
-        /* Lateral jerk of the path: v^3 dkappa/ds + j (constant v over a step). */
+        /* Với v hằng theo bước, jerk ngang của path là v³ × d kappa/ds + j. */
         const double jerk_ref = pb->v[k] * pb->v[k] * pb->v[k] * pb->dkappa[k];
         data->lo[(7U * N) + k] = -pb->jerk_limit - jerk_ref;
         data->hi[(7U * N) + k] = pb->jerk_limit - jerk_ref;
-        /* Comfort level only where the need is within the limit: beyond it the band above sets a_y. */
         const bool beyond = (need > keep) || (need < -keep);
         data->lo[N + k] = -QP_INF;
         data->hi[N + k] = beyond ? QP_INF : ((q2 * (ac - ref)) - a0);
@@ -255,7 +242,6 @@ static void bounds(const pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_q
     }
 }
 
-/* rho from the ratio of the scaled primal and dual residuals (OSQP). */
 static double next_rho(const pp_qp_ws_t *ws, const pp_calibration_t *cal, const qp_data_t *data)
 {
     double ax[PP_QP_ROWS];
@@ -338,7 +324,7 @@ bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_pro
             ws->rho = (double)cal->qp_rho0;
         }
         bounds(ws, cal, pb, &data);
-        /* Warm start: previous z and y, z moved into this cycle's bounds. */
+        /* Warm start dùng z và y cũ, kẹp z vào giới hạn của chu kỳ này. */
         double ax[PP_QP_ROWS];
         mul_a(ws, ws->x, ax);
         for (size_t r = 0U; r < PP_QP_ROWS; r++) {
@@ -356,7 +342,6 @@ bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_pro
                 }
             }
         }
-        /* Lateral path by exact integration of the jerks from the start state. */
         out->d[0] = pb->start.d;
         out->d_dot[0] = pb->start.d_dot;
         out->d_ddot[0] = pb->start.d_ddot;

@@ -1,10 +1,3 @@
-"""Other vehicles of a scenario (Software Qualification Test Specification 4.5, 5).
-
-Longitudinal speed is constant, or follows a piecewise-linear speed profile over time
-(S11 traffic jam), in either direction along the road. An optional lateral manoeuvre joins
-two offsets with zero lateral speed at both ends.
-"""
-
 from dataclasses import dataclass
 from math import atan2, hypot, isfinite, pi
 
@@ -13,9 +6,9 @@ from sim.world.road import Road
 
 @dataclass(frozen=True, slots=True)
 class LateralMotion:
-    start_s: float  # [s] simulation time
+    start_s: float
     duration_s: float
-    target_offset_m: float  # [m] left positive in road coordinates
+    target_offset_m: float
 
     def __post_init__(self) -> None:
         if (not all(map(isfinite, (self.start_s, self.duration_s, self.target_offset_m)))
@@ -23,7 +16,6 @@ class LateralMotion:
             raise ValueError("invalid traffic lateral motion")
 
     def at(self, t_s: float, initial_offset_m: float) -> tuple[float, float]:
-        """Offset and lateral speed along a quintic with smooth endpoints."""
         u = (t_s - self.start_s) / self.duration_s
         if u <= 0:
             return initial_offset_m, 0.0
@@ -37,20 +29,18 @@ class LateralMotion:
 
 @dataclass(frozen=True, slots=True)
 class TrafficSpec:
-    """Initial state in road coordinates of the ego-lane centre."""
-
     id: int
-    s0: float  # [m] arc length of the vehicle centre at t = 0
-    d: float  # [m] lateral offset of the centre, left positive
-    speed: float  # [m/s] along the road
-    length: float = 4.8  # [m]
-    width: float = 1.9  # [m] including mirrors
-    direction: int = 1  # +1 along road s, -1 against it
+    s0: float
+    d: float
+    speed: float
+    length: float = 4.8
+    width: float = 1.9
+    direction: int = 1  # +1 cùng chiều tăng s, -1 ngược chiều.
     lateral_motion: LateralMotion | None = None
-    # (t_s, speed_mps) points, t increasing from 0; speed linear in between, held after the
-    # last point. Empty: constant `speed`.
+    # Nội suy tuyến tính các mốc (t_s, speed_mps) và giữ mốc cuối. Danh sách rỗng dùng speed cố
+    # định.
     speed_profile: tuple[tuple[float, float], ...] = ()
-    kind: str = "CAR"  # LeadTarget.classification: CAR, TRUCK, MOTORCYCLE, OTHER
+    kind: str = "CAR"
 
     def __post_init__(self) -> None:
         if (not all(map(isfinite, (self.s0, self.d, self.speed, self.length, self.width)))
@@ -65,7 +55,6 @@ class TrafficSpec:
             raise ValueError("speed profile needs t from 0 increasing, speed >= 0, first speed = speed")
 
     def travelled(self, t_s: float) -> tuple[float, float]:
-        """Distance along the road since t = 0 [m] and speed [m/s] at t_s."""
         if not self.speed_profile:
             return self.speed * t_s, self.speed
         dist = 0.0
@@ -83,9 +72,9 @@ class TrafficSpec:
 @dataclass(frozen=True, slots=True)
 class TrafficState:
     id: int
-    x: float  # World centre
+    x: float
     y: float
-    heading: float  # Of the velocity vector, world
+    heading: float  # Góc của vector vận tốc trong tọa độ thế giới.
     speed: float
     s: float
     d: float

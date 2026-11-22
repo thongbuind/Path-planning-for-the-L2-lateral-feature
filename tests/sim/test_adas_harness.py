@@ -9,7 +9,7 @@ from sim.stand_ins.driver import DriverSpec
 from sim.world.road import Segment
 
 
-_ReportsValidPath = fakes.planner_set()   # both planners report a usable path and drive nothing
+_ReportsValidPath = fakes.planner_set()
 
 
 @pytest.mark.parametrize("mode, expect_request", [("A", False), ("B", True)])

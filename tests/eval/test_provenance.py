@@ -1,5 +1,3 @@
-"""Run provenance and official-run rules (eval/provenance.py, research/README.md)."""
-
 import pytest
 
 from adapters.sil.sil_planner import library_path

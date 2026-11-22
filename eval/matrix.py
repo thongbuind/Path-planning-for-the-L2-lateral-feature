@@ -1,23 +1,3 @@
-"""Coverage matrix: many scenario runs with the delivered planner library.
-
-    python3 -m eval.matrix M1 --jobs 2 [--planner LIB]
-
-Runs every (scenario, variant[, fault], longitudinal mode, profile, seed) of a suite in
-benchmark/suites and writes build/matrix/<suite>/summary.md, runs.json and manifest.json.
-Each run is judged with eval.matrix.scope (benchmark/suites/scope.yaml, Kiểm chứng column of the SRS);
-all other criteria are reported as information. --record makes it an official run
-(research/README.md).
-
-A block may sweep simulator settings with `sim_sweep` (Software Qualification Test
-Specification 6.1, Q4): one value at a time, the others at their scenario value, plus one
-run at the scenario values. Only the fields in SIM_SWEEP_FIELDS can be swept.
-
-B0 conformance runs first and enters the conclusion at the head of summary.md (Software
-Qualification Test Specification 8.4, 10); being a development matrix, the runs go on even
-when B0 blocks (eval.suite stops). Each run is its own process: a crash or hang is an
-execution fault of that run. MCAP logs of runs with an in-scope failure in mcap/.
-"""
-
 import argparse
 import json
 import math
@@ -41,8 +21,7 @@ _DEFAULTS = {f.name: f.default for f in fields(Scenario)}
 
 
 def sim_settings(block: dict) -> list[dict]:
-    """[base] without a sweep; else the base first, then one change at a time on top of it.
-    `sim` of the block sets values held for all its runs (Q1: jitter at every latency)."""
+    """Điểm đầu là cấu hình gốc. Mỗi ca quét sau đó chỉ đổi một mục."""
     base = {k: float(v) for k, v in block.get("sim", {}).items()}
     sweep_spec = block.get("sim_sweep", {})
     unknown = (set(sweep_spec) | set(base)) - set(SIM_SWEEP_FIELDS)
@@ -77,15 +56,12 @@ def expand(suite: dict) -> list[dict]:
 
 
 SCOPE_FILE = ROOT / "benchmark" / "suites" / "scope.yaml"
-# Scope rule of every qualification run (Software Qualification Test Specification 8.1).
 SCOPE = yaml.safe_load(SCOPE_FILE.read_text(encoding="utf-8"))
 _SCENARIO_IDS = sorted((p.name[:-len(".xosc")] for p in (ROOT / "benchmark" / "scenarios").glob("*.xosc")
                         if p.name.count(".") == 1), key=len, reverse=True)
 
 
 def _base_table(suite: dict) -> dict:
-    """Requirement lists by code: those of scope.yaml (`scope_from: scope`, or the scope file
-    itself), else the scope of the named sweep suite."""
     if "base" in suite:
         return suite["base"]
     source = suite.get("scope_from", "scope")
@@ -93,10 +69,7 @@ def _base_table(suite: dict) -> dict:
 
 
 def scope(suite: dict, run: list) -> set[str]:
-    """Scope of a run [scenario, variant(, fault, level)][, {sim}] (8.1): for the scenario and
-    for the fault, the base list, extra_scope and every requirement whose Kiểm chứng column of
-    the Software Requirements Specification names the code; plus the whole scope of the host
-    anchor when scope.yaml `hosts` names the scenario variant (PP-TS-015 V1)."""
+    """Gộp scope của ca và lỗi từ cấu hình suite và cột Kiểm chứng trong SRS (SQTS 8.1)."""
     from eval.severity import srs_scope
     spec, _ = sweep.split_run(run)
     table = _base_table(suite)
@@ -110,7 +83,7 @@ def scope(suite: dict, run: list) -> set[str]:
 
 
 def split_host(host: str) -> list[str]:
-    """'S1c' -> ['S1', 'c']: the longest scenario id that starts the host name."""
+    """Tách host theo tiền tố mã kịch bản dài nhất, để phân biệt S1 với S1b."""
     for sid in _SCENARIO_IDS:
         if host.startswith(sid) and len(host) > len(sid):
             return [sid, host[len(sid):]]
@@ -118,9 +91,7 @@ def split_host(host: str) -> list[str]:
 
 
 def case_scope(case: dict) -> set[str]:
-    """Scope of a concrete case of eval.generate (8.1). A fault on a host anchor gets the scope
-    of the host and of the fault; injected and combined cases list their keys; a sampled case
-    (no anchor) has no host of `hosts`."""
+    """Scope của ca ghép gồm host và lỗi. Ca lấy mẫu không lấy scope theo anchor."""
     if "scope_keys" in case:
         keys = case["scope_keys"]
     elif case["family"].startswith("F"):
@@ -205,7 +176,9 @@ def summary(results: list[dict]) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Coverage matrix: many scenario runs with the delivered planner library.",
+    )
     parser.add_argument("suite")
     parser.add_argument("--jobs", type=int, default=1)
     planner_choice.add_argument(parser)

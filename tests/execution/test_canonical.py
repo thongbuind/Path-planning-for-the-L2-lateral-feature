@@ -1,5 +1,3 @@
-"""c14n/1 and the typed digest of execution.canonical."""
-
 import enum
 import math
 from dataclasses import dataclass
@@ -54,7 +52,7 @@ def test_c14n_tags_non_finite_floats():
     plain = canonical.to_plain({"a": float("inf"), "b": -float("inf"), "c": float("nan")})
     assert plain == {"a": {"@float": "inf"}, "b": {"@float": "-inf"}, "c": {"@float": "nan"}}
     assert canonical.to_plain("inf") != plain["a"]
-    canonical.dumps(plain)  # valid JSON
+    canonical.dumps(plain)
 
 
 def test_digest_sees_one_bit_of_one_float():
@@ -85,7 +83,7 @@ def test_float_record_fast_path_and_fallback_agree_on_order_and_none():
         x: float
         y: float
 
-    assert _digest(Maybe(1.0, None)) != _digest(Maybe(1.0, 0.0))  # None falls back, no error
+    assert _digest(Maybe(1.0, None)) != _digest(Maybe(1.0, 0.0))
 
 
 def test_numpy_like_arrays_are_hashed_by_bytes():

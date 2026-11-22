@@ -1,5 +1,3 @@
-/* Unit tests of T1 Latency compensation (planner/src/latency.c). */
-
 #include <string.h>
 
 #include "latency.h"
@@ -40,13 +38,12 @@ static void test_no_motion_keeps_line(void)
     PP_CHECK_NEAR(b->poly.c[1], 0.01, 1e-7);
     PP_CHECK_NEAR(b->poly.c[2], 2.0e-4, 1e-8);
     PP_CHECK_NEAR(b->poly.c[3], -1.0e-6, 1e-9);
-    PP_CHECK(!out.boundary[PP_LINE_R1].present);        /* LOST stays out */
+    PP_CHECK(!out.boundary[PP_LINE_R1].present);
     PP_CHECK(!out.boundary[PP_EDGE_LEFT].present);
 }
 
 static void test_translation(void)
 {
-    /* y = 1 + 0.01 x; base_link moved 10 m forward and 0.5 m left. */
     const pp_lane_model_t lane = lane_with_line(1.0F, 0.01F, 0.0F, 0.0F);
     const pp_motion_t motion = {10.0, 0.5, 0.0};
     pp_lane_at_t0_t out;
@@ -55,13 +52,12 @@ static void test_translation(void)
     PP_CHECK(b->present);
     PP_CHECK_NEAR(b->poly.c[0], 1.0 + 0.1 - 0.5, 1e-6);
     PP_CHECK_NEAR(b->poly.c[1], 0.01, 1e-7);
-    PP_CHECK_NEAR(b->view_start, -10.0, 1e-4);          /* view range moves with the car */
+    PP_CHECK_NEAR(b->view_start, -10.0, 1e-4);
     PP_CHECK_NEAR(b->view_end, 70.0, 1e-3);
 }
 
 static void test_rotation(void)
 {
-    /* Straight line y = 2; base_link turned by psi to the left. */
     const double psi = 0.02;
     const pp_lane_model_t lane = lane_with_line(2.0F, 0.0F, 0.0F, 0.0F);
     const pp_motion_t motion = {0.0, 0.0, psi};
@@ -76,19 +72,17 @@ static void test_rotation(void)
 static void test_short_view_range_is_dropped(void)
 {
     pp_lane_model_t lane = lane_with_line(1.75F, 0.0F, 0.0F, 0.0F);
-    lane.lines[PP_LINE_L1].view_range_end = 2.0F;       /* three samples only */
+    lane.lines[PP_LINE_L1].view_range_end = 2.0F;
     const pp_motion_t none = {0.0, 0.0, 0.0};
     pp_lane_at_t0_t out;
     pp_latency_compensate(&lane, &none, &out);
     PP_CHECK(!out.boundary[PP_LINE_L1].present);
 }
 
-/* PP-PR-058: a cubic moved cycle after cycle, as the boundary memory of T2 is, loses view
- * range only by the distance driven, also while the car yaws and for a range that is not
- * a whole number of sample steps. */
+/* PP-PR-058: dịch cubic lặp lại chỉ làm giảm tầm nhìn theo quãng đường thực xe đi. */
 static void test_repeated_move_keeps_the_view_range(void)
 {
-    const pp_motion_t motion = {0.625, 0.001, 0.0005};   /* 25 m/s, 0.02 rad/s, one 25 ms cycle */
+    const pp_motion_t motion = {0.625, 0.001, 0.0005};
     pp_cubic_t poly = {{1.75, 0.0, 1.0e-4, 0.0}};
     double start = 0.0;
     double end = 79.9;

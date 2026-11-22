@@ -1,5 +1,3 @@
-"""OpenDRIVE lane widths, camera preview and the PP-SWR-060 oracle."""
-
 import pytest
 
 from eval import loader, openx
@@ -26,11 +24,11 @@ def test_new_lane_starts_at_zero_width(variant, side):
     section = geometry.section_at(250)
     if variant == "a":
         assert section.bounds(-2, 250) == pytest.approx((-2.5, -1.75))
-        assert geometry.lane_index(250, -2.0, 0) == 0  # hard shoulder
+        assert geometry.lane_index(250, -2.0, 0) == 0
     elif variant == "b":
         after = geometry.section_at(380)
         assert after.bounds(-3, 380) == pytest.approx((-7.25, -3.75))
-        assert geometry.lane_index(380, -2.0, 0) == 0  # separator
+        assert geometry.lane_index(380, -2.0, 0) == 0
 
 
 def test_camera_fits_right_boundary_and_reports_local_width():

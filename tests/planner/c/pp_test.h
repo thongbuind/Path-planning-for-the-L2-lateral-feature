@@ -1,8 +1,3 @@
-/*
- * Minimal check macros for the C unit tests of the planner units. White box,
- * not part of the benchmark (Software Qualification Test Specification section 3).
- */
-
 #ifndef PP_TEST_H
 #define PP_TEST_H
 
@@ -35,4 +30,4 @@ static int pp_test_failures = 0;
     ((pp_test_failures == 0) ? 0 : ((void)fprintf(stderr, "%d failure(s)\n",        \
                                                   pp_test_failures), 1))
 
-#endif /* PP_TEST_H */
+#endif

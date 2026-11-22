@@ -1,21 +1,4 @@
-/*
- * Test double built against interfaces/c/pp_planner.h, for tests of eval/ only: that any
- * planner library plugs in (Software Qualification Test Specification 11) and that
- * conformance B0 finds contract faults. Not a planner: path_valid is always false and the
- * path is a straight line at the measured speed. One library exports both families
- * (pp_lcc_* and pp_lkaelk_*), as eval/planner_choice.py accepts for a stub or a bait planner.
- *
- * Default: meets the contract. Each STUB_* define breaks one point on purpose:
- *   STUB_NO_STEP        both step functions missing (C1)
- *   STUB_NO_TRAJECTORY  never sends Trajectory or LateralLimits (C2)
- *   STUB_ACCEPT_WIDE    accepts a vehicle wider than 2.5 m (C2)
- *   STUB_COUNTER_STUCK  status counter does not increase (C2)
- *   STUB_NAN            NaN in the Trajectory (C2)
- *   STUB_CRASH          dereferences NULL in the 5th cycle (C2, the evaluator must survive)
- *   STUB_GLOBAL_STATE   keeps its counters in a global variable (C3)
- *   STUB_OVERRUN        writes one byte past the end of the state memory (C3)
- *   STUB_CLOCK          reads the system clock (C3)
- */
+/* Stub của eval/ dùng chung ABI cho hai họ. Mỗi macro STUB_* cố ý làm hỏng một phép kiểm B0. */
 #include <math.h>
 #include <string.h>
 #ifdef STUB_CLOCK
@@ -56,7 +39,6 @@ static pp_init_result_t stub_init(void *state, size_t state_size, const pp_vehic
     return (s->ok != 0U) ? PP_INIT_RESULT_OK : PP_INIT_RESULT_BAD_VEHICLE_CONFIG;
 }
 
-/* The part both planners share: counters, the status header and the straight Trajectory. */
 static void stub_cycle(void *state, uint64_t t0_us, const pp_received_speed_signals_t *speed,
                        pp_basic_header_t *status, bool *trajectory_sent, pp_trajectory_t *trajectory,
                        bool *limits_sent, pp_lateral_limits_t *limits, bool has_limits)

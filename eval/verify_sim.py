@@ -1,26 +1,3 @@
-"""Verification of the simulator itself (Simulation Handbook 13, 14; R171 Annex 5 3.6.3, 3.6.4).
-
-    python3 -m eval.verify_sim calculation   # RK4 convergence, then three closed-loop cases at 1, 0.5, 0.25 ms
-    python3 -m eval.verify_sim sensitivity   # tyre stiffness, yaw inertia and EPS delay, +-20 %
-
-Calculation verification (Annex 5 3.6.3) asks how much of a result is numerical error of the
-solver. Two parts:
-  1. The vehicle model alone (sim.vehicle.bicycle, RK4) on three open-loop steering inputs, at 1,
-     0.5 and 0.25 ms against a reference of 1/16 ms. The steering angle is held for each
-     millisecond, as the 1 ms simulation step gives it, so the difference is the solver only.
-     RK4 has order 4: halving the step should cut the error about 16 times.
-  2. The closed loop (planner libraries included) on three catalog cases at the same three steps.
-     The phases of the sensors and blocks are drawn on the 1 ms grid for every step, so the
-     events coincide and only the physics substeps differ.
-
-Sensitivity (Annex 5 3.6.4) changes one parameter of the vehicle model by +-20 % on the same
-three cases and reports what moves: the lateral error of the vehicle, the DLC and whether an
-in-scope requirement fails. The planner keeps the nominal VehicleConfig.
-
-Runs one process, one case after the other, planner libraries from build/planner (or
---planner). Writes build/verification/<stamp>-<kind>/result.json and summary.md.
-"""
-
 import argparse
 import json
 from contextlib import contextmanager
@@ -39,7 +16,6 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build" / "verification"
 STEPS_US = (1000, 500, 250)
 REFERENCE_STEP_US = 62.5
-# (scenario, variant, purpose, the criterion whose value is followed: DLC for HWA, DTLE for ELK)
 CASES = (("S1", "a", "HWA, curve and straight", "PP-SWR-051"),
          ("S1", "c", "HWA, curve at the lateral acceleration limit", "PP-SWR-051"),
          ("S5", "a", "ELK intervention", "PP-SWR-086"))
@@ -47,10 +23,7 @@ PARAMETERS = ("c_front", "c_rear", "yaw_inertia", "eps_delay")
 FACTORS = (0.8, 1.2)
 
 
-# ---------- part 1: the vehicle model alone ----------
-
 def _inputs():
-    """(name, speed, duration, steering angle as a function of time) of the open-loop inputs."""
     return (
         ("steady turn", 25.0, 8.0, lambda t: 0.012),
         ("step steer", 30.0, 6.0, lambda t: 0.02 if t >= 0.5 else 0.0),
@@ -59,7 +32,6 @@ def _inputs():
 
 
 def integrate(step_us: float, speed: float, duration: float, steering) -> dict[int, tuple]:
-    """State at every whole millisecond (x, y, psi, v_y, r, a_y). The angle is held per ms."""
     car = Bicycle(profiles.PROFILES["VP-0"], BicycleState(0.0, 0.0, 0.0, 0.0, 0.0))
     per_ms = round(1000.0 / step_us)
     out = {}
@@ -93,11 +65,9 @@ def solver_error(steps_us=STEPS_US, reference_us=REFERENCE_STEP_US, inputs=None)
     return rows
 
 
-# ---------- part 2: closed loop ----------
-
 @contextmanager
 def _step(step_us: int):
-    """Scheduler step of the harness; phases are drawn on the 1 ms grid whatever the step."""
+    """Khi đổi bước tích phân của harness, pha của các khối vẫn nằm trên lưới 1 ms."""
     saved = harness.STEP_US, harness.random_phase_us
     harness.STEP_US = step_us
     harness.random_phase_us = lambda rng, period_us, _step: int(rng.integers(0, period_us // 1000)) * 1000
@@ -109,8 +79,7 @@ def _step(step_us: int):
 
 @contextmanager
 def _perturbed(parameter: str, factor: float):
-    """One vehicle model parameter scaled for every profile. eps_delay is returned for the scenario:
-    only the real delay changes, the planner still gets the nominal VehicleConfig."""
+    """Khi quét eps_delay, chỉ đổi độ trễ actuator thật. Planner vẫn nhận VehicleConfig danh định."""
     saved = (profiles.C_FRONT_PER_2000KG, profiles.C_REAR_PER_2000KG, profiles.YAW_INERTIA_FACTOR)
     try:
         if parameter == "c_front":
@@ -150,7 +119,6 @@ def _summary(log, sid: str, variant: str, criterion: str) -> dict:
 
 
 def _grid(log) -> tuple[np.ndarray, np.ndarray]:
-    """Rear axle position (x, y) at every whole millisecond."""
     t = np.asarray(log.t_us)
     mask = t % 1000 == 0
     return t[mask], np.asarray(log.rear)[mask][:, :2]
@@ -176,8 +144,6 @@ def closed_loop_error(planner, seed: int = 1) -> list[dict]:
     return rows
 
 
-# ---------- sensitivity ----------
-
 def sensitivity(planner, seed: int = 1) -> list[dict]:
     rows = []
     for sid, variant, purpose, criterion in CASES:
@@ -202,8 +168,6 @@ def sensitivity(planner, seed: int = 1) -> list[dict]:
 def _delta(a, b):
     return None if a is None or b is None else float(a - b)
 
-
-# ---------- report ----------
 
 def _f(value, digits=3) -> str:
     return "—" if value is None else f"{value:.{digits}g}"
@@ -246,7 +210,12 @@ def sensitivity_summary(rows) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Verification of the simulator itself (Simulation Handbook 13, 14; R171 Annex 5 3.6.3, "
+            "3.6.4)."
+        ),
+    )
     parser.add_argument("kind", choices=("calculation", "sensitivity"))
     parser.add_argument("--seed", type=int, default=1)
     planner_choice.add_argument(parser)

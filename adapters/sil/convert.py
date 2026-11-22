@@ -1,4 +1,4 @@
-"""Python interface dataclasses <-> ctypes structs, driven by pp_ctypes.FIELD_SPECS."""
+"""Chuyển dataclass Python và struct ctypes theo FIELD_SPECS của giao diện."""
 
 import ctypes
 from typing import Any
@@ -16,7 +16,6 @@ def py_class(type_name: str) -> type:
 
 
 def to_c(obj: Any, type_name: str, target: ctypes.Structure | None = None) -> ctypes.Structure:
-    """Fill a ctypes struct from a dataclass of the same interface type."""
     out = target if target is not None else c_class(type_name)()
     for name, kind, ref in pp_ctypes.FIELD_SPECS[type_name]:
         value = getattr(obj, name)
@@ -48,7 +47,6 @@ def to_c(obj: Any, type_name: str, target: ctypes.Structure | None = None) -> ct
 
 
 def from_c(cobj: ctypes.Structure, type_name: str) -> Any:
-    """Build a dataclass from a ctypes struct of the same interface type."""
     values = {}
     for name, kind, ref in pp_ctypes.FIELD_SPECS[type_name]:
         raw = getattr(cobj, name)

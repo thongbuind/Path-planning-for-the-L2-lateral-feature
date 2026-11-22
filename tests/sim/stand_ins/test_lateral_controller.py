@@ -1,5 +1,3 @@
-"""Unit tests of the stand-in Lateral Controller (Software Qualification Test Specification 4.6)."""
-
 from math import cos, isclose, sin, tan
 
 import pytest
@@ -22,7 +20,6 @@ from interfaces import (
     VehicleConfig,
 )
 
-# VP-0, Software Qualification Test Specification 4.4.
 VP0 = VehicleConfig(
     wheelbase=2.9,
     rear_axle_to_cg=1.45,
@@ -32,9 +29,9 @@ VP0 = VehicleConfig(
     max_steering_wheel_rate=6.0,
     actuator_delay=0.05,
 )
-K = 0.0029  # rad/(m/s^2), simulator vehicle model
-SPEED = 25.0  # m/s
-STAMP = 10_000_000  # us
+K = 0.0029
+SPEED = 25.0
+STAMP = 10_000_000
 
 
 def make_trajectory(pose_at, curvature_at=lambda t: 0.0, valid=True, stamp_us=STAMP):
@@ -85,7 +82,6 @@ def test_on_straight_path_steers_zero():
 
 
 def test_steady_curve_is_pure_feedforward():
-    """R = 500 m at 25 m/s: delta = (L + K v^2) kappa, no feedback error."""
     radius = 500.0
     kappa = 1.0 / radius
 
@@ -95,21 +91,19 @@ def test_steady_curve_is_pure_feedforward():
 
     c = controller(make_trajectory(arc, lambda t: kappa))
     request = c.step(STAMP, EgoState(SPEED, 0.0, SPEED * kappa), no_motion)
-    wheel = (VP0.wheelbase + K * SPEED**2) * kappa  # 0.0094 rad
+    wheel = (VP0.wheelbase + K * SPEED**2) * kappa
     assert request.steering_wheel_angle_rad == pytest.approx(VP0.steering_ratio * wheel, rel=1e-6)
-    assert request.steering_wheel_angle_rad == pytest.approx(0.141, abs=1e-3)  # about 8.1 deg
+    assert request.steering_wheel_angle_rad == pytest.approx(0.141, abs=1e-3)
 
 
 def test_feedforward_curvature_is_read_at_actuator_delay():
-    """Straight poses with a curvature step after t = 0.1 s isolate the feedforward term."""
+    """Độ cong thay đổi sau 0,1 s trong path có pose thẳng để tách riêng feedforward."""
     trajectory = make_trajectory(
         lambda t: Pose2D(SPEED * t, 0.0, 0.0),
         lambda t: 0.0 if t < 0.15 else 0.01,
     )
-    # now = stamp: kappa at 0.05 s lies between points 0 and 1, both 0.
     assert controller(trajectory).step(STAMP, STRAIGHT_STATE, no_motion).steering_wheel_angle_rad == 0.0
 
-    # now = stamp + 100 ms: kappa at 0.15 s is half way from point 1 (0) to point 2 (0.01).
     now = STAMP + 100_000
     c = controller(trajectory, rx_us=now)
     request = c.step(now, STRAIGHT_STATE, no_motion)
@@ -118,10 +112,9 @@ def test_feedforward_curvature_is_read_at_actuator_delay():
 
 
 def test_slip_angle_is_not_a_heading_error():
-    """Path yaw is the direction of travel (ICD 6.1). A car that slides with v_y and
-    moves exactly along the path must not see a heading error from its slip angle."""
-    beta = 0.0045  # rear-axle slip in a gentle curve, rad
-    v_y = -SPEED * tan(beta)  # direction of travel exactly -beta
+    """So hướng path với hướng vận tốc; góc trượt không phải là sai số heading (ICD 6.1)."""
+    beta = 0.0045
+    v_y = -SPEED * tan(beta)
     trajectory = make_trajectory(lambda t: Pose2D(SPEED * t, v_y * t, -beta))
     request = controller(trajectory).step(STAMP, EgoState(SPEED, v_y, 0.0), no_motion)
     assert request.steering_wheel_angle_rad == pytest.approx(0.0, abs=1e-9)
@@ -134,7 +127,6 @@ def test_path_to_the_left_steers_left():
 
 
 def test_ego_motion_since_stamp_is_compensated():
-    """Ego moved 0.2 m left since the stamp, so the path on y = 0 is now on the right."""
     now = STAMP + 40_000
 
     def moved(request):
@@ -177,7 +169,7 @@ def test_trajectory_timeout_75_ms():
     assert c.step(STAMP + 75_000, STRAIGHT_STATE, no_motion).active
     late = c.step(STAMP + 75_001, STRAIGHT_STATE, no_motion)
     assert not late.active
-    assert late.steering_wheel_angle_rad != 0.0  # last command is held
+    assert late.steering_wheel_angle_rad != 0.0
 
 
 def test_missing_messages_and_invalid_ego_motion_stop_control():

@@ -1,18 +1,4 @@
-"""Canonical values: c14n/1 JSON for identities and a typed digest for behaviour.
-
-c14n/1 (identity of a resolved case, readable):
-  dataclass  -> {"@type": class name, field: value, ...} minus the excluded fields
-  enum       -> member name
-  tuple/list -> list;  dict -> dict with string keys
-  float      -> JSON number written by repr (shortest text that reads back to the same bits)
-  inf, NaN   -> {"@float": "inf"}, {"@float": "-inf"}, {"@float": "nan"} (JSON has no such number)
-  bytes as text: keys sorted, separators "," ":", UTF-8, no ASCII escaping.
-
-Digest (behaviour checksum, bit exact and fast): every value is fed with a type tag; floats as
-IEEE-754 binary64 little endian, so two digests are equal only if every float is equal bit for
-bit. Objects with `dtype` and `tobytes` (numpy arrays and scalars) are fed as raw bytes with
-their dtype and shape, without importing numpy here.
-"""
+"""c14n/1 chuẩn hóa JSON để định danh ca. Digest hành vi dùng mã kiểu và byte riêng."""
 
 import dataclasses
 import enum
@@ -35,7 +21,7 @@ def _fields(cls, exclude: dict[str, set[str]]) -> tuple[str, ...]:
 
 
 def to_plain(value, exclude: dict[str, set[str]] | None = None):
-    """JSON-ready copy of `value` by the c14n/1 rules; `exclude` maps class name -> field names."""
+    """exclude ánh xạ tên dataclass sang các trường bỏ qua khi chuẩn hóa."""
     exclude = exclude or {}
     cache: dict[type, tuple[str, ...]] = {}
 
@@ -47,7 +33,7 @@ def to_plain(value, exclude: dict[str, set[str]] | None = None):
         if isinstance(v, int):
             return int(v)
         if isinstance(v, float):
-            if not math.isfinite(v):  # JSON has no inf or NaN; tagged so no string can match it
+            if not math.isfinite(v):  # JSON dùng đối tượng có thẻ riêng cho NaN và vô cực để phân biệt với chuỗi.
                 return {"@float": "nan" if math.isnan(v) else ("inf" if v > 0 else "-inf")}
             return float(v)
         if dataclasses.is_dataclass(v) and not isinstance(v, type):
@@ -63,7 +49,7 @@ def to_plain(value, exclude: dict[str, set[str]] | None = None):
             return [walk(x) for x in v]
         if isinstance(v, dict):
             return {str(k): walk(x) for k, x in v.items()}
-        if hasattr(v, "dtype") and hasattr(v, "tolist"):  # numpy scalar or array
+        if hasattr(v, "dtype") and hasattr(v, "tolist"):
             return walk(v.tolist())
         raise TypeError(f"no canonical form for {type(v).__name__}")
 
@@ -71,7 +57,6 @@ def to_plain(value, exclude: dict[str, set[str]] | None = None):
 
 
 def dumps(plain) -> bytes:
-    """c14n/1 bytes of a plain value (output of to_plain)."""
     return json.dumps(plain, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
                       allow_nan=False).encode("utf-8")
 
@@ -81,11 +66,7 @@ def sha256_hex(data: bytes) -> str:
 
 
 class Digest:
-    """Streaming sha256 of typed values. `exclude` maps class name -> field names left out.
-
-    Encoding (tag, then payload): N None; T/0 bool; f binary64; i decimal int; s UTF-8 str;
-    e enum "Class.member"; [ list or tuple; { dict, keys sorted as text; D dataclass name then
-    fields in declaration order; a raw array (dtype, shape, bytes). Lengths are uint64."""
+    """Digest hành vi ghi thẻ kiểu trước dữ liệu. Float dùng binary64, độ dài dùng uint64."""
 
     _FLUSH = 1 << 20
 
@@ -93,11 +74,10 @@ class Digest:
         self._h = hashlib.sha256()
         self._buf = bytearray()
         self._exclude = exclude or {}
-        # type -> (header, field names) for dataclasses, None for any other type
         self._cache: dict[type, tuple[bytes, tuple[str, ...]] | None] = {}
 
     def _flush(self) -> None:
-        # In place: callers up the recursion hold a reference to this same buffer.
+        # Sửa buffer tại chỗ vì các lời gọi đệ quy ở trên còn giữ tham chiếu.
         if self._buf:
             self._h.update(self._buf)
             self._buf.clear()
@@ -107,12 +87,10 @@ class Digest:
         return self._h.hexdigest()
 
     def raw(self, tag: bytes, data: bytes) -> None:
-        """A block of bytes the caller already encoded (for example a float64 array)."""
         self._flush()
         self._h.update(tag + _PACK_Q(len(data)) + data)
 
     def floats(self, values) -> None:
-        """A sequence of floats or of equal-length float tuples, packed in one block."""
         flat = []
         for v in values:
             if isinstance(v, tuple):
@@ -125,11 +103,10 @@ class Digest:
         self.raw(b"I", struct.pack(f"<{len(values)}q", *values))
 
     def _float_paths(self, cls) -> list[str] | None:
-        """Dotted paths of every field when all of them, nested dataclasses included, are
-        annotated float; None otherwise."""
+        """Trả về đường dẫn trường float kể cả trong dataclass lồng; gặp kiểu khác thì trả None."""
         try:
             hints = typing.get_type_hints(cls)
-        except Exception:  # noqa: BLE001  unresolvable annotation: no fast path
+        except Exception:  # noqa: BLE001
             return None
         paths = []
         for f in dataclasses.fields(cls):
@@ -148,7 +125,6 @@ class Digest:
         return paths
 
     def _dataclass(self, cls):
-        """(header, field getter, Struct of a float record or None), or None for a non-dataclass."""
         if cls not in self._cache:
             entry = None
             if dataclasses.is_dataclass(cls):
@@ -156,7 +132,7 @@ class Digest:
                 head = b"D" + _PACK_Q(len(name)) + name
                 paths = self._float_paths(cls)
                 if paths and len(paths) > 1:
-                    # All floats: one record "R", fetched and packed in C (Trajectory points).
+                    # Đóng gói các bản ghi toàn float cùng một lần, như các điểm Trajectory.
                     entry = (b"R" + head[1:], operator.attrgetter(*paths), struct.Struct(f"<{len(paths)}d"))
                 else:
                     names = _fields(cls, self._exclude)
@@ -167,8 +143,6 @@ class Digest:
         return self._cache[cls]
 
     def _records(self, seq) -> bool:
-        """A non-empty sequence of float records of one class, encoded at once; False when
-        the sequence is anything else (the caller then encodes member by member)."""
         cls = type(seq[0])
         if cls is float or cls is int or cls is tuple:
             return False
@@ -187,7 +161,6 @@ class Digest:
         return True
 
     def _items(self, values) -> None:
-        """Members of a sequence or the fields of a dataclass; floats and ints inline (hot path)."""
         buf = self._buf
         update = self.update
         for x in values:
@@ -231,7 +204,7 @@ class Digest:
                 if record is not None:
                     try:
                         data = record.pack(*values)
-                    except struct.error:  # a None in a float field: field by field
+                    except struct.error:  # Trường khai báo float có giá trị None thì mã hóa từng trường.
                         buf += b"D" + head[1:]
                         self._items(values)
                     else:

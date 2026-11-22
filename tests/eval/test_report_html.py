@@ -1,5 +1,3 @@
-"""Benchmark dashboard from an eval.suite folder (Software Qualification Test Specification 10)."""
-
 import json
 import re
 import sys
@@ -50,9 +48,9 @@ def test_ten_core_slides_and_metadata_with_b0_after_overview(tmp_path):
     titles = re.findall(r'<div class="title">([^<]+)</div>', html)
     assert len(titles) == 11 and titles[1] == "B0 · Conformance"
     assert [t.split(" · ")[0] for t in titles[2:10]] == [f"B{i}" for i in range(1, 9)]
-    assert "11 / 11" in html and "Input biên không làm dừng" in html  # B0 failing check by its name
+    assert "11 / 11" in html and "Input biên không làm dừng" in html
     legends = re.findall(r'<div class="card fit".*?</div></div></div>', html, re.S)
-    assert legends and all("…" not in x for x in legends)  # legend text is never cut
+    assert legends and all("…" not in x for x in legends)
 
 
 def test_aspect_verdict_from_failure_levels(tmp_path):
@@ -65,7 +63,7 @@ def test_stopped_suite_still_reports(tmp_path):
     cases = [_case("c1", "S1"), _case("c2", "S4"), _case("c3", "S4")]
     gen = _suite(tmp_path / "s", [_record("c1", ["B1"])], cases, generation=False, manifest=False)
     with (tmp_path / "s" / "results.jsonl").open("a") as stream:
-        stream.write('{"case": "c2", "seed"')  # cut while writing
+        stream.write('{"case": "c2", "seed"')  # Mô phỏng dòng JSONL bị cắt giữa lúc ghi.
     with pytest.raises(FileNotFoundError):
         report_html.write(tmp_path / "s")
     (tmp_path / "gen.json").write_text(json.dumps(gen))
@@ -197,7 +195,6 @@ def test_english_report_localizes_legacy_run_data(tmp_path):
 
 
 def test_one_colour_set():
-    """Every colour comes from the token block at the top; no hex literal elsewhere."""
     import re
     from pathlib import Path
     src = Path(report_html.__file__).read_text(encoding="utf-8")

@@ -1,5 +1,3 @@
-"""Labels, aspect suites and over-refusal scoring (Software Qualification Test Specification 5.3)."""
-
 from dataclasses import replace
 
 import pytest
@@ -15,12 +13,12 @@ A, F = ActiveFunction, I.InterventionPhase
 
 
 @pytest.mark.parametrize("scenario, variant, level, expected", [
-    ("S1", "a", "L0", "drive"),            # SQTS 5.3 example of L0
+    ("S1", "a", "L0", "drive"),
     ("S4", "a", "L0", "drive"),
-    ("S1", "e", "L1", "drive"),            # 130 km/h: end of the HWA speed range
-    ("S1b", "a", "L2", "drive_limited"),   # needs more than aysmax
+    ("S1", "e", "L1", "drive"),
+    ("S1b", "a", "L2", "drive_limited"),
     ("S14", "a", "L2", "drive_limited"),
-    ("S8", "late", "L0", "refuse"),        # PP-SWR-089: ELK must not start
+    ("S8", "late", "L0", "refuse"),
 ])
 def test_labels_of_anchors(scenario, variant, level, expected):
     assert labels.of(loader.load(scenario, variant)) == {"difficulty": level, "expected": expected}
@@ -31,11 +29,10 @@ def test_faults_profile_and_view_raise_the_level():
     one = loader.with_fault(s1a, "F01", "a")
     assert labels.difficulty(one) == "L3"
     assert labels.difficulty(loader.with_fault(one, "F02", "a")) == "L4"
-    assert labels.difficulty(replace(s1a, profile="VP-5")) == "L1"  # 2.5 m wide with mirrors
+    assert labels.difficulty(replace(s1a, profile="VP-5")) == "L1"
     assert labels.difficulty(replace(s1a, lane_width=2.5)) == "L1"
-    assert labels.difficulty(replace(s1a, hwa_view_gate=True, camera_view_m=20.0)) == "L5"  # 0.8 s < t_view_hwa
+    assert labels.difficulty(replace(s1a, hwa_view_gate=True, camera_view_m=20.0)) == "L5"
     assert labels.difficulty(s1a, swept=True) == "L3"
-    # On an S1b host the fault keeps the stricter outcome.
     assert labels.of(loader.with_fault(loader.load("S1b", "a"), "F01", "a"))["expected"] == "drive_limited"
 
 
@@ -70,7 +67,7 @@ def test_hwa_requested_but_not_driven_is_over_refusal():
     cycles = [_cycle(k) for k in range(40)] + [_cycle(k, valid=False) for k in range(40, 60)]
     c = _score(cycles)
     assert c.applicable and not c.passed and c.value == 20 and c.first_fail_s == pytest.approx(1.0)
-    assert not _score(cycles, "refuse").applicable  # refuse cases are judged by their own requirement
+    assert not _score(cycles, "refuse").applicable
 
 
 def test_lost_input_and_one_second_after_are_not_counted():
@@ -78,16 +75,16 @@ def test_lost_input_and_one_second_after_are_not_counted():
     cycles = ([_cycle(k) for k in range(40)] + [_cycle(k, valid=False, inputs=bad) for k in range(40, 60)]
               + [_cycle(k, valid=False) for k in range(60, 110)] + [_cycle(k) for k in range(110, 140)])
     c = _score(cycles)
-    # Last unusable at cycle 59 (1.475 s): not driving is excused up to 2.475 s, counted from 2.5 s.
+    # Cuối chu kỳ 59 là lần mất đầu vào sau cùng. Chấm lại từ 2,5 s sau khi hết cửa sổ khôi phục.
     assert c.value == 10 and c.first_fail_s == pytest.approx(2.5)
 
 
 def test_started_intervention_must_continue_until_completed():
     lka = I.RequestState.REQUEST
     cycles = ([_cycle(k) for k in range(20)]
-              + [_cycle(k, active=A.LCC, lka=lka) for k in range(20, 25)]           # not started: judged per case
+              + [_cycle(k, active=A.LCC, lka=lka) for k in range(20, 25)]
               + [_cycle(k, active=A.LKA, lka=lka, lka_phase=F.ACTIVE) for k in range(25, 50)]
-              + [_cycle(k, active=A.LCC, lka=lka, lka_phase=F.ACTIVE) for k in range(50, 55)]  # dropped: wrong
+              + [_cycle(k, active=A.LCC, lka=lka, lka_phase=F.ACTIVE) for k in range(50, 55)]
               + [_cycle(k, active=A.LCC, lka=lka, lka_phase=F.COMPLETED) for k in range(55, 70)])
     c = _score(cycles)
     assert c.value == 5 and c.first_fail_s == pytest.approx(50 * 0.025)
@@ -95,10 +92,8 @@ def test_started_intervention_must_continue_until_completed():
 
 def test_driving_hwa_without_request_is_a_wrong_choice():
     cycles = [_cycle(k) for k in range(20)] + [_cycle(k, hwa=I.RequestState.STANDBY) for k in range(20, 30)]
-    assert _score(cycles).value == 9  # the first cycle after the change is excused (PP-SWR-038)
+    assert _score(cycles).value == 9
 
-
-# ---- reaction to faults (PP-SWR-124, 131, 132, 142, 143, 145, 043) ----------------------
 
 def _fc(k, valid=True, inputs=OK, times=None, local=None):
     c = _cycle(k, valid=valid, inputs=inputs)
@@ -125,7 +120,7 @@ def test_lane_model_loss_keeps_the_path_for_t_coast_then_ends_it():
     lost = {**OK, "lane_model": False}
     def run(invalid_from):
         return [_fc(k, valid=not (k >= invalid_from), inputs=lost if k >= 10 else OK) for k in range(60)]
-    t_coast = 0.5  # 20 cycles
+    t_coast = 0.5
     assert _ids(metrics.fault_reaction_criteria(run(30), t_coast))["PP-SWR-124"].passed
     early = _ids(metrics.fault_reaction_criteria(run(12), t_coast))["PP-SWR-124"]
     late = _ids(metrics.fault_reaction_criteria(run(40), t_coast))["PP-SWR-124"]
@@ -144,7 +139,7 @@ def test_requests_timeout_needs_none_and_invalid_and_043():
     cycles = [_fc(k, times={"function_requests": (k * 25_000, k * 25_000, True)}) for k in range(10)]
     cycles += [_fc(k, times={"function_requests": (9 * 25_000, 9 * 25_000, True)}) for k in range(10, 16)]
     c = _ids(metrics.fault_reaction_criteria(cycles, 1.0))["PP-SWR-145"]
-    # Timeout once t0 - rx > 75 ms: cycle 13 on; from the second such cycle the path must end.
+    # Timeout khi t0 - rx > 75 ms. Cho một chu kỳ phản ứng trước khi buộc kết thúc path.
     assert c.value == 2
     status = SystemStatus(I.BasicHeader(0, 0, True), False, A.LCC, F.NONE, F.NONE, False, False)
     bad = replace(_fc(3), path_status=status)
@@ -157,8 +152,7 @@ def test_predicted_or_low_confidence_boundaries_are_not_enough():
     def with_b(b):
         return replace(_fc(0), lane_boundaries=b)
     assert metrics.lane_usable(with_b(((L, 0.0), (M, 0.7), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0))), cal)
-    assert not metrics.lane_usable(with_b(((P, 1.0),) * 6), cal)  # reconstructed only
-    # L2, R2 measured but below conf_inferred (F21 e): not enough
+    assert not metrics.lane_usable(with_b(((P, 1.0),) * 6), cal)
     assert not metrics.lane_usable(with_b(((M, 0.7), (L, 0.0), (L, 0.0), (M, 0.7), (L, 0.0), (L, 0.0))), cal)
     assert metrics.lane_usable(with_b(((M, 0.9), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0), (L, 0.0))), cal)
 

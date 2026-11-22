@@ -1,4 +1,3 @@
-"""Select the newest completed benchmark with an available report."""
 import json
 import re
 from pathlib import Path
@@ -25,7 +24,7 @@ def latest_benchmark(project=PROJECT):
                     continue
             except (OSError, ValueError):
                 continue
-            # Dates come from run IDs; file time breaks ties for older custom names without a time.
+            # Lấy ngày từ run ID, dùng mtime của kết quả để phân định các run cùng ngày.
             candidates.append(((match.group(1), results.stat().st_mtime_ns), run, data))
     if not candidates:
         return None

@@ -1,14 +1,12 @@
-"""Geometry and conflict prediction of the ADAS stand-in (ADAS-FS 5 and 6)."""
-
 from dataclasses import dataclass
 from math import cos, hypot, inf, isfinite, sin, sqrt
 
 from interfaces import EgoMotionQuery, EgoMotionRequest, EgoMotionResponse, ElkReason
 from interfaces import LaneLine, LineStatus, Object, RoadEdge, Side, VehicleConfig
 
-MIN_OUTWARD_SPEED = 0.05  # [m/s] ADAS-FS 5
-BODY_OVERHANG_M = 1.0  # SQTS 8.1: body extends 1 m beyond each axle
-ABREAST_WINDOW_S = 1.0  # ADAS-FS 6, step 5
+MIN_OUTWARD_SPEED = 0.05
+BODY_OVERHANG_M = 1.0
+ABREAST_WINDOW_S = 1.0
 SIDES = (Side.LEFT, Side.RIGHT)
 EGO_LINE_INDEX = {Side.LEFT: 1, Side.RIGHT: 2}
 OUTER_LINE_INDEX = {Side.LEFT: 0, Side.RIGHT: 3}
@@ -17,7 +15,7 @@ OUTER_LINE_INDEX = {Side.LEFT: 0, Side.RIGHT: 3}
 @dataclass(frozen=True, slots=True)
 class VehicleMotion:
     speed_mps: float
-    lateral_velocity_mps: float  # at base_link
+    lateral_velocity_mps: float
     lateral_velocity_variance: float
     yaw_rate_rps: float
     steering_rate_rps: float
@@ -60,7 +58,6 @@ def _value_slope(boundary: LaneLine | RoadEdge, x: float) -> tuple[float, float]
 
 def clearance(boundary: LaneLine | RoadEdge, side: Side, frame: EgoMotionResponse,
               vehicle: VehicleConfig, motion: VehicleMotion) -> Clearance | None:
-    """Evaluate the front axle and its velocity in the camera's capture frame."""
     c, s = cos(frame.dyaw), sin(frame.dyaw)
     x = frame.dx + vehicle.wheelbase * c
     y = frame.dy + vehicle.wheelbase * s
@@ -85,8 +82,8 @@ def clearance(boundary: LaneLine | RoadEdge, side: Side, frame: EgoMotionRespons
 
 
 def _extrapolate_line(line: LaneLine, x: float) -> tuple[float, float]:
-    # The lane model is forward-looking. Use its end tangent to assign objects
-    # slightly outside the observed range, particularly a vehicle coming from behind.
+    # Ngoại suy theo tiếp tuyến ở cuối vạch để gán vật thể hơi ngoài tầm nhìn, nhất là xe tới từ
+    # phía sau.
     anchor = min(line.view_range_end, max(line.view_range_start, x))
     y, slope = _value_slope(line, anchor)
     return y + (x - anchor) * slope, slope
@@ -104,7 +101,6 @@ def object_conflict(obj: Object, side: Side, line: LaneLine, outer: LaneLine | N
                     tlc: float, *, conflict_s: float, box_margin: float,
                     deliberate: bool, abreast_margin: float, ttc_rear: float,
                     decel_rear: float) -> ElkReason:
-    """Predict longitudinal overlap with an adjacent-lane object (ADAS-FS 6)."""
     c, s = cos(object_frame.dyaw), sin(object_frame.dyaw)
     dx = obj.x + obj.vx * age_s - object_frame.dx
     dy = obj.y + obj.vy * age_s - object_frame.dy
@@ -134,7 +130,6 @@ def object_conflict(obj: Object, side: Side, line: LaneLine, outer: LaneLine | N
                               rear_x - box_margin, front_x + box_margin):
         return ElkReason.NONE
     if target_speed < 0:
-        # A deliberate crossing is only overridden for a qualifying adjacent conflict.
         if deliberate and not _intersects_window(x_now, dv, start, start + ABREAST_WINDOW_S,
                                                 rear_x - abreast_margin, front_x + abreast_margin):
             return ElkReason.NONE

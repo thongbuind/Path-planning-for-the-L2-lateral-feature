@@ -1,5 +1,3 @@
-/* Experimental T7 correction. Included only in a source copy by t7_potential.py. */
-
 static uint64_t pilot_calls;
 static uint64_t pilot_eligible;
 static uint64_t pilot_applied;
@@ -17,7 +15,7 @@ uint64_t pp_potential_count(unsigned index)
     return index == 0 ? pilot_calls : (index == 1 ? pilot_eligible : pilot_applied);
 }
 
-/* A symmetric smoothstep on either side of the peak. d, d', d'', d''' vanish at the ends. */
+/* Smoothstep hai bên đỉnh. d và ba đạo hàm đầu bằng 0 tại hai đầu. */
 static bool pilot_bump(const pp_lateral_path_t *base, double end, double peak, double offset,
                        double corridor, pp_lateral_path_t *out)
 {
@@ -44,8 +42,7 @@ static bool pilot_bump(const pp_lateral_path_t *base, double end, double peak, d
 }
 
 #if PP_POTENTIAL_DRIVER == 1
-/* The inner boundary is the observed centre offset by half the lane width. Find where
- * the heading of that boundary is parallel to the ray from base_link to the boundary. */
+/* Điểm ứng viên nằm trên biên trong, nơi hướng biên song song tia từ base_link tới điểm đó. */
 static double pilot_tangent(const pp_reference_line_t *ref, const pp_speed_profile_t *speed,
                             double end, double *side)
 {

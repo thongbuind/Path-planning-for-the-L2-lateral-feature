@@ -1,10 +1,3 @@
-"""First closed SIL loop: the delivered planner library drives the simulated car.
-
-Shortened S1-like run (straight, clothoid, arc R = 500 m, 90 km/h, 10 s) to keep the
-test quick; the full S1 a runs with `python3 -m eval.runner S1 a`. Needs
-build/planner/libpp_planner; skipped otherwise.
-"""
-
 import pytest
 
 from adapters.sil.sil_planner import PlannerLibraries, library_path
@@ -63,8 +56,6 @@ def sharp_result():
 
 
 def test_sharp_curve_limits_path(sharp_result):
-    """Curve needs 3.1 m/s^2 > aysmax after a short clothoid: path cut to aysmax, HWA kept.
-    PP-SWR-006 is judged on 0-1 s (SRS 1.2)."""
     by_id = {c.id: c for c in sharp_result.criteria}
     assert sharp_result.info["ay_need_max"] > 3.0
     for rid in ("PP-SWR-001", "PP-SWR-005", "PP-SWR-006", "PP-SWR-009", "PP-SWR-150"):
@@ -72,8 +63,7 @@ def test_sharp_curve_limits_path(sharp_result):
 
 
 def test_sharp_curve_flag_on_before_lane_crossing(sharp_result):
-    """PP-SWR-007 (SRS 1.3, R79 5.6.2.2.3): the flag is on when a front tyre starts to touch
-    the marking; target 064 reports how early it came on."""
+    """PP-SWR-007: cờ phải bật khi lốp trước bắt đầu chạm vạch; target 064 đo thời gian báo trước."""
     by_id = {c.id: c for c in sharp_result.criteria}
     assert by_id["PP-SWR-007"].applicable and by_id["PP-SWR-007"].passed, by_id["PP-SWR-007"]
     lead = {t.id: t.value for t in sharp_result.targets}.get("PP-SWR-064")
@@ -81,8 +71,6 @@ def test_sharp_curve_flag_on_before_lane_crossing(sharp_result):
 
 
 def test_sharp_curve_reports_lateral_jerk_targets(sharp_result):
-    """PP-SWR-004 (Software Qualification Test Specification 8.2): peak equals the PP-SWR-003
-    value, RMS is below the peak, steering wheel rate RMS of the car is measured (PP-PR-025)."""
     jerk = {t.metric: t.value for t in sharp_result.targets if t.id == "PP-SWR-004"}
     assert len(jerk) == 3
     peak = next(v for m, v in jerk.items() if "lớn nhất" in m)

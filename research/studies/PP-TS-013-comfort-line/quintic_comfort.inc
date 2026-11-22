@@ -1,5 +1,3 @@
-/* PP-TS-013 experiment. Included only in the temporary copy of pp_planner.c. */
-
 enum { RESEARCH_HWA, RESEARCH_ELIGIBLE, RESEARCH_APPLIED, RESEARCH_COUNTERS };
 static uint64_t research_counts[RESEARCH_COUNTERS];
 
@@ -16,8 +14,7 @@ uint64_t pp_research_count(unsigned index)
     return (index < RESEARCH_COUNTERS) ? research_counts[index] : 0U;
 }
 
-/* Unit lateral displacement at the intermediate waypoint. The correction
- * has zero first and second derivatives at both ends and at the join. */
+/* Lệch ngang đơn vị tại waypoint. Đạo hàm bậc một và hai bằng 0 ở hai đầu và chỗ nối. */
 static void research_bump(double waypoint_s, pp_lateral_path_t *bump)
 {
     const double end_s = PP_TRAJECTORY_HORIZON_S;

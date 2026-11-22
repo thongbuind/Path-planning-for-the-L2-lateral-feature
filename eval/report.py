@@ -1,5 +1,3 @@
-"""Text and JSON report of one run (Software Qualification Test Specification section 10)."""
-
 import json
 from pathlib import Path
 
@@ -26,7 +24,6 @@ def text(result: Result) -> str:
 
 
 def jsonable(value):
-    """json default: numpy scalars (np.bool_, np.float32...) as their Python value."""
     if hasattr(value, "item"):
         return value.item()
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")

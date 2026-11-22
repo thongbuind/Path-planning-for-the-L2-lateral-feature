@@ -1,5 +1,3 @@
-"""Vehicle profiles and bicycle model (Software Qualification Test Specification 4.4)."""
-
 from math import isclose
 
 import pytest
@@ -20,7 +18,7 @@ def test_vp0_vehicle_config_matches_table():
 
 
 def test_steady_state_yaw_rate():
-    # Linear bicycle: r = v * delta / (L + K v^2).
+    # Ở trạng thái xác lập, bicycle tuyến tính cho r = v × delta / (L + K × v²).
     p = PROFILES["VP-0"]
     car = Bicycle(p, BicycleState(0.0, 0.0, 0.0, 0.0, 0.0))
     v, delta = 25.0, 0.002
@@ -44,7 +42,7 @@ def test_low_speed_is_kinematic():
     car = Bicycle(p, BicycleState(0.0, 0.0, 0.0, 0.0, 0.0))
     for _ in range(100):
         car.step(1e-3, 0.1, 2.0)
-    assert isclose(car.state.r, 2.0 * 0.1003346720854505 / p.wheelbase, rel_tol=1e-6)  # tan(0.1)
+    assert isclose(car.state.r, 2.0 * 0.1003346720854505 / p.wheelbase, rel_tol=1e-6)
 
 
 def test_steady_cornering_state_stays_steady():
@@ -55,5 +53,4 @@ def test_steady_cornering_state_stays_steady():
     car = Bicycle(p, BicycleState(0.0, 0.0, 0.0, v_y, r))
     for _ in range(2000):
         car.step(1e-3, delta, v)
-    # Steady state of the small-angle model (cos delta = 1): within 1e-3.
     assert isclose(car.state.r, r, rel_tol=1e-3) and isclose(car.state.v_y, v_y, rel_tol=1e-3)

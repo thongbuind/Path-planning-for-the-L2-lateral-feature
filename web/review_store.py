@@ -1,5 +1,3 @@
-"""Lưu nhận xét theo báo cáo trong web/data/review-comments/."""
-
 import json
 import os
 import re
@@ -77,7 +75,7 @@ def validate_anchor(anchor):
     }
 
 
-SEVERITIES = {"major", "minor", "question"}  # Lớn, Nhỏ, Câu hỏi
+SEVERITIES = {"major", "minor", "question"}
 
 
 def save_review(project, doc_id, payload, create):
@@ -85,7 +83,6 @@ def save_review(project, doc_id, payload, create):
         raise ReviewError(400, "invalid_review")
     review_id = payload.get("id")
     body = payload.get("body")
-    # Khi sửa, có thể chỉ đổi trạng thái đã xong mà không gửi lại nội dung.
     has_body = create or "body" in payload
     resolved = payload.get("resolved")
     resolution = payload.get("resolution")
@@ -116,7 +113,7 @@ def save_review(project, doc_id, payload, create):
         if create:
             if review:
                 if review["body"] == body and review["anchor"] == anchor:
-                    return data  # Yêu cầu tạo gửi lại sau lỗi kết nối.
+                    return data  # Lượt gửi lại sau lỗi kết nối phải giữ cùng nhận xét.
                 raise ReviewError(409, "review_changed", review)
             review = {
                 "id": review_id,
@@ -140,7 +137,7 @@ def save_review(project, doc_id, payload, create):
                 review["body"] = body
                 changed = True
             if resolved is not None and bool(review.get("resolved")) != resolved:
-                # Đổi trạng thái không cần khớp phiên bản: bấm hai lần cho cùng kết quả.
+                # Đổi trạng thái không cần khớp phiên bản để hai lần bấm cho cùng kết quả.
                 review["resolved"] = resolved
                 if resolved:
                     review["resolvedAt"] = timestamp
@@ -154,7 +151,7 @@ def save_review(project, doc_id, payload, create):
                 review["resolution"] = resolution.strip()
                 changed = True
             if not changed:
-                return data  # Lưu lại cùng nội dung không tăng phiên bản.
+                return data
             review.update(version=review["version"] + 1, updatedAt=timestamp)
 
         with TemporaryDirectory(dir=folder) as temp_dir:
@@ -165,7 +162,6 @@ def save_review(project, doc_id, payload, create):
 
 
 def resolve_reviews(project, doc_id, numbers, resolved=True, resolution=None):
-    """Đánh dấu xong hoặc mở lại các nhận xét theo số thứ tự, qua cùng khoá và cách ghi."""
     data = read_reviews(project, doc_id)
     by_number = {item["number"]: item for item in data["reviews"]}
     missing = [n for n in numbers if n not in by_number]
@@ -180,9 +176,6 @@ def resolve_reviews(project, doc_id, numbers, resolved=True, resolution=None):
 
 
 if __name__ == "__main__":
-    # Dùng từ dòng lệnh, ví dụ:
-    #   python3 web/review_store.py resolve adas-functions 1 5 6 --note "Đã sửa trong bản mới"
-    #   python3 web/review_store.py reopen adas-functions 3
     import argparse
 
     parser = argparse.ArgumentParser(description="Đánh dấu nhận xét đã xong hoặc mở lại")

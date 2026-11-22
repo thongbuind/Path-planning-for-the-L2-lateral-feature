@@ -1,4 +1,3 @@
-/* Geometry and quintic path for LKA and ELK (Software Detailed Design 10). */
 #ifndef PP_INTERVENTION_H
 #define PP_INTERVENTION_H
 
@@ -16,8 +15,8 @@ typedef struct {
 } pp_edge_memory_t;
 
 typedef struct {
-    pp_quintic_t profile;         /* Arrest of the outward motion, or the whole return */
-    pp_quintic_t back;            /* Return to the lane centre after the arrest */
+    pp_quintic_t profile;
+    pp_quintic_t back;
     bool two_phase;
     uint64_t start_us;
 } pp_intervention_path_t;
@@ -29,37 +28,29 @@ typedef struct {
     double rate;
 } pp_lateral_velocity_history_t;
 
-/*
- * Intervention corridor (Software Detailed Design 12 step 7; PP-SWR-093, 094; PP-ADR-019): the
- * reference line the intervention path is sampled on. Fixed when the intervention starts and
- * moved by ego-motion. A new hazard-side edge that moved toward the car is taken at once; one
- * that moved away waits T_confirm, then the corridor edge slides to it at ref_rate.
- */
+/* Corridor được chốt khi bắt đầu can thiệp và cập nhật theo ego-motion cùng biên nguy hiểm
+ * (PP-ADR-019). */
 typedef struct {
     bool valid;
     pp_reference_line_t ref;
-    bool pending;                  /* A hazard-side edge that moved away is waiting */
+    bool pending;
     double pending_s;
-    double toward_s;               /* [s] the hazard edge has been reported nearer the car */
+    double toward_s;
 } pp_corridor_t;
 
 void pp_corridor_reset(pp_corridor_t *c);
 
-/*
- * `live`: the reference line of this cycle. `started`: first cycle of an intervention.
- * `motion`: ego-motion since the previous cycle, NULL when not known. Returns the corridor.
- */
+/* motion là ego-motion từ chu kỳ trước. NULL khi không xác định được. */
 const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_reference_line_t *live,
                                               const pp_motion_t *motion, bool started,
                                               pp_side_t side, double front_x,
                                               const pp_calibration_t *cal, double dt);
 
-/* Align the estimate used in PP-SWR-032/090 with the current cycle. */
 double pp_intervention_vy_at_t0(pp_lateral_velocity_history_t *history,
                                 const pp_vehicle_state_estimate_t *state, uint64_t t0_us);
 
-/* PP-SWR-047: road edges of the ego lane, with measured opposite boundary or
- * remembered width. This geometry is local to ELK. */
+/* PP-SWR-047: hình học riêng cho ELK dựng từ mép ego và biên đối diện đã đo hoặc bề rộng lưu trước
+ * đó. */
 void pp_road_edge_references(pp_edge_memory_t *mem, const pp_lane_at_t0_t *lane,
                             const pp_reference_line_t *camera_ref, const pp_motion_t *motion,
                             const pp_vehicle_config_t *vehicle, const pp_calibration_t *cal,
@@ -83,4 +74,4 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
 void pp_intervention_sample(const pp_intervention_path_t *path, uint64_t t0_us,
                             pp_lateral_path_t *out);
 
-#endif /* PP_INTERVENTION_H */
+#endif

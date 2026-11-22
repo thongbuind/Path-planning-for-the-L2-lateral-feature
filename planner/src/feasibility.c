@@ -1,5 +1,3 @@
-/* T10 Feasibility and limits (feasibility.h). PP-SWR-001, 003, 005 to 009, 116, 117, 151, 152. */
-
 #include "feasibility.h"
 
 #include <math.h>
@@ -7,18 +5,18 @@
 
 #include "pp_math.h"
 
-#define PP_MIN_SPEED_MPS (1.0)         /* Curvature limits from a_y are taken at least at this speed */
-#define PP_CHANGED_KAPPA (1.0e-9)      /* [1/m] smaller changes count as unchanged */
-#define PP_CURVE_STEP_M (2.0)          /* Grid of T5 (Software Detailed Design 8) */
-#define PP_CURVE_MAX_STEPS (200U)      /* Bounds the work: 400 m */
-#define PP_KAPPA_FLOOR (1.0e-5)        /* [1/m] below this v_max is that of R = 100 km */
-/* Cut slightly inside each limit so the float32 value sent never exceeds it. */
+#define PP_MIN_SPEED_MPS (1.0)
+#define PP_CHANGED_KAPPA (1.0e-9)
+#define PP_CURVE_STEP_M (2.0)
+#define PP_CURVE_MAX_STEPS (200U)  /* Giới hạn khối lượng tính trong tối đa 400 m. */
+#define PP_KAPPA_FLOOR (1.0e-5)
+/* Chừa biên nhỏ để làm tròn float32 không đẩy kết quả vượt giới hạn. */
 #define PP_LIMIT_SCALE (1.0 - 1.0e-6)
 
 pp_function_limits_t pp_hwa_path_limits(const pp_calibration_t *cal, bool limit_reached)
 {
     const double margin = limit_reached ? 0.0 : (double)cal->ay_margin_hwa;
-    const pp_function_limits_t limits = {PP_AYSMAX + margin, PP_JERK_MAX_HWA, 0.0}; /* PP-SWR-001, 003 */
+    const pp_function_limits_t limits = {PP_AYSMAX + margin, PP_JERK_MAX_HWA, 0.0, 0.0};
     return limits;
 }
 
@@ -39,14 +37,13 @@ void pp_feasibility_check(const pp_trajectory_point_t points[PP_TRAJECTORY_POINT
             out->ay_need_max = fmax(out->ay_need_max, fabs(need));
         }
     }
-    /* Jerk of a_y, moving mean over 0.5 s = mean slope over `window` steps. */
     for (uint32_t k = 0U; (k + window) < PP_TRAJECTORY_POINTS; k++) {
         const double mean = (ay[k + window] - ay[k]) / ((double)window * PP_GRID_STEP_S);
         out->jerk_max = fmax(out->jerk_max, fabs(mean));
     }
 }
 
-static void curvature_interval(double kappa_ref, double v, double limit,
+static void curvature_interval(double kappa_ref, double v, double limit, bool near_and_observed,
                                const pp_function_limits_t *limits, double *lo, double *hi)
 {
     *lo = -limit;
@@ -57,11 +54,18 @@ static void curvature_interval(double kappa_ref, double v, double limit,
         const double upper = fmin(limit, kappa_ref + band);
         if (lower <= upper) {
             *lo = lower;
-            *hi = upper;                                                 /* PP-SWR-112, 113 */
+            *hi = upper;
         } else {
-            /* The road needs more acceleration than both budgets permit. */
             *lo = pp_clamp(kappa_ref, -limit, limit);
             *hi = *lo;
+        }
+    } else if (near_and_observed && (limits->ay_support > 0.0) && (fabs(kappa_ref) * v * v > PP_AYSMAX)) {
+        /* Khi vào cua, trợ giúp PP-SWR-006 vẫn chịu giới hạn góc vô lăng, jerk và tốc độ vô lăng. */
+        const double support = fmin(limit, limits->ay_support / (v * v));
+        if (kappa_ref > 0.0) {
+            *lo = support;
+        } else {
+            *hi = -support;
         }
     }
 }
@@ -78,14 +82,14 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
     double kappa[PP_TRAJECTORY_POINTS];
     uint32_t first_changed = PP_TRAJECTORY_POINTS;
 
-    /* Point 0 keeps its pose; its curvature is cut too (after T4 it may exceed slightly). */
+    /* Điểm 0 giữ pose; độ cong vẫn được giới hạn vì T4 có thể làm vượt nhẹ. */
     {
         const double v0 = fmax((double)points[0].longitudinal_velocity_mps, PP_MIN_SPEED_MPS);
         const double limit0 = PP_LIMIT_SCALE * fmin(limits->ay_max / (v0 * v0), kappa_wheel);
         const double wanted0 = (double)points[0].curvature;
         double lo;
         double hi;
-        curvature_interval(ref->kappa[0], v0, limit0, limits, &lo, &hi);
+        curvature_interval(ref->kappa[0], v0, limit0, ref->in_view[0], limits, &lo, &hi);
         kappa[0] = pp_clamp(wanted0, lo, hi);
         if (fabs(kappa[0] - wanted0) > PP_CHANGED_KAPPA) {
             points[0].curvature = (float)kappa[0];
@@ -100,20 +104,20 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
         const double v_prev = fmax((double)points[k - 1U].longitudinal_velocity_mps,
                                    PP_MIN_SPEED_MPS);
         const double limit = PP_LIMIT_SCALE
-                             * fmin(limits->ay_max / (v * v), kappa_wheel);   /* PP-SWR-001, 116 */
+                             * fmin(limits->ay_max / (v * v), kappa_wheel);
         double lo;
         double hi;
-        curvature_interval(ref->kappa[k], v, limit, limits, &lo, &hi);
+        const bool near_and_observed = ref->in_view[k] && (points[k].time_from_start <= 1.0F);
+        curvature_interval(ref->kappa[k], v, limit, near_and_observed, limits, &lo, &hi);
         double c = pp_clamp(wanted, lo, hi);
 
-        /* Jerk per step (PP-SWR-003); stricter than the 0.5 s mean of the requirement, and
-         * slightly inside the limit like a_y (PP-PR-040). */
+        /* Jerk mỗi bước chặt hơn trung bình 0,5 s của PP-SWR-003. Chừa biên khi xuất float32
+         * (PP-PR-040). */
         const double ay_prev = v_prev * v_prev * kappa[k - 1U];
         const double jerk_step = PP_LIMIT_SCALE * limits->jerk_max * dt;
         const double ay = pp_clamp(v * v * c, ay_prev - jerk_step, ay_prev + jerk_step);
         c = ay / (v * v);
 
-        /* Steering wheel rate (PP-SWR-117). */
         const double wheel_prev = atan(wheelbase * kappa[k - 1U]);
         const double wheel = pp_clamp(atan(wheelbase * c), wheel_prev - wheel_step,
                                       wheel_prev + wheel_step);
@@ -125,7 +129,6 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
         }
     }
 
-    /* Integrate the path again from the point before the first change. */
     for (uint32_t k = first_changed; k < PP_TRAJECTORY_POINTS; k++) {
         const pp_trajectory_point_t *a = &points[k - 1U];
         pp_trajectory_point_t *b = &points[k];
@@ -140,7 +143,6 @@ bool pp_feasibility_limit(pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
         b->curvature = (float)kappa[k];
         b->heading_rate_rps = (float)(v * kappa[k]);
         b->front_wheel_angle_rad = (float)atan(wheelbase * kappa[k]);
-        /* d_dot against the reference line (Interface Control Document 6.1). */
         b->lateral_velocity_mps = (float)(v * sin(yaw_b - ref->theta[k]));
     }
     return first_changed < PP_TRAJECTORY_POINTS;
@@ -154,8 +156,7 @@ void pp_limit_flag_reset(pp_limit_flag_t *flag)
 void pp_limit_flag_update(pp_limit_flag_t *flag, double ay_need_max, double ay_limit,
                           const pp_calibration_t *cal, double cycle_s)
 {
-    /* Condition must hold in consecutive cycles over T_flag / 2 (Software Detailed Design 13). */
-    /* The tolerance keeps float32 calibration (0.2F > 0.2) from adding a cycle. */
+    /* Dung sai tránh thêm một chu kỳ vì 0.2F lớn hơn 0.2. */
     const double wanted = ceil(((0.5 * (double)cal->T_flag) / cycle_s) - 1.0e-6);
     const uint8_t cycles = (wanted < 1.0) ? 1U : ((wanted > 255.0) ? 255U : (uint8_t)wanted);
     const double band = (double)cal->delta_ay;
@@ -164,14 +165,14 @@ void pp_limit_flag_update(pp_limit_flag_t *flag, double ay_need_max, double ay_l
         flag->on_cycles = (ay_need_max > (ay_limit + band))
                           ? (uint8_t)((flag->on_cycles < 255U) ? (flag->on_cycles + 1U) : 255U) : 0U;
         if (flag->on_cycles >= cycles) {
-            flag->reached = true;      /* PP-SWR-007 */
+            flag->reached = true;
             flag->on_cycles = 0U;
         }
     } else {
         flag->off_cycles = (ay_need_max < (ay_limit - band))
                            ? (uint8_t)((flag->off_cycles < 255U) ? (flag->off_cycles + 1U) : 255U) : 0U;
         if (flag->off_cycles >= cycles) {
-            flag->reached = false;     /* PP-SWR-008 */
+            flag->reached = false;
             flag->off_cycles = 0U;
         }
     }
@@ -193,7 +194,7 @@ void pp_curve_limit(const pp_reference_line_t *ref, double ay_limit, pp_curve_li
             out->distance = s;
         }
     }
-    out->v_max = sqrt(ay_limit / fmax(out->kappa_max, PP_KAPPA_FLOOR));   /* PP-SWR-151 */
+    out->v_max = sqrt(ay_limit / fmax(out->kappa_max, PP_KAPPA_FLOOR));
 }
 
 double pp_ay_need_max(const pp_reference_line_t *ref, const pp_speed_profile_t *speed)

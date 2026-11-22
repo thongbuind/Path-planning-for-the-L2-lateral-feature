@@ -1,4 +1,4 @@
-/* English labels for the simulation. The URL language takes precedence over the saved site preference. */
+/* Ngôn ngữ trong URL ưu tiên hơn lựa chọn lưu cục bộ. */
 (() => {
   const requested = new URLSearchParams(location.search).get('lang');
   let saved = 'vi';

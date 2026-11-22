@@ -1,14 +1,3 @@
-"""Test double of a worker for execution.supervisor: behaviour chosen by request.json "mode".
-
-    ok          10 events, the required files, exit 0
-    slow        one event every 50 ms for "n" events; pause/resume on stdin
-    stderr      prints to stderr and a non-JSON stdout line, then exits 1 without a class
-    eval_error  reports EVAL_ERROR, exit 3
-    crash_sut   stack text naming the SUT adapter on stderr, then SIGSEGV
-    crash_sim   stack text without it, then SIGSEGV
-    stubborn    ignores SIGTERM and never ends
-"""
-
 import json
 import os
 import signal
@@ -19,7 +8,7 @@ from pathlib import Path
 
 folder = Path(sys.argv[1])
 request = json.loads((folder / "request.json").read_text())
-request = {**request, **request.get("config", {})}  # the workbench wraps it in "config"
+request = {**request, **request.get("config", {})}
 mode = request["mode"]
 paused = threading.Event()
 
@@ -41,7 +30,7 @@ def controls():
 def files():
     for name in ("manifest.json", "resolved-case.json", "evaluation.json"):
         (folder / name).write_text(json.dumps({"name": name, "run_id": request["run_id"]}))
-    changed = request.get("drift") and request.get("expect")  # a rerun that behaves differently
+    changed = request.get("drift") and request.get("expect")
     (folder / "manifest.json").write_text(json.dumps({
         "name": "manifest.json", "run_id": request["run_id"], "seed": 1, "git": {"commit": "abc"},
         "libraries": [{"pp_version": "stub", "sha256": "1"}],

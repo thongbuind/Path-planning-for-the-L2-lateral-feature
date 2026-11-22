@@ -1,22 +1,3 @@
-"""Comparison between planners (Software Qualification Test Specification 9.2, 10).
-
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner A.so --out build/suites/reg-A
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner B.so --out build/suites/reg-B
-    python3 -m eval.compare build/suites/reg-A build/suites/reg-B [--name A --name B] [--out DIR]
-
-Inputs are eval.suite output folders of the same generated suite: same cases, profiles and
-seeds, every run executed. No planner is a reference; planners are only compared with each
-other. A planner that failed C1 or C2 is not compared. Ranking, tier after tier:
-  1  conclusion of 8.4 (no blocker, not approved, blocked); within Blocked fewer BLOCKER
-     requirements failed ranks higher
-  2  Euro NCAP LSS points (min over profiles), then mean pass rate of MAJOR and MINOR
-     requirements
-  3  Copeland score of pairwise wins per group of 9.1 steps 2 to 5, a group only when the
-     earlier ones tie; a win needs the 95 % bootstrap interval (10 000 resamples over the
-     runs, fixed seed) of the mean difference wholly on one side
-Writes build/compare/<name>/report.md and compare.json.
-"""
-
 import argparse
 import json
 import math
@@ -30,12 +11,11 @@ from eval import conclusion, matrix, report, severity
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "compare"
-BOOTSTRAP_RESAMPLES = 10_000  # Software Qualification Test Specification 9.2
-BOOTSTRAP_SEED = 20261112  # fixed (nhóm tự thống nhất)
+BOOTSTRAP_RESAMPLES = 10_000
+BOOTSTRAP_SEED = 20261112
 CONFIDENCE = 0.95
 
-# Euro NCAP Assessment Protocol SA v10.4.1, 4.3.2 and 4.3.3.6 (Software Qualification Test
-# Specification 9.2): test line -> (family, description prefix after "Euro NCAP LSS ", points).
+# Bảng điểm theo dòng thử của Euro NCAP SA v10.4.1, mục 4.3.2 và 4.3.3.6 (SQTS 9.2).
 NCAP_LINES = {
     "LKA, vạch đứt": ("S4", "dashed-", 0.25),
     "LKA, vạch liền": ("S4", "solid-", 0.25),
@@ -46,28 +26,22 @@ NCAP_LINES = {
     "ELK, xe đang vượt": ("S8", ("overtaking-", "indicated-"), 0.50),
 }
 NCAP_MAX = sum(points for _, _, points in NCAP_LINES.values())
-# Criteria of the protocol for a row (Software Qualification Test Specification 5.1).
 NCAP_DTLE = "PP-SWR-086"
 
-# Groups of 9.1 steps 2 to 5: performance targets by id; the flexibility group uses the
-# targets of the safety and comfort groups, as the spread between profiles.
 GROUPS = {
     "An toàn": ("PP-SWR-050", "PP-SWR-057", "PP-SWR-087"),
     "Cảm nhận người lái": ("PP-SWR-002", "PP-SWR-004", "PP-SWR-053", "PP-SWR-059", "PP-SWR-081", "PP-SWR-082"),
     "Flexibility": (),
     "Thời gian tính": ("PP-SWR-016",),
 }
-LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}  # 8.2 "Tốt hơn khi"
+LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
 
-
-# ---- loading ---------------------------------------------------------------------------
 
 def _scope(case: dict) -> list[str]:
     return sorted(matrix.case_scope(case))
 
 
 def load(folder: Path, name: str | None = None) -> dict:
-    """One eval.suite output folder: planner, B0, generation, run records keyed by (case, seed)."""
     folder = Path(folder)
     manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
     generation = json.loads((folder / "generation.json").read_text(encoding="utf-8"))
@@ -79,7 +53,7 @@ def load(folder: Path, name: str | None = None) -> dict:
         r = json.loads(line)
         case = cases[r["case"]]
         r.setdefault("profile", case["parameters"].get("profile"))
-        if "scope" not in r:  # written before eval.suite kept the scope
+        if "scope" not in r:  # Hồ sơ suite cũ chưa ghi scope trong kết quả từng ca.
             r["scope"] = _scope(case)
         records[(r["case"], r["seed"])] = r
     lib = manifest["libraries"][0]
@@ -101,8 +75,6 @@ def check_same_benchmark(planners: list[dict]) -> None:
     if partial:
         raise SystemExit("partial suite runs cannot be compared: " + ", ".join(partial))
 
-
-# ---- tier 1 and 2 ----------------------------------------------------------------------
 
 def tier1(p: dict) -> dict:
     c = conclusion.conclude(list(p["records"].values()), p["b0"])
@@ -134,16 +106,18 @@ def _ncap_row_passed(record: dict) -> bool:
     planner_issues = ([i for i in issues if i["kind"] != "not_judged"] if issues is not None
                       else [{"text": t} for t in result.get("case_failures", [])])
     if planner_issues:
-        return False  # e.g. requested intervention not driven
+        return False
     family_target = record.get("_family")
     if family_target in ("S7", "S8"):
-        return result.get("info", {}).get("no_impact") is True  # SA 4.3.3.4: no impact
+        return result.get("info", {}).get("no_impact") is True
     dtle = criteria.get(NCAP_DTLE)
     return dtle is not None and dtle["passed"]
 
 
 def ncap_points(p: dict) -> dict:
-    """Per profile: a line scores when every grid row of it passes (every seed); min over profiles."""
+    """Mỗi profile chỉ có điểm ở dòng mà tất cả biến thể và seed đều đạt; lấy điểm thấp nhất giữa
+    các profile.
+    """
     rows: dict[tuple[str, str], list[bool]] = {}
     for (case_id, _), record in p["records"].items():
         case = p["cases"][case_id]
@@ -164,7 +138,9 @@ def ncap_points(p: dict) -> dict:
 
 
 def pass_rate(p: dict) -> dict:
-    """Per MAJOR or MINOR requirement: runs passed / runs judging it (in scope); mean, unweighted."""
+    """Mỗi requirement có trọng số như nhau. Mẫu số chỉ gồm các run có chấm requirement đó trong
+    scope.
+    """
     judged: dict[str, list[bool]] = {}
     for record in p["records"].values():
         if record.get("result") is None:
@@ -179,8 +155,6 @@ def pass_rate(p: dict) -> dict:
     return {"mean": float(np.mean(list(rates.values()))) if rates else None, "per_requirement": rates}
 
 
-# ---- tier 3 ----------------------------------------------------------------------------
-
 def _targets(record: dict) -> dict[tuple[str, str], float]:
     if record.get("result") is None:
         return {}
@@ -189,7 +163,9 @@ def _targets(record: dict) -> dict[tuple[str, str], float]:
 
 
 def _units(p: dict, metric: tuple[str, str], flexibility: bool) -> dict:
-    """unit -> value; a unit is a run, or for flexibility (case without profile, seed) -> spread."""
+    """Với flexibility, gộp theo cấu hình ca bỏ profile và theo seed, rồi lấy độ trải giữa các
+    profile.
+    """
     if not flexibility:
         return {k: v for k, r in p["records"].items() if (v := _targets(r).get(metric)) is not None}
     by_unit: dict[tuple, list[float]] = {}
@@ -217,10 +193,10 @@ def bootstrap_interval(diff: np.ndarray) -> tuple[float, float]:
 
 
 def pairwise(a: dict, b: dict, metric: tuple[str, str], flexibility: bool) -> dict:
-    """Result for A against B: +1 A wins, -1 B wins, 0 tie; difference oriented "A better > 0"."""
+    """So A với B: +1 A hơn, -1 B hơn, 0 hòa. Chênh lệch dương luôn có lợi cho A."""
     ua, ub = _units(a, metric, flexibility), _units(b, metric, flexibility)
     common = sorted(set(ua) & set(ub), key=str)
-    larger = metric[0] in LARGER_IS_BETTER and not flexibility  # a spread is always better small
+    larger = metric[0] in LARGER_IS_BETTER and not flexibility
     diff = np.array([(ua[k] - ub[k]) if larger else (ub[k] - ua[k]) for k in common], dtype=float)
     if len(diff) < 2:
         return {"units": len(diff), "mean": float(diff.mean()) if len(diff) else None, "ci": None, "result": 0}
@@ -242,7 +218,6 @@ def group_metrics(planners: list[dict]) -> dict[str, list[tuple[str, str]]]:
 
 
 def copeland(planners: list[dict]) -> tuple[dict, list[dict]]:
-    """Score per planner and group (wins - losses), and every pairwise result."""
     metrics = group_metrics(planners)
     score = {p["name"]: {g: 0 for g in GROUPS} for p in planners}
     duels = []
@@ -257,7 +232,6 @@ def copeland(planners: list[dict]) -> tuple[dict, list[dict]]:
 
 
 def absolute_values(planners: list[dict]) -> dict:
-    """Mean and worst value of every performance target per planner, over all runs."""
     out = {}
     for p in planners:
         values: dict[tuple[str, str], list[float]] = {}
@@ -270,8 +244,6 @@ def absolute_values(planners: list[dict]) -> dict:
             for k, v in sorted(values.items())}
     return out
 
-
-# ---- ranking and report ----------------------------------------------------------------
 
 def compare(planners: list[dict]) -> dict:
     check_same_benchmark(planners)
@@ -362,7 +334,9 @@ def markdown(c: dict) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Comparison between planners (Software Qualification Test Specification 9.2, 10).",
+    )
     parser.add_argument("folders", nargs="+", type=Path, help="eval.suite output folders, one per planner")
     parser.add_argument("--name", action="append", help="Display name per folder, in order")
     parser.add_argument("--out", type=Path)

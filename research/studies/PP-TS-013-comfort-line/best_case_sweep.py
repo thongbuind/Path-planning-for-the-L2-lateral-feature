@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""PP-TS-013: where does the comfort line help most? Path-level sweep, camera planner (R-cam).
-
-Single curves and S-bends at 90 km/h with the same lane-centre need a_y = 2.0 m/s^2
-(R = 312.5 m), deflection per curve 6-90 deg. Prints a table and writes best_case_sweep.json.
-
-Run:  python3 research/studies/PP-TS-013-comfort-line/best_case_sweep.py [view_m]
-"""
 
 from __future__ import annotations
 
@@ -22,13 +15,13 @@ import prototype as P  # noqa: E402
 V = 25.0
 R = V**2 / 2.0
 LC_MAX = 60.0
-VIEW = float(sys.argv[1]) if len(sys.argv) > 1 else P.VIEW_M  # camera view range [m]
+VIEW = float(sys.argv[1]) if len(sys.argv) > 1 else P.VIEW_M
 
 
 def curve(deg: float, sign: float) -> list:
-    """Clothoid - arc - clothoid with total deflection deg; pure clothoids when too short."""
+    """Dùng clothoid–cung–clothoid. Góc quá nhỏ thì dùng cặp clothoid không có cung."""
     k = sign / R
-    need = np.radians(deg) * R  # deflection * R; two clothoids of length lc turn lc / R together
+    need = np.radians(deg) * R
     lc = min(LC_MAX, need)
     arc = need - lc
     segs = [(lc, 0.0, k)]

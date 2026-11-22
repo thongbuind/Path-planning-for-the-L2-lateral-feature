@@ -1,4 +1,3 @@
-/* Nhận xét nằm ngoài vùng Markdown có thể chỉnh sửa. */
 .review-marks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .review-mark-line { position: absolute; height: 2px; background: #8B75F3; opacity: .65; }
 .review-marker {
@@ -171,7 +170,6 @@
   .review-marks, #review-list, .review-prompt, .review-panel { display: none !important; }
 }
 
-/* Nhận xét đã xong: chỉ hiện khi bật "Xem nhận xét đã xong". */
 .review-entry-tools { display: inline-flex; gap: 6px; }
 .review-entry.review-done .review-text,
 .review-list-item.review-done .review-list-quote { color: var(--text-2, #6B6B7B); }

@@ -1,16 +1,3 @@
-"""Comparison of two suite runs, or of two campaigns (read-only): where did a change make things better or worse.
-
-A side is a suite run (build/benchmark/<id>/suite) or a campaign (workbench.campaign). Each is reduced to
-one small record per run: the requirements it failed, the ones it failed outside its scope, its case_hash
-and behavior_checksum, and the value and limit of every failed criterion. Two sides are matched by case and
-seed (suite) or by configuration (campaign), then each requirement of a matched run is new, fixed or still
-failing. A run whose case_hash differs is a different case and is not compared. Before any result the two
-sides' environments are listed: a different library or machine is the reason a result differs, and a
-different Python, numpy or machine means the checksums are not comparable bit for bit.
-
-Imports no SUT package; knows only the file layout (as workbench.evidence).
-"""
-
 import hashlib
 import json
 import re
@@ -19,12 +6,12 @@ from pathlib import Path
 from workbench import evidence
 
 LIMIT = re.compile(r"^\s*(<=|>=|<|>|=)\s*(-?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)\s*$")
-MAX_ROWS = 400          # changed requirements listed in one answer; the counts always cover all of them
+MAX_ROWS = 400          # Giới hạn số dòng chi tiết trả về. Số đếm vẫn bao gồm toàn bộ kết quả.
 KINDS = ("suite", "campaign")
 
 
 def margin(value, limit) -> float | None:
-    """Distance to the limit, positive when the criterion has room, negative when it fails."""
+    """Biên dương khi còn khoảng cách đến giới hạn, âm khi vượt giới hạn."""
     m = LIMIT.match(limit or "")
     if m is None or not isinstance(value, (int, float)) or isinstance(value, bool):
         return None
@@ -37,7 +24,7 @@ def margin(value, limit) -> float | None:
 
 
 def family(case: str) -> str:
-    """'S1b-a-VP-0-693b15015bfa' -> 'S1b-a'; 'F02-e-S1a-VP-5-29183b65ffaf' -> 'F02-e'; 'G01-S1c-...' -> 'G01'."""
+    """Bỏ biến thể hoặc hash để nhóm ca theo kịch bản, lỗi và host."""
     parts = case.split("-")
     return "-".join(parts[:2]) if len(parts) > 1 and re.fullmatch(r"[a-z]", parts[1]) else parts[0]
 
@@ -50,8 +37,6 @@ def _record(failed, oos, case_hash, checksum, criteria, label) -> dict:
     return {"failed": sorted(failed), "oos": sorted(oos), "case_hash": case_hash, "checksum": checksum,
             "values": values, "label": label}
 
-
-# ---- suites ------------------------------------------------------------------------------
 
 def _read_suite_runs(path: Path) -> dict:
     runs = {}
@@ -92,10 +77,8 @@ def load_suite(suite_id: str) -> dict:
             **_environment(manifest), "runs": runs}
 
 
-# ---- campaigns ---------------------------------------------------------------------------
-
 def config_key(config: dict) -> str:
-    """The identity of one campaign item: its configuration without the pacing."""
+    """Khóa ghép gồm cấu hình ca; tốc độ phát lại không ảnh hưởng danh tính."""
     return json.dumps({k: v for k, v in config.items() if k != "rate"}, sort_keys=True, ensure_ascii=False)
 
 
@@ -129,8 +112,6 @@ def load_campaign(doc: dict, runs_root: Path) -> dict:
             **_environment(manifest), "runs": runs}
 
 
-# ---- comparison --------------------------------------------------------------------------
-
 def _differences(a: dict, b: dict) -> list[dict]:
     out = []
 
@@ -151,7 +132,7 @@ def _differences(a: dict, b: dict) -> list[dict]:
     for key, label in (("platform", "Hệ điều hành"), ("machine", "Kiến trúc máy"), ("python", "Phiên bản Python"),
                        ("numpy", "Phiên bản numpy")):
         add(key, label + ": checksum hành vi không so được từng bit", ea.get(key), eb.get(key), "warn")
-    if a["kind"] == "suite":   # a campaign's target is its name, which says nothing about the kind of run
+    if a["kind"] == "suite":
         add("target", "Loại lần chạy", a["target"], b["target"], "warn")
     if a["scope"] != b["scope"]:
         add("scope", "Cách chấm", a["scope"], b["scope"], "warn")
@@ -219,7 +200,6 @@ def _meta(side: dict) -> dict:
 
 
 def parse_ref(text: str) -> tuple[str, str]:
-    """'suite:<id>' or 'campaign:<id>'."""
     kind, _, ident = (text or "").partition(":")
     if kind not in KINDS or not ident:
         raise ValueError("tham chiếu phải có dạng suite:<id> hoặc campaign:<id>")

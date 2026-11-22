@@ -1,5 +1,3 @@
-"""Builds tests/eval/stub/stub_planner.c, a test double of a planner library, on demand."""
-
 import shutil
 import subprocess
 import sys
@@ -14,7 +12,7 @@ SUFFIX = ".dylib" if sys.platform == "darwin" else ".so"
 
 @pytest.fixture(scope="session")
 def build_stub(tmp_path_factory):
-    """build_stub("STUB_NAN", ...) -> path of the library; one build per set of defines."""
+    """Mỗi tập macro STUB_* dùng một bản build thu nhỏ của thư viện đối chứng."""
     if shutil.which("cc") is None:
         pytest.skip("no C compiler")
     folder = tmp_path_factory.mktemp("stubs")

@@ -1,5 +1,3 @@
-"""Lane-model fault mechanisms (sim/faults/lane.py) and the fault catalogue files."""
-
 import numpy as np
 import pytest
 

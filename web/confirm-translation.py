@@ -1,5 +1,3 @@
-"""Ghi nhận cặp Markdown VI/EN đã được đối chiếu."""
-
 import argparse
 import hashlib
 import json
@@ -9,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Ghi nhận cặp Markdown VI/EN đã được đối chiếu.")
     parser.add_argument("doc_id", help="ID tài liệu sau khi đã kiểm tra bản dịch")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", args.doc_id):

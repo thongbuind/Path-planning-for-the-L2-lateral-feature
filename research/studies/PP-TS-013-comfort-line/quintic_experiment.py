@@ -1,5 +1,3 @@
-"""Compare the C quintic planner with a waypoint variant in paired SIL runs."""
-
 import ctypes
 from dataclasses import replace
 import json
@@ -38,7 +36,7 @@ CHECKS = {
 
 
 class ObjectListHarness(Harness):
-    """Publish the standard ObjectList sensor even on roads with no traffic actors."""
+    """Vẫn phát ObjectList tiêu chuẩn khi đường không có xe khác."""
 
     def _build_scheduler(self):
         scheduler = super()._build_scheduler()

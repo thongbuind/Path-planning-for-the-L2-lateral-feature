@@ -1,10 +1,4 @@
-"""Raw calls into a planner library for conformance B0 (Software Qualification Test
-Specification 11): state memory with guard bytes, outputs pre-filled with a sentinel,
-outputs read back field by field, and input sequences built without the simulator.
-
-Only interfaces/c/pp_planner.h and the generated types are used; nothing of the planner's
-inside is known here.
-"""
+"""B0 gọi ABI trực tiếp với byte canh gác quanh state và dữ liệu đánh dấu trong output."""
 
 import ctypes
 import math
@@ -17,8 +11,7 @@ import interfaces as I
 from adapters.sil import pp_ctypes
 from adapters.sil.sil_planner import LCC, LKAELK, STATE_ALIGNMENT, Family, load_library
 
-# Planner family the calls below address: set once per process (a conformance job runs in its own
-# child process, one family at a time).
+# Mỗi tiến trình con của B0 làm việc với một họ planner.
 FAMILY: Family = LCC
 
 
@@ -31,18 +24,16 @@ def _symbol(lib: ctypes.CDLL, what: str):
     return getattr(lib, f"{FAMILY.prefix}_{what}")
 
 
-GUARD_BYTES = 256  # each side of the state memory
+GUARD_BYTES = 256
 GUARD_PATTERN = 0xC3
-SENTINELS = (0xA5, 0x5A)  # outputs pre-fill, alternating per cycle
-T_START_US = 1_000_000  # first cycle; stamps stay positive
+SENTINELS = (0xA5, 0x5A)
+T_START_US = 1_000_000
 FLT_MAX = float(np.finfo(np.float32).max)
 
 EGO_MOTION_FN = ctypes.CFUNCTYPE(None, ctypes.c_void_p,
                                  ctypes.POINTER(pp_ctypes.EgoMotionRequestC),
                                  ctypes.POINTER(pp_ctypes.EgoMotionResponseC))
 
-
-# ---- leaves of a ctypes struct ---------------------------------------------------------
 
 @dataclass(frozen=True)
 class Leaf:
@@ -81,7 +72,7 @@ _ENUMS = _enum_fields()
 
 @lru_cache(maxsize=None)
 def leaves(cls: type[ctypes.Structure]) -> tuple[Leaf, ...]:
-    """Every scalar field of a struct with its byte offset; padding is not a field."""
+    """Liệt kê các trường scalar cùng byte offset, bỏ phần padding."""
     out: list[Leaf] = []
 
     def walk(struct: type[ctypes.Structure], base: int, prefix: str) -> None:
@@ -114,8 +105,6 @@ def set_leaf(struct: ctypes.Structure, leaf: Leaf, value) -> None:
     leaf.ctype.from_buffer(struct, leaf.offset).value = value
 
 
-# ---- one planner instance --------------------------------------------------------------
-
 def vehicle_config_c(config: I.VehicleConfig | None):
     if config is None:
         return None
@@ -125,14 +114,15 @@ def vehicle_config_c(config: I.VehicleConfig | None):
 
 @dataclass
 class StepResult:
-    raw: bytes  # the outputs struct of the family
+    raw: bytes
     sentinel: int
     requests: list[tuple[int, int]]
 
 
 class Instance:
-    """One planner instance in caller-owned memory: guard | state | guard. The state starts
-    at an address aligned to PP_STATE_ALIGNMENT but not to twice that (C1)."""
+    """Bộ nhớ state do caller cấp, có guard hai bên. C1 chọn địa chỉ căn đúng PP_STATE_ALIGNMENT
+    nhưng lệch bội gấp đôi.
+    """
 
     def __init__(self, lib: ctypes.CDLL, config: I.VehicleConfig | None) -> None:
         self.lib = lib
@@ -174,12 +164,8 @@ def open_library(path) -> ctypes.CDLL:
     return load_library(path, FAMILY)
 
 
-# ---- input sequences -------------------------------------------------------------------
-
 @dataclass
 class Motion:
-    """EgoMotionQuery answers: straight driving at a constant speed (Interface Control
-    Document 5.5), optionally reported invalid."""
     speed_mps: float = 20.0
     valid: bool = True
 
@@ -192,35 +178,31 @@ class Motion:
 
 @dataclass
 class Sequence:
-    """Input of every cycle; `frame(k)` returns the inputs struct of the family for cycle k."""
     name: str
     cycles: int
-    seed: int | None = None  # None: nominal straight road; else seeded variations
-    absent: frozenset = frozenset()  # inputs never received
-    invalid: frozenset = frozenset()  # inputs with header.valid = false
-    extreme: tuple[str, str] | None = None  # (input, "low"|"high"): payload at the range ends
+    seed: int | None = None
+    absent: frozenset = frozenset()
+    invalid: frozenset = frozenset()
+    extreme: tuple[str, str] | None = None
     motion: Motion = field(default_factory=Motion)
 
     def frame(self, k: int) -> ctypes.Structure:
         return build_inputs(self, k)
 
 
-# Every input of either planner; the LKA/ELK planner has no object_list and no lead_target.
 INPUTS = ("lane_model", "object_list", "lead_target", "imu", "steering", "speed", "vehicle_state",
           "function_requests", "longitudinal_plan")
 
-# Range ends: the CAN encoding of Interface Control Document 5.3 for chassis signals (what
-# the receiving layer can deliver after scaling to SI); else a range the Interface Control
-# Document gives; else the range of the type.
+# Lấy biên theo mã hóa CAN cho chassis signals, sau đó theo ICD hoặc theo miền kiểu dữ liệu.
 _INT16 = (-32768, 32767)
 _DEG = math.pi / 180.0
 DBC_RANGE = {
-    ("imu", "yaw_rate_rps"): tuple(r * 0.01 * _DEG for r in _INT16),          # int16 × 0,01 °/s
-    ("imu", "accel_x_mps2"): tuple(r * 0.001 for r in _INT16),                # int16 × 0,001 m/s²
+    ("imu", "yaw_rate_rps"): tuple(r * 0.01 * _DEG for r in _INT16),
+    ("imu", "accel_x_mps2"): tuple(r * 0.001 for r in _INT16),
     ("imu", "accel_y_mps2"): tuple(r * 0.001 for r in _INT16),
-    ("steering", "steering_wheel_angle_rad"): tuple(r * 0.1 * _DEG for r in _INT16),  # int16 × 0,1 °
-    ("steering", "steering_wheel_rate_rps"): tuple(r * 0.1 * _DEG for r in _INT16),   # int16 × 0,1 °/s
-    ("speed", "speed_mps"): (0.0, 65535 * 0.01 / 3.6),                         # uint16 × 0,01 km/h
+    ("steering", "steering_wheel_angle_rad"): tuple(r * 0.1 * _DEG for r in _INT16),
+    ("steering", "steering_wheel_rate_rps"): tuple(r * 0.1 * _DEG for r in _INT16),
+    ("speed", "speed_mps"): (0.0, 65535 * 0.01 / 3.6),
 }
 _UNIT_RANGE = ("confidence", "existence_probability")
 
@@ -256,7 +238,6 @@ def _header(h, t_us: int, counter: int, valid: bool, frame: bool = True) -> None
 def build_inputs(seq: Sequence, k: int) -> ctypes.Structure:
     t0 = T_START_US + k * I.PLANNER_PERIOD_US
     rng = np.random.default_rng([seq.seed, k]) if seq.seed is not None else None
-    # Seeded variations: the car weaves in the lane, the road bends, LKA requests come and go.
     offset = 0.3 * math.sin(k / 23.0) if rng is not None else 0.0
     curve = 1e-3 * math.sin(k / 61.0) if rng is not None else 0.0
     lka_request = rng is not None and (k // 80) % 3 == 1
@@ -292,12 +273,12 @@ def build_inputs(seq: Sequence, k: int) -> ctypes.Structure:
     lm.lane_change = int(I.Side.NONE)
     x.lane_model.rx_us = t0 - 5_000
 
-    if hasattr(x, "object_list"):  # LCC planner only
+    if hasattr(x, "object_list"):
         ol = x.object_list.message
         _header(ol.header, t0 - 50_000, k, "object_list" not in seq.invalid)
         ol.num_objects = 0
         x.object_list.rx_us = t0 - 5_000
-    if hasattr(x, "lead_target"):  # LCC planner only: no lead vehicle (existence 0)
+    if hasattr(x, "lead_target"):
         lt = x.lead_target.message
         _header(lt.header, t0 - 50_000, k, "lead_target" not in seq.invalid)
         lt.classification = int(I.LeadClass.UNKNOWN)
@@ -350,6 +331,6 @@ def build_inputs(seq: Sequence, k: int) -> ctypes.Structure:
         name, which = seq.extreme
         message = getattr(x, name).message
         for leaf in leaves(type(message)):
-            if not leaf.path.startswith("header."):  # header stays valid: the payload is judged
+            if not leaf.path.startswith("header."):  # Giữ header hợp lệ để phép thử xét payload tại biên.
                 set_leaf(message, leaf, _end(leaf, which, name))
     return x

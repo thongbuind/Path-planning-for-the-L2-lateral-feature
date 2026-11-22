@@ -1,6 +1,3 @@
-"""PP-SWR-092: no LKA or ELK line intervention toward a side whose ego-lane line is not trusted
-(Software Qualification Test Specification 8.1; PP-PR-038)."""
-
 from types import SimpleNamespace
 
 from eval import metrics
@@ -28,7 +25,7 @@ def test_refusal_is_correct_only_when_the_line_is_unseen_for_the_whole_request()
     assert metrics._refused_unseen_line(cycles(LEFT_LOST), ActiveFunction.ELK, r, CAL)
     assert not metrics._refused_unseen_line(cycles(SEEN), ActiveFunction.ELK, r, CAL)
     mixed = cycles(LEFT_LOST)
-    mixed[5].lane_boundaries = SEEN  # line back during the request: the planner must start
+    mixed[5].lane_boundaries = SEEN
     assert not metrics._refused_unseen_line(mixed, ActiveFunction.ELK, r, CAL)
 
 

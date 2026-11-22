@@ -1,9 +1,8 @@
-# Interface Control Document 6.4 (#lateral-limits). LCC planner -> longitudinal block.
 icd: "6.4"
 structs:
   LateralLimits:
     fields:
       - {name: header, type: BasicHeader}
       - {name: v_max, type: float32, unit: m/s}
-      - {name: distance, type: float32, unit: m, doc: "Distance to the point of kappa_max"}
-      - {name: lateral_limit_reached, type: bool, doc: "Same value as LccStatus of the same cycle"}
+      - {name: distance, type: float32, unit: m, doc: "Khoảng cách tới điểm có kappa_max."}
+      - {name: lateral_limit_reached, type: bool, doc: "Cùng giá trị với LccStatus trong chu kỳ này."}

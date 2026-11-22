@@ -1,6 +1,3 @@
-"""Aspect suites B1 to B8 of benchmark/suites/aspects.yaml (Software Qualification Test
-Specification 5.3): which aspects a labelled concrete case belongs to."""
-
 from functools import lru_cache
 from pathlib import Path
 

@@ -1,23 +1,4 @@
-"""Resolved case: the exact Scenario the harness gets, the recipe that builds it, its identity.
-
-A recipe is plain JSON, so the CLI, the live web and a rerun build the case the same way:
-
-    {"kind": "catalog", "sid": "S4", "v": "a"}            scenario and variant of benchmark/scenarios
-    {"kind": "file", "path": "build/.../S1-a-....xosc"}   a concrete OpenSCENARIO file (suite, --xosc)
-
-plus optional modifiers, applied in this order whatever the kind:
-    "faults": [["F04", "a"], ...]   fault definitions of benchmark/faults (6.2: several allowed)
-    "trigger", "offset_s"           start the timed faults after a planner-output event
-    "vehicle": "VP-4"                vehicle profile
-    "sim": {"road_mu": 0.5, ...}    environment values of SIM_KEYS
-    "acc": "on"                      longitudinal side
-    "adas_mode": "A"                 inputs of the LKA/ELK stand-in
-    "name": "..."                    display name (not part of the identity)
-
-Identity: case_hash = sha256 of the Scenario in c14n/1 (execution.canonical) without the
-fields the simulator does not read (EXCLUDE). Same case_hash means the harness gets the same
-values bit for bit. Schema of resolved-case.json: SCHEMA.
-"""
+"""Recipe JSON giúp CLI, Workbench và chức năng chạy lại dựng cùng một ca SIL."""
 
 import re
 from dataclasses import replace
@@ -29,7 +10,7 @@ from sim.scenario import Scenario
 
 SCHEMA = "resolved_case/1"
 ROOT = Path(__file__).resolve().parents[1]
-# Fields sim/ never reads (tests/eval/test_case.py checks it): display name and evaluation notes.
+# Chỉ bỏ trường khỏi định danh ca nếu simulator không dùng nó để tính hành vi.
 EXCLUDE = {"Scenario": {"name", "notes"}}
 SIM_KEYS = {"road_mu": (0.1, 1.0), "camera_latency_ms": (0.0, 500.0), "perception_noise_scale": (0.0, 10.0)}
 ACC = ("off", "on", "ignore_limits")
@@ -79,7 +60,6 @@ def _path(recipe: dict) -> Path:
 
 
 def resolve(recipe: dict) -> Scenario:
-    """The Scenario of a recipe; ValueError or KeyError when the recipe is invalid."""
     _check(recipe)
     if recipe["kind"] == "catalog":
         sid, v = recipe["sid"], recipe["v"]
@@ -121,7 +101,7 @@ def _road_of(path: Path, overrides=None) -> Path | None:
     try:
         root, _ = openx.resolve(openx.parse(path), overrides)
         return (path.parent / root.find("./RoadNetwork/LogicFile").attrib["filepath"]).resolve()
-    except Exception:  # noqa: BLE001  a file without a road file: nothing more to hash
+    except Exception:  # noqa: BLE001
         return None
 
 
@@ -131,7 +111,6 @@ def _rel(path: Path) -> str:
 
 
 def inputs(recipe: dict) -> dict[str, str]:
-    """sha256 of every benchmark file the recipe reads."""
     files: list[Path] = []
     if recipe["kind"] == "catalog":
         scenario = loader.SCENARIO_DIR / f"{recipe['sid']}.xosc"
@@ -147,7 +126,6 @@ def inputs(recipe: dict) -> dict[str, str]:
 
 
 def document(recipe: dict, scenario: Scenario | None = None) -> dict:
-    """Content of resolved-case.json."""
     scenario = scenario or resolve(recipe)
     case = plain(scenario)
     return {"schema": SCHEMA, "c14n": canonical.C14N, "recipe": recipe, "case": case,

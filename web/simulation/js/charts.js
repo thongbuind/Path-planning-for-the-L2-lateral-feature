@@ -1,6 +1,3 @@
-/* Biểu đồ trực tiếp: một SVG, các panel dùng chung trục thời gian 0 tới hết lượt chạy.
-   Khung dựng một lần; mỗi chu kỳ planner mới chỉ nối thêm điểm, nên biểu đồ hiện dần theo lượt chạy.
-   Đường đổi màu theo chức năng đang lái (LCC, LKA, ELK); lỗi đang tiêm là dải xám phủ qua mọi panel. */
 (() => {
   'use strict';
   const PP = window.PP;
@@ -34,10 +31,9 @@
     return out;
   }
 
-  // ---------- Panel và dải trục y ----------
   function panelsOf() {
     const sr = d.veh.sr || 15;
-    const free = ((d.road.w - d.veh.w) / 2) * 100;   // cm: lệch tại đó DLC = 0
+    const free = ((d.road.w - d.veh.w) / 2) * 100;
     const lim = d.lim_ay;
     const ayRefs = [];
     if (lim) {
@@ -55,7 +51,7 @@
     const free = ((d.road.w - d.veh.w) / 2) * 100;
     R = { off: [-free * 1.15, free * 1.15], ay: [-1, 1], st: [-6, 6], cms: [0, 1.5] };
   }
-  // Nở dải khi dữ liệu vượt; trả về true nếu dải đổi (phải dựng lại khung).
+  // Khi dữ liệu vượt dải, dựng lại khung để các điểm cũ dùng cùng thang mới.
   function grow(key, v, sym, zero, cap) {
     if (v == null) return false;
     const r = R[key];
@@ -65,7 +61,6 @@
     return ch;
   }
 
-  // ---------- Dựng khung ----------
   function build() {
     if (!d || !R) return;
     const w = plot.clientWidth, h = plot.clientHeight;
@@ -132,11 +127,10 @@
     setCursor(curK);
   }
 
-  // ---------- Nối thêm một chu kỳ ----------
   function faultEl(i) {
     if (H.fe[i]) return H.fe[i];
     const f = d.faults[i], e = {};
-    const whole = f.plan && f.plan[0] === 0 && f.plan[1] == null;   // lỗi suốt chuyến: không phủ dải, vẫn có thanh nhãn
+    const whole = f.plan && f.plan[0] === 0 && f.plan[1] == null;
     if (!whole) e.wash = mk('rect', { class: 'wash', y: 0, height: G.bottom }, H.gWash);
     if (i < 3) {
       e.bar = mk('rect', { class: 'fbar', y: i * 15 + 0.5, height: 13, rx: 3 }, H.gF);
@@ -173,7 +167,6 @@
       p.px = x; p.py = y; p.hasPrev = true;
     });
 
-    // dải chức năng
     if (newRun) {
       H.bandX0 = x;
       H.band = mk('rect', { x: x + 1, y: G.by, width: 1, height: G.bandH, rx: 3, style: `fill:var(${PP.FN_VAR[fn]})` }, H.gB);
@@ -188,13 +181,11 @@
       H.bandLabel.textContent = PP.FN[fn];
     }
 
-    // giới hạn ngang
     if (d.lim[k]) {
       if (!H.limRect) { H.limX0 = x; H.limRect = mk('rect', { x, y: G.limY, width: 1, height: 4, rx: 2, style: 'fill:var(--ink-2);opacity:.55' }, H.gB); }
       H.limRect.setAttribute('width', Math.max(1, xe - H.limX0));
     } else H.limRect = null;
 
-    // lỗi đang tiêm
     const nf = d.faults.length;
     for (let i = 0; i < nf; i++) {
       if (!d.fa[k * nf + i]) continue;
@@ -230,7 +221,6 @@
     if (d.lim_ay) add('lim', 'Giới hạn');
   }
 
-  // ---------- Con trỏ ----------
   function setCursor(k) {
     curK = k;
     if (!d || !G || !dom.cur) return;
@@ -250,7 +240,6 @@
     if (mode === 'table') markRow(k);
   }
 
-  // ---------- Tooltip và xem lại ----------
   function frameAt(ev) {
     const r = svg.getBoundingClientRect();
     const x = ev.clientX - r.left;
@@ -260,7 +249,7 @@
   function showTip(ev) {
     if (!d || !G || mode !== 'chart' || !d.n) return;
     const { x, t, k } = frameAt(ev);
-    if (x < G.x0 - 4 || x > G.x1 + 4 || t > d.t[d.n - 1] + 0.03) return hideTip();   // chưa chạy tới
+    if (x < G.x0 - 4 || x > G.x1 + 4 || t > d.t[d.n - 1] + 0.03) return hideTip();
     dom.hov.style.display = '';
     dom.hov.setAttribute('x1', G.X(d.t[k])); dom.hov.setAttribute('x2', G.X(d.t[k]));
     tip.textContent = '';
@@ -315,11 +304,10 @@
     svg.setPointerCapture(ev.pointerId);
     if (PP.charts.onSeek) PP.charts.onSeek(frameAt(ev).k);
   });
-  const endDrag = (ev) => { dragging = false; try { svg.releasePointerCapture(ev.pointerId); } catch (e) { /* đã nhả */ } };
+  const endDrag = (ev) => { dragging = false; try { svg.releasePointerCapture(ev.pointerId); } catch (e) {   } };
   svg.addEventListener('pointerup', endDrag);
   svg.addEventListener('pointercancel', endDrag);
 
-  // ---------- Bảng (tương đương biểu đồ), mỗi giây một hàng, hiện dần ----------
   function tableHead() {
     const t = document.createElement('table');
     const tr = document.createElement('tr');
@@ -361,7 +349,6 @@
 
   PP.charts = {
     onSeek: null,
-    // Lượt chạy mới: khung trống, chưa có chu kỳ nào.
     init(newCase) {
       d = newCase; curK = -1;
       initRanges();
@@ -369,12 +356,10 @@
       tableHead();
       if (mode === 'chart') build();
     },
-    // Khi chưa có lượt chạy: xoá hết.
     reset() { d = null; G = null; R = null; curK = -1; svg.textContent = ''; legend.textContent = ''; tablebox.textContent = ''; hideTip(); },
     push,
     setCursor,
     setMode,
-    // Chạy xong: có thêm giới hạn R79 của a_y.
     finish() { if (d && mode === 'chart') build(); legendOf(); },
     resize() { if (d && mode === 'chart') build(); },
   };

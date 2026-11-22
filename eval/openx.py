@@ -1,8 +1,7 @@
-"""ASAM XML adapter for the supported single-ego benchmark subset.
-
-OpenSCENARIO 1.3.1; OpenDRIVE 1.8.1. This is deliberately not a general
-OpenSCENARIO interpreter. Simulator-specific behavior uses pp:* extensions.
+"""Đọc phần ASAM OpenSCENARIO 1.3.1 và OpenDRIVE 1.8.1 mà benchmark một xe ego sử dụng. Hành vi
+riêng của SIL dùng pp:*.
 """
+
 from copy import deepcopy
 from dataclasses import replace
 from functools import lru_cache
@@ -32,7 +31,6 @@ from sim.world.traffic import LateralMotion, TrafficSpec
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / 'benchmark' / 'schema'
 TOKEN = re.compile(r'\$([A-Za-z_][A-Za-z0-9_]*)')
-# Largest camera view the planner uses: curvature buffer 0-126 m (Interface Control Document 5.1).
 CAMERA_VIEW_MAX_M = 126.0
 
 
@@ -99,7 +97,6 @@ def resolve(root, overrides=None):
     if unknown:
         raise ValueError(f'undeclared parameters: {sorted(unknown)}')
     params.update(overrides or {})
-    # Validate overrides through the same typed declarations.
     for p in root.findall('./ParameterDeclarations/ParameterDeclaration'):
         p.set('value', text(params[p.attrib['name']]))
     params = declarations(root)
@@ -114,7 +111,7 @@ def resolve(root, overrides=None):
 
 
 def parameter_sets(path, suffix):
-    """Named, coupled assignments. IDs never depend on list position."""
+    """Mỗi bộ gán ghép có tên ổn định để ID không lệ thuộc thứ tự khai báo."""
     root = parse(Path(path).with_suffix(suffix))
     reference = root.find('./ParameterValueDistribution/ScenarioFile')
     if reference is None or reference.get('filepath') != Path(path).name:
@@ -135,7 +132,7 @@ def anchors(path):
 
 @lru_cache(maxsize=4096)
 def geometry_end(x, y, heading, length, k0, k1):
-    """Analytic heading, Gauss-Legendre integration of the spiral's position."""
+    """Tính hướng giải tích và tích phân Gauss–Legendre cho vị trí clothoid."""
     z, weights = np.polynomial.legendre.leggauss(32)
     u = (z + 1) * length / 2
     angle = heading + k0 * u + (k1 - k0) * u * u / (2 * length)
@@ -169,7 +166,7 @@ def road_xml(segments, lane_width):
         distance += seg.length
         previous = k1
     lanes = node(road, 'lanes')
-    # Reference line is the centre of lane -2, preserving the simulator's Frenet frame.
+    # Tâm làn -2 là đường tham chiếu để giữ khung Frenet của simulator.
     node(lanes, 'laneOffset', s=0, a=1.5 * lane_width, b=0, c=0, d=0)
     section = node(lanes, 'laneSection', s=0)
     centre = node(node(section, 'center'), 'lane', id=0, type='none', level=False)
@@ -247,7 +244,7 @@ def _barrier_geometry(obj, road_length):
 def _layout_from_road(road, segments, width, ego, lanes):
     expected = road_xml(segments, width).find('road/lanes')
     if road.find('objects') is None and _road_signature(road.find('lanes')) == _road_signature(expected):
-        return None  # preserve the original HWA boundary offsets
+        return None
 
     markings = {}
     edges = [None, None]
@@ -287,7 +284,6 @@ def _layout_from_road(road, segments, width, ego, lanes):
 
 
 def _legacy_layout(road):
-    """Keep the fixed-width adapter, including its historical paint offsets."""
     sections = road.findall('./lanes/laneSection')
     if len(sections) != 1 or sections[0].find('left') is not None:
         return False
@@ -382,7 +378,7 @@ def _variable_layout(road):
         raise ValueError('the reference lane must continue through all sections')
     for before, after in zip(sections, sections[1:]):
         at = after.start_m
-        # A lane can appear or disappear only at zero width. Shared boundaries stay continuous.
+        # Làn chỉ xuất hiện hoặc biến mất ở bề rộng bằng 0 để mép chung liên tục.
         boundaries = {lane.id for lane in before.lanes + after.lanes}
         if any(not math.isclose(before.boundary_at(i, at), after.boundary_at(i, at), abs_tol=1e-7)
                for i in boundaries):
@@ -467,9 +463,7 @@ def read_road(path):
     return segments, width
 
 
-# Fault commands beyond the lane model (Software Qualification Test Specification 6): command
-# type -> (Scenario field, fault class). JSON fields are those of the class; duration -1 is
-# until the end of the run.
+# Bảng ánh xạ lệnh lỗi sang trường Scenario và kiểu lỗi; duration -1 kéo dài tới hết run.
 FAULT_COMMANDS = {
     'pp:channel_fault:v1': ('channel_faults', ChannelFault),
     'pp:sensor_fault:v1': ('sensor_faults', SensorFault),
@@ -479,8 +473,7 @@ FAULT_COMMANDS = {
 
 
 def request_events(spec):
-    """{"events": [{"at_s": t, "requests": [[state, side, elk_reason], x3], "driver_override": bool}]}
-    -> RequestEvent tuple; names of the Interface Control Document 5.6 enums, tlc infinite."""
+    """Đọc các khung HWA, LKA, ELK theo enum ICD 5.6; tlc mặc định vô cực."""
     from interfaces import CancelReason, ElkReason, FunctionRequest, RequestState, Side
     from sim.stand_ins.scripted import RequestEvent
     events = []
@@ -494,15 +487,11 @@ def request_events(spec):
     return tuple(events)
 
 
-# Simulator values a scenario may set (Software Qualification Test Specification 4.4 to 4.6, 6.2):
-# property pp:<field> -> Scenario field. Within eval.sweep.check_sim.
 SIM_PROPERTIES_FIELDS = ('road_mu', 'eps_delay_s', 'perception_noise_scale', 'camera_latency_ms')
 SIM_PROPERTIES = tuple('pp:' + f for f in SIM_PROPERTIES_FIELDS)
 
 
 def enabled(command) -> bool:
-    """Whether a custom command applies to this concrete case: JSON key "enabled" (a boolean,
-    usually a parameter, so one anchor can switch a command off). The key is removed."""
     spec = json.loads(command.text or '{}')
     if 'enabled' not in spec:
         return True
@@ -514,7 +503,6 @@ def enabled(command) -> bool:
 
 
 def fault_of_command(command):
-    """(Scenario field, fault) of one fault command of any type."""
     kind = command.get('type')
     if kind == 'pp:lane_fault:v1':
         return 'lane_faults', fault_from_command(command)
@@ -544,8 +532,7 @@ def fault_from_command(command):
         raise ValueError(f'unsupported custom command {command.get("type")}')
     spec = json.loads(command.text or '{}')
     if 'value_between' in spec:
-        # A value between two calibration limits of the build under test (F21 e:
-        # confidence between conf_ego and conf_inferred), as a bench reads the A2L.
+        # Lấy giá trị giữa hai tham số calibration của bản build đang chấm, như cách đọc A2L.
         from eval.calibration import requirement_parameters
         cal = requirement_parameters()
         low, high = (cal[name] for name in spec.pop('value_between'))
@@ -570,7 +557,6 @@ def fault_from_command(command):
     return fault
 
 
-# OpenSCENARIO vehicleCategory -> LeadTarget class of the vehicle (Interface Control Document 5.9).
 TRAFFIC_KIND = {'car': 'CAR', 'van': 'CAR', 'truck': 'TRUCK', 'semitrailer': 'TRUCK', 'bus': 'TRUCK',
                 'motorbike': 'MOTORCYCLE', 'bicycle': 'MOTORCYCLE'}
 
@@ -593,7 +579,7 @@ def load_scenario(path, overrides=None):
     unsupported = {e.tag for e in root.iter()} - supported
     if unsupported:
         raise ValueError(f'unsupported OpenSCENARIO elements: {sorted(unsupported)}')
-    # Unsupported dynamic content must never be silently ignored.
+    # Báo lỗi nếu có hành vi động mà simulator chưa hỗ trợ.
     if root.findall('.//Story') or root.findall('.//GlobalAction') or root.findall('.//CatalogReference'):
         raise ValueError('stories, global actions and catalog references are unsupported')
     objects = root.findall('./Entities/ScenarioObject')
@@ -633,7 +619,7 @@ def load_scenario(path, overrides=None):
         given = {p.get('name'): p.get('value') for p in obj.findall('./Vehicle/Properties/Property')}
         if dims is None or set(given) - {'pp:present'} or given.get('pp:present', 'true') not in ('true', 'false'):
             raise ValueError('traffic vehicles need a bounding box; their only simulator property is pp:present')
-        if given.get('pp:present') == 'false':  # this anchor runs without the vehicle
+        if given.get('pp:present') == 'false':
             continue
         heading = pos.find('Orientation')
         travel_direction = 1
@@ -665,18 +651,17 @@ def load_scenario(path, overrides=None):
     segments = tuple(Segment(s.kind, s.length, s.curvature_end * scale * direction) for s in segments)
     faults, departure_specs, extra_faults, request_specs = [], [], {}, []
     all_names = [o.get('name') for o in objects[1:]]
-    names = [all_names[sp.id - 1] for sp in traffic]  # vehicles present in this case
+    names = [all_names[sp.id - 1] for sp in traffic]
     for command in root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction'):
         if not enabled(command):
             continue
         if command.get('type') in ('pp:traffic_speed:v1', 'pp:traffic_lateral:v1'):
             entity = json.loads(command.text or '{}').get('entity')
             if entity in all_names and entity not in names:
-                continue  # its vehicle is absent in this case
+                continue
         if command.get('type') == 'pp:departure:v1':
             departure_specs.append(json.loads(command.text or '{}'))
         elif command.get('type') == 'pp:traffic_speed:v1':
-            # Speed of another vehicle over time (S11), as an ASAM story would set it.
             spec = json.loads(command.text or '{}')
             if set(spec) != {'entity', 'profile'} or spec['entity'] not in names:
                 raise ValueError('pp:traffic_speed:v1 needs a known entity and a profile')
@@ -684,14 +669,12 @@ def load_scenario(path, overrides=None):
             profile = tuple((number(t), number(v)) for t, v in spec['profile'])
             traffic[i] = replace(traffic[i], speed_profile=profile)
         elif command.get('type') == 'pp:traffic_lateral:v1':
-            # Lane change or cut-in of another vehicle (S3b, S11 d): sim.world.traffic.LateralMotion.
             spec = json.loads(command.text or '{}')
             if set(spec) != {'entity', 'start_s', 'duration_s', 'target_offset_m'} or spec['entity'] not in names:
                 raise ValueError('pp:traffic_lateral:v1 needs entity, start_s, duration_s, target_offset_m')
             i = names.index(spec.pop('entity'))
             traffic[i] = replace(traffic[i], lateral_motion=LateralMotion(**{k: number(v) for k, v in spec.items()}))
         elif command.get('type') == 'pp:requests:v1':
-            # Scripted FunctionRequests (S9, S16): frames HWA, LKA, ELK from each time on.
             request_specs.append(json.loads(command.text or '{}'))
         else:
             field_name, fault = fault_of_command(command)
@@ -805,7 +788,7 @@ def scenario_xml(params, fault=False):
 
 
 def concrete(path, destination, overrides=None):
-    """Bake road parameters and vehicle profile; write a portable .xosc/.xodr pair."""
+    """Ghi cặp xosc/xodr tự chứa với tham số đường và profile đã phân giải."""
     path, destination = Path(path), Path(destination)
     scenario = load_scenario(path, overrides)
     root, params = resolve(parse(path), overrides)
@@ -849,19 +832,11 @@ def concrete(path, destination, overrides=None):
     return destination
 
 
-# Properties a fault definition may switch on in its host (as loader.with_fault).
 FAULT_FLAGS = ('pp:hwa_view_gate', 'pp:can_bus', 'pp:realism')
 
 
 def inject(destination, faults, trigger=None, offset_s=0.0, sim=None):
-    """Add fault definitions to a concrete host case in place (Software Qualification Test
-    Specification 6: moments of injection, 6.2 combined faults).
-
-    `faults`: [(fault file, its parameter values, name)]. Every command is copied as resolved;
-    with `trigger` each timed command starts `offset_s` after that planner-output event
-    (sim.faults.trigger), clock faults keep their time. Flags of the definition are switched on
-    in the host, the expected outcome is the stricter of both (5.3), `sim` sets simulator
-    properties (SIM_PROPERTIES_FIELDS), and pp:faults names the definitions (labels L3, L4)."""
+    """Chép các lệnh lỗi đã phân giải vào ca host. Offset tiêm theo SQTS 6."""
     from eval import labels
     destination = Path(destination)
     root = parse(destination)

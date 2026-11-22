@@ -1,9 +1,3 @@
-"""Isolated T7 proof of concept for PP-TS-024 and PP-TS-025.
-
-Run from the repository root with one CPU worker. The original C sources and
-the two formal study plans remain usable. All build products go under --out.
-"""
-
 import argparse
 import ctypes as c
 import json
@@ -14,6 +8,12 @@ import sys
 
 import numpy as np
 import yaml
+
+DESCRIPTION = """Isolated T7 proof of concept for PP-TS-024 and PP-TS-025.
+
+Run from the repository root with one CPU worker. The original C sources and
+the two formal study plans remain usable. All build products go under --out.
+"""
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -227,7 +227,7 @@ def run_case(library, scenario, seed, scope, hook):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     out = args.out.resolve()

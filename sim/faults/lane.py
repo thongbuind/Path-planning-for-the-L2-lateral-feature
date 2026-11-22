@@ -1,25 +1,5 @@
-"""Lane model faults (Software Qualification Test Specification section 6, F01 to F06, F22).
-
-Applied to each LaneModel frame after the camera model, before it is sent. The lane
-model sends no flag for any of them (PP-ASM-009).
-
-| kind | Effect while active |
-|---|---|
-| noise | c0 += N(0, sigma_c0), c1 += N(0, sigma_c1) per line and frame; reported variance = sigma^2 |
-| c0_jump | c0 += value on the chosen lines and edges; with `ramp_s` > 0 the value is reached linearly over that time (F24 e) |
-| lose_line | chosen lines LOST, confidence 0 |
-| fade_line | confidence falls linearly to 0 over `value` seconds, then LOST |
-| c2_error, c3_error | c2 or c3 += value on the chosen lines |
-| view_short | camera sees the chosen lines only up to `value` m; the fit uses that shorter window |
-| view_flicker | as view_short on every other frame (50 ms camera period) |
-| view_extend | view_range_end reported as `value` m with the same polynomial, so the far part is extrapolated |
-| lose_all | every line and road edge PREDICTED (predicted_duration counting) for `value` s, then LOST (F05) |
-| confidence | confidence set to `value` on the chosen lines and edges (F21 e) |
-| lane_change_late | the lane_change flag comes one frame after the re-indexed lines (S17 e) |
-
-`edges` (0 left, 1 right) adds road edges to lose_line, fade_line and confidence.
-
-view_short and view_flicker act on the capture through view_limits(); the others on the frame.
+"""Tiêm lỗi sau lúc camera chụp và trước khi phát LaneModel. LaneModel không báo cờ lỗi cho planner
+(PP-ASM-009).
 """
 
 from dataclasses import dataclass, replace
@@ -33,24 +13,23 @@ KINDS = ("noise", "c0_jump", "lose_line", "fade_line", "c2_error", "c3_error",
          "view_short", "view_flicker", "view_extend", "lose_all", "confidence", "lane_change_late")
 VIEW_LIMIT_KINDS = ("view_short", "view_flicker")
 _CAMERA_PERIOD_US = 50_000
-ALL_LINES = (0, 1, 2, 3)  # L2, L1, R1, R2
-ALL_EDGES = (0, 1)  # left, right
+ALL_LINES = (0, 1, 2, 3)
+ALL_EDGES = (0, 1)
 
 
 @dataclass(frozen=True, slots=True)
 class LaneFault:
     kind: str
     start_s: float = 0.0
-    duration_s: float | None = None  # None: until the end of the run
+    duration_s: float | None = None  # None kéo dài đến hết run.
     lines: tuple[int, ...] = ALL_LINES
     value: float = 0.0
     sigma_c0: float = 0.0
     sigma_c1: float = 0.0
     edges: tuple[int, ...] = ()
-    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
-    ramp_s: float = 0.0  # c0_jump: time to reach `value`; 0 is a step
-    # "drift": the boundary on the side the scenario's driver drifts to (F24: lines and edges are chosen
-    # when the run starts, and `value` is the distance away from the car, so its sign follows the side)
+    trigger: str | None = None
+    ramp_s: float = 0.0
+    # Với side=drift, chọn vạch và mép theo chiều lệch của xe. Dấu value hướng ra xa xe (F24).
     side: str = ""
 
     def __post_init__(self) -> None:
@@ -65,8 +44,6 @@ class LaneFault:
 
 
 def resolve_side(fault: LaneFault, drift_curvature: float | None) -> LaneFault:
-    """A fault with side "drift" becomes one on the left boundaries when the driver drifts left
-    (drift_curvature > 0), else on the right ones; value is away from the car."""
     if fault.side != "drift":
         return fault
     left = drift_curvature is not None and drift_curvature > 0
@@ -75,7 +52,6 @@ def resolve_side(fault: LaneFault, drift_curvature: float | None) -> LaneFault:
 
 
 def _ramp(fault: LaneFault, t_s: float) -> float:
-    """Share of `value` reached at t_s: 1 for a step, linear over ramp_s otherwise."""
     if fault.ramp_s <= 0.0:
         return 1.0
     return min(1.0, max(0.0, (t_s - fault.start_s) / fault.ramp_s))
@@ -85,10 +61,9 @@ class LaneFaultInjector:
     def __init__(self, faults: tuple[LaneFault, ...], rng: np.random.Generator) -> None:
         self.faults = faults
         self.rng = rng
-        self._late_flag = None  # lane_change held back by lane_change_late
+        self._late_flag = None
 
     def view_limits(self, stamp_us: int) -> tuple[float | None, ...]:
-        """Largest view range end of each line at this capture, None when not limited."""
         t_s = stamp_us * 1e-6
         limits: list[float | None] = [None] * len(ALL_LINES)
         odd = (stamp_us // _CAMERA_PERIOD_US) % 2 == 1
@@ -102,12 +77,11 @@ class LaneFaultInjector:
         return tuple(limits)
 
     def apply(self, message: LaneModel) -> LaneModel:
-        """Faults act on the capture time of the frame."""
         t_s = message.header.stamp_us * 1e-6
         lines = list(message.lines)
         for fault in self.faults:
             if fault.kind == "noise":
-                # Noise is drawn every frame, active or not, so the stream does not depend on timing.
+                # Lấy mẫu nhiễu ở mọi frame để đổi thời điểm lỗi không làm lệch chuỗi ngẫu nhiên.
                 draws = self.rng.standard_normal((len(lines), 2))
                 if not fault.active(t_s):
                     continue

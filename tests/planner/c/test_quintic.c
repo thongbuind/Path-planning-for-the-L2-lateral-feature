@@ -1,5 +1,3 @@
-/* Unit tests of T7 technique A (planner/src/generators/quintic.c). */
-
 #include "generators/quintic.h"
 #include "pp_test.h"
 
@@ -14,7 +12,7 @@ static void test_boundary_conditions(void)
     PP_CHECK_NEAR(d, -0.4, 1e-12);
     PP_CHECK_NEAR(v, 0.2, 1e-12);
     PP_CHECK_NEAR(a, -0.1, 1e-12);
-    q.duration = 1e9;                                     /* evaluate the polynomial at T */
+    q.duration = 1e9;
     pp_quintic_eval(&q, 3.0, &d, &v, &a);
     PP_CHECK_NEAR(d, 0.0, 1e-12);
     PP_CHECK_NEAR(v, 0.0, 1e-12);
@@ -46,7 +44,7 @@ static void test_grid(void)
     pp_lateral_path_t path;
     PP_CHECK(pp_generate_quintic(&start, 0.0, 3.0, &path));
     PP_CHECK_NEAR(path.d[0], 0.5, 1e-12);
-    PP_CHECK_NEAR(path.d[15], 0.25, 1e-12);               /* symmetric at T/2 */
+    PP_CHECK_NEAR(path.d[15], 0.25, 1e-12);
     PP_CHECK_NEAR(path.d[30], 0.0, 1e-9);
 }
 

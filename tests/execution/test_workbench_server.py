@@ -1,5 +1,3 @@
-"""Workbench HTTP API over a fake worker (no planner): SIM-REQ-003, 004, 010, 105."""
-
 import http.client
 import json
 import sys
@@ -58,7 +56,7 @@ def test_run_survives_a_closed_tab_and_reconnect_resumes(api):
     conn.request("GET", f"/api/runs/{run_id}/events?from=0")
     resp = conn.getresponse()
     first = json.loads(resp.readline())
-    conn.close()  # the tab closes
+    conn.close()
     assert first["seq"] == 1
     done = wait_done(api, run_id)
     assert done["execution"]["state"] == "COMPLETED" and done["execution"]["complete"]

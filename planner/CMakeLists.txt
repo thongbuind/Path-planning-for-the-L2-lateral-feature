@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(pp_planner VERSION 0.3.0 LANGUAGES C)
 
-# PP-ADR-013: C11, no compiler extensions.
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -13,7 +12,7 @@ set(PP_CALIBRATION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/calibration/calibration.yaml
     CACHE FILEPATH "Calibration data set built into the library")
 set(PP_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
-# Calibration is a constant data set generated at build time, not a file read at run time.
+# Sinh calibration để biên dịch vào thư viện (PP-ADR-013).
 add_custom_command(
     OUTPUT ${PP_GENERATED_DIR}/pp_calibration.c ${PP_GENERATED_DIR}/pp_calibration.h
     COMMAND Python3::Interpreter ${CMAKE_CURRENT_SOURCE_DIR}/calibration/gen_calibration.py
@@ -21,7 +20,7 @@ add_custom_command(
     DEPENDS ${PP_CALIBRATION_FILE} ${CMAKE_CURRENT_SOURCE_DIR}/calibration/gen_calibration.py
     COMMENT "Generating calibration from ${PP_CALIBRATION_FILE}")
 
-# LCC T7 technique (PP-TS-003): quintic (A) or qp (C). LKA and ELK always use A.
+# Chọn T7 cho LCC. LKA và ELK luôn dùng quintic (PP-TS-003).
 set(PP_T7 "quintic" CACHE STRING "T7 path generation technique: quintic or qp")
 set_property(CACHE PP_T7 PROPERTY STRINGS quintic qp)
 if(PP_T7 STREQUAL "qp")
@@ -32,20 +31,16 @@ else()
     message(FATAL_ERROR "PP_T7 must be quintic or qp, got ${PP_T7}")
 endif()
 
-# PP-TS-020 V2, study only: ay_margin_hwa applies only while lateral_limit_reached is off.
 option(PP_AY_MARGIN_GATE "PP-TS-020 V2: HWA path a_y margin only while the limit flag is off" OFF)
 if(PP_AY_MARGIN_GATE)
     list(APPEND PP_T7_DEFINES PP_AY_MARGIN_GATE)
 endif()
-# PP-TS-005 preparation step, study only: every reference line is read through its sampled
-# nodes instead of its cubic. OFF keeps the cubic path, bit for bit.
 option(PP_REF_SAMPLED "PP-TS-005: read the reference line through sampled nodes" OFF)
 if(PP_REF_SAMPLED)
     list(APPEND PP_T7_DEFINES PP_REF_SAMPLED)
 endif()
 
-# Identification of the build for pp_version(): version, source commit, calibration data
-# set. Regenerated at every build (the commit can change without any file changing here).
+# Kiểm lại commit ở mỗi build vì HEAD có thể đổi dù tệp C giữ nguyên.
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
@@ -57,8 +52,6 @@ add_custom_target(pp_build_info ALL
 set(PP_WARNINGS -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow
                 -Wstrict-prototypes -Wmissing-prototypes -Wcast-qual -Wundef)
 
-# Units T1 to T12 (Software Detailed Design section 3). Both planners are built from the same
-# core and share no state at run time (PP-ADR-016); each library has only the units it uses.
 set(PP_CORE_SOURCES
     src/pp_math.c
     src/input_check.c
@@ -72,11 +65,10 @@ set(PP_CORE_SOURCES
     src/output.c
     src/pp_core.c
     ${PP_GENERATED_DIR}/pp_calibration.c)
-set(PP_LCC_UNITS src/offset.c src/follow.c src/generators/qp.c)         # T8, T12, T7 C
-set(PP_LKAELK_UNITS src/selection.c src/intervention.c)                 # T9, T7 for LKA and ELK
+set(PP_LCC_UNITS src/offset.c src/follow.c src/generators/qp.c)
+set(PP_LKAELK_UNITS src/selection.c src/intervention.c)
 set(PP_PRIVATE_INCLUDES ${PP_INTERFACES_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${PP_GENERATED_DIR})
 
-# Shared libraries: the SIL adapter loads them with ctypes. A target build can use STATIC.
 foreach(planner lcc lkaelk)
     if(planner STREQUAL "lcc")
         set(PP_PLANNER_SOURCES src/pp_lcc.c ${PP_LCC_UNITS})
@@ -97,7 +89,6 @@ foreach(planner lcc lkaelk)
     endif()
 endforeach()
 
-# White-box unit tests of the units (tests/planner/c). Not part of the benchmark.
 option(PP_BUILD_TESTS "Build the C unit tests of the planner units" ON)
 if(PP_BUILD_TESTS)
     enable_testing()
@@ -125,7 +116,6 @@ if(PP_BUILD_TESTS)
     endforeach()
 endif()
 
-# Test support only: sizeof/offsetof of every interface struct (tests/interfaces/test_layout.py).
 option(PP_BUILD_LAYOUT_PROBE "Build the interface layout probe for tests" ON)
 if(PP_BUILD_LAYOUT_PROBE)
     add_library(pp_layout_probe SHARED

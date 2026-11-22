@@ -1,5 +1,3 @@
-"""Prescribed departure geometry for the OpenSCENARIO adapter (SQTS 4.8, 5.1)."""
-
 from dataclasses import replace
 from math import asin, atan, cos, inf, isfinite, sin
 
@@ -16,7 +14,6 @@ def configure(
     bank_grade: float, indicated: bool, passive_hands_on: bool, late_request: bool,
     repeats: tuple = (), repeat_trigger: str | None = None, torque_windows: tuple = (),
 ) -> Scenario:
-    """Set the approach arc and synchronize target with the nominal unassisted path."""
     if side not in ("left", "right") or boundary not in ("marking", "edge"):
         raise ValueError("unknown departure side or boundary")
     if target not in ("none", "oncoming", "overtaking"):
@@ -69,9 +66,8 @@ def configure(
         oncoming = target == "oncoming"
         if (obj.direction == -1) != oncoming:
             raise ValueError("target heading disagrees with the encounter type")
-        # LSS 7.2.4.3–4. Use the SQTS body overhang approximation for the
-        # synchronization. Oncoming front edges meet at 10% VUT overlap.
-        # The overtaking target's front edge reaches the VUT rear axle.
+        # Theo LSS 7.2.4.3–4, xe ngược chiều gặp ở mép trước với độ chồng 10%; xe vượt tới trục
+        # sau của VUT.
         tgt_d = hazard.offset_m + sign * 1.5
         front = profile.wheelbase + 1.0
         overlap = 0.1 * profile.width_with_mirrors if oncoming else 0.0
@@ -82,13 +78,13 @@ def configure(
         target_s0 = aligned - obj.direction * (obj.length / 2 + obj.speed * meet)
         if not 0 <= target_s0 < sum(s.length for s in scenario.segments):
             raise ValueError("synchronized target starts outside the road")
-        traffic = (replace(obj, s0=target_s0, d=tgt_d),) + scenario.traffic[1:]   # others stay where the scenario puts them
+        traffic = (replace(obj, s0=target_s0, d=tgt_d),) + scenario.traffic[1:]
     events = scenario.request_events
     if late_request:
         if scenario.adas_mode != "scripted" or boundary != "marking" or v_lat_mps == 0:
             raise ValueError("late request requires a scripted drift across a marking")
-        # Put the nominal front tyre past the PP-SWR-089 threshold before
-        # transmitting. Eval checks the actual tyre position at receipt.
+        # Đưa lốp trước danh định qua ngưỡng PP-SWR-089 trước lúc phát. Bên chấm đọc vị trí thật
+        # lúc nhận.
         at_s = release_s + (gap_m + 0.45) / v_lat_mps
         if at_s >= scenario.duration_s:
             raise ValueError("late request must precede the end of the scenario")

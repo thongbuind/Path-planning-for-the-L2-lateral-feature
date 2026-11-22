@@ -1,14 +1,4 @@
-"""B0 planner conformance C1, C2, C3 (Software Qualification Test Specification 11).
-
-    python3 -m eval.conformance [--planner LOCATION] [--out DIR] [--record]
-
-Only what is observable through interfaces/c/pp_planner.h is checked: no scenario, no
-simulator. Both planners (pp_lcc_*, pp_lkaelk_*) run every check; a check passes only when it passes
-for both, and a failure names the planner. Every group of checks runs in its own child process, so a planner that crashes
-or hangs is reported as a failure instead of stopping the evaluator. C1 or C2 failed: the
-planner is blocked and no other suite runs. C3 failed: the other suites still run, without
-the Integrable flag. Exit status 1 when blocked.
-"""
+"""B0 kiểm cả hai planner qua ABI C và không cần simulator hoặc kịch bản (SQTS 11)."""
 
 import argparse
 import json
@@ -28,9 +18,8 @@ from eval import planner_choice, provenance
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "conformance"
 CHILD_TIMEOUT_S = 120
-VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)  # Software Qualification Test Specification 4.4
+VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)
 
-# id: (level, what is checked, source)
 CHECKS = {
     "C1.symbols": ("C1", "Có đủ pp_<planner>_state_size, init, step, version", "Interface Control Document 4"),
     "C1.layout": ("C1", "Build từ pp_types.h cùng phiên bản schema; layout struct khớp header sinh ra",
@@ -64,8 +53,7 @@ CHECKS = {
                    "Interface Control Document 4; PP-ADR-013"),
 }
 
-# VehicleConfig values without a limit in the Software Requirements Specification: run and
-# reported as information only, never graded (no requirement to judge them against).
+# Các mức VehicleConfig chưa có giới hạn trong SRS chỉ dùng để quan sát.
 _INFO_CONFIGS = {
     "wheelbase = 0": replace(VP0, wheelbase=0.0),
     "rear_axle_to_cg < 0": replace(VP0, rear_axle_to_cg=-0.1),
@@ -96,7 +84,6 @@ _OUT = _MESSAGES = _ALL = _BY_MESSAGE = _FLAGS = None
 
 
 def set_family(name: str) -> None:
-    """Which planner the checks address; once per process (every job has its own child)."""
     global _OUT, _MESSAGES, _ALL, _BY_MESSAGE, _FLAGS
     io.use_family(name)
     _OUT = getattr(pp_ctypes, f"{io.FAMILY.outputs}C")
@@ -113,11 +100,7 @@ def _byte(raw: bytes, leaf: io.Leaf) -> int:
     return raw[leaf.offset]
 
 
-# ---- checks on one output sequence -----------------------------------------------------
-
 class OutputChecker:
-    """Contract checks on every cycle of one sequence; failures keyed by check id."""
-
     def __init__(self, name: str, expect_trajectory: bool = True) -> None:
         self.name = name
         self.expect_trajectory = expect_trajectory
@@ -196,7 +179,6 @@ class OutputChecker:
 
 
 def run_sequence(lib, seq: io.Sequence, config=VP0, expect_trajectory=True, instance=None):
-    """Runs one sequence on a fresh instance (or the given one); returns checker, outputs, guards."""
     inst = instance or io.Instance(lib, config)
     checker = OutputChecker(seq.name, expect_trajectory)
     outputs = []
@@ -209,8 +191,6 @@ def run_sequence(lib, seq: io.Sequence, config=VP0, expect_trajectory=True, inst
     checker.finish()
     return checker, outputs, inst
 
-
-# ---- child jobs ------------------------------------------------------------------------
 
 def _result(check: str, status: str, detail: str = "") -> dict:
     return {"id": check, "status": status, "detail": detail}
@@ -370,10 +350,8 @@ JOBS.update({f"robust:{name}": (lambda path, n=name: job_robust(path, n), ("C2.r
              for name in ("all",) + io.INPUTS})
 
 
-# ---- parent ----------------------------------------------------------------------------
-
 def run_child(job: str, lib: Path, family: str) -> list[dict]:
-    """One job in a child process; a crash or hang fails every check of the job."""
+    """Mỗi job chạy qua tiến trình con. Crash hoặc timeout làm hỏng toàn bộ kiểm tra của job đó."""
     produced = JOBS[job][1]
     who = f"[{family}] "
     try:
@@ -414,7 +392,6 @@ _RANK = {"fail": 3, "not_checked": 2, "pass": 1, "info": 0}
 
 
 def merge(results: list[dict]) -> list[dict]:
-    """One line per check: the worst status wins; details of that status are joined."""
     by_id: dict[str, dict] = {}
     for r in sorted(results, key=lambda r: -_RANK[r["status"]]):
         old = by_id.setdefault(r["id"], {**r, "detail": ""})
@@ -426,15 +403,13 @@ def merge(results: list[dict]) -> list[dict]:
 
 
 def run(planner) -> dict:
-    """`planner`: adapters.sil.sil_planner.PlannerLibraries, or a location (directory, or a library that
-    exports both families). Every check runs for both planners."""
     if not hasattr(planner, "paths"):
         from adapters.sil.sil_planner import PlannerLibraries
         planner = PlannerLibraries.at(Path(planner))
     results = [_result("C1.layout", "not_checked",
                        "Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema")]
     for lib, family in planner.paths():
-        api = run_child("api", lib, family.name)  # loads the library in a child first
+        api = run_child("api", lib, family.name)
         results += api
         if any(r["id"] == "C1.symbols" and r["status"] == "fail" and "_version" not in r["detail"] for r in api):
             others = [c for c in CHECKS if c not in ("C1.symbols", "C1.layout", "C3.symbols")
@@ -478,7 +453,9 @@ def main() -> None:
         set_family(sys.argv[4])
         print(json.dumps(JOBS[sys.argv[2]][0](sys.argv[3]), ensure_ascii=False))
         return
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="B0 planner conformance C1, C2, C3 (Software Qualification Test Specification 11).",
+    )
     planner_choice.add_argument(parser)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--record", action="store_true",
@@ -492,7 +469,7 @@ def main() -> None:
     manifest = provenance.make("conformance", planner.lcc.stem)
     try:
         manifest["libraries"] = provenance.library_infos(planner, external=args.planner is not None)
-    except Exception as error:  # a library that cannot be loaded is still judged (C1)
+    except Exception as error:  # Thư viện không nạp được vẫn có kết quả C1.
         manifest["libraries"] = [{"path": str(p), "sha256": provenance.sha256(p), "pp_version": None,
                                   "build": {}, "external": args.planner is not None, "error": str(error)}
                                  for p in dict.fromkeys((planner.lcc, planner.lka_elk))]

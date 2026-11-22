@@ -1,11 +1,3 @@
-"""Which planner libraries are under test (Software Qualification Test Specification 11).
-
-The planners are two C libraries built against interfaces/c/pp_planner.h, the LCC planner and
-the LKA/ELK planner (PP-ADR-016); eval/ is the only place that chooses them. Order: --planner
-LOCATION, then PP_PLANNER_LIB, then the in-repo build build/planner. A location is a directory
-with libpp_lcc and libpp_lkaelk, or one library file that exports both families.
-"""
-
 import argparse
 from dataclasses import replace
 from pathlib import Path
@@ -23,7 +15,6 @@ def add_argument(parser: argparse.ArgumentParser) -> None:
 
 
 def resolve(path: Path | None, only: str | None = None) -> PlannerLibraries:
-    """The planners under test; stops with a clear message if they cannot be called."""
     planner = PlannerLibraries.at(path) if path is not None else PlannerLibraries.default()
     if only is not None:
         if only not in FAMILIES:
@@ -41,7 +32,6 @@ def resolve(path: Path | None, only: str | None = None) -> PlannerLibraries:
 
 
 def default_location() -> Path:
-    """Where the planners are looked for when --planner is not given."""
     return PlannerLibraries.default().lcc.parent if PlannerLibraries.default().lcc == PlannerLibraries.default().lka_elk \
         else PlannerLibraries.default().lcc.parent
 

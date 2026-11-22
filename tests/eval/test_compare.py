@@ -1,6 +1,3 @@
-"""Comparison between planners (Software Qualification Test Specification 9.2) on synthetic
-eval.suite output folders."""
-
 import json
 
 import numpy as np
@@ -43,7 +40,6 @@ CASES = [_case(f"S1-{i}-{p}", "S1", p) for i in range(8) for p in ("VP-0", "VP-1
 
 
 def _runs(lateral, failed=()):
-    """S1 runs with PP-SWR-050 = lateral(i, profile)."""
     return [_record(c["id"], 1, c["parameters"]["profile"],
                     targets=[("PP-SWR-050", "Lệch ngang", lateral(i, c["parameters"]["profile"]))],
                     failed=failed if i == 0 else ())
@@ -55,8 +51,8 @@ def test_conclusion_ranks_first_then_pairwise_wins(tmp_path):
     worse = _folder(tmp_path, "worse", CASES, _runs(lambda i, p: 0.20 + 0.001 * i))
     blocked = _folder(tmp_path, "blocked", CASES, _runs(lambda i, p: 0.01, failed=["PP-SWR-100"]))
     c = compare.compare([worse, blocked, good])
-    assert c["order"] == ["good", "worse", "blocked"]  # blocked last although its path is best
-    # Copeland over every planner that passed C1 and C2, blocked ones included (9.2).
+    assert c["order"] == ["good", "worse", "blocked"]
+    # Xếp hạng Copeland vẫn gồm planner qua C1 và C2 dù bị chặn khi xét requirement (SQTS 9.2).
     score = {n: c["rows"][n]["copeland"]["An toàn"] for n in c["order"]}
     assert score == {"good": 0, "worse": -2, "blocked": 2}
     assert c["rows"]["blocked"]["tier1"]["verdict"] == conclusion.BLOCKED
@@ -74,7 +70,7 @@ def test_noisy_difference_is_a_tie_and_direction_follows_better_when():
     assert lo < 0 < hi
     lo, hi = compare.bootstrap_interval(np.full(30, 0.2) + rng.normal(0, 0.01, 30))
     assert lo > 0
-    assert "PP-SWR-087" in compare.LARGER_IS_BETTER  # DTLE: larger is better (8.2)
+    assert "PP-SWR-087" in compare.LARGER_IS_BETTER
 
 
 def test_flexibility_uses_the_spread_between_profiles(tmp_path):
@@ -99,7 +95,7 @@ def test_ncap_line_needs_every_row_and_takes_the_worst_profile(tmp_path):
     p = _folder(tmp_path, "p", cases, records)
     n = compare.ncap_points(p)
     assert n["per_profile"]["VP-0"]["points"] == 0.75 and n["per_profile"]["VP-1"]["points"] == 0.5
-    assert n["points"] == 0.5  # one calibration for every vehicle: the worst profile counts
+    assert n["points"] == 0.5
     assert n["per_profile"]["VP-0"]["lines"]["LKA, vạch liền"] is None
 
 

@@ -1,5 +1,3 @@
-"""Resolved case (eval.case): recipes, identity, inputs (SIM-REQ-025, 029)."""
-
 import ast
 from dataclasses import replace
 from pathlib import Path
@@ -57,7 +55,7 @@ def test_document_hashes_every_input_file():
 
 
 def test_simulator_reads_no_excluded_field():
-    """EXCLUDE is safe only while sim/ never reads Scenario.notes, nor .name outside logging."""
+    """Chỉ bỏ notes và name khỏi case_hash khi simulator không đọc chúng để tính hành vi."""
     bad = []
     for path in (ROOT / "sim").rglob("*.py"):
         if path.parts[-2] == "logging":

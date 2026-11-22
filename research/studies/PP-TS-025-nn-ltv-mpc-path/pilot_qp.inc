@@ -1,5 +1,3 @@
-/* Hooks for the isolated pilot. The production ADMM update and constraints are unchanged. */
-
 #if PP_POTENTIAL_NN
 #include "pilot_weights.inc"
 #endif
@@ -136,7 +134,7 @@ static void pilot_init_jerk(pp_qp_ws_t *ws, const pp_qp_problem_t *pb, const qp_
             predicted += hidden[h] * pilot_output_weights[k][h];
         }
         const size_t row = 7 * N + k;
-        /* Keep the previous dual and slacks. Blend on warm cycles to retain history. */
+        /* Giữ biến đối ngẫu và slack cũ. Khi warm start, pha nghiệm mới với trạng thái đang có. */
         const double blended = ws->warm ? 0.5 * (ws->x[k] + predicted) : predicted;
         ws->x[k] = clamp(blended, data->lo[row], data->hi[row]);
     }

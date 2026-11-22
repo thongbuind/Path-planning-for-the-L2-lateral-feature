@@ -1,6 +1,3 @@
-"""Run lifecycle of execution.supervisor with a fake worker (no planner): SIM-REQ-002 to 012,
-020 to 024."""
-
 import json
 import os
 import signal
@@ -63,7 +60,7 @@ def test_observer_leaving_does_not_stop_the_run(sup):
     run_id = sup.submit({"mode": "slow", "n": 10})
     stream = sup.events(run_id)
     next(stream)
-    stream.close()  # the tab closed
+    stream.close()
     assert wait(sup, run_id) == "COMPLETED"
 
 
@@ -111,7 +108,7 @@ def test_external_kill_is_infra(sup):
     sup._runs[run_id].proc.send_signal(signal.SIGKILL)
     start = time.time()
     assert wait(sup, run_id) == "FAILED"
-    assert time.time() - start < 5.0  # T_state
+    assert time.time() - start < 5.0
     assert execution(sup, run_id)["failure"] == "INFRA"
 
 
@@ -172,7 +169,7 @@ def test_recovery_finalizes_only_own_stale_folders(tmp_path):
     root = tmp_path / "runs"
     mine = B.Bundle.create(root, "20260101-000000-aaaaaa")
     B.write_json(mine.path("supervisor.json"), {"pid": 999_999_9})
-    other = B.Bundle.create(root, "20260101-000000-bbbbbb")  # eval.runner writing, no owner file
+    other = B.Bundle.create(root, "20260101-000000-bbbbbb")  # Bundle đang ghi của eval.runner không có tệp đánh dấu supervisor sở hữu.
     s = Supervisor(Settings(root=root, command=WORKER, keep=None, max_bytes=None))
     try:
         ex = json.loads((root / mine.run_id / "execution.json").read_text())
@@ -192,7 +189,7 @@ def test_retention_keeps_newest_and_pinned(tmp_path):
         for _ in range(3):
             ids.append(s.submit({"mode": "ok"}))
             wait(s, ids[-1])
-            time.sleep(1.1)  # run ids sort by second
+            time.sleep(1.1)
         left = {p.name for p in B.listing(s.s.root)}
         assert first in left and ids[-1] in left and ids[1] not in left
     finally:

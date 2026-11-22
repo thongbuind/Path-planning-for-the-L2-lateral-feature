@@ -1,9 +1,5 @@
-"""Minimal MCAP writer (MCAP format version 0, https://mcap.dev/spec), standard library only.
-
-Unchunked, uncompressed: magic, Header, Schema/Channel/Message/Metadata records, DataEnd,
-then a summary section (Schema, Channel, Statistics) and the Footer. Messages are JSON with
-a JSON Schema, which Foxglove reads directly. CRC fields are 0 ("not computed"), as the
-specification allows.
+"""MCAP v0 ghi record trực tiếp, không nén và không chia chunk. Định dạng tại
+https://mcap.dev/spec.
 """
 
 import json
@@ -35,7 +31,6 @@ def _record(op: int, content: bytes) -> bytes:
 
 
 def json_schema_of(sample) -> dict:
-    """JSON Schema of one sample message, so that viewers list its fields."""
     if isinstance(sample, bool):
         return {"type": "boolean"}
     if isinstance(sample, (int, float)):
@@ -50,8 +45,6 @@ def json_schema_of(sample) -> dict:
 
 
 class McapWriter:
-    """Write JSON messages on named topics; call close() (or use as a context manager)."""
-
     def __init__(self, path: Path, profile: str = "") -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -120,7 +113,6 @@ class McapWriter:
 
 
 def read(path: Path) -> dict:
-    """Parse a file written here (records of the data section); for tests and quick checks."""
     raw = Path(path).read_bytes()
     if not (raw.startswith(MAGIC) and raw.endswith(MAGIC)):
         raise ValueError("not an MCAP file")

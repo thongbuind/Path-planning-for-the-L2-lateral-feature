@@ -1,27 +1,5 @@
-/*
- * Bait planners PM-01 to PM-09 of the evaluator self-check (Software Qualification Test
- * Specification 12). Written on the test side against interfaces/c/pp_planner.h only; it
- * shares nothing with planner/.
- *
- * One library exports both planner families (pp_lcc_* and pp_lkaelk_*), as eval/planner_choice.py
- * accepts for a bait planner. Without a PM_xx define this is PM-00, the control: a simple LCC
- * planner and LKA/ELK planner that meet the call contract. It follows the lane centre (mean of L1 and R1), low-pass filtered across
- * camera frames and moved to t0 with EgoMotionQuery, and cuts curvature so that the path
- * a_y stays below aysmax. The LKA/ELK planner drives the same centre path on an LKA or ELK
- * REQUEST, phase ACTIVE until the car is back near the centre, then COMPLETED while the request
- * stays; its Trajectory is valid only while it intervenes. Each PM_xx define adds one fault:
- *
- *   PM_01  0.3 m lateral step added to the path every 40 cycles
- *   PM_02  no a_y limit
- *   PM_03  path_valid stays true when ego-motion is invalid
- *   PM_04  path_valid = false whenever LCC is in REQUEST
- *   PM_05  status counter (LccStatus, InterventionStatus) does not increase
- *   PM_06  Trajectory sent although pp_init reported a bad VehicleConfig
- *   PM_07  state kept in a global variable
- *   PM_08  writes past the end of the state memory
- *   PM_09  reads the system clock
- *   PM_10  LKA and ELK path 1.5 m towards the line the car drifts to
- */
+/* Planner mồi của SQTS 12, chỉ dùng ABI công khai. PM-00 là đối chứng; các macro PM_xx tiêm lỗi
+ * theo benchmark/suites/selfcheck.yaml. */
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
@@ -35,24 +13,24 @@
 #define PM_NAME "pm_00"
 #endif
 
-#define AY_TARGET (2.3F)        /* below aysmax = 2.5 m/s^2 of PP-SWR-001 */
-#define FILTER_ALPHA (0.15F)    /* per camera frame */
+#define AY_TARGET (2.3F)
+#define FILTER_ALPHA (0.15F)
 #define V_MAX_MPS (70.0F)
 #define SUBSTEPS (10U)
-#define DONE_OFFSET_M (0.3F)   /* intervention done: centre within 0.3 m ... */
-#define DONE_SLOPE (0.02F)     /* ... and heading to it within 0.02 rad */
-#define WRONG_SIDE_M (1.5F)    /* PM_10 */
+#define DONE_OFFSET_M (0.3F)
+#define DONE_SLOPE (0.02F)
+#define WRONG_SIDE_M (1.5F)
 
 typedef struct {
-    float c[4];          /* filtered lane centre, base_link at capture time */
-    uint64_t capture_us; /* capture stamp of the filtered centre */
+    float c[4];
+    uint64_t capture_us;
     uint8_t have_centre;
     uint8_t ok;
-    uint8_t counter[3];  /* Trajectory, status, LateralLimits */
+    uint8_t counter[3];
     uint32_t cycles;
     float wheelbase;
     float max_wheel_angle;
-    uint8_t done[2];     /* LKA, ELK intervention reached the end condition for this request */
+    uint8_t done[2];
 #ifdef PM_09
     double compute_s;
 #endif
@@ -108,7 +86,7 @@ static pp_init_result_t pm_init(void *memory, size_t size, const pp_vehicle_conf
     return (s->ok != 0U) ? PP_INIT_RESULT_OK : PP_INIT_RESULT_BAD_VEHICLE_CONFIG;
 }
 
-/* Moves y = c0 + c1 x + c2 x^2 + c3 x^3 into a frame displaced by (dx, dy, dyaw); small angles. */
+/* Xấp xỉ góc nhỏ để đổi cubic sang khung dịch và quay bởi dx, dy, dyaw. */
 static void shift(float c[4], float dx, float dy, float dyaw)
 {
     float y = c[0] + dx * (c[1] + dx * (c[2] + dx * c[3]));
@@ -164,7 +142,6 @@ pp_init_result_t pp_lkaelk_init(void *memory, size_t size, const pp_vehicle_conf
     return pm_init(memory, size, config);
 }
 
-/* What both planners read, and what the common step finds out. */
 typedef struct {
     uint64_t t0_us;
     pp_received_lane_model_t lane_model;
@@ -175,10 +152,10 @@ typedef struct {
 typedef struct {
     int trajectory_sent;
     pp_trajectory_t trajectory;
-    int valid;                         /* A usable path */
-    int hwa;                           /* LCC in REQUEST */
-    int iv;                            /* 1 LKA, 2 ELK, 0 none */
-    pp_intervention_phase_t phase;     /* Of that function */
+    int valid;
+    int hwa;
+    int iv;
+    pp_intervention_phase_t phase;
     int limited;
     pp_lateral_limits_t lateral_limits;
 } pm_outputs_t;
@@ -190,7 +167,7 @@ static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, vo
     float v = 0.0F;
     int valid = 0;
     int hwa = 0;
-    int iv = 0;                       /* 1 LKA, 2 ELK, 0 none */
+    int iv = 0;
     pp_side_t side = PP_SIDE_NONE;
     int limited = 0;
     float c[4] = {0.0F, 0.0F, 0.0F, 0.0F};
@@ -221,7 +198,6 @@ static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, vo
         }
     }
 
-    /* New camera frame: move the filtered centre to its capture time, then blend. */
     if (in->lane_model.present && in->lane_model.message.header.valid
         && fresh(t0, in->lane_model.rx_us, PP_LANE_MODEL_TIMEOUT_US)) {
         const pp_lane_model_t *lm = &in->lane_model.message;
@@ -260,17 +236,16 @@ static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, vo
             }
         }
     }
-    /* A usable centre is a valid path; it drives only on a request (NONE otherwise). */
     valid = valid && v > 1.0F && s->ok;
     if (valid && iv && fabsf(c[0]) < DONE_OFFSET_M && fabsf(c[1]) < DONE_SLOPE) {
-        s->done[iv - 1] = 1U;  /* back near the centre and parallel: done while the request stays */
+        s->done[iv - 1] = 1U;
     }
 #ifdef PM_10
     if (valid && iv) {
         c[0] += (side == PP_SIDE_LEFT) ? WRONG_SIDE_M : -WRONG_SIDE_M;
     }
 #endif
-    (void)side;  /* used by PM_10 only */
+    (void)side;
 #ifdef PM_04
     if (hwa) {
         valid = 0;
@@ -278,7 +253,6 @@ static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, vo
 #endif
 
     memset(out, 0, sizeof *out);
-    /* Trajectory: integrate the centre curvature, cut to AY_TARGET / v^2. */
     {
         pp_trajectory_t *tr = &out->trajectory;
         float kmax = (v > 1.0F) ? AY_TARGET / (v * v) : 1.0F;
@@ -367,7 +341,6 @@ static void pm_step(void *memory, const pm_inputs_t *in, pp_ego_motion_fn fn, vo
 #endif
 }
 
-/* The status counter of both planners: one counter per instance, as the contract wants. */
 static uint8_t status_counter(void *memory)
 {
     pm_state_t *s = state_of(memory);
@@ -422,7 +395,7 @@ void pp_lkaelk_step(void *memory, const pp_lka_elk_inputs_t *in, pp_ego_motion_f
     out->trajectory_sent = o.trajectory_sent != 0;
     out->trajectory = o.trajectory;
     out->trajectory.planner_id = PP_PLANNER_ID_LKA_ELK;
-    out->trajectory.header.valid = o.valid != 0 && o.iv != 0;     /* PP-SWR-180 */
+    out->trajectory.header.valid = o.valid != 0 && o.iv != 0;
     out->intervention_status_sent = true;
     out->intervention_status.header.stamp_us = in->t0_us;
     out->intervention_status.header.valid = true;

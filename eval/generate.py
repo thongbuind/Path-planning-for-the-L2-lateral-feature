@@ -1,8 +1,3 @@
-"""Generate portable concrete ASAM scenarios and smoke/regression/full manifests.
-
-    python3 -m eval.generate smoke
-    python3 -m eval.generate full --plan-only
-"""
 import argparse
 from dataclasses import dataclass
 import hashlib
@@ -16,8 +11,7 @@ import yaml
 from eval import labels, openx, provenance
 
 BENCHMARK = openx.ROOT / 'benchmark'
-# Road and run of a fault's host anchor replace those of the fault file (lane faults are
-# injected on several host roads, Software Qualification Test Specification 6.2).
+# Dùng hình học và thông số chạy của host khi ghép lỗi làn với một ca (SQTS 6.2).
 _SCOPE = yaml.safe_load((BENCHMARK / 'suites' / 'scope.yaml').read_text(encoding='utf-8'))
 ACC_BOTH = set(_SCOPE['acc_both_modes'])
 OWN_PROFILE = set(_SCOPE.get('own_profile', []))
@@ -79,10 +73,7 @@ def boundary_samples(space):
 
 
 def pairwise_samples(space):
-    """All pairs of min/nominal/max (all categorical levels), others nominal.
-
-    No exponential Cartesian product; an explicit covering array, not a minimal one.
-    """
+    """Bao phủ từng cặp mức; ngoài cặp đang xét, các yếu tố giữ mức danh định."""
     base = {k: d.nominal for k, d in space.items()}
     if len(space) < 2:
         yield from boundary_samples(space)
@@ -100,7 +91,6 @@ def latin_hypercube(space, count, seed):
 
 
 def lhs_count(suite, space):
-    """Latin hypercube size: `lhs_count`, or `lhs_per_factor` points per varying factor if fewer."""
     per = suite.get('lhs_per_factor')
     varying = sum(len(d.levels()) > 1 for d in space.values())
     return suite['lhs_count'] if per is None else min(suite['lhs_count'], per * varying)
@@ -115,8 +105,6 @@ def load_suite(name):
 
 
 def fault_hosts(suite, fault=None):
-    """[(name, parameters)] of the host anchors lane faults run on; default S1a. `fault_host_overrides`
-    gives a fault its own hosts (F24 on LKA and ELK hosts, F25 on the follow-lead host S22a)."""
     hosts = []
     entries = suite.get('fault_host_overrides', {}).get(fault) or suite.get('fault_hosts', [['S1', 'a']])
     for sid, variant in entries:
@@ -133,10 +121,8 @@ def _identity(params):
 
 def plan(name):
     suite = load_suite(name)
-    # Software Qualification Test Specification 5.2: with `sampling_profiles: factor` the profile
-    # is one more factor of boundary, pairwise and Latin hypercube samples (one profile per
-    # sample); anchors and protocol rows run on every profile of the suite, fault anchors on
-    # `fault_profiles` when given.
+    # Khi profile là một yếu tố lấy mẫu, mỗi mẫu có một profile. Ca anchor và protocol dùng cả tập
+    # profile quy định.
     factor = suite.get('sampling_profiles') == 'factor'
     cases, runs = [], []
     for folder in ('scenarios', 'faults'):
@@ -168,15 +154,16 @@ def plan(name):
                     samples = boundary_samples(space) if method == 'boundary' else pairwise_samples(space)
                 for sample in samples:
                     params = {**nominal, **sample}
-                    # Keep the nominal travelled distance when sampling speed; anchors remain exact.
+                    # Giữ quãng đường chạy danh định khi lấy mẫu tốc độ. Ca anchor giữ thông số
+                    # gốc.
                     if 'speed_mps' in sample:
                         params['duration_s'] = nominal['duration_s'] * nominal['speed_mps'] / params['speed_mps']
                     selections.append((method, params))
             if folder == 'faults':
                 def on_host(params, host_params):
-                    # Host geometry; expected outcome the stricter of fault and host (5.3).
+                    # Dùng hình học của host và chọn kết quả mong đợi chặt hơn giữa host và lỗi
+                    # (SQTS 5.3).
                     merged = {**params, **{k: v for k, v in host_params.items() if k != 'host_expected_outcome'}}
-                    # An anchor may need physical geometry that the generic fault hosts lack.
                     if params['road_file'] != nominal['road_file']:
                         merged['road_file'] = params['road_file']
                     if 'expected_outcome' in merged:
@@ -192,14 +179,13 @@ def plan(name):
                 selections = [(method, params, None) for method, params in selections]
             seen = {}
             for method, params, host in selections:
-                # Both sides of the longitudinal constraint exchange (benchmark/suites/scope.yaml).
                 acc_modes = ('on', 'ignore_limits') if sid in ACC_BOTH else (params['acc'],)
                 sampled = method not in ('anchor', 'protocol')
                 profiles = ([params['profile']] if sid in OWN_PROFILE or (sampled and factor)
                             else family_profiles)
                 for profile, acc in product(profiles, acc_modes):
                     concrete_params = {**params, 'profile': profile, 'acc': acc}
-                    # IDs for anchors retain a,b,...; samples use a content hash in filenames.
+                    # Ca anchor giữ hậu tố a, b…; ca lấy mẫu dùng hash nội dung để đặt tên.
                     key = _identity(concrete_params)
                     if key in seen:
                         case = seen[key]
@@ -216,7 +202,7 @@ def plan(name):
                     seen[key] = case
                     cases.append(case)
                     noisy = params.get('fault_kind') == 'noise' and (params.get('fault_sigma_c0', 0) > 0 or params.get('fault_sigma_c1', 0) > 0)
-                    # Samples spread over the space; the full seed count stays on anchors (4.1).
+                    # Tập seed đầy đủ dùng cho anchor (SQTS 4.1).
                     seeds = (suite.get('sample_noise_seeds', suite['noise_seeds']) if sampled else suite['noise_seeds']) \
                         if noisy else suite['seeds']
                     for seed in seeds:
@@ -239,7 +225,6 @@ def anchor_params(folder, sid, variant):
 
 
 def load_combination(cid):
-    """Combined-fault case of Software Qualification Test Specification 6.2."""
     data = yaml.safe_load((BENCHMARK / 'combinations' / f'{cid}.yaml').read_text(encoding='utf-8'))
     if data.get('id') != cid or set(data) - {'id', 'title', 'hosts', 'faults', 'sim'}:
         raise ValueError(f'{cid}: invalid combination definition')
@@ -249,10 +234,6 @@ def load_combination(cid):
 
 
 def _injected_cases(suite, cases, runs):
-    """Fault definitions added to whole host scenarios: at a planner-output event of LKA or ELK
-    hosts (`event_hosts`, `event_faults`, `event_offsets_s`; section 6), and the combined faults
-    of 6.2 (`combinations`). Anchors only; profiles and seeds as the rest of the suite, except
-    `event_profiles: rotate` (one profile per event case, in turn) and `event_noise_seeds`."""
     rotate = suite.get('event_profiles') == 'rotate'
     event_index = 0
     jobs = []
@@ -307,7 +288,6 @@ def _injected_cases(suite, cases, runs):
 
 def materialize(manifest, out):
     out = Path(out)
-    # Refuse accidental reuse: old files must not be confused with the new manifest.
     out.mkdir(parents=True, exist_ok=False)
     for case in manifest['cases']:
         destination = out / case['file']
@@ -319,7 +299,6 @@ def materialize(manifest, out):
             openx.inject(destination, faults, inject['trigger'], inject['offset_s'], inject['sim'])
         openx.validate(destination)
         openx.validate(destination.with_suffix('.xodr'))
-        # A fresh load catches unresolved references and checks the simulator subset.
         openx.load_scenario(destination)
         case['sha256'] = provenance.sha256(destination)
         case['road_sha256'] = provenance.sha256(destination.with_suffix('.xodr'))
@@ -329,7 +308,9 @@ def materialize(manifest, out):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Generate portable concrete ASAM scenarios and smoke/regression/full manifests.",
+    )
     parser.add_argument('suite', choices=('smoke', 'regression', 'full'))
     parser.add_argument('--out', type=Path)
     parser.add_argument('--plan-only', action='store_true', help='Count cases and runs without generating files or running SIL')

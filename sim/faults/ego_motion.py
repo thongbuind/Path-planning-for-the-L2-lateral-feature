@@ -1,13 +1,5 @@
-"""Ego-motion not valid (Software Qualification Test Specification 6, F20; PP-SWR-143).
-
-Acts on the planner's EgoMotionQuery only: every answer of a planner cycle that is hit has
-valid = false. The Lateral Controller and the ADAS function stand-in keep their own queries.
-
-| kind | Cycles hit |
-|---|---|
-| once | the first planner cycle at or after start_s |
-| continuous | every cycle in [start_s, start_s + duration_s) |
-| alternate | every other cycle in that window |
+"""F20 chỉ làm mất hiệu lực trả lời EgoMotionQuery của planner. Controller và stand-in ADAS vẫn
+dùng dịch vụ gốc.
 """
 
 from dataclasses import dataclass
@@ -22,7 +14,7 @@ class EgoMotionFault:
     kind: str
     start_s: float = 0.0
     duration_s: float | None = None
-    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
+    trigger: str | None = None
 
     def __post_init__(self) -> None:
         trigger.check(self.trigger)
@@ -36,7 +28,6 @@ class EgoMotionFaults:
         self._seen = [0] * len(faults)
 
     def invalid(self, t0_us: int) -> bool:
-        """Whether the planner cycle at t0_us gets invalid answers; call once per cycle."""
         hit = False
         for i, f in enumerate(self.faults):
             start = round(f.start_s * 1e6)

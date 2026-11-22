@@ -1,10 +1,5 @@
-"""PP-SWR-129, 130 by comparison with a reference twin of the same seed (Software
-Qualification Test Specification 6: F15, F16, F17).
-
-The faulty run and its twin differ only in the faults that have a reference: none
-(counter repeated, PP-SWR-129) or the loss of exactly the messages they hit (counter jump or
-stuck, valid = false, qualifier FAULT, wrong CRC; PP-SWR-130). The planner outputs must be
-the same at every cycle. Both runs are deterministic, so equal means equal values.
+"""Cặp ca giữ nguyên seed. Bản đối chứng bỏ lỗi lặp counter hoặc thay các lỗi nhảy/đứng counter
+bằng mất đúng frame bị ảnh hưởng (PP-SWR-129, 130).
 """
 
 from dataclasses import replace
@@ -20,7 +15,6 @@ def needs_twin(scenario: Scenario) -> bool:
 
 
 def twin_of(scenario: Scenario, log: RunLog) -> tuple[Scenario, set[str]]:
-    """Reference scenario and the requirements it judges."""
     can = scenario.can_bus or scenario.realism
     kept, requirements = [], set()
     for fault, hits in zip(scenario.channel_faults, log.fault_hits):
@@ -39,7 +33,6 @@ def _outputs(c):
 
 
 def criteria(scenario: Scenario, log: RunLog, planner, seed: int) -> list[Criterion]:
-    """One criterion per requirement judged: cycles whose outputs differ from the twin."""
     if not needs_twin(scenario):
         return []
     twin_scenario, requirements = twin_of(scenario, log)

@@ -1,9 +1,3 @@
-"""Scripted request inputs for planner tests, and constant-speed LongitudinalPlan.
-
-The default is the original HWA request schedule with LKA and ELK off. A test can
-supply complete request frames by simulation time to control the ICD input.
-"""
-
 from bisect import bisect_right
 from dataclasses import dataclass
 
@@ -24,15 +18,15 @@ from interfaces import (
     Side,
 )
 
-PERIOD_US = 25_000  # 40 Hz (4.1)
+PERIOD_US = 25_000
 
 
 @dataclass(frozen=True, slots=True)
 class RequestEvent:
     at_us: int
-    requests: tuple[FunctionRequest, ...]  # HWA, LKA, ELK, per ICD 5.6
+    requests: tuple[FunctionRequest, ...]
     driver_override: bool = False
-    # sim.faults.trigger event: at_us counts from its first occurrence (S16 a, b, e)
+    # Mốc at_us tính từ lần đầu sự kiện planner xảy ra (S16).
     trigger: str | None = None
 
     def __post_init__(self) -> None:
@@ -57,7 +51,6 @@ class ScriptedFunctionRequests:
         self._times = tuple(event.at_us for event in self.events)
 
     def on_event(self, event: str, t_us: int) -> None:
-        """First occurrence of a planner-output event: its events get their time."""
         ready = [e for e in self._pending if e.trigger == event]
         if ready:
             self._pending = [e for e in self._pending if e.trigger != event]

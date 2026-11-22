@@ -1,5 +1,3 @@
-"""English copy for the HTML dashboard and its evidence page."""
-
 import re
 
 
@@ -424,8 +422,7 @@ def conformance_title(check_id, original):
     return _CHECK_TITLES.get(check_id, original)
 
 
-# Existing conformance.json files contain composed diagnostics in Vietnamese. Translate the
-# evaluator's phrases and retain field names, values, and external tool output verbatim.
+# Chỉ dịch phần chẩn đoán do B0 tạo. Giữ tên trường, giá trị và đầu ra công cụ ngoài.
 _DIAGNOSTIC_PHRASES = {
     "Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema":
         "Cannot verify from the library binary because pp_types.h has no schema version marker",

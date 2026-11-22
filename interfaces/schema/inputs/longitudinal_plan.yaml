@@ -1,12 +1,12 @@
-# Interface Control Document 5.7 (#longitudinal-plan). Longitudinal block -> Planner, 40 Hz.
+# Khối dọc phát LongitudinalPlan ở 40 Hz (ICD 5.7).
 icd: "5.7"
 constants:
-  LONGITUDINAL_PLAN_POINTS: {type: uint, value: 31, doc: "Same 0.1 s grid as Trajectory"}
+  LONGITUDINAL_PLAN_POINTS: {type: uint, value: 31, doc: "Cùng lưới 0,1 s với Trajectory."}
   LONGITUDINAL_PLAN_TIMEOUT_US: {type: uint64, value: 75000}
-  LONGITUDINAL_PLAN_MAX_DELTA_COUNTER: {type: uint, value: 4, doc: "Largest accepted counter step (ICD 4, E2E): floor((75 + 25) / 25 ms)"}
+  LONGITUDINAL_PLAN_MAX_DELTA_COUNTER: {type: uint, value: 4, doc: "Bước counter lớn nhất theo ICD 4: floor((75 + 25) / 25), với thời gian tính bằng ms."}
   LONGITUDINAL_PLAN_MAX_AGE_US: {type: uint64, value: 45000}
-  LONGITUDINAL_PLAN_V_MAX_MPS: {type: float, value: 182.04, doc: "Range of v is 0 to this; speed range of ESC_Speed (5.3), 655.35 km/h"}
-  LONGITUDINAL_PLAN_A_MAX_MPS2: {type: float, value: 32.767, doc: "Range of a is -this to this; range of AccelX of IMU_Data (5.3)"}
+  LONGITUDINAL_PLAN_V_MAX_MPS: {type: float, value: 182.04, doc: "Biên trên của v, theo ESC_Speed tối đa 655,35 km/h (ICD 5.3)."}
+  LONGITUDINAL_PLAN_A_MAX_MPS2: {type: float, value: 32.767, doc: "Biên của |a| theo miền AccelX của IMU_Data (ICD 5.3)."}
 enums:
   LongitudinalMode:
     values: {OFF: 0, CRUISE: 1, FOLLOW: 2, CURVE_LIMIT: 3}
@@ -20,4 +20,4 @@ structs:
       - {name: header, type: Header}
       - {name: mode, type: LongitudinalMode}
       - {name: points, type: LongitudinalPoint, count: LONGITUDINAL_PLAN_POINTS}
-      - {name: target_id, type: uint32, doc: "0 when no target"}
+      - {name: target_id, type: uint32, doc: "0 khi không có mục tiêu."}

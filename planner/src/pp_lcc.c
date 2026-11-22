@@ -1,14 +1,3 @@
-/*
- * LCC planner (library pp_lcc; interfaces/c/pp_planner.h, pp_lcc_*).
- *
- * One cycle (Software Architectural Design 3.2) runs the units of the Software Detailed
- * Design in this order: T1 input check and latency compensation, T2 reference line, T5
- * curvature fusion, T12 follow-lead when both lane lines are lost, T6 lateral state,
- * T4 stitching, T8 offset, T7 path generation, T10 feasibility and T11 output. Choosing
- * between this planner and the LKA/ELK planner belongs to the arbitrator of the system
- * (PP-ASM-022).
- */
-
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -28,28 +17,27 @@
 #include "reference_line.h"
 #include "stitching.h"
 
-#define PP_LCC_MAGIC (0x50504C43UL) /* "PPLC" */
+#define PP_LCC_MAGIC (0x50504C43UL)
 
 typedef struct {
-    pp_core_state_t core;           /* Must stay first */
-    pp_qp_ws_t qp;                  /* T7 technique C: warm start between cycles */
-    pp_offset_state_t offset;       /* T8 */
-    pp_follow_state_t follow;       /* T12 */
-    bool recentering;               /* T7: LCC brings the car back to the centre */
-    bool override_last;             /* driver_override of the last usable FunctionRequests */
-    bool intervention_last;         /* LKA or ELK in REQUEST in the last usable FunctionRequests */
-    bool hold_prev;                 /* Last cycle the path started from the car (PP-SWR-039, 040) */
-    bool driving;                   /* Last cycle lcc_mode was not NONE */
+    pp_core_state_t core;  /* Core phải là trường đầu để pp_core_init ép con trỏ state về đúng kiểu. */
+    pp_qp_ws_t qp;
+    pp_offset_state_t offset;
+    pp_follow_state_t follow;
+    bool recentering;
+    bool override_last;
+    bool intervention_last;
+    bool hold_prev;
+    bool driving;
 } pp_lcc_state_t;
 
 _Static_assert(_Alignof(pp_lcc_state_t) <= PP_STATE_ALIGNMENT,
                "pp_lcc_state_t needs more alignment than PP_STATE_ALIGNMENT");
 
-/* Software Architectural Design 9. */
-static const pp_function_limits_t PP_LCC_LIMITS = {PP_AYSMAX, PP_JERK_MAX_HWA, 0.0};
+static const pp_function_limits_t PP_LCC_LIMITS = {PP_AYSMAX, PP_JERK_MAX_HWA, 0.0, 0.0};
 
-#define PP_T_STEP_S (0.25)                 /* T7 A: duration step (Software Detailed Design 10) */
-#define PP_T_MAX_STEPS (32U)               /* Bounds the loop whatever T_max is */
+#define PP_T_STEP_S (0.25)
+#define PP_T_MAX_STEPS (32U)  /* Giới hạn số lần thử bất kể calibration T_max. */
 
 size_t pp_lcc_state_size(void)
 {
@@ -66,7 +54,6 @@ pp_init_result_t pp_lcc_init(void *state, size_t state_size, const pp_vehicle_co
     pp_init_result_t result = pp_core_init(state, state_size, sizeof(pp_lcc_state_t), PP_LCC_MAGIC,
                                            vehicle_config);
     if (result == PP_INIT_RESULT_OK) {
-        /* Limit that has no per-parameter form: the trail must cover 50 m (SDD 15, T12). */
         const pp_calibration_t *cal = &pp_calibration;
         if ((cal->trail_n * cal->trail_spacing) < (float)PP_FOLLOW_TRAIL_COVER_M) {
             ((pp_core_state_t *)state)->initialized = false;
@@ -76,12 +63,6 @@ pp_init_result_t pp_lcc_init(void *state, size_t state_size, const pp_vehicle_co
     return result;
 }
 
-/*
- * LCC "đưa về giữa" (Software Detailed Design 10): starts when LCC is requested and was not
- * driving in the previous cycle; ends when the car is within recenter_done of the centre
- * or LCC leaves REQUEST. While the driver overrides, or LKA or ELK is in REQUEST, the path
- * runs parallel to the lane and recentering starts when that ends.
- */
 static void update_recentering(pp_lcc_state_t *s, bool requested, bool hold_now, double measured_d)
 {
     if (!requested) {
@@ -89,7 +70,6 @@ static void update_recentering(pp_lcc_state_t *s, bool requested, bool hold_now,
     } else if (!s->driving) {
         s->recentering = true;
     } else {
-        /* LCC keeps driving: recentering continues until the car is centred. */
     }
     if (s->recentering && (fabs(measured_d) <= (double)s->core.cal->recenter_done)) {
         s->recentering = false;
@@ -100,11 +80,6 @@ static void update_recentering(pp_lcc_state_t *s, bool requested, bool hold_now,
 }
 
 #ifndef PP_T7_QP
-/*
- * T7 technique A and T11: quintic to the target in T_hwa (T_recenter while recentering);
- * while the path misses the LCC targets (ay_add_max_hwa, jerk_target_hwa) the duration
- * grows by 0.25 s up to T_max.
- */
 static bool generate_lcc(const pp_lcc_state_t *s, const pp_reference_line_t *ref,
                          const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
                          double d_target,
@@ -134,11 +109,6 @@ static bool generate_lcc(const pp_lcc_state_t *s, const pp_reference_line_t *ref
     return ok;
 }
 #else
-/*
- * T7 technique C and T11 (generators/qp.h): one QP per cycle. Corridor from the lane width
- * this cycle; continuity with the previous path whenever T4 started from it, at the points
- * of the old path within the observed range of the new reference line.
- */
 static bool generate_lcc_qp(pp_lcc_state_t *s, const pp_reference_line_t *ref,
                             const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
                             const pp_old_path_t *old, bool from_old, double d_target,
@@ -154,7 +124,7 @@ static bool generate_lcc_qp(pp_lcc_state_t *s, const pp_reference_line_t *ref,
     pb.start = *start;
     pb.d_target = d_target;
     pb.ay_limit = PP_AYSMAX * (double)cal->qp_ay_margin;
-    pb.jerk_limit = 0.9 * PP_JERK_MAX_HWA;                  /* margin for T10, PP-SWR-003 */
+    pb.jerk_limit = 0.9 * PP_JERK_MAX_HWA;
     const double half = fmax(0.0, (0.5 * ref->width) - (0.5 * (double)s->core.vehicle.vehicle_width)
                                   - (double)cal->qp_corridor_margin);
     pp_ref_walk_begin(&walker, ref, &r);
@@ -190,21 +160,49 @@ typedef struct {
     pp_reference_line_t ref;
     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS];
     pp_ref_samples_t samples;
-    double ay_need_max;                    /* T10 step 1, for lateral_limit_reached */
+    double ay_need_max;
     double ay_limit;
-    pp_curve_limit_t curve;                /* T10 step 4, for LateralLimits */
+    pp_curve_limit_t curve;
 } pp_lcc_cycle_t;
 
-/* What the path of this cycle starts from and aims at. */
 typedef struct {
     uint64_t t0_us;
-    double offset;                         /* T8 */
-    bool hold_now;                         /* PP-SWR-039, 040: driver override, or LKA or ELK in REQUEST */
-    bool start_from_car;                   /* hold_now, or the first cycle after it */
-    bool requested;                        /* LCC in REQUEST */
+    double offset;
+    bool hold_now;
+    bool start_from_car;
+    bool requested;
 } pp_lcc_goal_t;
 
-/* T6, T4 step 2, T7, T4 steps 4 and 5, T10 steps 2 to 4 on `ref`. False when no path. */
+#ifndef PP_T7_QP
+/* Fit cubic qua cua chữ S có thể sai độ cong gần xe. Chỉ đặt sàn trợ giúp khi đường không đổi dấu
+ * và camera khớp T5 trong giây đầu (PP-SWR-006). */
+static bool confirmed_turn(const pp_ref_samples_t *fused, const pp_reference_line_t *camera,
+                           const pp_speed_profile_t *speed, double epsilon_ay)
+{
+    pp_ref_walker_t walker;
+    pp_ref_point_t point;
+    pp_ref_walk_begin(&walker, camera, &point);
+    double min_kappa = INFINITY;
+    double max_kappa = -INFINITY;
+    for (size_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        pp_ref_walk_to(&walker, speed->s[k], &point);
+        if (walker.on_arc || !fused->in_view[k]) {
+            break;
+        }
+        min_kappa = fmin(min_kappa, fmin(point.kappa, fused->kappa[k]));
+        max_kappa = fmax(max_kappa, fmax(point.kappa, fused->kappa[k]));
+        if ((min_kappa < 0.0) && (max_kappa > 0.0)) {
+            return false;
+        }
+        if (((double)k * PP_GRID_STEP_S <= 1.0)
+            && (fabs(point.kappa - fused->kappa[k]) * speed->v[k] * speed->v[k] > epsilon_ay)) {
+            return false;
+        }
+    }
+    return min_kappa <= max_kappa;
+}
+#endif
+
 static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp_frame_t *f,
                        const pp_reference_line_t *ref, bool follow, const pp_lcc_goal_t *goal,
                        pp_lcc_cycle_t *out)
@@ -220,44 +218,52 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
 
     out->ref = *ref;
     pp_ref_walk_begin(&walker, ref, &foot);
-    pp_lateral_state(&foot, f->v, f->v_y, f->yaw_rate, &measured);                    /* T6 */
+    pp_lateral_state(&foot, f->v, f->v_y, f->yaw_rate, &measured);
     bool from_old = false;
     if (goal->start_from_car) {
-        start = measured;                                          /* PP-SWR-039, 040 */
+        start = measured;
     } else {
-        from_old = pp_stitch_start(&f->old, ref, &measured, cal, &start);             /* T4 step 2 */
+        from_old = pp_stitch_start(&f->old, ref, &measured, cal, &start);
     }
     update_recentering(s, goal->requested, goal->hold_now, measured.d);
     pp_speed_profile(in->longitudinal_plan, goal->t0_us, f->v, &speed);
-    /* T7 target: the T8 offset (0 when following); while the driver overrides or LKA or ELK
-     * is requested, the car's own offset, so the path runs parallel to the lane and does
-     * not pull it back (PP-TS-017). */
+    /* FOLLOW dùng offset mục tiêu 0. Khi tài xế override hoặc LKA/ELK đang REQUEST, giữ offset
+     * hiện tại để path song song làn. */
     const double d_target = goal->hold_now ? measured.d : (follow ? 0.0 : goal->offset);
 #ifdef PP_T7_QP
-    /* Continuity is a cost of the QP; T4 steps 4, 5 still guarantee it. */
     const bool ok = generate_lcc_qp(s, ref, &start, &speed, &f->old, from_old, d_target,
-                                    out->points, &out->samples);                      /* T7 C, T11 */
+                                    out->points, &out->samples);
 #else
     (void)from_old;
-    const bool ok = generate_lcc(s, ref, &start, &speed, d_target, out->points, &out->samples); /* T7 A, T11 */
+    const bool ok = generate_lcc(s, ref, &start, &speed, d_target, out->points, &out->samples);
 #endif
     if (ok) {
         const double wheelbase = (double)core->vehicle.wheelbase;
-        /* PP-TS-003: limit the candidate first, so the blend of two feasible paths
-         * is the path sent; the second T10 call below only meets speed changes. */
+        /* Giới hạn candidate trước khi blend. Lần T10 sau bù chênh lệch do tốc độ thay đổi
+         * (PP-TS-003). */
 #ifdef PP_AY_MARGIN_GATE
-        const bool over_limit = core->limit_flag.reached;   /* PP-TS-020 V2: flag of last cycle */
+        const bool over_limit = core->limit_flag.reached;
 #else
         const bool over_limit = false;
 #endif
         const pp_function_limits_t path_limits = pp_hwa_path_limits(cal, over_limit);
-        (void)pp_feasibility_limit(out->points, &out->samples, &path_limits, &core->vehicle); /* T10 step 2 */
-        if (!goal->hold_now) {   /* T4 step 5: no blend while the path starts from the car */
-            (void)pp_stitch_blend(&f->old, cal, wheelbase, pp_core_continuity_limit(ref),
-                                  out->points);                                       /* T4 steps 4, 5 */
+        pp_function_limits_t candidate_limits = path_limits;
+#ifndef PP_T7_QP
+        if (core->limit_flag.reached && goal->requested && !goal->hold_now && !follow
+            && !ref->coasting && !ref->inferred
+            && confirmed_turn(&out->samples, &f->camera_ref, &speed, (double)cal->epsilon_ay)) {
+            /* Chừa nửa epsilon_ay để blend với path trước. */
+            candidate_limits.ay_support = PP_AYSMAX - (0.5 * (double)cal->epsilon_ay);
         }
-        (void)pp_feasibility_limit(out->points, &out->samples, &path_limits, &core->vehicle); /* T10 step 2 */
-        /* T10 steps 3, 4 on the larger of camera and fused curvature (safe side). */
+#endif
+        (void)pp_feasibility_limit(out->points, &out->samples, &candidate_limits, &core->vehicle);
+        if (!goal->hold_now) {
+            /* FOLLOW chỉ quan sát đến lead. Cửa sổ continuity vẫn lấy từ LaneModel. */
+            const double x_limit = pp_core_continuity_limit(follow ? &f->camera_ref : ref);
+            (void)pp_stitch_blend(&f->old, cal, wheelbase, x_limit,
+                                  out->points);
+        }
+        (void)pp_feasibility_limit(out->points, &out->samples, &path_limits, &core->vehicle);
         pp_curve_limit_t camera_curve;
         pp_feasibility_check(out->points, &out->samples, &check);
         out->ay_need_max = fmax(check.ay_need_max, pp_ay_need_max(&f->camera_ref, &speed));
@@ -287,9 +293,8 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     const pp_calibration_t *cal = s->core.cal;
     const pp_function_requests_t *req = in->function_requests;
 
-    /* PP-TS-017 (V2b, choice B), PP-SWR-039, 040. While the driver overrides or LKA or ELK is in
-     * REQUEST, and in the first cycle after, the path starts at the car (T4 step 2; R79 5.6.4.3:
-     * priority to the driver). The last usable FunctionRequests counts while none is usable. */
+    /* PP-SWR-039, 040: bắt đầu tại xe khi override hoặc LKA/ELK REQUEST, kể cả chu kỳ đầu sau khi
+     * thôi. */
     const bool override_now = (req != NULL) ? req->driver_override : s->override_last;
     const bool intervention_now = (req != NULL)
         ? ((req->requests[PP_FUNCTION_LKA].state == PP_REQUEST_STATE_REQUEST)
@@ -305,7 +310,7 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     goal.start_from_car = goal.hold_now || s->hold_prev;
     s->hold_prev = goal.hold_now;
 
-    /* T12: observed every cycle so the trail is there when the lines are lost. */
+    /* Cập nhật trail cả khi vạch còn đủ tin để có sẵn dữ liệu lúc mất vạch. */
     const bool lane_trusted = f.lane_ok && f.ref.valid && !f.ref.inferred && !f.ref.coasting;
     const bool lane_lost = !f.ref.valid || f.ref.coasting;
     pp_follow_input_t fin;
@@ -330,7 +335,6 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     const bool follow_possible = goal.requested && lane_lost && f.chassis_valid && !in->requests_timed_out
         && pp_follow_candidate(&s->follow, &fin, cal, &s->core.vehicle, &virtual_ref);
 
-    /* T8: once per cycle on the reference line of the lane; a following path does not use it. */
     if (f.ref.valid) {
         const double wheelbase = (double)s->core.vehicle.wheelbase;
         goal.offset = pp_offset_update(&s->offset, in->object_list, &f.ref, f.v,
@@ -345,7 +349,7 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     if (path_available) {
         if (follow_possible) {
             ok = build_path(s, in, &f, &virtual_ref, true, &goal, out)
-                 && pp_follow_path_within(&s->follow, out->points, cal, &s->core.vehicle);   /* M1 */
+                 && pp_follow_path_within(&s->follow, out->points, cal, &s->core.vehicle);
             follow = ok;
         }
         if (!ok && f.ref.valid) {
@@ -358,8 +362,8 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     if (ok) {
         out->follow_distance = follow ? s->follow.distance_m : 0.0;
         if (follow) {
-            /* PP-SWR-173: T_coast counts from leaving FOLLOW. The memory of the lane is kept;
-             * if it had already run out, leaving FOLLOW coasts on the line followed. */
+            /* T_coast tính lại khi rời FOLLOW. Nếu bộ nhớ làn cũ đã hết, COAST theo đường vừa bám
+             * (PP-SWR-173). */
             pp_reference_memory_t *mem = &s->core.ref_mem;
             if (!mem->ref_valid) {
                 mem->ref_valid = true;
@@ -391,7 +395,6 @@ void pp_lcc_step(void *state,
         (void)memset(outputs, 0, sizeof(*outputs));
         pp_lcc_state_t *s = (pp_lcc_state_t *)pp_core_prepared(state, PP_LCC_MAGIC);
 
-        /* LccStatus every cycle (PP-SWR-010). No Trajectory unless initialised (PP-SWR-146). */
         if ((s != NULL) && (inputs != NULL)) {
             const uint64_t t0 = inputs->t0_us;
             pp_lcc_cycle_t cycle;
@@ -407,12 +410,11 @@ void pp_lcc_step(void *state,
                     .longitudinal_plan = &inputs->longitudinal_plan,
                 };
                 pp_usable_inputs_t usable;
-                pp_core_hold_inputs(&s->core, &common);                            /* T1 */
+                pp_core_hold_inputs(&s->core, &common);
                 pp_core_check_inputs(&s->core, &common, &usable);
                 pp_core_check_requests_timeout(&s->core, t0, &usable);
                 plan_lcc(s, t0, &usable, ego_motion, ego_motion_context, &cycle);
 
-                /* T10 step 3: flag from the curvature ahead; no path, no flag. */
                 if (cycle.path_valid) {
                     pp_limit_flag_update(&s->core.limit_flag, cycle.ay_need_max, cycle.ay_limit,
                                          s->core.cal, (double)PP_PLANNER_PERIOD_US / PP_US_PER_S);
@@ -420,12 +422,10 @@ void pp_lcc_step(void *state,
                     pp_limit_flag_reset(&s->core.limit_flag);
                 }
 
-                /* T11: Trajectory every cycle, header.valid tells whether the path is usable. */
                 outputs->trajectory_sent = true;
                 pp_core_publish_trajectory(&s->core, t0, cycle.path_valid, cycle.points, &cycle.ref,
                                            PP_PLANNER_ID_LCC, &outputs->trajectory);
 
-                /* LateralLimits every cycle (PP-SWR-150); same flag as LccStatus (PP-SWR-009). */
                 outputs->lateral_limits_sent = true;
                 outputs->lateral_limits.header.stamp_us = t0;
                 outputs->lateral_limits.header.counter = pp_core_next_counter(&s->core.lateral_limits_counter);

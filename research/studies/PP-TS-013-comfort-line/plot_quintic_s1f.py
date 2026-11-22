@@ -1,5 +1,3 @@
-"""Replay the clean S1f SIL pair and plot the driven lines and vehicle response."""
-
 from dataclasses import replace
 import json
 from math import atan, atan2, cos, sin
@@ -25,8 +23,6 @@ FOLLOW_COLOR, FOLLOW_STYLE = "#137d62", "-."
 
 
 class RefLinePlanner:
-    """For the ideal reference run, give the controller the true lane centre."""
-
     def __init__(self, harness):
         self.base = harness.planner
         self.harness = harness
@@ -81,7 +77,7 @@ def trace(log):
 
     idx = np.flatnonzero(active)
     peak_indices = [idx[np.argmax(np.abs(signal[idx]))] for signal in (ay, jerk)]
-    # Keep the actual peak samples while reducing the plotted data to about 100 Hz.
+    # Khi giảm mật độ điểm vẽ xuống khoảng 100 Hz, giữ lại mẫu cực trị thực tế.
     take = np.unique(np.r_[idx[::10], peak_indices, idx[-1]])
     rear = np.asarray(log.rear)
     station, offset = [], []

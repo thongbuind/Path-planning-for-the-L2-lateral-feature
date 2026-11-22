@@ -1,5 +1,3 @@
-/* Core shared by the two planners (pp_core.h). */
-
 #include "pp_core.h"
 
 #include <math.h>
@@ -14,7 +12,6 @@ static bool positive_finite(float value)
     return isfinite(value) && (value > 0.0F);
 }
 
-/* Interface Control Document 5.8; PP-ASM-016 (width including mirrors). */
 bool pp_core_vehicle_config_valid(const pp_vehicle_config_t *cfg)
 {
     bool ok = positive_finite(cfg->wheelbase)
@@ -45,9 +42,9 @@ pp_init_result_t pp_core_init(void *state, size_t state_size, size_t needed, uin
         pp_reference_memory_reset(&core->ref_mem);
 
         if ((vehicle_config == NULL) || !pp_core_vehicle_config_valid(vehicle_config)) {
-            result = PP_INIT_RESULT_BAD_VEHICLE_CONFIG; /* PP-SWR-146 */
+            result = PP_INIT_RESULT_BAD_VEHICLE_CONFIG;
         } else if (!pp_calibration_check(core->cal)) {
-            result = PP_INIT_RESULT_BAD_CALIBRATION;    /* Software Detailed Design section 3 */
+            result = PP_INIT_RESULT_BAD_CALIBRATION;
         } else {
             core->vehicle = *vehicle_config;
             core->initialized = true;
@@ -75,7 +72,6 @@ uint8_t pp_core_next_counter(uint8_t *counter)
     return value;
 }
 
-/* Interface Control Document 5.7: every v in 0 to V_MAX and every a within +-A_MAX (PP-SWR-156). */
 static bool longitudinal_plan_in_range(const pp_longitudinal_plan_t *plan)
 {
     bool ok = true;
@@ -88,7 +84,6 @@ static bool longitudinal_plan_in_range(const pp_longitudinal_plan_t *plan)
     return ok;
 }
 
-/* The held message is older than the receive timeout, or none is held (ICD 4). */
 static bool timed_out(const bool *present, uint64_t rx_us, uint64_t t0_us, uint64_t timeout_us)
 {
     return !*present || ((rx_us <= t0_us) && ((t0_us - rx_us) > timeout_us));
@@ -214,7 +209,7 @@ void pp_core_check_inputs(const pp_core_state_t *core, const pp_common_inputs_t 
                         h->longitudinal_plan.rx_us, h->longitudinal_plan.message.header.stamp_us, t0,
                         PP_LONGITUDINAL_PLAN_TIMEOUT_US, PP_LONGITUDINAL_PLAN_MAX_AGE_US)
         && longitudinal_plan_in_range(&h->longitudinal_plan.message)) {
-        out->longitudinal_plan = &h->longitudinal_plan.message; /* else PP-SWR-154 fallback */
+        out->longitudinal_plan = &h->longitudinal_plan.message;
     }
 }
 
@@ -232,7 +227,7 @@ void pp_core_check_requests_timeout(pp_core_state_t *core, uint64_t t0_us, pp_us
         core->last_requests_us = out->requests_rx_us;
     }
     out->requests_timed_out = (t0_us >= core->last_requests_us)
-        && ((t0_us - core->last_requests_us) > PP_FUNCTION_REQUESTS_TIMEOUT_US);       /* PP-SWR-145 */
+        && ((t0_us - core->last_requests_us) > PP_FUNCTION_REQUESTS_TIMEOUT_US);
 }
 
 bool pp_core_motion_to_t0(uint64_t capture_us, uint64_t t0_us, pp_ego_motion_fn ego_motion,
@@ -256,11 +251,10 @@ bool pp_core_motion_to_t0(uint64_t capture_us, uint64_t t0_us, pp_ego_motion_fn 
             motion->dyaw = (double)response.dyaw;
         }
     }
-    /* A stamp slightly ahead of t0 (input check tolerance) is used without moving. */
+    /* Stamp hơi vượt t0 nhưng còn trong dung sai được dùng trực tiếp, không bù ngược. */
     return ok;
 }
 
-/* Ego-motion since the previous cycle, for the T2 memory and the T5 prior. */
 static bool cycle_motion(pp_core_state_t *s, uint64_t t0_us, pp_ego_motion_fn ego_motion,
                          void *context, pp_motion_t *motion)
 {
@@ -274,14 +268,14 @@ static bool cycle_motion(pp_core_state_t *s, uint64_t t0_us, pp_ego_motion_fn eg
     return ok;
 }
 
-/* T5 on a reference line from T2 (not while coasting): fused curvature replaces c2, c3. */
+/* T5 thay c2, c3 của đường T2 khi chưa vào COAST. */
 static void fuse_curvature(pp_core_state_t *s, const pp_usable_inputs_t *in, double ds, double v,
                            pp_reference_line_t *ref)
 {
     const pp_calibration_t *cal = s->cal;
     pp_curvature_predict(&s->curv, ds, cal);
     const uint64_t stamp = in->lane_model->header.stamp_us;
-    if (!s->t5_has_stamp || (stamp != s->t5_stamp_us)) {          /* new frame only */
+    if (!s->t5_has_stamp || (stamp != s->t5_stamp_us)) {
         pp_curvature_update_camera(&s->curv, &ref->centre, ref->var_c2, ref->var_c3,
                                    fmax(ref->view_start, 0.0), ref->view_end, cal);
         s->t5_stamp_us = stamp;
@@ -295,7 +289,7 @@ static void fuse_curvature(pp_core_state_t *s, const pp_usable_inputs_t *in, dou
     if (pp_curvature_fit(&s->curv, ref->view_end, &c2, &c3)) {
         ref->centre.c[2] = c2;
         ref->centre.c[3] = c3;
-        s->ref_mem.ref_centre.c[2] = c2;        /* coasting continues on the fused line */
+        s->ref_mem.ref_centre.c[2] = c2;  /* Giữ đường đã fusion để COAST tiếp tục với cùng hình học. */
         s->ref_mem.ref_centre.c[3] = c3;
 #ifdef PP_REF_SAMPLED
         pp_ref_sample_cubic(ref);
@@ -309,9 +303,9 @@ void pp_core_frame(pp_core_state_t *core, const pp_usable_inputs_t *in, uint64_t
     pp_motion_t to_t0;
     (void)memset(f, 0, sizeof(*f));
     f->moved = cycle_motion(core, t0_us, ego_motion, context, &f->since_last);
-    pp_stitch_move_old(&core->prev_path, t0_us, ego_motion, context, &f->old);         /* T4 step 1 */
+    pp_stitch_move_old(&core->prev_path, t0_us, ego_motion, context, &f->old);
 
-    /* PP-SWR-142: all three chassis signals must be usable to publish a path. */
+    /* Chỉ phát path hợp lệ khi cả ba tín hiệu chassis dùng được (PP-SWR-142). */
     f->forward = (in->speed != NULL) && (in->speed->direction == PP_DIRECTION_FORWARD);
     f->chassis_valid = f->forward && (in->imu != NULL) && (in->steering != NULL);
     if (!f->forward) {
@@ -324,7 +318,6 @@ void pp_core_frame(pp_core_state_t *core, const pp_usable_inputs_t *in, uint64_t
     f->v_y = (in->vehicle_state != NULL) ? (double)in->vehicle_state->lateral_velocity : 0.0;
     f->yaw_rate = (in->imu != NULL) ? (double)in->imu->yaw_rate_rps : 0.0;
 
-    /* T1: a lane model that is not usable counts as no boundary at all (T2 coasts). */
     f->lane_ok = (in->lane_model != NULL)
         && pp_core_motion_to_t0(in->lane_model->header.stamp_us, t0_us, ego_motion, context, &to_t0);
     if (f->lane_ok) {
@@ -333,11 +326,11 @@ void pp_core_frame(pp_core_state_t *core, const pp_usable_inputs_t *in, uint64_t
         pp_lane_empty(&f->lane);
     }
     pp_reference_line_update(&core->ref_mem, &f->lane, f->moved ? &f->since_last : NULL, core->cal,
-                             (double)core->vehicle.vehicle_width, f->dt, &f->ref);  /* T2 */
-    f->camera_ref = f->ref;                                   /* before T5, for T10 steps 3, 4 */
+                             (double)core->vehicle.vehicle_width, f->dt, &f->ref);
+    f->camera_ref = f->ref;
     const double ds = f->moved ? f->since_last.dx : (f->v * f->dt);
     if (f->ref.valid && !f->ref.coasting && f->lane_ok) {
-        fuse_curvature(core, in, ds, f->v, &f->ref);          /* T5 */
+        fuse_curvature(core, in, ds, f->v, &f->ref);
     } else if (!f->ref.valid) {
         pp_curvature_reset(&core->curv);
     } else {
@@ -387,11 +380,11 @@ void pp_core_publish_trajectory(pp_core_state_t *core, uint64_t t0_us, bool vali
                                 const pp_reference_line_t *ref, pp_planner_id_t planner,
                                 pp_trajectory_t *out)
 {
-    out->header.stamp_us = t0_us;                                          /* PP-SWR-012 */
+    out->header.stamp_us = t0_us;
     out->header.counter = pp_core_next_counter(&core->trajectory_counter);
     out->header.valid = valid;
     out->header.frame_id = PP_FRAME_ID_BASE_LINK;
-    out->planner_id = planner;                                             /* PP-SWR-019 */
+    out->planner_id = planner;
     if (valid) {
         (void)memcpy(out->points, points, sizeof(out->points));
         out->observed_horizon_s = pp_core_observed_horizon(points, ref);
@@ -399,5 +392,5 @@ void pp_core_publish_trajectory(pp_core_state_t *core, uint64_t t0_us, bool vali
         pp_output_empty_points(out->points);
         out->observed_horizon_s = 0.0F;
     }
-    pp_stitch_remember(&core->prev_path, t0_us, valid, out->points);      /* for T4 */
+    pp_stitch_remember(&core->prev_path, t0_us, valid, out->points);
 }

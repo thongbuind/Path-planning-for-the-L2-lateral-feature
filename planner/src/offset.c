@@ -1,13 +1,11 @@
-/* T8 Offset (offset.h); one big vehicle gives offset_truck, PP-ADR-020. */
-
 #include <math.h>
 #include <stddef.h>
 #include <string.h>
 
 #include "offset.h"
 
-#define PP_BIG_VEHICLE_WIDTH_M (2.3)   /* Software Requirements Specification 4, "Xe lớn" */
-#define PP_NO_GAP (1.0e9)              /* No big vehicle on that side */
+#define PP_BIG_VEHICLE_WIDTH_M (2.3)
+#define PP_NO_GAP (1.0e9)
 
 void pp_offset_reset(pp_offset_state_t *st)
 {
@@ -16,15 +14,14 @@ void pp_offset_reset(pp_offset_state_t *st)
     }
 }
 
-/* Whether a big vehicle counts now (abreast, or abreast within ttc_offset_start). */
 static bool counts(const pp_object_t *o, double v, double car_front, double car_rear,
                    const pp_calibration_t *cal)
 {
     const double half = 0.5 * (double)o->length;
     const double rear = (double)o->x - half;
     const double front = (double)o->x + half;
-    const double closing_ahead = v - (double)o->vx;      /* car catches up an object ahead */
-    const double closing_behind = (double)o->vx - v;     /* an object behind catches up */
+    const double closing_ahead = v - (double)o->vx;
+    const double closing_behind = (double)o->vx - v;
     bool now = (rear <= car_front) && (front >= car_rear);
     if (!now && (rear > car_front) && (closing_ahead > 0.0)) {
         now = ((rear - car_front) / closing_ahead) <= (double)cal->ttc_offset_start;
@@ -35,7 +32,7 @@ static bool counts(const pp_object_t *o, double v, double car_front, double car_
     return now;
 }
 
-/* Step 3: a side without a counted big vehicle keeps its last gap for t_offset_hold. */
+/* Khi xe lớn hết được tính, giữ khoảng cách cuối trong t_offset_hold để không nhả offset đột ngột. */
 static void hold(double *hold_s, double *kept, double *gap, const pp_calibration_t *cal, double dt)
 {
     if (*gap < PP_NO_GAP) {
@@ -45,15 +42,11 @@ static void hold(double *hold_s, double *kept, double *gap, const pp_calibration
         *hold_s -= dt;
         *gap = *kept;
     } else {
-        /* Nothing on this side. */
     }
 }
 
-/*
- * Step 5 (Software Architectural Design 6; PP-ADR-020). Left positive. One big vehicle that
- * is too close: the fixed offset_truck away from it, unless a vehicle is on the other side.
- * Two big vehicles: equal gaps, as before.
- */
+/* Dương về trái. Một xe lớn quá gần tạo offset_truck về phía đối diện nếu phía đó không có xe cản
+ * (PP-ADR-020). */
 static double offset_of(double gap_left, double gap_right, bool other_left, bool other_right,
                         double o_lim, const pp_calibration_t *cal)
 {
@@ -71,12 +64,10 @@ static double offset_of(double gap_left, double gap_right, bool other_left, bool
     } else if (big_right && (miss_right > 0.0)) {
         o = other_left ? 0.0 : fixed;
     } else {
-        /* No big vehicle too close. */
     }
     return o;
 }
 
-/* Hold of a "vehicle on that side" flag for t_offset_hold. */
 static bool hold_flag(double *hold_s, bool now, const pp_calibration_t *cal, double dt)
 {
     if (now) {
@@ -123,11 +114,10 @@ double pp_offset_update(pp_offset_state_t *st, const pp_object_list_t *objects,
                     other_left = other_left || (d > 0.0);
                     other_right = other_right || (d <= 0.0);
                 } else {
-                    /* Not in an adjacent lane: no effect on the ego lane. */
                 }
             }
         }
-        hold(&st->hold_left_s, &st->gap_left, &gap_left, cal, dt);   /* Step 3 */
+        hold(&st->hold_left_s, &st->gap_left, &gap_left, cal, dt);
         hold(&st->hold_right_s, &st->gap_right, &gap_right, cal, dt);
         other_left = hold_flag(&st->other_left_s, other_left, cal, dt);
         other_right = hold_flag(&st->other_right_s, other_right, cal, dt);
@@ -136,7 +126,7 @@ double pp_offset_update(pp_offset_state_t *st, const pp_object_list_t *objects,
                                             free_space - (double)cal->dlc_offset_min));
         target = offset_of(gap_left, gap_right, other_left, other_right, o_lim, cal);
     } else {
-        st->hold_left_s = 0.0;                                /* Step 6 (PP-SWR-140) */
+        st->hold_left_s = 0.0;
         st->hold_right_s = 0.0;
         st->other_left_s = 0.0;
         st->other_right_s = 0.0;

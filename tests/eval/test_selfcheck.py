@@ -1,6 +1,3 @@
-"""Severity from the Software Requirements Specification (Software Qualification Test
-Specification 8.4) and the evaluator self-check with bait planners (section 12)."""
-
 import shutil
 import subprocess
 import sys
@@ -14,12 +11,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.mark.parametrize("check, level", [
-    ("PP-SWR-001", "BLOCKER"),   # Regulatory, SG-01
-    ("PP-SWR-100", "BLOCKER"),   # Safety, SG-04
-    ("PP-SWR-014", "BLOCKER"),   # Interface
-    ("PP-SWR-050", None),        # Performance target
+    ("PP-SWR-001", "BLOCKER"),
+    ("PP-SWR-100", "BLOCKER"),
+    ("PP-SWR-014", "BLOCKER"),
+    ("PP-SWR-050", None),
     ("C2.counter", "BLOCKER"),
-    ("C3.memory", None),         # removes the Integrable flag only
+    ("C3.memory", None),
     (severity.EXECUTION_FAULT, "BLOCKER"),
 ])
 def test_level_follows_the_type_column(check, level):
@@ -48,7 +45,7 @@ BAIT = {"expect": ["PP-SWR-100"], "level": "BLOCKER", "runs": [["S1", "a"]]}
 def test_detected_only_when_the_control_does_not_fail_the_same_id_on_the_same_case():
     bait = _judged(runs=[{"run": "S1 a seed 1", "failed": ["PP-SWR-100"], "judged_ids": ["PP-SWR-100"]}])
     clean = _judged(runs=[{"run": "S1 a seed 1", "failed": ["PP-SWR-051"]},
-                          {"run": "S1b a seed 1", "failed": ["PP-SWR-100"]}])  # other case: does not count
+                          {"run": "S1b a seed 1", "failed": ["PP-SWR-100"]}])
     assert selfcheck.verdict(BAIT, bait, clean)[0] == "đạt"
     assert selfcheck.verdict(BAIT, bait, bait)[0] == "không phân biệt"
 

@@ -1,14 +1,3 @@
-"""Runs the variants of a trade study (research/README.md, step 5).
-
-    python3 -m eval.study PP-TS-003 --jobs 2 [--record]
-
-Reads research/studies/<id>-*/plan.yaml. Each variant is built into its own planner
-library (calibration overrides, CMake entries for build-time choices) and run on the
-parts of the named suite, with that suite's runs, seeds and scope. Ranked as in Software
-Qualification Test Specification 9. Writes build/study/<id>/summary.md, results.json and
-manifest.json; --record needs a locked plan and makes it an official run.
-"""
-
 import argparse
 import json
 from concurrent.futures import ProcessPoolExecutor
@@ -38,7 +27,7 @@ def variant_sets(plan: dict) -> list[sweep.CalSet]:
 
 
 def run_variant(suite_id: str, cal_set: sweep.CalSet, parts: list[str], root: Path) -> list[dict]:
-    """All parts of one variant in one worker, so its build folder is used by one process."""
+    """Một worker chạy mọi phần của cùng biến thể để thư mục build chỉ có một tiến trình dùng."""
     return [sweep.run_set(suite_id, cal_set, part, root) for part in parts]
 
 
@@ -52,7 +41,9 @@ def table(results: list[dict], plan: dict) -> list[str]:
 def main() -> None:
     from adapters.sil.sil_planner import PlannerLibraries
 
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Runs the variants of a trade study (research/README.md, step 5).",
+    )
     parser.add_argument("study", help="Trade study id, e.g. PP-TS-003")
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--variant", action="append", metavar="ID",

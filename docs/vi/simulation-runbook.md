@@ -3,23 +3,23 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `SIM-RB` |
-| Phiên bản | 1.0 |
+| Phiên bản | 1.1 |
 | Trạng thái | v1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-19 |
+| Cập nhật | 2026-11-21 |
 
 ## 1. Purpose and scope {#rb-scope}
 
 - **Mục đích.** Hướng dẫn cài, chạy và dùng simulator, bên chấm và workbench của Path Planning, từ clone sạch tới ba hành trình dùng chính.
-- **Phạm vi.** Cài đặt, kiểm cài đặt, ba hành trình (H1 xem chất lượng planner, H2 xem cách xây nền tảng, H3 điều tra một hành vi lạ), lần chạy chính thức, gói bàn giao hai thư viện planner, thêm một SUT mới, xử lý sự cố, các việc để sau.
+- **Phạm vi.** Cài đặt, kiểm cài đặt, ba hành trình (H1 xem chất lượng planner, H2 xem cách xây nền tảng, H3 điều tra một hành vi lạ), lưu và khôi phục kết quả, gói bàn giao, thêm một SUT mới, xử lý sự cố, các việc để sau.
 - **Ngoài phạm vi.** Độ tin cậy của công cụ ([Simulation Handbook](report.html?doc=simulation-handbook&lang=vi)). Requirement và phép thử của planner (Software Requirements Specification, Software Qualification Test Specification).
 
 ## 2. References {#rb-references}
 
 | Tài liệu | Dùng cho |
 |---|---|
-| `README.md` | Cấu trúc mã nguồn, quy tắc import, build planner |
+| `README.md` | Điểm bắt đầu và cấu trúc mã nguồn |
 | [Simulation Handbook](report.html?doc=simulation-handbook&lang=vi) | Model, giả định, verification, validation, yêu cầu nền tảng |
 | [Software Qualification Test Specification](report.html?doc=path-planner-software-qualification-test-specification&lang=vi) | Kịch bản, lỗi, tiêu chí đạt, kết luận |
 | `research/README.md` | Lần chạy chính thức, `PP-TS`, `PP-PR` |
@@ -61,7 +61,7 @@ Khoảng 15 phút.
 
 | Bước | Việc | Kết quả |
 |---|---|---|
-| 1 | `python -m eval.run_full --suite smoke --jobs 2 --out build/benchmark/planner-smoke` (vài phút) | Thư mục có `report.html`, `report.md`, `conclusion.json` |
+| 1 | `python -m eval.run_full --suite smoke --jobs 2 --out build/benchmark/planner-smoke` (vài phút) | `report.html`, `suite/report.md`, `suite/conclusion.json` |
 | 2 | Mở `build/benchmark/planner-smoke/report.html` | Kết luận theo Software Qualification Test Specification 8.4, cờ Tích hợp được, danh sách trượt BLOCKER theo requirement kèm ca, profile, seed, thời điểm trượt đầu. Trang Thông tin báo cáo ghi phiên bản simulator và trạng thái validation của các model |
 | 3 | `python3 -m workbench.server` rồi mở `http://127.0.0.1:8793/` | Workbench |
 | 4 | Màn Suite và regression, chọn lần chạy, mục Điều tra một ca trượt, bấm Mở lại ở một ca trượt | Run mới chạy lại ca từ file đã đóng băng, so `behavior_checksum` với kết quả ghi trong suite và ghi khớp hay không |
@@ -70,6 +70,10 @@ Khoảng 15 phút.
 | 7 | Màn So sánh và campaign, tab So sánh hai lần chạy: chọn hai lần chạy suite (baseline, candidate) rồi bấm So sánh | Khối Môi trường của hai bên (thư viện, calibration, commit, bộ đầu vào, máy), rồi số lượt mới trượt, hết trượt, còn trượt và lượt đổi hành vi; mỗi dòng có nút Mở lại ở candidate |
 
 Lần chạy chính thức cuối cùng của dự án có sẵn trong `research/runs/`; `report.md` ở đó là báo cáo đã dùng để review.
+
+Chọn `smoke` để thử luồng chạy, `regression` để kiểm hồi quy và `full` để đánh giá tập ca rộng nhất. Dùng thư mục đầu ra mới cho mỗi lần chạy. Mặc định suite ghi MCAP cho ca trượt. Dùng `--mcap none` khi chỉ cần kết quả chấm và báo cáo.
+
+Để chấm planner khác, thêm `--planner <thư-mục-thư-viện>`. Dùng một clone riêng với `planner/calibration/calibration.yaml` khớp bản build đang chấm. Evaluator đọc `value` và `unit` của các tham số dùng để chấm.
 
 ## 6. H2: xem cách xây nền tảng {#rb-h2}
 
@@ -118,9 +122,23 @@ Run của campaign được ghim nên không bị dọn; bấm Xóa campaign khi
 | Build lại hai thư viện từ đúng commit đó | `cmake --build build/planner` | Chuỗi `pp_version` mang commit |
 | Ghi lại mốc golden | `python -m eval.golden record --jobs 2` | Sau mỗi lần build lại |
 | Kiểm bên chấm | `python -m eval.selfcheck --jobs 2` và `python -m eval.conformance` | |
-| Chạy regression | `python -m eval.run_full --suite regression --jobs 4 --record` | Khoảng 40 phút, mỗi tiến trình khoảng 420 MB |
+| Chạy regression | `python -m eval.run_full --suite regression --jobs 4 --record --artifact-dir "$SUITE_ARTIFACT_DIR"` | Khoảng 40 phút, mỗi tiến trình khoảng 420 MB |
 
-Kết quả vào `research/runs/<run-id>/` và một dòng ở `research/runs/INDEX.md`. Chỉ lần chạy chính thức được trích trong tài liệu và báo cáo. Suite full (`--suite full`) lâu hơn; chạy khi cần.
+Đặt `SUITE_ARTIFACT_DIR` trỏ tới kho dùng chung có quyền ghi, nằm ngoài repo. Có thể dùng `build/run-artifacts/` để thử cục bộ. `research/runs/<run-id>/` giữ `manifest.json`, `summary.json`, `report.md` và `conclusion.json`. Manifest ghi tên ZIP và SHA-256. ZIP chứa kết quả từng ca, B0 và bộ ca cụ thể đúng phiên bản đã chạy. Run ID được ghi vào `research/runs/INDEX.md`. Chỉ lần chạy chính thức được trích trong tài liệu và báo cáo.
+
+### Khôi phục một suite
+
+```bash
+python -m eval.run_artifacts "research/runs/<run-id>" --artifact-dir "$SUITE_ARTIFACT_DIR"
+```
+
+Lệnh kiểm SHA-256, dựng lại hai bản dashboard và đặt suite dưới `build/benchmark/<run-id>/`. Mở `report.html`, chọn suite trong Workbench hoặc dùng `suite/` với `eval.compare`. Để xuất bộ đang có trong `build/benchmark/` lên web tĩnh, xem `web/README.md`. File MCAP, hình và log chẩn đoán của lượt gốc nằm ở thư mục cục bộ của lượt chạy.
+
+### Dọn kết quả cục bộ
+
+1. Dừng lượt ghi kết quả đang chạy. Dùng `du -sh build/benchmark/* web/dist` để biết thư mục nào chiếm chỗ.
+2. Đọc `suite/summary.json` và cuối `run.log`. Giữ suite đang dùng để so sánh hoặc bàn giao. Thử khôi phục artifact của suite chính thức cần giữ trước khi dọn thư mục chạy gốc.
+3. Giữ `build/runs/` và `build/campaigns/` khi còn dùng Workbench. Các run ghim nằm trong `build/runs/.pinned.json`. Dọn từng thư mục benchmark đã kiểm kê. Có thể xuất lại `web/dist/` bằng `node web/build-static.cjs`.
 
 ## 9. Gói bàn giao hai thư viện planner {#rb-handover}
 
@@ -163,6 +181,7 @@ Việc kèm theo: viết bộ planner mồi riêng cho SUT (`eval/bait/`), thêm
 | Cổng 8793 đã dùng | Workbench khác đang chạy | `python3 -m workbench.server --port <cổng>` |
 | Run báo bundle từ cây làm việc có thay đổi chưa commit | Chạy khi chưa commit | Chạy lại được, nhưng chưa truy về một commit; commit rồi chạy lại nếu cần bằng chứng |
 | `--record` từ chối | Cây chưa sạch hoặc thư viện build từ commit khác HEAD | Commit, build lại, ghi lại mốc golden |
+| Artifact không khôi phục được | Thiếu ZIP hoặc SHA-256 không khớp | Xem tên ZIP trong `manifest.json`, lấy lại đúng bản từ kho lưu trữ |
 | Hết RAM khi chạy suite | Quá nhiều tiến trình | `--jobs 2` |
 | `behavior_checksum` khác giữa hai máy | Hệ điều hành hoặc trình biên dịch khác | Chỉ so trong cùng máy |
 
@@ -187,4 +206,5 @@ Việc kèm theo: viết bộ planner mồi riêng cho SUT (`eval/bait/`), thêm
 
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
+| 1.1 | 2026-11-21 | Bổ sung ghi, khôi phục và dọn kết quả suite |
 | 1.0 | 2026-11-19 | Bản đầu: cài đặt, kiểm cài đặt, ba hành trình, so sánh và campaign, lần chạy chính thức, gói bàn giao, thêm SUT mới, xử lý sự cố, việc để sau |

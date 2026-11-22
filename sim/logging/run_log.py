@@ -1,17 +1,3 @@
-"""One RunLog as an MCAP file for Foxglove (Software Qualification Test Specification 4.1, 10).
-
-Topics, log time = simulation time:
-  /planner/trajectory, /planner/path_status   chosen by the arbitrator stand-in and the status of its function
-  /planner/lcc_status, /planner/intervention_status, /planner/lateral_limits   planner outputs, as sent
-  /planner/function_requests   FunctionRequests the planner received at each cycle
-  /planner/cycle               compute time, lane-model view range given to the planner
-  /truth/vehicle               ground truth every 10 ms: pose, speed, a_y, wheel angle, lane offset
-                               and DLC of the front axle to both ego-lane boundaries
-Metadata "run" holds what is needed to run the case again (the caller adds library, commit,
-command); "scenario" holds the scenario values, faults included. Floats keep 6 significant
-digits: the file is for viewing, a rerun goes through the manifest.
-"""
-
 import dataclasses
 import enum
 import math
@@ -28,7 +14,7 @@ def _num(x: float) -> float | None:
 
 
 def _plain(value):
-    """Dataclass tree to JSON values: enums by name, floats rounded, non-finite as null."""
+    """Đổi enum sang tên, làm tròn float và ghi null cho giá trị không hữu hạn."""
     if isinstance(value, enum.Enum):
         return value.name
     if dataclasses.is_dataclass(value):
@@ -54,7 +40,6 @@ def _trajectory(t) -> dict:
 
 
 def write(log, path: Path, run: dict[str, str] | None = None) -> Path:
-    """Writes `log` (sim.harness.RunLog) to `path`; `run` adds rerun information."""
     scenario = log.scenario
     with McapWriter(path, profile="pp-sil") as out:
         out.metadata("run", {"scenario": scenario.name, "seed": str(log.seed), "profile": scenario.profile,

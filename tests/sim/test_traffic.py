@@ -1,5 +1,3 @@
-"""Other vehicles and the ObjectList sensor (Software Qualification Test Specification 4.5)."""
-
 from math import isclose, pi
 
 import numpy as np
@@ -67,7 +65,6 @@ def test_sensor_reports_truck_in_base_link():
         assert out.header.frame_id == FrameId.BASE_LINK and len(out.objects) == 32
         real = [o for o in out.objects[:out.num_objects] if o.id == 1]
         xs.extend((o.x, o.y, o.vx, o.width) for o in real)
-    # Without noise the truck is at its true place; about 2 % of the frames miss it.
     assert all(isclose(x, 30.0, abs_tol=1e-9) and isclose(y, -3.5, abs_tol=1e-9) for x, y, _, _ in xs)
     assert all(isclose(vx, 20.0, abs_tol=1e-9) and w == 2.5 for _, _, vx, w in xs)
     assert 180 <= len(xs) <= 200
@@ -77,20 +74,19 @@ def test_sensor_range_and_noise():
     far = Traffic(_road(), (TrafficSpec(1, 400.0, 0.0, 25.0),)).at(0.0)
     sensor = ObjectSensor(np.random.default_rng(2))
     out = sensor.capture(0, (50.0, 0.0, 0.0), 25.0, far)
-    assert out.num_objects == 0 or all(o.id != 1 for o in out.objects[:out.num_objects])  # beyond 150 m
+    assert out.num_objects == 0 or all(o.id != 1 for o in out.objects[:out.num_objects])
 
     near = Traffic(_road(), (TrafficSpec(1, 100.0, -3.5, 25.0),)).at(0.0)
     ys = [o.y for k in range(2000)
           for out in [sensor.capture(k * object_sensor.PERIOD_US, (50.0, 0.0, 0.0), 25.0, near)]
           for o in out.objects[:out.num_objects] if o.id == 1]
-    # Range 50 m: y sigma = 0.1 + 0.5 % of range = 0.35 m.
+    # Ở tầm 50 m, sigma ngang là 0,1 + 0,5% × 50 = 0,35 m.
     assert isclose(float(np.std(ys)), 0.1 + 0.005 * np.hypot(50.0, 3.5), rel_tol=0.1)
 
 
 def test_sensor_ghosts_are_rare_and_short():
     sensor = ObjectSensor(np.random.default_rng(3))
-    frames = 20 * 60 * 10  # 10 minutes
+    frames = 20 * 60 * 10
     ghost_frames = sum(sensor.capture(k * object_sensor.PERIOD_US, (0.0, 0.0, 0.0), 25.0, []).num_objects > 0
                        for k in range(frames))
-    # 0.05 ghosts per second living 0.2 s: about 1 % of the frames.
     assert 0.003 * frames < ghost_frames < 0.03 * frames

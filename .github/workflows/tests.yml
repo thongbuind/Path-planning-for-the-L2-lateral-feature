@@ -1,8 +1,6 @@
 name: Tests
 
-# Quality gate of the repository (SIM-REQ-101): build the planner, run the tests, conformance B0
-# and the golden set of the simulation platform. Benchmark suites are not run here; they run on
-# the development machine (--record). Selfcheck runs on demand (workflow_dispatch).
+# CI kiểm cổng chất lượng SIM-REQ-101. Suite chính thức chạy riêng với --record.
 
 on:
   push:

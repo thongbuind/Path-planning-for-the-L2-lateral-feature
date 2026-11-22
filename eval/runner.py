@@ -1,20 +1,3 @@
-"""Runs one benchmark scenario against the delivered planner library (SIL).
-
-    python3 -m eval.runner S1 a --seed 1
-    python3 -m eval.runner S1 a --fault F02 c
-    python3 -m eval.runner S4 a --fault F20 b --at lka_active+0.5
-    python3 -m eval.runner S1 c --fault F01 c --fault F04 a
-    python3 -m eval.runner S1 a --planner path/to/libother_planner.so
-
-The planner is any library built against interfaces/c/pp_planner.h (--planner); default
-build/planner (libpp_lcc and libpp_lkaelk, see README). Writes build/runs/<scenario>_seed<n>.json, the
-MCAP log <scenario>_seed<n>.mcap and manifest.json, and the run bundle <out>/<run_id>/
-(execution.bundle, eval.run_bundle); prints the conclusion of Software
-Qualification Test Specification 8.4 for this run first (scope of P1 for a scenario id,
-every criterion for a .xosc file). B0 is not run here: see eval.conformance.
---record makes it an official run (research/README.md).
-"""
-
 import argparse
 from pathlib import Path
 
@@ -32,7 +15,6 @@ def run(scenario: Scenario, seed: int, planner: PlannerFactory | None = None) ->
 
 
 def parse_moment(text: str) -> tuple[str, float]:
-    """'lka_active+0.5' -> ('lka_active', 0.5); the offset may be left out."""
     event, _, offset = text.partition("+")
     from sim.faults import trigger
     trigger.check(event)
@@ -43,14 +25,14 @@ def parse_moment(text: str) -> tuple[str, float]:
 
 
 def run_scope(spec: list, faults: list) -> set[str]:
-    """Scope of the host plus that of every fault on it (Software Qualification Test
-    Specification 8.1)."""
     keys = [spec] + [spec + list(f) for f in faults]
     return set().union(*(matrix.scope(matrix.SCOPE, k) for k in keys))
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Runs one benchmark scenario against the delivered planner library (SIL).",
+    )
     parser.add_argument("scenario", help="Scenario id, e.g. S1")
     parser.add_argument("variant", nargs="?", help="Variant letter; omit when scenario is a .xosc path")
     parser.add_argument("--seed", type=int, default=1)
@@ -87,7 +69,6 @@ def main() -> None:
     manifest["libraries"] = provenance.library_infos(planner, external=args.planner is not None)
     if args.record:
         provenance.preflight(manifest)
-    # The same recipe as the web and reruns (eval.case): same Scenario, same case_hash.
     recipe = ({"kind": "file", "path": str(Path(args.scenario).resolve())} if is_file
               else {"kind": "catalog", "sid": args.scenario, "v": args.variant})
     if faults:
@@ -130,7 +111,6 @@ def main() -> None:
     provenance.write(manifest, args.out, path.stem + ".manifest.json")
     from eval import presentation
     figure = presentation.run_figure(log, result, args.out / f"{result.scenario}_seed{result.seed}.png")
-    # Run bundle v1 next to the files above (execution.bundle): same content as a web run.
     from eval import run_bundle
     from execution import bundle
     folder = bundle.Bundle.create(args.out)

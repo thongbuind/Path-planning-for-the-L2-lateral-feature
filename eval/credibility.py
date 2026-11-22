@@ -1,13 +1,5 @@
-"""Simulator identity and the validation state of its models (SIM-REQ-121).
-
-Every report that concludes on a planner names the simulator version and says, for each model
-the run used, whether the model was validated against real data. The models and their text
-are the ones of the Simulation Handbook (docs/vi/simulation-handbook.md, section 9 and 15);
-tests/eval/test_credibility.py checks that both lists agree, so a model added here without a
-handbook entry fails the test.
-
-No real vehicle data exists in this project, so no model is validated yet. A model counts as
-validated only when its `validated` flag is set together with the evidence in the handbook.
+"""Ghi phiên bản simulator và trạng thái validation của từng model theo Simulation Handbook
+(SIM-REQ-121).
 """
 
 from dataclasses import dataclass
@@ -22,7 +14,7 @@ NOT_VALIDATED_STAND_IN = "Chưa validation: stand-in theo đặc tả, không c�
 
 @dataclass(frozen=True)
 class Model:
-    id: str          # also the handbook anchor: hb-model-<id>
+    id: str          # ID cũng là hậu tố của anchor hb-model-<id> trong Simulation Handbook.
     name: str
     validation: str
     validated: bool = False
@@ -46,7 +38,6 @@ MODELS = (
 
 
 def simulator_info(git: dict | None = None) -> dict:
-    """What a manifest records about the simulator that made the run (eval.provenance.make)."""
     git = git or {}
     return {"commit": git.get("commit"), "dirty": git.get("dirty"),
             "checksum_version": checksum.VERSION, "bundle_schema": bundle.SCHEMA, "handbook": HANDBOOK,
@@ -55,9 +46,8 @@ def simulator_info(git: dict | None = None) -> dict:
 
 
 def simulator_text(info: dict | None = None) -> str:
-    """One line for a report: version of simulator and evaluator, and the validation state."""
     if info is None:
-        from eval import provenance  # not at import: provenance imports this module
+        from eval import provenance  # Import muộn vì provenance cũng import mô-đun này.
         info = simulator_info(provenance.git_state())
     commit = (info.get("commit") or "")[:7]
     version = (commit + ("-dirty" if info.get("dirty") else "")) if commit else "không có git"

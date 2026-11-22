@@ -36,6 +36,8 @@ Lệnh tạo lại `web/dist/` với `index.html`, trang báo cáo, tài nguyên
 
 Web tự chọn benchmark đã hoàn tất mới nhất có dữ liệu và báo cáo trong `build/benchmark/` hoặc `research/runs/`. `python -m eval.run_full` tạo cả hai báo cáo ngay sau khi chạy; không cần cập nhật ID thủ công. Nếu lần chạy cũ chưa có bản tiếng Anh, web dùng tạm bản tiếng Việt. Bản tĩnh chọn benchmark mới nhất tại thời điểm xuất web.
 
+Với suite lưu bằng artifact, khôi phục ZIP vào `build/benchmark/` theo [Simulation Runbook](../docs/vi/simulation-runbook.md) rồi chạy lệnh xuất. Bản xuất từ clone sạch trên GitHub Actions dùng báo cáo đã lưu trong `research/runs/`.
+
 Để xem thử, chạy `python3 -m http.server 8772 --directory web/dist` rồi mở [bản tĩnh cục bộ](http://127.0.0.1:8772/).
 
 GitHub Pages dùng nguồn **GitHub Actions**. Workflow `Deploy GitHub Pages` xuất bản `web/dist/` sau mỗi lần push lên `main`. Có thể chạy lại từ tab **Actions**. [Hướng dẫn cấu hình GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)

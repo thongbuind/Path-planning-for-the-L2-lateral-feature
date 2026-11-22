@@ -1,5 +1,3 @@
-"""HWA view-range gate (ADAS Function Specification 7, 13)."""
-
 from dataclasses import replace
 
 from interfaces import CancelReason, ElkReason, FunctionRequest, RequestState, Side
@@ -18,8 +16,8 @@ def lane(view_end: float):
 def test_short_drop_keeps_hwa_and_long_drop_hands_over_then_returns():
     gate, short, long = HwaViewGate(), lane(15.0), lane(80.0)
     assert gate.apply(REQUEST, 0, long, 25.0).state == RequestState.REQUEST
-    assert gate.apply(REQUEST, 100_000, short, 25.0).state == RequestState.REQUEST  # 0.6 s preview
-    assert gate.apply(REQUEST, 600_000, short, 25.0).state == RequestState.REQUEST  # held 0.5 s
+    assert gate.apply(REQUEST, 100_000, short, 25.0).state == RequestState.REQUEST
+    assert gate.apply(REQUEST, 600_000, short, 25.0).state == RequestState.REQUEST
     assert gate.apply(REQUEST, 625_000, short, 25.0).state == RequestState.UNAVAILABLE
     assert gate.apply(REQUEST, 650_000, long, 25.0).state == RequestState.REQUEST
 

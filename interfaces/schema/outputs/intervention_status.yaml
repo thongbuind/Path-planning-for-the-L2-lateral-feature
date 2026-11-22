@@ -1,10 +1,8 @@
-# Interface Control Document 6.3 (#intervention-status). LKA/ELK planner -> ADAS function block, arbitrator.
 icd: "6.3"
 constants:
   INTERVENTION_STATUS_TIMEOUT_US: {type: uint64, value: 75000}
 enums:
   InterventionFunction:
-    doc: "Result of the intervention selection (PP-SWR-030)"
     values: {NONE: 0, LKA: 1, ELK: 2}
   InterventionPhase:
     values: {NONE: 0, ACTIVE: 1, COMPLETED: 2}
@@ -12,8 +10,8 @@ structs:
   InterventionStatus:
     fields:
       - {name: header, type: BasicHeader}
-      - {name: path_valid, type: bool, doc: "Required inputs valid and a path can be built on request; not 'intervening'"}
-      - {name: active_function, type: InterventionFunction, doc: "NONE without a request or when path_valid is false"}
-      - {name: lka_phase, type: InterventionPhase, doc: "LKA intervention phase"}
-      - {name: elk_phase, type: InterventionPhase, doc: "ELK intervention phase"}
-      - {name: lateral_limit_reached, type: bool, doc: "Path cut by the a_y or jerk limit of LKA or ELK; log only"}
+      - {name: path_valid, type: bool, doc: "Đầu vào đủ hợp lệ để dựng path khi có yêu cầu. Cờ có thể true khi chưa can thiệp."}
+      - {name: active_function, type: InterventionFunction, doc: "NONE khi thiếu yêu cầu hoặc path_valid là false."}
+      - {name: lka_phase, type: InterventionPhase}
+      - {name: elk_phase, type: InterventionPhase}
+      - {name: lateral_limit_reached, type: bool, doc: "Path bị cắt theo giới hạn a_y hoặc jerk khi LKA/ELK hoạt động. Chỉ dùng ghi log."}

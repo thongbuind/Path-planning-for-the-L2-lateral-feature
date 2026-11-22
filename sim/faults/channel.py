@@ -1,33 +1,4 @@
-"""Faults on one message channel (Software Qualification Test Specification 4.2, 6: F10,
-F11, F12, F15, F16, F19, F23).
-
-Applied when a message is published, to messages published inside [start_s, start_s +
-duration_s). Which message is hit depends only on its index on the channel, so a fault
-never shifts a random stream, and its loss-equivalent (`equivalent()`) drops exactly the
-messages the fault made unusable (PP-SWR-130).
-
-| kind | Effect |
-|---|---|
-| drop | every `every`-th message is not delivered (isolated losses) |
-| burst | `count` messages in a row not delivered, every `every` messages |
-| jitter | extra delay uniform in +/- `value` ms; delivery may reorder |
-| late | every `every`-th message delayed by `value` ms, so it arrives after a newer one |
-| stop | nothing is delivered |
-| future_stamp | header.stamp_us + `value` ms; `count` > 0: only the first `count` messages |
-| counter_repeat | every `every`-th message delivered twice, the copy `value` ms later |
-| counter_jump | every `every`-th message: counter + `count`; later messages keep the offset, as a sender that skipped values |
-| counter_stuck | counter held at the value before the window |
-| invalid | every `every`-th message: header.valid = false; on a CAN frame qualifier FAULT (F16) |
-| crc | every `every`-th CAN frame with a wrong CRC (F17) |
-| drop_listed | the messages with index in `indices` are not delivered (loss-equivalent) |
-| out_of_range | LongitudinalPlan only: `field` (v or a) of points `indices` (all when empty) set to `value` (F23) |
-
-On a CAN channel the message is a sim.can.frames.CanFrame: the counter is the 4-bit frame
-counter, changed by the sender (CRC still right). The CAN receive layer drops wrong CRC and
-repeated counters, so the reference twin differs from a pub/sub channel (`equivalent`).
-On a pub/sub channel the planner checks the counter step against the largest accepted step
-of the input (Interface Control Document 4, AUTOSAR E2E Profile 5).
-"""
+"""Lỗi kênh tác động tại lúc phát lên các message trong khoảng [start_s, start_s + duration_s)."""
 
 from dataclasses import dataclass, field, replace
 
@@ -41,11 +12,10 @@ KINDS = ("drop", "burst", "jitter", "late", "stop", "future_stamp", "counter_rep
          "lead_id", "lead_class", "lead_noise")
 CHANNELS = ("lane_model", "object_list", "lead_target", "imu", "steering", "speed", "vehicle_state",
             "function_requests", "longitudinal_plan")
-# Faults whose correct handling equals the loss of the messages they hit (PP-SWR-130), or
-# equals no fault at all (PP-SWR-129).
+# Một số lỗi tương đương mất đúng frame bị ảnh hưởng (PP-SWR-130), hoặc tương đương không tiêm lỗi
+# (PP-SWR-129).
 LOSS_EQUIVALENT = ("counter_jump", "counter_stuck", "invalid")
 NO_FAULT_EQUIVALENT = ("counter_repeat",)
-# Largest counter step a pub/sub input accepts (Interface Control Document 4).
 MAX_DELTA_COUNTER = {"lane_model": I.LANE_MODEL_MAX_DELTA_COUNTER,
                      "object_list": I.OBJECT_LIST_MAX_DELTA_COUNTER,
                      "lead_target": I.LEAD_TARGET_MAX_DELTA_COUNTER,
@@ -64,8 +34,8 @@ class ChannelFault:
     every: int = 1
     count: int = 1
     indices: tuple[int, ...] = ()
-    trigger: str | None = None  # sim.faults.trigger: start_s counts from this event
-    field: str = ""  # out_of_range: payload field of LongitudinalPoint
+    trigger: str | None = None  # Nếu có trigger, start_s tính từ sự kiện kích hoạt.
+    field: str = ""
 
     def __post_init__(self) -> None:
         trigger.check(self.trigger)
@@ -85,17 +55,15 @@ class ChannelFault:
 
 @dataclass
 class _State:
-    index: int = 0  # messages published on the channel so far
-    in_window: int = 0  # messages published inside the window so far
+    index: int = 0
+    in_window: int = 0
     held_counter: int | None = None
-    counter_offset: int = 0  # counter_jump: sum of the jumps so far
-    hit: list[int] | None = None  # indices made unusable (loss-equivalent bookkeeping)
+    counter_offset: int = 0
+    hit: list[int] | None = None
     lead_stamps: list[int] = field(default_factory=list)
 
 
 class ChannelFaultInjector:
-    """Turns one published message into the deliveries [(extra_delay_us, message)]."""
-
     def __init__(self, faults: tuple[ChannelFault, ...], rng: np.random.Generator | None = None) -> None:
         self.faults = faults
         self._rng = rng
@@ -148,13 +116,13 @@ class ChannelFaultInjector:
             elif kind == "out_of_range":
                 out = [(d, _with_points(m, fault)) for d, m in out]
                 st.hit.append(index)
-            elif kind == "lead_id":      # F25 c: the id jumps to another vehicle
+            elif kind == "lead_id":
                 out = [(d, replace(m, id=m.id + round(fault.value))) for d, m in out]
                 st.lead_stamps.append(message.header.stamp_us)
-            elif kind == "lead_noise":   # F25 d: position and heading noise `value` times the nominal
+            elif kind == "lead_noise":
                 out = [(d, _lead_noise(m, fault.value, self._rng)) for d, m in out]
                 st.lead_stamps.append(message.header.stamp_us)
-            elif kind == "lead_class":   # F25 e: the class becomes `value` (LeadClass)
+            elif kind == "lead_class":
                 out = [(d, replace(m, classification=I.LeadClass(round(fault.value)))) for d, m in out]
                 st.lead_stamps.append(message.header.stamp_us)
         return out
@@ -163,7 +131,6 @@ class ChannelFaultInjector:
         return sorted({stamp for state in self._states for stamp in state.lead_stamps})
 
     def fault_hits(self) -> list[list[int]]:
-        """Per fault, in order: indices of the messages it made unusable."""
         return [list(st.hit) for st in self._states]
 
 
@@ -176,16 +143,14 @@ def has_twin(fault: ChannelFault, can_bus: bool = False) -> bool:
 
 
 def requirement(fault: ChannelFault, can_bus: bool = False) -> str:
-    """PP-SWR-129 when the right handling equals no fault, else 130."""
     twin = equivalent(fault, [], can_bus)
     return "PP-SWR-129" if twin is None else "PP-SWR-130"
 
 
 def equivalent(fault: ChannelFault, hit: list[int], can_bus: bool = False) -> ChannelFault | None:
-    """Reference twin for PP-SWR-129, 130: None (no fault) or the loss of the messages hit.
-    On a CAN channel the receive layer drops repeated counters and wrong CRC, and accepts a
-    counter jump (counted as lost frames). On a pub/sub channel a jump of step count + 1 up to
-    the largest accepted step is used like any message (PP-SWR-129); a larger step is lost."""
+    """Trên CAN, counter lặp và CRC sai bị bỏ, counter nhảy vẫn nhận. Pub/sub có giới hạn bước
+    counter riêng.
+    """
     can = can_bus and fault.channel in CAN_CHANNELS
     if fault.kind in NO_FAULT_EQUIVALENT or (can and fault.kind == "counter_jump"):
         return None
@@ -211,8 +176,7 @@ def _with_counter(message, counter: int):
 
 
 def _lead_noise(message, scale: float, rng):
-    """LeadTarget with the noise of sim.sensors.lead_sensor raised from 1 to `scale` times: the extra
-    part is independent, so the total sigma is `scale` times the nominal one."""
+    """Cộng nhiễu độc lập để sigma tổng của LeadTarget bằng scale lần giá trị danh định."""
     from math import hypot, sqrt
     from sim.sensors.lead_sensor import SIGMA_HEADING_RAD
     from sim.sensors.object_sensor import SIGMA_X_M, SIGMA_X_REL, SIGMA_Y_M, SIGMA_Y_REL
@@ -226,7 +190,7 @@ def _lead_noise(message, scale: float, rng):
 
 def _with_valid(message, valid: bool):
     if _is_frame(message):
-        return message.with_byte6(message.counter, 0 if valid else 3)  # qualifier VALID or FAULT
+        return message.with_byte6(message.counter, 0 if valid else 3)
     return replace(message, header=replace(message.header, valid=valid))
 
 
@@ -238,5 +202,5 @@ def _with_points(message, fault: ChannelFault):
 
 def _restamp(message, add_us: int):
     if _is_frame(message):
-        return message  # CAN frames carry no stamp; the receiver stamps them (ICD 4)
+        return message  # Frame CAN không mang stamp; receiver gắn thời điểm nhận (ICD 4).
     return replace(message, header=replace(message.header, stamp_us=message.header.stamp_us + add_us))

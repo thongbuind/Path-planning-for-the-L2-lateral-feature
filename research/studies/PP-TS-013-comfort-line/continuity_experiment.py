@@ -1,8 +1,3 @@
-"""Paired PP-TS-013 experiment on preview, continuity and a blocked side.
-
-Run with one BLAS thread. The experiment uses the research geometry and controller.
-"""
-
 import json
 from pathlib import Path
 
@@ -10,10 +5,10 @@ import numpy as np
 
 import prototype as P
 
-SRS_LIMITS = np.array([0.05, 0.005, 0.0003])  # PP-SWR-100, 101, 102
+SRS_LIMITS = np.array([0.05, 0.005, 0.0003])
 LIMITS = tuple(0.9 * SRS_LIMITS)
-AY_MAX = 2.5  # m/s², PP-SWR-001
-AY_SUPPORT_MIN = AY_MAX - 0.2  # m/s², PP-SWR-006 with default epsilon_ay
+AY_MAX = 2.5
+AY_SUPPORT_MIN = AY_MAX - 0.2
 CASES = (("Rf", 80.0), ("S1f", 80.0), ("S14e", 80.0), ("S1c", 80.0), ("S1f", 150.0))
 
 
@@ -26,7 +21,7 @@ def evaluate(road, view, corridor, limited):
         nonlocal support_margin, path_ay_peak
         if not road.focus[0] <= road.sn[index] <= road.focus[1]:
             return
-        # Interior nodes in the observed horizon, with the same curvature approximation as T7.
+        # Chấm các nút bên trong vùng quan sát bằng cùng xấp xỉ độ cong như T7.
         k = road.kn[index + 1:index + len(offsets) - 1]
         ay = road.v**2 * (k + np.diff(offsets, n=2) / P.H**2 + k**2 * offsets[1:-1])
         path_ay_peak = max(path_ay_peak, float(np.max(np.abs(ay), initial=0.0)))

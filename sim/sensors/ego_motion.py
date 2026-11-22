@@ -1,10 +1,5 @@
-"""Ego-motion service (Interface Control Document 5.5; Software Qualification Test
-Specification 4.5).
-
-Answers with the true motion of base_link, lateral slip included (ICD 5.5): integrates
-the chassis signals as received (speed, yaw rate) plus v_y of VehicleStateEstimate, so
-its error follows any fault injected into those inputs. Between samples each input is
-held. Before the first v_y arrives, v_y counts as 0.
+"""EgoMotionQuery tích phân tốc độ và yaw rate đã nhận cùng v_y của VehicleStateEstimate; sai số
+đầu vào đi vào kết quả.
 """
 
 from bisect import bisect_right
@@ -31,7 +26,6 @@ class EgoMotion:
         self._push(self._yaw_rate, rx_us, yaw_rate)
 
     def on_lateral_velocity(self, v_y: float, rx_us: int) -> None:
-        """v_y at base_link from VehicleStateEstimate (Interface Control Document 5.4)."""
         self._push(self._lateral, rx_us, v_y)
 
     def _push(self, history: deque, t_us: int, value: float) -> None:
@@ -54,7 +48,6 @@ class EgoMotion:
             return invalid
         if t1 < self._speed[0][0] or t1 < self._yaw_rate[0][0]:
             return invalid
-        # Break points: every sample time inside (t1, t2).
         cuts = {t1, t2}
         for history in (self._speed, self._yaw_rate, self._lateral):
             cuts |= {t for t, _ in history if t1 < t < t2}
@@ -70,7 +63,6 @@ class EgoMotion:
                 x += (v * cos(yaw) - vy * sin(yaw)) * dt
                 y += (v * sin(yaw) + vy * cos(yaw)) * dt
             else:
-                # Body velocity (v, vy) held, heading turning at r.
                 x += (v * (sin(end) - sin(yaw)) + vy * (cos(end) - cos(yaw))) / r
                 y += (v * (cos(yaw) - cos(end)) + vy * (sin(end) - sin(yaw))) / r
             yaw = end

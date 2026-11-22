@@ -1,6 +1,3 @@
-"""Fake planners for tests of the simulator: a planner set whose LCC planner reports a usable
-path and whose LKA/ELK planner is the fake under test."""
-
 from interfaces import (
     BasicHeader,
     FrameId,
@@ -29,8 +26,6 @@ def straight_trajectory(t0_us: int, counter: int, planner: PlannerId = PlannerId
 
 
 class FakeLcc:
-    """LCC planner that is not requested: a usable path, lcc_mode NONE."""
-
     init_result = InitResult.OK
 
     def __init__(self, _config):
@@ -46,8 +41,6 @@ class FakeLcc:
 
 
 class FakeLkaElk:
-    """LKA/ELK planner that never intervenes and reports valid inputs."""
-
     init_result = InitResult.OK
 
     def __init__(self, _config):
@@ -61,5 +54,4 @@ class FakeLkaElk:
 
 
 def planner_set(lka_elk=FakeLkaElk, lcc=FakeLcc):
-    """PlannerFactory that gives the harness the fake LCC planner and the given LKA/ELK fake."""
     return lambda config: PlannerSet(lcc(config), lka_elk(config))

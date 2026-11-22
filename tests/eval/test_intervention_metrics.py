@@ -1,5 +1,3 @@
-"""Closed-loop criteria from synthetic ICD exchanges and ground truth."""
-
 from dataclasses import replace
 import json
 from math import inf
@@ -23,7 +21,7 @@ LKA = ActiveFunction.LKA
 ELK = ActiveFunction.ELK
 OFF = FunctionRequest(RequestState.OFF, Side.NONE, inf, ElkReason.NONE, CancelReason.NONE)
 BEGIN = 50_000
-END = 575_000  # first settled tick is 75 ms, then T_end_hold = 0.5 s
+END = 575_000  # Mốc ổn định đầu tiên là 75 ms; từ đó mới tính T_end_hold.
 
 
 def _log(expect="LKA", *, requested=LKA, active=LKA, end_us=END, completes=True,
@@ -167,8 +165,7 @@ def test_opposite_dlc_stops_at_next_independent_intervention():
 
 
 def test_no_duration_limit_and_duration_kept_as_information():
-    """PP-SWR-083 is obsolete (PP-TS-016): a long intervention is not a failure, a log that
-    stops during one is still judged, and the observed duration stays in the result."""
+    """PP-SWR-083 đã bỏ theo PP-TS-016. Vẫn ghi thời lượng quan sát khi log dừng giữa can thiệp."""
     short = evaluate(_log(end_us=11_000_000))
     assert not _criteria(short, 83) and not short.case_failures
     long = evaluate(_log(end_us=11_000_000, duration_us=10_200_000))
@@ -192,13 +189,12 @@ def test_continuity_exemption_applies_only_at_the_initial_tick():
 
 
 @pytest.mark.parametrize("first, last, step, passed", [
-    (21, 30, .15, True),    # beyond 2 s: 0.2 m
+    (21, 30, .15, True),
     (21, 30, .25, False),
-    (11, 20, .08, True),    # 1-2 s: 0.1 m
-    (0, 10, .08, False),    # 0-1 s: 0.05 m
+    (11, 20, .08, True),
+    (0, 10, .08, False),
 ])
 def test_continuity_limit_follows_the_time_band(first, last, step, passed):
-    """PP-SWR-100 (SRS 1.22): each point against the limit of its band of time_from_start."""
     log = _log()
     n = next(i for i, c in enumerate(log.cycles) if c.t0_us == 1_000_000)
     c = log.cycles[n]
@@ -212,7 +208,7 @@ def test_continuity_limit_follows_the_time_band(first, last, step, passed):
 
 
 def test_road_edge_dtle_and_100ms_actuator_delay():
-    # PP-SWR-091: the real EPS (100 ms) is slower than VehicleConfig (50 ms).
+    # PP-SWR-091: EPS thực có trễ 100 ms, VehicleConfig chỉ báo 50 ms.
     result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.ROAD_EDGE,
                            offset=lambda t: .92 if t == BEGIN + 1_000 else 0.0, eps_delay_s=.1))
     assert _criteria(result, 86)[0].value == pytest.approx(-.12)
@@ -246,7 +242,6 @@ def test_other_car_gap_is_scored_while_no_impact_is_information():
 
 
 def test_other_car_gap_is_not_scored_while_the_car_is_behind():
-    """PP-SWR-088 is judged only while the two cars are abreast (PP-PR-029)."""
     result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.OVERTAKING,
                            traffic=(TrafficSpec(1, 11.45 - 20.0, 1.95, 20.0),)))
     assert not _criteria(result, 88)
@@ -254,9 +249,8 @@ def test_other_car_gap_is_not_scored_while_the_car_is_behind():
 
 
 def test_other_car_gap_counts_only_from_when_the_car_is_abreast():
-    """Closer laterally while still behind, then abreast at 0.5 m: the gap is 0.5 m - widths."""
-    near = TrafficSpec(1, 11.45 - 20.0, 1.95, 20.0)          # behind, 0.05 m gap if abreast
-    far = TrafficSpec(2, 11.45, 2.40, 20.0)                  # abreast all along, 0.5 m gap
+    near = TrafficSpec(1, 11.45 - 20.0, 1.95, 20.0)
+    far = TrafficSpec(2, 11.45, 2.40, 20.0)
     result = evaluate(_log("ELK", requested=ELK, active=ELK, reason=ElkReason.OVERTAKING,
                            traffic=(near, far)))
     assert _criteria(result, 88)[0].value == pytest.approx(.5)
@@ -268,8 +262,6 @@ INPUTS_OK = {k: True for k in ("lane_model", "imu", "speed", "steering", "ego_mo
 
 
 def _override_log(override: bool, jump_us: int = OVERRIDE_US):
-    """Path 0.3 m left of the car until jump_us, then at the car; driver_override from
-    OVERRIDE_US when `override`."""
     log = _log(expect="", requested=NONE, active=NONE)
     for n, c in enumerate(log.cycles):
         shift = 0.0 if c.t0_us >= jump_us else 0.3
@@ -283,12 +275,11 @@ def _override_log(override: bool, jump_us: int = OVERRIDE_US):
 
 
 @pytest.mark.parametrize("override, jump_us, passed", [
-    (True, OVERRIDE_US, True),             # path jumps to the car when the override starts
-    (True, OVERRIDE_US + 500_000, True),   # path jumps while the driver overrides
-    (False, OVERRIDE_US, False),           # no override: the jump is a continuity failure
+    (True, OVERRIDE_US, True),
+    (True, OVERRIDE_US + 500_000, True),
+    (False, OVERRIDE_US, False),
 ])
 def test_continuity_not_judged_while_the_driver_overrides(override, jump_us, passed):
-    """Hai path liên tiếp (SRS 1.16, PP-TS-017): pairs are not judged while driver_override."""
     result = evaluate(_override_log(override, jump_us))
     assert _criteria(result, 100)[0].passed == passed
 
@@ -305,9 +296,9 @@ def test_091_is_judged_when_the_real_eps_is_slower_up_to_100ms(eps, judged):
     assert bool(_criteria(result, 91)) == judged
 
 
-@pytest.mark.parametrize("index", [2, 10])  # start of the intervention (t = BEGIN), mid-way
+@pytest.mark.parametrize("index", [2, 10])
 def test_non_finite_output_is_an_execution_fault_not_an_evaluator_error(index):
-    """PP-PR-026: a cycle with infinity is not projected on the road; the run is still scored."""
+    """Chu kỳ có vô cực không được chiếu lên đường; suite vẫn ghi kết quả lỗi thực thi (PP-PR-026)."""
     log = _log()
     c = log.cycles[index]
     points = tuple(replace(p, pose=replace(p.pose, x=inf)) if i >= 11 else p
@@ -321,5 +312,4 @@ def test_non_finite_output_is_an_execution_fault_not_an_evaluator_error(index):
 
 
 def test_no_lateral_jerk_targets_without_hwa():
-    """PP-SWR-004 is measured only while HWA drives (PP-PR-025)."""
     assert not [t for t in evaluate(_log()).targets if t.id == "PP-SWR-004"]

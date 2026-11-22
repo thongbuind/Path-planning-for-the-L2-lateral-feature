@@ -1,20 +1,4 @@
-"""Stand-in ACC and longitudinal actuator (Software Qualification Test Specification 4.7).
-
-Test-side longitudinal block, fixed for every planner version (PP-ADR-001). It reads
-LateralLimits (Interface Control Document 6.3) and sends LongitudinalPlan (5.7).
-
-Implemented: CRUISE, FOLLOW and CURVE_LIMIT, target selection, the lateral_limit_reached
-rule, limits, plan, loss of LateralLimits, actuator. FOLLOW reads the ObjectList, the
-Trajectory and the lane model as received, like an ACC on the vehicle bus.
-
-Numbers that 4.7 does not give (nhóm tự thống nhất, to be added to 4.7):
-- speed-hold gain 0.4 1/s; curve-envelope gain 1.0 1/s plus the envelope's own slope
-  as feedforward;
-- LateralLimits timeout 75 ms, as LccStatus (Interface Control Document 6.2);
-- the gap is counted from the front of the ego bounding box of the scenario file (centre at
-  half the wheelbase, length 4.9 m, eval.openx), as the ObjectList gives no ego length; an
-  object's position is moved forward by its relative speed over the age of the frame.
-"""
+"""Stand-in ACC thuộc bên chấm. Đọc LateralLimits và phát LongitudinalPlan theo ICD 6.3 và 5.7."""
 
 from collections import deque
 from dataclasses import dataclass
@@ -35,41 +19,38 @@ from interfaces import (
     LongitudinalPoint,
 )
 
-PERIOD_US = 25_000  # 40 Hz (4.1)
-AYSMAX = 2.5  # [m/s^2] HWA limit the planner's v_max refers to (PP-SWR-001)
-AY_RESERVE = 0.3  # [m/s^2] left for HWA corrections (4.7)
-CURVE_DECEL = 2.0  # [m/s^2] envelope before the curve (4.7)
-LOOKAHEAD_S = 0.5  # d - 0.5 v in the envelope (4.7)
-STABLE_VMAX = 0.05  # v_max change within 5 %: count d down (4.7)
-A_MIN, A_MAX = -3.0, 1.5  # [m/s^2] (4.7)
-JERK_MAX = 2.5  # [m/s^3] (4.7)
-ACT_DELAY_S, ACT_TAU_S = 0.1, 0.3  # actuator (4.7)
-K_SPEED = 0.4  # [1/s] nhóm tự thống nhất
-K_CURVE = 1.0  # [1/s] nhóm tự thống nhất
-LIMITS_TIMEOUT_US = 75_000  # nhóm tự thống nhất (as LccStatus)
-# FOLLOW (4.7, "Chọn xe mục tiêu", "Bám xe trước")
+PERIOD_US = 25_000
+AYSMAX = 2.5
+AY_RESERVE = 0.3
+CURVE_DECEL = 2.0
+LOOKAHEAD_S = 0.5
+STABLE_VMAX = 0.05
+A_MIN, A_MAX = -3.0, 1.5
+JERK_MAX = 2.5
+ACT_DELAY_S, ACT_TAU_S = 0.1, 0.3
+K_SPEED = 0.4
+K_CURVE = 1.0
+LIMITS_TIMEOUT_US = 75_000
 STANDSTILL_GAP_M = 5.0
-TIME_GAP_S = 1.8  # ISO 15622:2018 6.2.3.1 (1.5-2.2 s)
-K_GAP, K_REL = 0.5, 1.0  # [1/s^2], [1/s]
-GAP_ACCEL_LIMIT = 1.0  # [m/s^2] on the gap-error part
-CORRIDOR_MARGIN_M = 0.2  # each side of the ego width
-KEEP_MARGIN_M = 0.3  # more, each side, before a chosen target is dropped
-KEEP_S = 1.0  # outside the wider corridor this long: dropped
-LOOK_AHEAD_S = 1.0  # in the corridor now or after 1 s
-MOVING_MPS = 1.0  # only objects seen moving at least this fast
-EGO_LENGTH_M = 4.9  # bounding box of the scenario files (eval.openx)
+TIME_GAP_S = 1.8  # Khoảng thời gian bám xe tham chiếu ISO 15622:2018 mục 6.2.3.1.
+K_GAP, K_REL = 0.5, 1.0
+GAP_ACCEL_LIMIT = 1.0
+CORRIDOR_MARGIN_M = 0.2
+KEEP_MARGIN_M = 0.3
+KEEP_S = 1.0
+LOOK_AHEAD_S = 1.0
+MOVING_MPS = 1.0
+EGO_LENGTH_M = 4.9
 
 
 @dataclass(frozen=True, slots=True)
 class Lead:
-    gap: float  # [m] bumper to bumper, now
-    speed: float  # [m/s] over ground along the ego heading
-    id: int = 0  # Object id of the target; LongitudinalPlan.target_id
+    gap: float
+    speed: float
+    id: int = 0
 
 
 class LeadSelector:
-    """Target choice of 4.7 from the ObjectList, the Trajectory and the lane model received."""
-
     def __init__(self, vehicle_width: float, wheelbase: float) -> None:
         self.half = vehicle_width / 2
         self.front = wheelbase / 2 + EGO_LENGTH_M / 2
@@ -91,12 +72,10 @@ class LeadSelector:
         return path[-1][1] if path else 0.0
 
     def _offset(self, obj, x: float, y: float, path, lane) -> float:
-        """Distance from the corridor centre to the nearer side of the object [m]."""
         return abs(y - self._centre(x, path, lane)) - obj.width / 2
 
     @property
     def target_id(self) -> int | None:
-        """Object id of the target chosen by the last update, None when there is none."""
         return self._target
 
     def update(self, now_us: int, objects: ObjectList | None, trajectory: Trajectory | None,
@@ -145,12 +124,12 @@ class LeadSelector:
 @dataclass
 class _Curve:
     v_max: float
-    distance: float  # [m] to the curviest point, counted down while v_max is stable
+    distance: float
 
 
 class Acc:
     def __init__(self, set_speed_mps: float, read_limits: bool = True) -> None:
-        """`read_limits` False: ACC ignores LateralLimits (S14 second run; R79 Annex 8 3.2.2)."""
+        """read_limits=False dùng cho lượt đối chứng của S14 (R79 Phụ lục 8, mục 3.2.2)."""
         self.set_speed = set_speed_mps
         self.read_limits = read_limits
         self._limits: LateralLimits | None = None
@@ -185,7 +164,6 @@ class Acc:
     @staticmethod
     def _law(v: float, set_speed: float, curve: _Curve | None, d: float, no_accel: bool,
              lead: Lead | None = None):
-        """(acceleration, mode) before limits, for speed v and distance d to the curve."""
         a = K_SPEED * (set_speed - v)
         mode = LongitudinalMode.CRUISE
         if lead is not None:
@@ -211,7 +189,7 @@ class Acc:
         self._lead = lead
         limits = self._fresh_limits(now_us)
         self._update_curve(limits, v * dt)
-        # Lost LateralLimits: no acceleration (4.7). Flag on: no acceleration.
+        # Khi mất LateralLimits hoặc cờ giới hạn bật, ACC không tăng tốc (SQTS 4.7).
         no_accel = limits is None or (self.read_limits and limits.lateral_limit_reached)
         d = self._curve.distance if self._curve is not None else 0.0
         a, self.mode = self._law(v, self.set_speed, self._curve, d, no_accel, lead)
@@ -221,7 +199,7 @@ class Acc:
         return self._plan(now_us, v, d, no_accel)
 
     def _plan(self, now_us: int, v: float, d: float, no_accel: bool) -> LongitudinalPlan:
-        """The same law run 3 s ahead on the 0.1 s grid (4.7), without the actuator lag."""
+        """Chạy cùng luật điều khiển trên lưới dự báo 0,1 s, không áp độ trễ của actuator."""
         step = float(TRAJECTORY_STEP_S)
         points = []
         a_prev = self.command
@@ -230,7 +208,7 @@ class Acc:
         for _ in range(LONGITUDINAL_PLAN_POINTS):
             points.append(LongitudinalPoint(max(v, 0.0), a_prev))
             a, _ = self._law(v, self.set_speed, self._curve, d, no_accel, lead)
-            if lead is not None:  # the target keeps its speed over the plan
+            if lead is not None:
                 lead = Lead(lead.gap + (lead.speed - v) * step, lead.speed, lead.id)
             a = min(A_MAX, max(A_MIN, a))
             a = min(a_prev + JERK_MAX * step, max(a_prev - JERK_MAX * step, a))
@@ -244,8 +222,6 @@ class Acc:
 
 
 class LongitudinalActuator:
-    """Acceleration command through a 0.1 s delay and a first-order lag tau = 0.3 s (4.7)."""
-
     def __init__(self, speed_mps: float) -> None:
         self.speed = speed_mps
         self.accel = 0.0

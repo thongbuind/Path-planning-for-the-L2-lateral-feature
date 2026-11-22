@@ -1,4 +1,3 @@
-// Bản đồ chỉ giữ vị trí, mô tả ngắn và đường dẫn đến tài liệu kỹ thuật.
 
 window.SPEC_CARDS = [
   {
@@ -150,7 +149,6 @@ window.SPEC_CARDS = [
       "section": "adas-warnings"
     }
   },
-  // Thẻ tài liệu xếp theo thứ tự trong danh mục.
   {
     "id": "mentor-report",
     "kind": "doc",

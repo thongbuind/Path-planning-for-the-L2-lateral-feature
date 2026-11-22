@@ -1,5 +1,3 @@
-"""Technique comparison of Software Qualification Test Specification 9.1 on synthetic suite folders."""
-
 import json
 
 from eval import compare, techniques
@@ -35,4 +33,4 @@ def test_failing_technique_is_eliminated_however_smooth(tmp_path):
     assert c["rows"]["smooth"]["step1"]["requirements"] == {"PP-SWR-100": 1}
     text = "\n".join(techniques.markdown(c))
     assert "smooth bị loại ở bước 1" in text and "| good | đạt |" in text
-    assert "PP-SWR-050 Lệch ngang" in text  # summary table, worst value per technique
+    assert "PP-SWR-050 Lệch ngang" in text

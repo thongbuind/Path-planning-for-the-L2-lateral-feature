@@ -1,21 +1,3 @@
-"""Technique comparison within one planner (Software Qualification Test Specification 9.1, 10).
-
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner --out build/suites/reg-quintic
-    python3 -m eval.suite build/concrete/regression/manifest.json --planner build/planner-qp --out build/suites/reg-qp
-    python3 -m eval.techniques build/suites/reg-quintic build/suites/reg-qp --name quintic --name qp [--out DIR]
-
-One eval.suite output folder per technique, each built with the best calibration of that
-technique (section 7), on the same generated suite. Steps of 9.1, in order:
-  1  every requirement of 8.1 met on every profile; a technique that fails is eliminated,
-     however smooth it is, with the failures as the reason
-  2  safety targets, 3 driver-perception targets, 4 flexibility (spread between profiles),
-     5 compute time: Copeland score of the 9.2 pairwise test per group, a later group only
-     when the earlier ones tie
-Writes build/techniques/<name>/report.md and techniques.json: the comparison table (worst
-value of every performance target over all seeds, section 10 "Bảng tổng") and the reason
-for each elimination.
-"""
-
 import argparse
 from collections import Counter
 import json
@@ -25,11 +7,10 @@ from eval import compare, report
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "build" / "techniques"
-STEPS = ("An toàn", "Cảm nhận người lái", "Flexibility", "Thời gian tính")  # 9.1 steps 2 to 5
+STEPS = ("An toàn", "Cảm nhận người lái", "Flexibility", "Thời gian tính")
 
 
 def step1(p: dict) -> dict:
-    """Requirements of 8.1 on every profile: in-scope failures and execution faults eliminate."""
     failing = [r for r in p["records"].values() if r.get("failed") or "execution" in r]
     errors = sum("error" in r for r in p["records"].values())
     reqs = Counter(f for r in failing for f in (r.get("failed") or ["execution"]))
@@ -85,7 +66,12 @@ def markdown(c: dict) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Technique comparison within one planner (Software Qualification Test Specification "
+            "9.1, 10)."
+        ),
+    )
     parser.add_argument("folders", nargs="+", type=Path)
     parser.add_argument("--name", action="append", help="Technique name per folder, in order")
     parser.add_argument("--out", type=Path)

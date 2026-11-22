@@ -1,14 +1,3 @@
-"""Benchmark dashboard: static HTML slides (16:9) of one planner run (Software Qualification
-Test Specification 10).
-
-    python3 -m eval.report_html build/benchmark/<run>/suite [--lang vi|en] [--out report.html]
-
-Reads an eval.suite output folder (manifest.json, generation.json, results.jsonl,
-conformance.json). Slides: the benchmark and its aspect suites, B0 conformance, then one
-slide per aspect suite B1 to B8 with its conclusion, counts, main chart, failed requirements
-and worst cases. Values come from the results only (black box). Display only; print to PDF.
-"""
-
 import argparse
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -34,14 +23,11 @@ SQTS = "path-planner-software-qualification-test-specification.md"
 SRS = "path-planner-software-requirements-specification.md"
 E = html.escape
 
-# One colour set for the whole dashboard (reference palette of the dataviz method): text and
-# chrome; one data hue with its light step and a gray for context marks; the status set, with
-# text and background steps. Red only ever means a failure; an extreme or a highlight is ACCENT.
-INK, INK2, INK3, INK4 = "#1D1D1F", "#48484A", "#6E6E73", "#86868B"  # text: primary, secondary, muted, block labels (SAI text scale)
-RULE, GRID, AXIS = "#E8E8ED", "#EDEDF0", "#D2D2D7"  # card border, gridline, axis and baseline
-PANEL, PLANE, SURFACE = "#F5F5F7", "#E8E8ED", "#ffffff"  # soft panel, page plane, slide
-ACCENT, ACCENT_SOFT, ACCENT_TEXT, ACCENT_BG = "#5B3DF5", "#D9D2FD", "#4B2FD6", "#F2EFFF"  # SAI violet
-MUTE = "#C7C7CC"  # data marks that are context, not the point
+INK, INK2, INK3, INK4 = "#1D1D1F", "#48484A", "#6E6E73", "#86868B"
+RULE, GRID, AXIS = "#E8E8ED", "#EDEDF0", "#D2D2D7"
+PANEL, PLANE, SURFACE = "#F5F5F7", "#E8E8ED", "#ffffff"
+ACCENT, ACCENT_SOFT, ACCENT_TEXT, ACCENT_BG = "#5B3DF5", "#D9D2FD", "#4B2FD6", "#F2EFFF"
+MUTE = "#C7C7CC"
 GOOD, WARN, SERIOUS, CRIT = "#34C759", "#FF9500", "#C2410C", "#D70015"
 GOOD_TEXT, WARN_TEXT, SERIOUS_TEXT, CRIT_TEXT = "#1E7B34", "#B25000", "#9A3412", "#C00013"
 GOOD_BG, WARN_BG, SERIOUS_BG, CRIT_BG, NEUTRAL_BG = "#EAF8ED", "#FFF3E0", "#FDEEE6", "#FDECEC", "#F5F5F7"
@@ -49,7 +35,7 @@ GOOD_EDGE, SERIOUS_EDGE, CRIT_EDGE = "#BFE5C8", "#F3C9B4", "#F4C2C6"
 FONT_SANS = '-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif'
 BLUE, GRAY = ACCENT, MUTE
 LEVEL_COLOR = {severity.BLOCKER: CRIT, severity.MAJOR: SERIOUS, severity.MINOR: WARN}
-WARN_MARK = 0.8  # warning mark of the limit-use table; chosen by the report, not a requirement
+WARN_MARK = 0.8
 CSS_VARS = (f":root{{--ink:{INK};--ink2:{INK2};--ink3:{INK3};--rule:{RULE};--grid:{GRID};--axis:{AXIS};"
             f"--panel:{PANEL};--accent:{ACCENT};--good-text:{GOOD_TEXT};--crit-text:{CRIT_TEXT}}}")
 REPORT_VERSION = "2.0"
@@ -74,8 +60,6 @@ ASPECTS = [
     ("B7", "Flexibility", "Một bản build chạy được mọi xe", "Các mẫu xe với cùng một bộ calibration"),
     ("B8", "Compute", "Thời gian tính", "Thời gian mỗi chu kỳ planner trên mọi ca"),
 ]
-# How each suite is judged (Software Qualification Test Specification 5.3, 8.1 to 8.4): requirements pass
-# or fail; performance targets are only measured and scored (8.2: no pass threshold).
 PASS_FAIL, SCORE = "pass_fail", "score"
 FUNCTIONS = ("HWA", "LKA", "ELK", "Chuyển chức năng")
 EXPECTED = {"drive": "Lái", "drive_limited": "Lái có giới hạn", "refuse": "Từ chối"}
@@ -117,14 +101,12 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang trong ngưỡng",
              "PP-SWR-130": "Counter nhảy, đứng yên, valid sai, CRC sai: output như ca mất message",
              "PP-SWR-142": "IMU, tốc độ, góc lái không hợp lệ: path_valid = false trong ≤ 1 chu kỳ"}
 def srs_text(lang="vi") -> dict[str, str]:
-    """Requirement sentence per ID, as a fallback name."""
     try:
         text_ = (ROOT / "docs" / lang / SRS).read_text(encoding="utf-8")
     except OSError:
         return {}
     return {m.group(1): re.sub(r"`", "", m.group(2)).strip() for m in re.finditer(r"^\| (PP-SWR-\d{3}) \| ([^|]+) \|", text_, re.M)}
 METHOD_NAMES = {"protocol": "lưới chuẩn", "boundary": "biên", "pairwise": "ghép đôi", "lhs": "ngẫu nhiên"}
-# Two metrics of one target: short names for the comfort slide.
 METRIC_SHORT = {"Khoảng cách ngang nhỏ nhất từ thân xe tới rào chắn khi HWA lái": "Khoảng hở tới rào chắn",
                 "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng": "Khoảng hở tới xe lớn khi ngang hàng",
                 "Jerk ngang lớn nhất của path khi HWA lái (trung bình 0,5 s)": "Jerk lớn nhất (TB 0,5 s)",
@@ -134,8 +116,6 @@ COMFORT_TARGETS = ["PP-SWR-053", "PP-SWR-002", "PP-SWR-004", "PP-SWR-057", "PP-S
                    "PP-SWR-064"]
 LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
 
-
-# ---- formatting and chart primitives -----------------------------------------------------------
 
 def _decimal(value, lang):
     text = value.replace("-", "−")
@@ -152,12 +132,12 @@ def fmt_n(v, *, lang="vi"):
 
 
 def precise(v, *, lang="vi"):
-    """Four significant figures; never turn a small nonzero margin into zero."""
+    """Giữ bốn chữ số có nghĩa để khoảng cách nhỏ nhưng khác 0 không hiện thành 0."""
     return "0" if v == 0 else _decimal(f"{v:.4g}", lang)
 
 
 def limit_percent(ratio, *, lang="vi"):
-    """Keep a value below the limit visibly below 100%, even arbitrarily close."""
+    """Giá trị dưới giới hạn phải còn hiển thị dưới 100% sau khi làm tròn."""
     if ratio < 1 and round(ratio * 100, 2) >= 100:
         return "< 100 %"
     return vn(ratio * 100, 2 if ratio >= .99 else 1, lang=lang) + " %"
@@ -171,7 +151,7 @@ def table(headers, rows, cls="data-table"):
 
 
 def profile_signature(r):
-    """Pair on scenario inputs and seed, excluding only vehicle identity/description."""
+    """Ghép theo đầu vào ca và seed, bỏ danh tính và mô tả xe."""
     c = r["_case"]
     params = {k: v for k, v in c.get("parameters", {}).items() if k not in ("profile", "description")}
     return json.dumps([c.get("family"), c.get("anchor"), c.get("host"), params, r.get("seed")], sort_keys=True)
@@ -248,7 +228,6 @@ def histogram(counts, edges, W=1180, H=180, limits=(), xlabel="", log=False, tic
 
 
 def nice_ticks(lo, hi, n=4):
-    """Round axis values (1, 2, 2.5, 5 x 10^k steps) covering [lo, hi]."""
     if not hi > lo:
         lo, hi = (lo - 1, hi + 1) if lo == hi else (hi, lo)
     raw = (hi - lo) / n
@@ -259,12 +238,9 @@ def nice_ticks(lo, hi, n=4):
 
 
 def halo(svg_text):
-    """A label that stays legible where it crosses a mark: a surface-coloured outline under the glyphs."""
     return svg_text.replace("<text ", f'<text stroke="{SURFACE}" stroke-width="3" paint-order="stroke" ', 1)
 
 def range_rows(rows, unit, W=380, row=20, label_w=118, font=9, *, lang="vi"):
-    """Small multiple of one metric, one row per scenario: range over the runs (gray rule),
-    median (gray dot) and the worst run (accent dot, labelled). rows: [(label, values, worst)]."""
     PT, PB, PR = 3, 15 + font * .3, 46
     allv = [v for _, vs, _ in rows for v in vs]
     ticks = nice_ticks(min(allv + [0.0]), max(allv + [0.0]))
@@ -298,7 +274,6 @@ def range_rows(rows, unit, W=380, row=20, label_w=118, font=9, *, lang="vi"):
 
 
 def comfort_bars(rows, unit, *, lang="vi"):
-    """Per-scenario worst value as a bar, with its median marked by a dot."""
     W, H, left, right, top, row = 380, 245, 8, 65, 5, 49
     values = [v for _, samples, _ in rows for v in samples]
     ticks = nice_ticks(min(values + [0.0]), max(values + [0.0]), n=3)
@@ -326,8 +301,6 @@ def comfort_bars(rows, unit, *, lang="vi"):
 
 
 def ranked_ref(items, ref=None, ref_label="", unit="", W=560, row=22, label_w=190, *, lang="vi"):
-    """Ranked horizontal bars, one hue, value at the tip, with an optional neutral reference line.
-    items: [(label, value, tooltip)], largest first."""
     PT, PB, PR = 14, 20, 56
     vmax = max([v for _, v, _ in items] + ([ref] if ref else []) + [1e-9])
     ticks = nice_ticks(0, vmax)
@@ -435,7 +408,6 @@ a{color:inherit;text-underline-offset:2px} .top .meta a,.foot a{text-decoration:
 """
 
 
-# ---- page shell ------------------------------------------------------------------------------------
 CSS = f"""
 *{{box-sizing:border-box}}
 html,body{{margin:0;background:{PLANE};color:{INK};font:9pt/1.35 {FONT_SANS};letter-spacing:-.01em;
@@ -475,7 +447,6 @@ box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 28px rgba(0,0,0,.08);overflow:hidden}
 """
 
 
-# Legends keep their full text: the font shrinks until the legend fits its column (display only).
 FIT_SCRIPT = """<script>
 function fitSlides() {
   const width = document.documentElement.clientWidth;
@@ -493,7 +464,6 @@ for (const el of document.querySelectorAll('.fit')) {
 
 
 def card(title, body, cap="", style="", key=""):
-    """Caption: one idea per line (a list, never joined by separators); key: symbols and their meaning."""
     lines = [cap] if isinstance(cap, str) else list(cap)
     caption = "".join(f"<div>{E(x)}</div>" for x in lines if x)
     return (f'<div class="card" style="{style}"><h3>{E(title)}</h3>'
@@ -517,8 +487,6 @@ VERDICT = {conclusion.BLOCKED: ("KHÔNG ĐẠT", "v-fail"), conclusion.NOT_APPRO
            conclusion.NO_BLOCKER: ("ĐẠT", "v-ok")}
 
 
-# ---- data -----------------------------------------------------------------------------------------
-
 def names_from_sqts(lang="vi"):
     text_ = (ROOT / "docs" / lang / SQTS).read_text(encoding="utf-8")
     names, groups = {}, {}
@@ -534,7 +502,6 @@ def names_from_sqts(lang="vi"):
 
 DOCS = ("R79", "R171", "EU 2021/646", "Euro NCAP LSS")
 
-# What the tests of each document check (Software Qualification Test Specification 5.1), for the B2 slide.
 DOC_DESC = {
     "R79": ("Xe giữ tốc độ không đổi trong cua, tài xế không tác động vô lăng. Cua cần 80–90 % aysmax (S1 g), cua cần hơn aysmax + 0,3 m/s² (S1b), xe ở làn bên áp sát hoặc chuyển làn (S7, S8).",
             "Lốp trước không vượt mép ngoài vạch, jerk ≤ 5 m/s³, a_y trong giới hạn R79 5.6.2.1.1; cờ giới hạn bật khi lốp vượt vạch; không rời làn gốc."),
@@ -546,7 +513,6 @@ DOC_DESC = {
                       "DTLE ≥ −0,3 m (vạch), ≥ −0,1 m (mép đường); không va chạm."),
 }
 
-# Longer titles of the 5.1 tests for the B2 slide; the table of the document keeps the short name.
 TEST_TITLE = {
     "Giữ làn trong cua": "Giữ làn trong cua gần giới hạn a_y",
     "a_y lớn nhất": "Gia tốc ngang lớn nhất khi cua vượt aysmax",
@@ -563,8 +529,6 @@ TEST_TITLE = {
 
 
 def regulatory_tests(lang="vi") -> list[dict]:
-    """Tests of Software Qualification Test Specification 5.1 run in SIL: rows with a test point
-    and a scenario. Cases: (family, anchors or None)."""
     text_ = (ROOT / "docs" / lang / SQTS).read_text(encoding="utf-8")
     section = text_[text_.index("{#benchmark-regulatory}"):text_.index("{#benchmark-scenario-levels}")]
     tests = []
@@ -583,8 +547,7 @@ def regulatory_tests(lang="vi") -> list[dict]:
 
 
 def test_of(case: dict, tests: list[dict]) -> list[int]:
-    """Indexes of the 5.1 tests a case belongs to: protocol rows by their document, other cases
-    by scenario and anchor (never to a protocol-only test)."""
+    """Ca protocol ghép theo văn bản. Các ca còn lại ghép theo kịch bản và anchor."""
     protocol = case.get("parameters", {}).get("protocol") or ""
     family, anchor = case.get("family"), case.get("anchor")
     out = []
@@ -609,10 +572,7 @@ INFO_KEPT = ("vehicle_offset_max_m", "compute_hist", "no_impact", "compute_time_
 
 
 def _slim(r: dict) -> dict:
-    """Keep the criteria summaries, targets and info that the slides read.
-
-    A full run is about 180 MB of JSON; whole records would not fit an 8 GB machine.
-    """
+    """Chỉ giữ trường dùng cho báo cáo để có thể đọc suite lớn trên máy 8 GB RAM."""
     if "_fail" not in r:
         inside, outside, _ = conclusion.run_failures(r)
         r["_fail"] = [{"requirement": f["requirement"], "level": f["level"]} for f in inside]
@@ -643,7 +603,7 @@ def _records(path: Path, cases: dict) -> list[dict]:
             for line in stream:
                 try:
                     r = json.loads(line)
-                except json.JSONDecodeError:  # last line of a stopped run
+                except json.JSONDecodeError:  # Run bị dừng có thể để lại dòng JSONL cuối chưa hoàn tất.
                     continue
                 if r.get("case") in cases:
                     out.append(_slim(r))
@@ -651,8 +611,7 @@ def _records(path: Path, cases: dict) -> list[dict]:
 
 
 def load(folder: Path, generation: Path | None = None, conformance: Path | None = None) -> dict:
-    """An eval.suite folder; a stopped suite (no manifest.json, generation.json) still loads when
-    the generated manifest is given."""
+    """Vẫn đọc được suite dở nếu caller cung cấp manifest của bộ ca đã sinh."""
     folder = Path(folder)
     manifest = _json(folder / "manifest.json") or {}
     gen = _json(folder / "generation.json") or (_json(Path(generation)) if generation else None)
@@ -665,27 +624,29 @@ def load(folder: Path, generation: Path | None = None, conformance: Path | None 
     records = _records(folder / "results.jsonl", cases)
     b0_path = Path(conformance) if conformance else folder / "conformance.json"
     b0 = json.loads(b0_path.read_text(encoding="utf-8")) if b0_path.is_file() else None
-    case_dir = Path(manifest.get("generation", {}).get("manifest", folder / "x")).parent
+    concrete = folder.parent / "concrete"
+    case_dir = (concrete if manifest.get("artifact") and (concrete / "manifest.json").is_file()
+                else Path(manifest.get("generation", {}).get("manifest", folder / "x")).parent)
     derived = {}
     for r in records:
         case = cases.get(r.get("case"), {})
         r["_family"] = case.get("family", "?")
         r["_case"] = case
         r.setdefault("profile", case.get("parameters", {}).get("profile"))
-        if "aspects" not in r or "labels" not in r:  # written before eval.suite kept them
+        if "aspects" not in r or "labels" not in r:  # Hồ sơ suite cũ có thể chưa ghi aspects và labels.
             if r["case"] not in derived:
                 derived[r["case"]] = _derive(case, case_dir)
             r.setdefault("aspects", derived[r["case"]][0])
             r.setdefault("labels", derived[r["case"]][1])
-    headroom = defaultdict(dict)  # aspect -> (id, metric) -> closest approach to the limit
+    headroom = defaultdict(dict)
     metric_of = {}
     for r in records:
         for rid, metric, op, limit, value in r.pop("_crit", []):
             metric_of.setdefault(rid, metric)
             if op == "<=" and limit > 0:
-                key, score = (rid, metric, op), value / limit  # share of the limit used
+                key, score = (rid, metric, op), value / limit
             elif op == ">=":
-                key, score = (rid, metric, op), -(value - limit)  # minus the margin above the limit
+                key, score = (rid, metric, op), -(value - limit)
             else:
                 continue
             for a in r.get("aspects", []):
@@ -698,7 +659,6 @@ def load(folder: Path, generation: Path | None = None, conformance: Path | None 
 
 
 def _derive(case: dict, case_dir: Path) -> tuple[list[str], dict]:
-    """(aspects, labels) of a case from its concrete file, as eval.suite records them."""
     from eval import aspects, labels, loader
     try:
         case_labels = labels.of(loader.load_file(case_dir / case["file"]))
@@ -742,8 +702,6 @@ def target(r, rid, metric_prefix=""):
     return None
 
 
-# ---- report -----------------------------------------------------------------------------------------
-
 class Report:
     def __init__(self, data: dict, lang="vi"):
         self.d = data
@@ -751,7 +709,7 @@ class Report:
         self.names, self.fault_group = names_from_sqts(lang)
         self.srs = srs_text(lang)
         self.pages = []
-        self.detail_sections = []  # (anchor, title, html) moved off a slide that has no room
+        self.detail_sections = []
         self.out_dir = data["folder"]
         self.details_name = "report-details.html"
         self.generated = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(timespec="seconds")
@@ -894,7 +852,6 @@ class Report:
         return card(self.tr("Ca tệ nhất"), f'<div style="width:100%;align-self:flex-start">{body}</div>', cap, style=span)
 
     def case_name(self, r, profile=True):
-        """Scenario, anchor (or the sampling method of a sampled case), host, vehicle."""
         c = r["_case"]
         methods = [m for m in c.get("methods", []) if m in METHOD_NAMES]
         variant = c.get("anchor") or (self.tr("(mẫu {method})", method=self.tr(METHOD_NAMES[methods[0]])) if methods else "")
@@ -921,8 +878,6 @@ class Report:
 
     def where_card(self, recs, used, group_of=None, groups=FUNCTIONS, caption=None,
                    code_label=None, group_label=None, success_view=False):
-        """Failed runs per scenario or fault, in groups: one unit only (runs). With success_view
-        each bar is the whole set of runs of the scenario: successful (green) and failed (red)."""
         group_of = group_of or (lambda r: self.function_of(r["_family"]))
         caption = caption or self.tr("theo tình huống, nhóm theo chức năng")
         code_label = code_label or self.tr("Tình huống")
@@ -944,10 +899,10 @@ class Report:
         vmax = (max((val(g, f)[1] for g, f in order), default=1) if success_view else max((val(g, f)[0] for g, f in order), default=1)) or 1
         groups_n = len({g for g, _ in order})
         gap = 10
-        LX = 56  # row labels of the axis: what the code, the number and the group under each bar are
+        LX = 56
         bw = (W - LX - gap * (groups_n - 1)) / max(len(order), 1)
         out, x, last, bar_no = [], float(LX), None, 0
-        for y, label in ((PT + ph + 12, code_label), (PT + ph + 23, self.tr("Lần chạy")), (H - 1, group_label)):  # group label: last line of the group names
+        for y, label in ((PT + ph + 12, code_label), (PT + ph + 23, self.tr("Lần chạy")), (H - 1, group_label)):
             out.append(text(LX - 6, y, label, 8, "end", INK2, 600))
         starts = {}
         for g, f in order:
@@ -967,8 +922,6 @@ class Report:
                 r = min(4, bwid / 2, total_h)
                 cid = f"wc{len(self.pages)}-{bar_no}"
                 bar_no += 1
-                # One joined bar: both colours are cut by the same outline (rounded outer top, square foot),
-                # so each keeps its true height and nothing shows at the junction.
                 outline = (f"M{bx:.1f},{base:.1f} V{base - total_h + r:.1f} Q{bx:.1f},{base - total_h:.1f} {bx + r:.1f},{base - total_h:.1f} "
                            f"H{bx + bwid - r:.1f} Q{bx + bwid:.1f},{base - total_h:.1f} {bx + bwid:.1f},{base - total_h + r:.1f} V{base:.1f} Z")
                 out.append(f'<clipPath id="{cid}"><path d="{outline}"/></clipPath><g clip-path="url(#{cid})">')
@@ -998,8 +951,6 @@ class Report:
         for g in groups:
             if g in starts:
                 x0, x1 = starts[g], starts[g + "_end"]
-                # A name wider than its group wraps onto a second line, never cut; it may extend past the group
-                # but stays inside the chart.
                 lines = [g]
                 if len(g) * 4.6 > x1 - x0 and " " in g:
                     words = g.split(" ")
@@ -1022,7 +973,6 @@ class Report:
                     style="grid-column:1 / span 2;grid-row:2")
 
     def what_card(self, recs, used):
-        """Requirement × scenario: number of failed runs, coloured by level."""
         cells, req_level = Counter(), {}
         for r in recs:
             for f in {(f["requirement"], f["level"]) for f in run_levels(r)[0]}:
@@ -1032,7 +982,7 @@ class Report:
             return card(self.tr("Trượt cái gì"), f'<div style="font-size:11pt;color:{GOOD_TEXT};font-weight:650">{self.tr("Không có requirement nào trượt")}</div>',
                         style="grid-column:3 / span 2;grid-row:2 / span 2")
         reqs = sorted(req_level, key=lambda q: (list(LEVEL_COLOR).index(req_level[q]), -sum(v for (a, _), v in cells.items() if a == q)))
-        cell_h = max(2.8, min(5.6, 72 / len(reqs)))  # every failed requirement is shown; rows get lower when many
+        cell_h = max(2.8, min(5.6, 72 / len(reqs)))
         fams = sorted({f for _, f in cells}, key=lambda f: -sum(v for (_, b), v in cells.items() if b == f))
         used["R"].update(reqs)
         vmax = max(cells.values())
@@ -1056,8 +1006,7 @@ class Report:
                     style="grid-column:3 / span 2;grid-row:2 / span 2")
 
     def margin_card(self, k, used, rows=4):
-        """Requirements that passed and have an upper limit: worst value over the runs as a share
-        of the limit. The 80 % warning mark is the report's choice, not a requirement."""
+        """Mốc cảnh báo 80% chỉ dùng để trình bày phần còn cách giới hạn bao xa."""
         hr = self.d["headroom"].get(k, {})
         failed = {q for r in self.by_aspect.get(k, []) for q in [f["requirement"] for f in run_levels(r)[0]] + r.get("_oos", [])}
         best = {}
@@ -1084,8 +1033,6 @@ class Report:
                     style="grid-column:1 / span 2;grid-row:3")
 
     def legend_card(self, used):
-        """Meaning of every code shown on the slide, and only those, in full (never cut).
-        The font shrinks until the whole legend fits the column (FIT_SCRIPT)."""
         fams = sorted(used["S"], key=lambda f: (f[0], int(re.sub(r"\D", "", f) or 0), f))
         scen = [(E(f), self.names.get(f, "")) for f in fams]
         reqs = []
@@ -1111,7 +1058,6 @@ class Report:
         return self.tr("{focus}? Gồm: {coverage}.", focus=focus, coverage=coverage)
 
     def pass_fail_slide(self, k, title, focus, what, where_kpi=None, **where):
-        """Pass or fail suite: verdict, where it fails, what fails, how close the passes were."""
         where_kpi = where_kpi or self.tr("Tình huống có trượt")
         recs = self.by_aspect.get(k, [])
         subtitle = self.suite_subtitle(focus, what)
@@ -1143,7 +1089,6 @@ class Report:
                   head + cards + [self.legend_card(used)])
 
     def b2_slide(self, title, focus, what):
-        """B2 by test of the documents (Software Qualification Test Specification 5.1)."""
         from eval import compare
         recs = self.by_aspect.get("B2", [])
         tests = regulatory_tests(self.lang)
@@ -1233,8 +1178,6 @@ class Report:
                 kpi(self.tr("Requirement trượt"), str(len(st['failed_req'])), self.tr("mã duy nhất trong bộ"))]
 
     def b4_slide(self):
-        """Robustness: does the planner still do the right thing when an input is faulty? One row per
-        injected fault, with the requirements it breaks; faults that never failed are listed apart."""
         recs = self.by_aspect.get('B4', [])
         n_ = lambda v: fmt_n(v, lang=self.lang)
         planned = {f: n for f, n in self.planned_by_family.items() if f.startswith(('F', 'G'))}
@@ -1360,10 +1303,8 @@ class Report:
                   self.suite_head('B5') + [comparison, reqs, f'<div class="definitions">{refs}</div>'])
 
     def b6_slide(self):
-        """Comfort targets (performance, no pass mark): per target, where the planner is least
-        comfortable. One small multiple per target, one row per scenario, worst scenarios first."""
         recs = self.by_aspect.get('B6', [])
-        series = defaultdict(list)  # (id, metric) -> [(value, run)]
+        series = defaultdict(list)
         for r in recs:
             for t in (r.get('result') or {}).get('targets', []):
                 if t['id'] in COMFORT_TARGETS and isinstance(t.get('value'), (int, float)) and math.isfinite(t['value']):
@@ -1405,7 +1346,6 @@ class Report:
         data_table = table(['ID', self.tr("Chỉ số"), self.tr("Tốt hơn khi"), self.tr("Lần chạy"), self.tr("Trung vị"), self.tr("Bất lợi nhất"), self.tr("Ca bất lợi nhất"), self.tr("Bằng chứng")], rows, 'data-table comfort-table')
         self.detail_sections.append(('b6-data', self.tr("B6 · Số liệu của từng chỉ số độ êm"),
                                      data_table + ''.join(cards)))
-        # Fixed representative metrics, not a severity ranking. Use available data on partial runs.
         ordered = sorted(summaries, key=lambda s: (
             {"PP-SWR-053": 0, "PP-SWR-004": 1, "PP-SWR-002": 2}.get(s[0], 3),
             0 if "RMS của path 0–1 s" in s[1] else 1, COMFORT_TARGETS.index(s[0]), s[1]))
@@ -1474,8 +1414,7 @@ class Report:
         return '<div class="failure-summary">' + ''.join(f'<span>{self.details_link(q, self.req_name(q,60))} <b class="bad">{n}</b></span>' for q,n in counts.most_common()) + '</div>'
 
     def b8_slide(self):
-        """Compute time (performance, no pass mark): how the cycle time sits against the planner
-        period, and where it is longest. Wall clock of the development machine (8.2)."""
+        """Thời gian tính được đo theo đồng hồ thật của máy chạy SIL (SQTS 8.2)."""
         hist = np.zeros(len(COMPUTE_BINS_MS) - 1)
         p99s, maxes = [], []
         for r in self.by_aspect.get('B8', []):
@@ -1498,7 +1437,7 @@ class Report:
         bound = lambda q: float(edges[min(int(np.searchsorted(cum, q * total)), len(hist) - 1) + 1])
         p50, p99 = bound(.5), bound(.99)
         period = PLANNER_PERIOD_US / 1000
-        k_period = int(np.searchsorted(edges, period))  # first edge at or above the period
+        k_period = int(np.searchsorted(edges, period))
         over = float(hist[k_period:].sum())
         slowest = max(maxes, key=lambda x: x[0]) if maxes else None
         nz = np.flatnonzero(hist)
@@ -1611,7 +1550,7 @@ class Report:
                 manifest = self.d['manifest'].get('generation', {}).get('manifest')
             if manifest:
                 body.append(f'<p><a href="{self.href(manifest)}">Source case manifest</a></p>')
-        # Only exported references, not thousands of unused results.
+        # Chỉ xuất chi tiết ca được dẫn chiếu để tránh tăng kích thước HTML theo toàn bộ suite.
         referenced = set(re.findall(r'#(run-[^"<>]+)', ''.join(self.pages) + ''.join(content for _, _, content in self.detail_sections)))
         for r in self.d['records']:
             anchor = 'run-'+r['case']+'-'+str(r['seed'])
@@ -1619,7 +1558,6 @@ class Report:
             parameters = r['_case'].get('parameters')
             targets = (r.get('result') or {}).get('targets')
             if self.lang == 'en':
-                # Localized case labels are shown above the structured parameters.
                 if parameters:
                     parameters = {k: v for k, v in parameters.items() if k != 'description'}
                 if targets:
@@ -1658,7 +1596,12 @@ def write(folder: Path, out: Path | None = None, generation: Path | None = None,
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Benchmark dashboard: static HTML slides (16:9) of one planner run (Software "
+            "Qualification"
+        ),
+    )
     parser.add_argument("folder", type=Path, help="eval.suite output folder")
     parser.add_argument("--out", type=Path)
     parser.add_argument("--generation", type=Path, help="eval.generate manifest, for a suite that stopped early")

@@ -1,4 +1,20 @@
-"""Live worker of the workbench: the delivered planner in the SIL, cycle by cycle, paced to the
+"""Worker SIL của Workbench trao đổi NDJSON với supervisor. Canh nhịp chỉ ảnh hưởng lúc phát frame,
+không đổi thời gian mô phỏng.
+"""
+
+import bisect
+import faulthandler
+import json
+import math
+import os
+import re
+import sys
+import threading
+import time
+import traceback
+from pathlib import Path
+
+USAGE = """Live worker of the workbench: the delivered planner in the SIL, cycle by cycle, paced to the
 wall clock, streamed as NDJSON. Replaces web/simulation/tools/rt_run.py (PP-PR-064).
 
     python3 -m eval.live catalog          scenarios, faults and levels, combinations, vehicles
@@ -23,18 +39,6 @@ Lines on stdout, field "type":
     error  {"class": SUT_EXECUTION | SIM_ERROR | EVAL_ERROR | INFRA, "message": ...}
 """
 
-import bisect
-import faulthandler
-import json
-import math
-import os
-import re
-import sys
-import threading
-import time
-import traceback
-from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[1]
 OUT = sys.stdout
 
@@ -57,10 +61,6 @@ def send(obj):
 def vn(x, nd=1):
     return f"{x:.{nd}f}".replace(".", ",")
 
-
-# ---------------------------------------------------------------------------------------
-# Danh mục
-# ---------------------------------------------------------------------------------------
 
 FAULT_GROUP = {
     "F01": "Perception", "F02": "Perception", "F03": "Perception", "F04": "Perception", "F05": "Perception",
@@ -143,10 +143,6 @@ def catalog():
                 acc=["off", "on", "ignore_limits"], pp=pp)
 
 
-# ---------------------------------------------------------------------------------------
-# Một lượt chạy
-# ---------------------------------------------------------------------------------------
-
 LINE_VI = {0: "trái ngoài (L2)", 1: "trái làn mình (L1)", 2: "phải làn mình (R1)", 3: "phải ngoài (R2)"}
 CH_VI = {"lane_model": "lane model", "object_list": "object list", "imu": "IMU", "steering": "góc lái",
          "speed": "tốc độ", "vehicle_state": "vehicle state", "function_requests": "FunctionRequests",
@@ -154,7 +150,6 @@ CH_VI = {"lane_model": "lane model", "object_list": "object list", "imu": "IMU",
 
 
 def recipe_from_config(cfg: dict) -> dict:
-    """eval.case recipe of a web run configuration; faults start at the trigger event (offset 0)."""
     scenario = cfg.get("scenario") or {}
     recipe = {"kind": "catalog", "sid": scenario.get("sid"), "v": scenario.get("v")}
     if cfg.get("faults"):
@@ -173,7 +168,7 @@ def recipe_from_config(cfg: dict) -> dict:
 
 
 def fault_items(sc):
-    """Mọi lỗi của kịch bản, theo thứ tự cố định. Khung "f" mang cờ đang-tiêm theo cùng thứ tự."""
+    """Khung f mang các cờ tiêm lỗi theo cùng thứ tự như danh sách này."""
     items = []
     for f in sc.lane_faults:
         it = dict(kind="lane", plan=None if f.trigger else [f.start_s, f.start_s + f.duration_s if f.duration_s else None],
@@ -218,10 +213,7 @@ def fault_items(sc):
 
 
 def road_lines(road):
-    """Bốn vạch L2, L1, R1, R2 của đường thật.
-
-    Đường hằng số: độ lệch so với tim làn và kiểu vạch. Đường có hình học đoạn (làn đổi bề rộng, S6b):
-    camera của sim lấy vạch theo hình học đó, nên gửi luôn đường vạch theo toạ độ thế giới."""
+    """Với mặt đường thay đổi theo đoạn, gửi vạch theo tọa độ thế giới thay vì chỉ gửi độ lệch."""
     lay = road.layout
     geo = lay.geometry
     if geo is None:
@@ -236,7 +228,7 @@ def road_lines(road):
             continue
         xs, ys = road.marking_parallel(boundary, side, 0.0, road.length)
         segs, cur = [], []
-        for k in range(0, len(xs), 10):   # mỗi 1 m; chỗ đứt quãng (hết sơn) thì tách đoạn
+        for k in range(0, len(xs), 10):
             if cur and math.hypot(float(xs[k]) - cur[-2], float(ys[k]) - cur[-1]) > 1.6:
                 segs.append(cur)
                 cur = []
@@ -249,7 +241,6 @@ def road_lines(road):
 
 
 def road_extent(road):
-    """Giới hạn ngang của mặt đường theo từng mét, chỉ khi bề rộng đổi theo đoạn."""
     geo = road.layout.geometry
     if geo is None:
         return None
@@ -277,7 +268,7 @@ def sim_conditions(sc):
 
 
 class Pace:
-    """Nhịp thời gian thực: chờ tới lúc đồng hồ thật bằng thời gian mô phỏng chia cho tốc độ."""
+    """Chờ tới mốc thời gian thật tương ứng với thời gian mô phỏng và tốc độ phát."""
 
     def __init__(self, rate):
         self.rate = rate
@@ -303,7 +294,7 @@ class Pace:
                 if self.paused:
                     self.cv.wait()
                     continue
-                if self.rate <= 0:       # tối đa: không canh nhịp
+                if self.rate <= 0:
                     return
                 now = time.monotonic()
                 if self.anchor is None:
@@ -316,7 +307,7 @@ class Pace:
 
 
 def path_points(trajectory):
-    """x, y of the 31 path points in cm, or None when there is no full path."""
+    """Trả x, y của 31 điểm theo cm. Thiếu Trajectory đầy đủ thì trả None."""
     if trajectory is None or len(trajectory.points) != 31:
         return None
     out = []
@@ -326,8 +317,7 @@ def path_points(trajectory):
 
 
 def system_share(eps, steering_angle):
-    """Share of the steering done by the system, or None when no physical quantity defines it:
-    with driver torque present the EPS stand-in has no motor torque to compare it with."""
+    """Khi tài xế có torque, model EPS không có torque động cơ để suy ra tỷ lệ lái của hệ thống."""
     share = eps.system_steering_share
     if share == 1 and eps.controlling and eps.driver_torque:
         return None
@@ -337,9 +327,6 @@ def system_share(eps, steering_angle):
 
 
 class LiveView:
-    """Builds the frame of each planner cycle from the harness; reads, never writes. Display
-    only: nothing here is scored (the evaluator runs on the RunLog after the run)."""
-
     def prepare(self, h):
         self.items = fault_items(h.scenario)
         self.s_rear = self.s_front = None
@@ -348,7 +335,6 @@ class LiveView:
         self.zi = self.sos = None
         self.road_view, self.road_changes = None, 0
         self.half_car = 0.5 * h.profile.width_with_mirrors
-        # cùng thứ tự với fault_items: lane, channel (theo kênh), sensor, ego
         pos = {}
         self.channel_view = []
         for f in h.scenario.channel_faults:
@@ -365,7 +351,6 @@ class LiveView:
         return flags
 
     def lane_road(self, h):
-        """Đường nhìn từ làn xe đang ở, như bên chấm dùng (làn đổi bề rộng, xe đã đổi làn)."""
         from eval import metrics
         changes = len(getattr(h.log, "lane_index_changes", None) or ())
         if self.road_view is None or changes != self.road_changes:
@@ -373,7 +358,6 @@ class LiveView:
         return self.road_view
 
     def clearance(self, road, x, y, s_hint):
-        """Khoảng hở thật hai bên [m] từ xe tới biên làn tại vị trí (x, y) của bánh trước."""
         from eval import metrics
         from interfaces import Side
         front = road.project(x, y, s_hint)
@@ -382,18 +366,16 @@ class LiveView:
         return left - front.d - self.half_car, front.d - right - self.half_car
 
     def lane_model_points(self, h, msg):
-        """Vạch và mép đường mà lane model báo cho planner, chuyển sang toạ độ thế giới.
-
-        Lane model ở khung base_link tại lúc camera chụp. Stamp theo đồng hồ camera nên đổi về
-        thời gian toàn cục rồi mới tra tư thế xe. Đa thức y = c0 + c1 x + c2 x^2 + c3 x^3 trong
-        đoạn tầm nhìn; bỏ vạch LOST."""
+        """Lane model dùng base_link tại lúc chụp. Đổi stamp từ đồng hồ camera sang thời gian toàn
+        cục trước khi tra pose.
+        """
         log = h.log
         capture_us = h.clocks["camera"].to_global(msg.header.stamp_us)
         i = min(max(bisect.bisect_left(log.t_us, capture_us), 0), len(log.t_us) - 1)
         rx, ry, yaw = log.rear[i]
         c, s = math.cos(yaw), math.sin(yaw)
         out = []
-        for idx, ln in enumerate((*msg.lines, *msg.road_edges)):   # L2, L1, R1, R2, mép trái, mép phải
+        for idx, ln in enumerate((*msg.lines, *msg.road_edges)):
             if int(ln.status) == 2:
                 continue
             a, b = max(0.0, ln.view_range_start), min(ln.view_range_end, 126.0)
@@ -405,7 +387,8 @@ class LiveView:
                 x = a + (b - a) * j / (n - 1)
                 y = ln.c0 + x * (ln.c1 + x * (ln.c2 + x * ln.c3))
                 pts += [round(rx + x * c - y * s, 2), round(ry + x * s + y * c, 2)]
-            # D đứt, S liền, B kép, U chưa rõ; mép đường: E gờ liền (CURB, BARRIER, GUARDRAIL, WALL), G cỏ sỏi hoặc chưa rõ
+            # D là đứt, S là liền, B là kép, U là chưa rõ. Với mép đường, E là gờ cứng và G là mép
+            # mềm hoặc chưa rõ.
             kind = ("G" if int(ln.type) in (1, 5) else "E") if idx >= 4 else "DSBU"[int(ln.type)]
             out.append(dict(i=idx, p=int(int(ln.status) == 1), t=kind, pts=pts))
         return dict(ls=out)
@@ -442,7 +425,7 @@ class LiveView:
         lead = cyc.lead_target.message if cyc.lead_target is not None else None
         lmodel = None
         rx = h._planner_view("lane_model", h.ch["lane_model"].latest)
-        if rx is not None and rx.message.header.stamp_us != self.lm_stamp:   # chỉ gửi khi có frame camera mới
+        if rx is not None and rx.message.header.stamp_us != self.lm_stamp:
             self.lm_stamp = rx.message.header.stamp_us
             lmodel = self.lane_model_points(h, rx.message)
         objs = []
@@ -527,8 +510,9 @@ def done_message(result):
 
 
 def make_harness(scenario, planner, seed, emit=None, pace=None):
-    """Harness with the LiveView observer: after each cycle the frame is built, the wall clock
-    waited for (pace), then the frame sent (emit). Without emit and pace frames are dropped."""
+    """Sau mỗi chu kỳ, dựng frame rồi canh nhịp trước khi phát. Chạy golden có thể bỏ frame và chạy
+    nhanh nhất.
+    """
     from sim.harness import Harness
     view = LiveView()
 
@@ -545,7 +529,6 @@ def make_harness(scenario, planner, seed, emit=None, pace=None):
 
 
 def simulate(scenario, planner, seed):
-    """The run as the live web runs it, at full speed, frames dropped (golden set, live path)."""
     return make_harness(scenario, planner, seed).run()
 
 
@@ -564,7 +547,7 @@ def run(folder: Path) -> None:
     request = json.loads((folder / "request.json").read_text(encoding="utf-8"))
     cfg = request.get("config") or {}
     seed = int(request.get("seed", cfg.get("seed", 1)))
-    expected_case = (request.get("expect") or {}).get("case_hash")  # set by a rerun (SIM-REQ-029)
+    expected_case = (request.get("expect") or {}).get("case_hash")
 
     send(dict(type="phase", phase="resolve"))
     try:
@@ -572,16 +555,16 @@ def run(folder: Path) -> None:
         scenario = case.resolve(recipe)
         doc = case.document(recipe, scenario)
         from execution import bundle
-        bundle.write_json(folder / "resolved-case.json", doc)  # identity kept even if the run fails
+        bundle.write_json(folder / "resolved-case.json", doc)
         planner = planner_choice.resolve(None, request.get("planner_only"))
     except SystemExit as error:
         raise Failure("INFRA", str(error)) from error
-    except Exception as error:  # noqa: BLE001  invalid request: no test result
+    except Exception as error:  # noqa: BLE001
         raise Failure("INFRA", f"{type(error).__name__}: {error}") from error
     if expected_case and doc["case_hash"] != expected_case:
         raise Failure("INFRA", f"Ca đã đổi: case_hash {doc['case_hash'][:12]} khác bản gốc {expected_case[:12]}")
 
-    # T_timeout: 6 x the simulated duration + 30 s, wall clock without pauses (slowest rate 0.5x).
+    # Timeout theo đồng hồ thật, trừ thời gian pause. Dư đủ cho tốc độ tối thiểu 0,5x.
     send(dict(type="budget", timeout_s=6 * scenario.duration_s + 30))
     pace = Pace(float(request.get("rate", cfg.get("rate", 1))))
     threading.Thread(target=lambda: [pace.command(json.loads(line)) for line in sys.stdin if line.strip()],
@@ -614,7 +597,7 @@ def run(folder: Path) -> None:
 def main():
     global OUT
     OUT = sys.stdout
-    sys.stdout = sys.stderr  # thư viện lỡ in gì thì không lẫn vào giao thức
+    sys.stdout = sys.stderr  # Giữ stdout dành cho NDJSON; đầu ra ngoài giao thức của thư viện đi sang stderr.
     if len(sys.argv) >= 2 and sys.argv[1] == "catalog":
         try:
             send(catalog())
@@ -622,7 +605,7 @@ def main():
             send(dict(type="error", message=f"{type(e).__name__}: {e}"))
         return
     if len(sys.argv) == 3 and sys.argv[1] == "run":
-        faulthandler.enable(sys.stderr)  # a native crash leaves its Python stack in worker.log
+        faulthandler.enable(sys.stderr)  # Khi thư viện native crash, Python stack được ghi vào worker.log.
         try:
             run(Path(sys.argv[2]))
         except BrokenPipeError:
@@ -632,7 +615,7 @@ def main():
             send(dict(type="error", **{"class": error.cls}, message=str(error)))
             raise SystemExit(3)
         return
-    raise SystemExit(__doc__)
+    raise SystemExit(USAGE)
 
 
 if __name__ == "__main__":
