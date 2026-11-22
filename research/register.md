@@ -11,6 +11,20 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 - Cửa sổ báo `COMPLETED` của LKA/ELK đã vào đặc tả. Cách xử lý phía planner còn chờ kiểm chứng. [PP-TS-018](studies/PP-TS-018-intervention-completion-window/study.md)
 - ELK bắt đầu muộn dưới nhiễu mưa. Ca S12c hết trượt trong hồi quy sau khi sửa T2. [PP-PR-055](problems/PP-PR-055-s12c-elk-late-correlated-noise.md)
 
+## Theo dõi xử lý 2026-11-22
+
+Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb08d77/report.md).
+
+| Ưu tiên | Việc mở | Hồ sơ | Bước tiếp theo |
+|---|---|---|---|
+| P0 | Giữ làn khi yaw rate sai và kiểm trần gia tốc ngang | [PP-PR-049](problems/PP-PR-049-yaw-rate-bias-lane-departure.md), [PP-PR-056](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md), [PP-TS-020](studies/PP-TS-020-path-ay-ceiling/study.md) | Tái hiện F08 và S1b(b). Tách phần vượt giới hạn do controller và phần do path trước khi chọn phương án |
+| P0 | Xử lý hình học làn sai kéo dài và phục hồi sau lỗi | [PP-PR-001](problems/PP-PR-001-f06-wrong-curvature.md), [PP-PR-009](problems/PP-PR-009-f03c-whole-lane-shift.md), [PP-PR-044](problems/PP-PR-044-lka-continues-on-jumped-lane.md), [PP-PR-048](problems/PP-PR-048-shape-check-wrong-curvature-after-fault.md), [PP-PR-057](problems/PP-PR-057-f06d-departure-after-fault-end.md), [PP-TS-001](studies/PP-TS-001-lane-jumps/study.md), [PP-TS-022](studies/PP-TS-022-blend-limit/study.md) | Đối chiếu hồi quy của TS-022 V1. Xét J1 cho F03(c) và phân tích riêng F02(e), F06(d) |
+| P0 | Giữ làn trên cua chữ S | [PP-PR-004](problems/PP-PR-004-s14-s-bend.md), [PP-TS-005](studies/PP-TS-005-lane-fit-error/study.md) | Tái hiện S14(e) và review kế hoạch so sánh sai số hình học của V3 với V2 |
+| P0 | Giữ làn và báo giới hạn khi vào cua gắt | [PP-PR-007](problems/PP-PR-007-s14a-overspeed-after-limit.md), [PP-PR-008](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md), [PP-PR-051](problems/PP-PR-051-s1ba-flag-late-vp0.md) | Đối chiếu thời điểm bật cờ, đè vạch và mất path ở S1b(a), S14(a) |
+| P0 | Giữ liên tục độ cong khi chuyển sang FOLLOW | [PP-PR-075](problems/PP-PR-075-s22a-curvature-step.md) | Xác định hai path liên tiếp làm S22(a) trượt PP-SWR-102 và nguồn gây bước nhảy |
+| P0 | Giữ làn trong G01 trên S1c | [PP-PR-076](problems/PP-PR-076-g01-s1c-vp5-departure.md) | So VP-5 với ca đối chứng để xác định lỗi ở đầu vào, path hay bám path |
+| P1 | Chốt đường về tâm sau can thiệp | [PP-PR-077](problems/PP-PR-077-094-outside-checked-scenarios.md), [PP-TS-026](studies/PP-TS-026-intervention-return/study.md) | Chốt phạm vi PP-SWR-094 ở các ca ELK vì xe làn bên trước khi duyệt V4 |
+
 ## Trade studies
 
 | ID | Câu hỏi | Trạng thái | Quyết định | Hồ sơ |
