@@ -56,3 +56,4 @@ Hai phần, chưa tách hết:
 |---|---|
 | [20261116-1607-study-PP-TS-020-d1d50de](../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md) | S1b a, b chạy 17 s (SQTS 1.45): tiêu chí R79 trượt ở mọi phương án, kể cả V0 (path ở aysmax). Phần kịch bản đã sửa; bản hiện tại trượt bài R79 Annex 8, 3.2.2. Phần bám path còn mở |
 | [20261118-2127-study-PP-TS-020-ac82bb3](../runs/20261118-2127-study-PP-TS-020-ac82bb3/summary.md) | S1b b trượt R79 ở cả năm phương án. S1b a, c đạt ở V0, V1a, V2; trượt ở V1b, V1c |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | S1b b VP-0 seed 1, ACC off. PP-SWR-001 đạt với đỉnh path 2,50 m/s². `results.jsonl` ghi đỉnh a_y xe đã lọc 4,09 m/s² và 4,84 s trên 2,8 m/s² |

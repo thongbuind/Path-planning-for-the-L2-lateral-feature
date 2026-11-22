@@ -83,3 +83,5 @@ Lần chạy [20261114-1857-study-PP-TS-001-13913da](../../runs/20261114-1857-st
 | F02 e, cả lane model dời | Không | Xe ở làn bên (J2) |
 
 PP-PR-048 cho thấy F06 d trượt cả ở J0 (PP-SWR-032) và J0 kiểm hình dạng (PP-SWR-086), độc lập với lỗi đã sửa. Kế hoạch J1 chỉ nên nhắm F03; F06 d cần phương án riêng.
+
+Đối chiếu ngày 2026-11-22: F03(c) trong bộ hồi quy hiện tại dịch cả bốn vạch 3,5 m. T2 khôi phục cặp biên kẹp xe bằng biên đã nhớ và ca này đạt 6/6 ở [hồi quy 591e3de](../../runs/20261122-0758-suite-regression-591e3de/report.md). PP-PR-009 đã đóng. Kiểm song song và bề rộng của J1 vẫn là câu hỏi riêng cho trường hợp nhận nhầm một vạch.

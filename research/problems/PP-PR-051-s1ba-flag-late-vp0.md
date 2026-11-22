@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng, xác nhận ở 20261122-0758-suite-regression-591e3de |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-007 |
 | Tái hiện | [20261114-1952-suite-regression-0776bad](../runs/20261114-1952-suite-regression-0776bad/report.md): S1b a VP-0 seed 1 |
@@ -18,10 +18,11 @@ Trong [hồi quy bb08d77](../runs/20261119-0948-suite-regression-bb08d77/report.
 
 ## 3. Cách sửa
 
-So log của d7ed84c và 0776bad cho lượt này.
+Ở bản quintic `ecfe00e`, T10 giữ mức hỗ trợ gia tốc ngang cho đoạn gần khi cờ giới hạn đã bật và hình học cua từ camera nhất quán với reference line. Hồi quy trên ca tái hiện giữ path hợp lệ qua đoạn từng mất path.
 
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
 | [20261119-0948-suite-regression-bb08d77](../runs/20261119-0948-suite-regression-bb08d77/report.md) | S1b a VP-0 seed 1 còn trượt tại 8,641 s |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | S1b a VP-0 seed 1 đạt PP-SWR-005, 006 và 007 |

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng, xác nhận ở 20261122-0758-suite-regression-591e3de |
 | Mở ngày | 2026-11-18 |
 | Requirement bị ảnh hưởng | PP-SWR-102 |
 | Tái hiện | [20261118-1546-suite-regression-edb02b8](../runs/20261118-1546-suite-regression-edb02b8/report.md) |
@@ -16,11 +16,11 @@ S22 a VP-0: PP-SWR-102 tỉ số 1,37.
 
 ## 2. Nguyên nhân
 
-Chưa xác định khâu tạo bước nhảy. Cần so độ cong tại điểm 2,9 s trước T4, sau T4 và sau lần T10 kiểm cuối.
+T4 dùng tầm nhìn của reference line FOLLOW, kết thúc ở xe trước. Điểm 2,9 s nằm ngoài tầm nhìn này. Bên chấm vẫn so điểm đó trong đoạn thời gian chung vì lane model đã mất.
 
 ## 3. Cách sửa
 
-Chưa làm.
+Từ `ecfe00e`, T4 lấy tầm nhìn từ lane model cả khi dựng path FOLLOW. Khi lane model mất, T4 kiểm hết đoạn thời gian chung của hai path.
 
 ## 4. Xác nhận
 
@@ -28,3 +28,4 @@ Chưa làm.
 |---|---|
 | 20261118-2030-suite-regression-e3158a5 | Còn trượt, BLOCKER |
 | [20261119-0948-suite-regression-bb08d77](../runs/20261119-0948-suite-regression-bb08d77/report.md) | Còn trượt, tỉ số 1,374 tại 3,259 s |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | S22 a VP-0 seed 1 đạt PP-SWR-102, tỉ số lớn nhất 0,900. PP-SWR-100, 101 và 174 đạt |
