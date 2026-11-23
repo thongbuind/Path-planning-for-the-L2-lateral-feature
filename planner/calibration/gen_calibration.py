@@ -3,6 +3,7 @@
 
 import argparse
 import math
+import re
 from pathlib import Path
 
 import yaml
@@ -52,14 +53,43 @@ def generate(params: dict) -> tuple[str, str]:
     return "\n".join(header), "\n".join(source)
 
 
+def merge_extra(params: dict, extra: dict, origin: str) -> dict:
+    """Thêm tham số riêng của generator lab (khóa calibration trong generator.yaml).
+
+    Mọi tên phải bắt đầu bằng calibration_prefix + "_". Tiền tố không được trùng từ đầu của một tham
+    số chung, và tên không được trùng tham số đã có.
+    """
+    own = extra.get("calibration") or {}
+    if not own:
+        return params
+    prefix = extra.get("calibration_prefix")
+    if not isinstance(prefix, str) or not re.fullmatch(r"[a-z][a-z0-9]*", prefix):
+        raise SystemExit(f"{origin}: calibration needs calibration_prefix (lower-case letters and digits)")
+    base_words = {name.split("_")[0].lower() for name in params}
+    if prefix in base_words:
+        raise SystemExit(f"{origin}: calibration_prefix {prefix!r} is already used by the shared calibration")
+    merged = dict(params)
+    for name, spec in own.items():
+        if not name.startswith(prefix + "_"):
+            raise SystemExit(f"{origin}: {name} must start with {prefix}_")
+        if name in merged:
+            raise SystemExit(f"{origin}: {name} is already a calibration parameter")
+        merged[name] = spec
+    return merged
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate the calibration struct of the planner from calibration.yaml (build time).",
     )
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--out-dir", required=True, type=Path)
+    parser.add_argument("--extra", type=Path, action="append", default=[],
+                        help="generator.yaml of a lab T7 generator: its calibration is appended")
     args = parser.parse_args()
     params = yaml.safe_load(args.input.read_text(encoding="utf-8"))["parameters"]
+    for path in args.extra:
+        params = merge_extra(params, yaml.safe_load(path.read_text(encoding="utf-8")) or {}, str(path))
     header, source = generate(params)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     (args.out_dir / "pp_calibration.h").write_text(header, encoding="utf-8")

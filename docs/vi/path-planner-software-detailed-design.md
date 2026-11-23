@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.31 |
+| Phiên bản | 1.32 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -37,7 +37,7 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 | T4 Stitching và continuity | Stitching và continuity | `stitching.c` |
 | T5 Curvature fusion | Reference line | `curvature.c` |
 | T6 Lateral state | Path generation (trạng thái đầu) | `lateral_state.c`, riêng của planner (PP-ADR-014) |
-| T7 Path generation | Path generation | `generators/quintic.c`, `generators/qp.c`, `intervention.c` |
+| T7 Path generation | Path generation | LCC: `generators/pp_t7.h` cùng một generator chọn lúc build (`generators/quintic_duration.c` hoặc `generators/qp_jerk_admm.c`); hàm dùng chung `generators/quintic.c`, `generators/qp.c`. LKA, ELK: `intervention.c` |
 | T8 Offset | Path generation (LCC) | `offset.c` |
 | T9 Intervention selection | Intervention selection | `selection.c` |
 | T10 Feasibility | Feasibility | `feasibility.c` |
@@ -204,7 +204,15 @@ LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần
 | B. Lấy mẫu Frenet | Sinh quintic với d cuối trong d mục tiêu ± `d_sample_span` bước `d_sample_step`, T trong `T_set`. Bỏ path vượt giới hạn hoặc ra khỏi corridor. Chọn path có J = `w_jerk`·∫d⃛² + `w_time`·T + `w_dev`·(d cuối − d mục tiêu)² + `w_cons`·∫(d − d_cũ)² nhỏ nhất | `d_sample_span`, `d_sample_step`, `T_set`, `w_jerk`, `w_time`, `w_dev`, `w_cons` |
 | C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); trị tuyệt đối của a_y ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất LCC. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ thích nghi, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định, warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
 
-Với LCC, `PP_T7` chọn `quintic` hoặc `qp` lúc build và được ghi trong `pp_version()` (PP-TS-003). Với LKA và ELK, bản `qp` cũng dùng quintic. PP-TS-006 theo dõi so sánh kỹ thuật cho can thiệp.
+Với LCC, `PP_T7` chọn generator lúc build và được ghi trong `pp_version()` (PP-TS-003, PP-TS-031):
+
+| `PP_T7` | Generator | Sàn trợ giúp PP-SWR-006 của LCC |
+|---|---|---|
+| `quintic_duration` (mặc định; alias `quintic`) | Kỹ thuật A | Có |
+| `qp_jerk_admm` (alias `qp`) | Kỹ thuật C | Không; ràng buộc a_y của QP lo PP-SWR-006 |
+| `lab`, cùng `PP_T7_LAB=<tên>` | Generator nghiên cứu trong `research/generators/<tên>/`; `pp_version()` ghi thêm hash nguồn | Generator tự khai báo |
+
+Mọi generator theo cùng contract `generators/pp_t7.h`: nhận reference line, trạng thái đầu, profile tốc độ, path cũ, offset mục tiêu, cờ đưa về giữa và VehicleConfig; trả 31 điểm Trajectory cùng mẫu reference line (gồm T11); `pp_t7_reset` khi khởi tạo và khi không có hướng đi tới. Trạng thái của generator nằm trong state của LCC, kích thước cố định. Generator lab thêm calibration riêng có tiền tố. Với LKA và ELK, mọi bản build dùng quintic. PP-TS-006 theo dõi so sánh kỹ thuật cho can thiệp.
 
 ## 11. T8 Offset {#dd-t8}
 
@@ -337,3 +345,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.29 | 2026-11-23 | T10: giới hạn a_y của path LCC là aysmax + `ay_margin_hwa`; cờ và `v_max` giữ theo aysmax. Lý do: PP-TS-020 V1a, SRS 1.26 |
 | 1.30 | 2026-11-23 | Mục 3.1: interface của từng unit (nhiệm vụ, input, output, trạng thái, calibration parameter, lúc chạy) và hai loại tham số. Lý do: quy trình phát triển của công ty, bước 2.2 |
 | 1.31 | 2026-11-23 | T7: ELK vì xe làn bên về tâm hai tốc độ, thêm `d_return_object`. Lý do: PP-TS-030 V2 |
+| 1.32 | 2026-11-23 | Mục 2, 10: T7 của LCC theo contract `generators/pp_t7.h`, giá trị `PP_T7` mới, sàn PP-SWR-006 là thuộc tính của generator. Hành vi không đổi (golden PP-T7 trùng từng bit). Lý do: PP-TS-031 GĐ 1 |

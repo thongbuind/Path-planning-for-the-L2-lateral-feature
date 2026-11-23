@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.15 |
+| Phiên bản | 1.16 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -241,7 +241,7 @@ Phép tính sai số của tâm làn gốc sau 30 m ở Appendix A.7.
 | Kết thúc | COMPLETED, REQUEST rời, tài xế ghi đè hoặc không còn đủ điều kiện; không có mốc cắt thời lượng | Như LKA | PP-SWR-032, 036, 037, 046 |
 | Giới hạn | a_y ≤ 3,0; a_y thêm vào ≤ 1,5 m/s²; jerk ≤ 5 m/s³ | a_y ≤ 4,0; a_y thêm vào ≤ 3,0 m/s²; jerk ≤ 10 m/s³ | PP-SWR-110 đến 115 |
 
-LKA và ELK dùng quintic trong cả hai bản build (Software Detailed Design mục 10). T7 của LCC được chọn qua `PP_T7`.
+LKA và ELK dùng quintic trong mọi bản build. T7 của LCC là một generator theo contract chung, chọn lúc build qua `PP_T7` (Software Detailed Design mục 10).
 
 ### 7.1 Kết thúc can thiệp {#design-completion}
 
@@ -454,3 +454,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.13 | 2026-11-18 | Mục 7: path LKA, ELK hai pha (PP-ADR-021). Mục 7.2: hành lang lọc nhiễu lane model. Mục 11: thêm `T_end_margin`, `T_return`; đổi giá trị `T_lka`, `T_elk`. Lý do: PP-TS-026, PP-PR-071, 072 |
 | 1.14 | 2026-11-23 | Mục 6.2, 9: trần a_y của path LCC là aysmax + `ay_margin_hwa`. Mục 11: thêm `ay_margin_hwa` (khởi đầu 0,1 m/s²); giới hạn của `ay_add_max_hwa` theo PP-SWR-001 mới. Lý do: PP-TS-020 V1a, SRS 1.26 |
 | 1.15 | 2026-11-23 | Mục 11: `T_return_object` 1,5 s, thêm `d_return_object` 0,2 m. Lý do: PP-TS-030 V2 |
+| 1.16 | 2026-11-23 | Mục 7: T7 của LCC là generator theo contract chung, chọn qua `PP_T7`. Lý do: PP-TS-031 GĐ 1 |

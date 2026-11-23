@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-UTS` |
-| Phiên bản | 1.1 |
+| Phiên bản | 1.2 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -37,7 +37,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Build | `cmake -S planner -B build/planner`, `PP_BUILD_TESTS=ON` (mặc định) |
+| Build | `cmake -S planner -B build/planner`, `PP_BUILD_TESTS=ON` (mặc định). Ca của T7 contract và `test_lcc_step` chạy cho từng giá trị `PP_T7` |
 | Chạy | `ctest --test-dir build/planner --output-on-failure` |
 | Trình biên dịch | C11, cờ cảnh báo của `planner/CMakeLists.txt` (`-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow`) |
 | Trạng thái của planner | Vùng nhớ do test cấp, như bên gọi thật |
@@ -150,6 +150,10 @@ Tất cả trong `test_reference_line`. T3 (giới hạn `ref_rate`) chưa có c
 | UT-T7-11 | `test_intervention: profile_advances_from_original_start_time` | N | Path can thiệp qua nhiều chu kỳ → tính từ thời điểm bắt đầu gốc | T7 |
 | UT-T7-12 | `test_intervention: chosen_candidate_is_not_cut_by_t10` | N | Path can thiệp chọn trong giới hạn → T10 không phải cắt | T7, T10; PP-SWR-110 đến 115 |
 | UT-T7-13 | `test_intervention: outward_start_is_arrested_then_returns_slowly` | S | Xe đang trôi ra → pha chặn đà rồi về tâm trong `T_return` | T7; PP-TS-026 V4; PP-SWR-094 |
+| UT-T7-14 | `test_t7_contract: path_starts_at_start_and_moves_to_target` | N | Đường thẳng, xe lệch 0,3 m → điểm 0 tại xe, điểm cuối gần mục tiêu hơn, x tăng dần, giá trị hữu hạn | T7 contract |
+| UT-T7-15 | `test_t7_contract: on_target_stays_on_target` | B | Xe đã ở offset mục tiêu → path giữ offset trong 1 mm | T7 contract |
+| UT-T7-16 | `test_t7_contract: reset_makes_output_depend_on_input_only` | S | Sau `pp_t7_reset`, kể cả trên vùng nhớ rác → cùng input cho path giống từng bit | T7 contract |
+| UT-T7-17 | `test_t7_contract: non_finite_start_fails_and_recovers` | F | Trạng thái đầu NaN → không có path; chu kỳ sau cho path như sau reset | T7 contract |
 
 ### 5.7 T8 Offset {#uts-t8}
 
@@ -251,7 +255,7 @@ Gọi `pp_lcc_step` hoặc `pp_lkaelk_step` với input dựng tay, kiểm outpu
 | T4 | 10 | N, B, I, Num | Ca F khi ego-motion không hợp lệ |
 | T5 | 5 | N, B, S, F, Num | — |
 | T6 | 1 | N | Ca B khi xe gần vạch; v_lat khi xe trôi |
-| T7 | 13 | Đủ sáu loại | — |
+| T7 | 17 | Đủ sáu loại | — |
 | T8 | 8 | N, B, I, S, F | — |
 | T9 | 6 | B, S, F, Num | Ca N cho một lần LKA trọn vẹn |
 | T10 | 12 | N, B, S, Num | Ca I cho VehicleConfig biên |
@@ -317,3 +321,4 @@ Gọi `pp_lcc_step` hoặc `pp_lkaelk_step` với input dựng tay, kiểm outpu
 |---|---|---|
 | 1.0 | 2026-11-23 | Bản đầu: nguyên tắc, môi trường, 111 ca unit và 20 ca tích hợp unit truy về Software Detailed Design, bảng độ phủ theo unit |
 | 1.1 | 2026-11-23 | Mục 7: kết quả static analysis bằng clang analyzer và code coverage theo file, kiểm MISRA C:2012 bằng cppcheck |
+| 1.2 | 2026-11-23 | Mục 4, 5.6: bốn ca của T7 contract (UT-T7-14 đến 17), chạy cho từng generator. Lý do: PP-TS-031 GĐ 1 |

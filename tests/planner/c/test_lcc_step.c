@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "generators/pp_t7.h"
 #include "pp_calibration.h"
 #include "pp_planner.h"
 #include "pp_test.h"
@@ -126,7 +127,7 @@ static void test_lcc_path_from_car_to_centre(void)
     PP_CHECK(!out.lateral_limits.lateral_limit_reached);
     PP_CHECK(out.lateral_limits.lateral_limit_reached == out.lcc_status.lateral_limit_reached);
     PP_CHECK_NEAR(out.trajectory.points[0].pose.y, 0.0, 1e-5);
-#ifdef PP_T7_QP
+#ifndef PP_T7_QUINTIC_DURATION
     PP_CHECK(out.trajectory.points[30].pose.y > 0.0F);
 #else
     const double tau = 3.0 / (double)pp_calibration.T_recenter;

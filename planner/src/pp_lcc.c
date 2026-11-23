@@ -5,8 +5,7 @@
 
 #include "feasibility.h"
 #include "follow.h"
-#include "generators/qp.h"
-#include "generators/quintic.h"
+#include "generators/pp_t7.h"
 #include "offset.h"
 #include "output.h"
 #include "pp_build_info.h"
@@ -21,7 +20,7 @@
 
 typedef struct {
     pp_core_state_t core;  /* Core phải là trường đầu để pp_core_init ép con trỏ state về đúng kiểu. */
-    pp_qp_ws_t qp;
+    pp_t7_ws_t t7;
     pp_offset_state_t offset;
     pp_follow_state_t follow;
     bool recentering;
@@ -35,9 +34,6 @@ _Static_assert(_Alignof(pp_lcc_state_t) <= PP_STATE_ALIGNMENT,
                "pp_lcc_state_t needs more alignment than PP_STATE_ALIGNMENT");
 
 static const pp_function_limits_t PP_LCC_LIMITS = {PP_AYSMAX, PP_JERK_MAX_HWA, 0.0, 0.0};
-
-#define PP_T_STEP_S (0.25)
-#define PP_T_MAX_STEPS (32U)  /* Giới hạn số lần thử bất kể calibration T_max. */
 
 size_t pp_lcc_state_size(void)
 {
@@ -58,6 +54,8 @@ pp_init_result_t pp_lcc_init(void *state, size_t state_size, const pp_vehicle_co
         if ((cal->trail_n * cal->trail_spacing) < (float)PP_FOLLOW_TRAIL_COVER_M) {
             ((pp_core_state_t *)state)->initialized = false;
             result = PP_INIT_RESULT_BAD_CALIBRATION;
+        } else {
+            pp_t7_reset(&((pp_lcc_state_t *)state)->t7);
         }
     }
     return result;
@@ -79,80 +77,6 @@ static void update_recentering(pp_lcc_state_t *s, bool requested, bool hold_now,
     }
 }
 
-#ifndef PP_T7_QP
-static bool generate_lcc(const pp_lcc_state_t *s, const pp_reference_line_t *ref,
-                         const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
-                         double d_target,
-                         pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
-                         pp_ref_samples_t *samples)
-{
-    const pp_calibration_t *cal = s->core.cal;
-    const double wheelbase = (double)s->core.vehicle.wheelbase;
-    double duration = s->recentering ? (double)cal->T_recenter : (double)cal->T_hwa;
-    bool ok = false;
-    bool done = false;
-
-    for (uint32_t i = 0U; (i < PP_T_MAX_STEPS) && !done; i++) {
-        pp_lateral_path_t lateral;
-        pp_path_check_t check;
-        ok = pp_generate_quintic(start, d_target, duration, &lateral)
-             && pp_output_points(ref, &lateral, speed, wheelbase, points, samples);
-        done = !ok;
-        if (ok) {
-            pp_feasibility_check(points, samples, &check);
-            const bool targets_met = (check.ay_add_max <= (double)cal->ay_add_max_hwa)
-                                     && (check.jerk_max <= (double)cal->jerk_target_hwa);
-            done = targets_met || ((duration + PP_T_STEP_S) > ((double)cal->T_max + 1.0e-9));
-            duration += PP_T_STEP_S;
-        }
-    }
-    return ok;
-}
-#else
-static bool generate_lcc_qp(pp_lcc_state_t *s, const pp_reference_line_t *ref,
-                            const pp_lateral_state_t *start, const pp_speed_profile_t *speed,
-                            const pp_old_path_t *old, bool from_old, double d_target,
-                            pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
-                            pp_ref_samples_t *samples)
-{
-    const pp_calibration_t *cal = s->core.cal;
-    pp_qp_problem_t pb;
-    pp_lateral_path_t lateral;
-    pp_ref_walker_t walker;
-    pp_ref_point_t r;
-    (void)memset(&pb, 0, sizeof(pb));
-    pb.start = *start;
-    pb.d_target = d_target;
-    pb.ay_limit = PP_AYSMAX * (double)cal->qp_ay_margin;
-    pb.jerk_limit = 0.9 * PP_JERK_MAX_HWA;
-    const double half = fmax(0.0, (0.5 * ref->width) - (0.5 * (double)s->core.vehicle.vehicle_width)
-                                  - (double)cal->qp_corridor_margin);
-    pp_ref_walk_begin(&walker, ref, &r);
-    for (size_t k = 0U; k < PP_QP_N; k++) {
-        const size_t idx = k + 1U;
-        pp_ref_walk_to(&walker, speed->s[idx], &r);
-        pb.v[k] = speed->v[idx];
-        pb.kappa[k] = r.kappa;
-        pb.dkappa[k] = r.dkappa;
-        pb.d_max[k] = half;
-        pb.d_min[k] = -half;
-        pp_path_sample_t sample;
-        if (from_old && old->valid && pp_stitch_sample_old(old, (double)idx * PP_GRID_STEP_S, &sample)
-            && (sample.x <= ref->view_end)) {
-            pp_ref_point_t foot;
-            pp_ref_project(ref, sample.x, sample.y, &foot, &pb.d_old[k]);
-            pb.has_old[k] = isfinite(pb.d_old[k]);
-        }
-    }
-    const bool ok = pp_generate_qp(&s->qp, cal, &pb, &lateral)
-                    && pp_output_points(ref, &lateral, speed, (double)s->core.vehicle.wheelbase, points, samples);
-    if (!ok) {
-        pp_qp_reset(&s->qp);
-    }
-    return ok;
-}
-#endif
-
 typedef struct {
     bool path_valid;
     pp_lcc_mode_t mode;
@@ -173,7 +97,7 @@ typedef struct {
     bool requested;
 } pp_lcc_goal_t;
 
-#ifndef PP_T7_QP
+#if PP_T7_SUPPORT_FLOOR
 /* Fit cubic qua cua chữ S có thể sai độ cong gần xe. Chỉ đặt sàn trợ giúp khi đường không đổi dấu
  * và camera khớp T5 trong giây đầu (PP-SWR-006). */
 static bool confirmed_turn(const pp_ref_samples_t *fused, const pp_reference_line_t *camera,
@@ -230,13 +154,11 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
     /* FOLLOW dùng offset mục tiêu 0. Khi tài xế override hoặc LKA/ELK đang REQUEST, giữ offset
      * hiện tại để path song song làn. */
     const double d_target = goal->hold_now ? measured.d : (follow ? 0.0 : goal->offset);
-#ifdef PP_T7_QP
-    const bool ok = generate_lcc_qp(s, ref, &start, &speed, &f->old, from_old, d_target,
-                                    out->points, &out->samples);
-#else
-    (void)from_old;
-    const bool ok = generate_lcc(s, ref, &start, &speed, d_target, out->points, &out->samples);
-#endif
+    const pp_t7_input_t t7_in = {
+        .ref = ref, .start = &start, .speed = &speed, .old = &f->old, .from_old = from_old,
+        .recentering = s->recentering, .d_target = d_target, .vehicle = &core->vehicle,
+    };
+    const bool ok = pp_t7_generate(&s->t7, cal, &t7_in, out->points, &out->samples);
     if (ok) {
         const double wheelbase = (double)core->vehicle.wheelbase;
         /* Giới hạn candidate trước khi blend. Lần T10 sau bù chênh lệch do tốc độ thay đổi
@@ -248,7 +170,7 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
 #endif
         const pp_function_limits_t path_limits = pp_hwa_path_limits(cal, over_limit);
         pp_function_limits_t candidate_limits = path_limits;
-#ifndef PP_T7_QP
+#if PP_T7_SUPPORT_FLOOR
         if (core->limit_flag.reached && goal->requested && !goal->hold_now && !follow
             && !ref->coasting && !ref->inferred
             && confirmed_turn(&out->samples, &f->camera_ref, &speed, (double)cal->epsilon_ay)) {
@@ -285,7 +207,7 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     out->ay_limit = PP_LCC_LIMITS.ay_max;
     pp_core_frame(&s->core, in, t0_us, ego_motion, context, &f);
     if (!f.forward) {
-        pp_qp_reset(&s->qp);
+        pp_t7_reset(&s->t7);
         pp_offset_reset(&s->offset);
         pp_follow_reset(&s->follow);
         return;
