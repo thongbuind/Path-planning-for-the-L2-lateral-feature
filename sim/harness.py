@@ -799,9 +799,11 @@ class Harness:
         state = self.ch["vehicle_state"].latest
         if speed is None or imu is None:
             return
+        requests = _fresh(self.ch["function_requests"].latest, now_us, FUNCTION_REQUESTS_TIMEOUT_US,
+                          FUNCTION_REQUESTS_MAX_AGE_US)
         ego = EgoState(speed.message.speed_mps,
                        state.message.lateral_velocity if state is not None else 0.0,
-                       imu.message.yaw_rate_rps)
+                       imu.message.yaw_rate_rps, requests is not None and requests.driver_override)
         request: SteeringRequest = self.controller.step(now_us, ego, self.ego_motion.query)
         self.ch["steering_request"].publish(request, now_us)
 

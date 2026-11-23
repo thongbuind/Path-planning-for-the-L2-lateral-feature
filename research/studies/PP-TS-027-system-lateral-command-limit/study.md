@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, bộ ca và runner nháp sẵn sàng cho V0. V1 và V2 chờ duyệt triển khai |
+| Trạng thái | Mở, V0–V2 đã cài cho SIL. Kế hoạch nháp |
 | Mở ngày | 2026-11-23 |
 | Khóa ngày | — |
 | Quyết định ngày | — |
@@ -27,7 +27,7 @@ Giới hạn của V1 và V2 chỉ áp khi lệnh của LCC đang có hiệu l�
 **Cấu hình đề xuất cho lần chạy đầu:**
 
 - V1 dùng `delta_max = (L + K·v²)·2,8/v²` cho biên góc bánh trước. `L` và `K` lấy như feedforward hiện tại. Kết hợp biên này với giới hạn góc bánh của xe. Khi `v = 0`, dùng giới hạn góc bánh sẵn có.
-- V2 dự báo từ `v·yaw_rate` và các lệnh controller đã gửi trong khoảng trễ EPS. Dùng đáp ứng bậc nhất với tham số EPS hiện có. Sau độ trễ, chọn tổng lệnh gần lệnh gốc nhất sao cho dự báo tới hết cửa sổ preview nằm trong khoảng ±2,8 m/s². Khi trạng thái ban đầu đã vượt mục tiêu, giới hạn phần lệnh có thể làm a_y tăng thêm theo hướng đang vượt và ghi thời gian trở lại giới hạn.
+- V2 dự báo từ `v·yaw_rate` và các lệnh controller đã gửi trong khoảng trễ EPS. Dùng đáp ứng bậc nhất với hằng số thời gian EPS hiện có. Sau độ trễ danh định của profile và độ trễ kênh lệnh, chọn tổng lệnh gần lệnh gốc nhất để đưa dự báo a_y cuối cửa sổ preview vào khoảng ±2,8 m/s². Khi dự báo đã vượt ở lúc lệnh mới tới EPS, dùng cùng khoảng ở cuối preview để kéo dự báo về. Giới hạn cơ khí của EPS vẫn áp dụng.
 - Cả hai dùng 2,8 m/s² làm mục tiêu của lệnh. Kết luận vẫn dùng a_y xe đã lọc, cả đỉnh và thời gian vượt, theo phép chấm hiện hành.
 
 ## 3. Cách đánh giá
@@ -45,7 +45,7 @@ Kế hoạch nháp nằm trong [plan.yaml](plan.yaml). Bộ ca [PP-TS-027](../..
 
 Runner nháp `eval.controller_study` chọn controller theo phương án và kiểm hash của cả hai thư viện planner từ hồi quy `591e3de`. Manifest ghi cấu hình, hash mã controller và đầu vào. Mỗi kết quả giữ hash ca, checksum hành vi, phạm vi chấm, tiêu chí và chỉ số gốc. Ca đối chứng của PP-SWR-129/130 dùng cùng controller với ca bơm lỗi.
 
-Xem danh sách ca bằng `python3 -m eval.controller_study PP-TS-027 --list`. V0 sẵn sàng chạy nháp. V1 và V2 có cấu hình dự kiến và sẽ được đăng ký khi cài đặt. Trước lần chạy chính thức cần chốt cách build một lần trên commit đã khóa, dùng lại hai thư viện đó cho toàn bộ phương án và giữ quy tắc provenance của dự án.
+Xem danh sách ca bằng `python3 -m eval.controller_study PP-TS-027 --list`. V0–V2 đã sẵn sàng chạy nháp. Runner ghi riêng lệch ngang tại preview, tỷ lệ lệnh HWA bị giới hạn và các chỉ số của bộ chấm. Trước lần chạy chính thức cần chốt cách build một lần trên commit đã khóa, dùng lại hai thư viện đó cho toàn bộ phương án và giữ quy tắc provenance của dự án.
 
 Chạy nháp riêng S1b(b), seed 3, với hai thư viện đã đóng băng:
 

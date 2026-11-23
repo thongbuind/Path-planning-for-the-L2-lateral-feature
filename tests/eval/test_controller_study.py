@@ -41,6 +41,7 @@ def test_scoring_keeps_current_path_limit(monkeypatch, run, scored_vehicle_ay):
 
 
 def test_unimplemented_variant_is_rejected_before_loading_planner(monkeypatch, tmp_path, capsys):
+    monkeypatch.delitem(controller_study.CONTROLLERS, "static_total_limit")
     monkeypatch.setattr(sys, "argv", ["controller_study.py", "PP-TS-027", "--variant", "V1",
                                       "--planner", str(tmp_path), "--out", str(tmp_path / "results")])
     with pytest.raises(SystemExit, match="2"):

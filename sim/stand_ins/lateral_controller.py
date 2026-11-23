@@ -7,6 +7,7 @@ from interfaces import (
     TRAJECTORY_TIMEOUT_US,
     EgoMotionQuery,
     EgoMotionRequest,
+    PlannerId,
     Pose2D,
     Trajectory,
     VehicleConfig,
@@ -31,12 +32,27 @@ class EgoState:
     speed_mps: float
     lateral_speed_mps: float
     yaw_rate_rps: float
+    driver_override: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class _PathSample:
     pose: Pose2D
     curvature: float
+
+
+@dataclass(slots=True)
+class HwaCommandStats:
+    samples: int = 0
+    limited: int = 0
+    squared_tracking_error_m2: float = 0.0
+    peak_tracking_error_m: float = 0.0
+
+    def observe(self, tracking_error_m: float, limited: bool) -> None:
+        self.samples += 1
+        self.limited += int(limited)
+        self.squared_tracking_error_m2 += tracking_error_m ** 2
+        self.peak_tracking_error_m = max(self.peak_tracking_error_m, abs(tracking_error_m))
 
 
 def wrap_angle(angle: float) -> float:
@@ -95,6 +111,7 @@ class LateralController:
         self._status: SystemStatus | None = None
         self._status_rx_us = 0
         self._last_angle = 0.0
+        self.hwa_command_stats = HwaCommandStats()
 
     def on_trajectory(self, message: Trajectory, rx_us: int) -> None:
         self._trajectory, self._trajectory_rx_us = message, rx_us
@@ -122,6 +139,15 @@ class LateralController:
         if status.active_function == ActiveFunction.NONE:
             return None
         return trajectory
+
+    def _controlling_hwa(self, state: EgoState) -> bool:
+        status, trajectory = self._status, self._trajectory
+        return (not state.driver_override and status is not None and trajectory is not None
+                and status.active_function == ActiveFunction.LCC and status.chosen == PlannerId.LCC
+                and trajectory.planner_id == PlannerId.LCC)
+
+    def _limit_wheel_angle(self, now_us: int, state: EgoState, wheel_angle: float) -> float:
+        return wheel_angle
 
     def _command(self, now_us: int, state: EgoState, ego_motion: EgoMotionQuery) -> float | None:
         trajectory = self._usable_trajectory(now_us)
@@ -160,5 +186,11 @@ class LateralController:
         if not isfinite(wheel_angle):
             return None
         limit = self.vehicle.max_wheel_angle
-        wheel_angle = min(limit, max(-limit, wheel_angle))
+        physical_angle = min(limit, max(-limit, wheel_angle))
+        if self._controlling_hwa(state):
+            bounded = self._limit_wheel_angle(now_us, state, wheel_angle)
+            wheel_angle = min(limit, max(-limit, bounded))
+            self.hwa_command_stats.observe(error.y, wheel_angle != physical_angle)
+        else:
+            wheel_angle = physical_angle
         return self.vehicle.steering_ratio * wheel_angle

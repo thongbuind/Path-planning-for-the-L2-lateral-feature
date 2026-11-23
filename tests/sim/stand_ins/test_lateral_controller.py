@@ -1,9 +1,13 @@
-from math import cos, isclose, sin, tan
+from dataclasses import replace
+from math import cos, exp, isclose, sin, tan
 
 import pytest
 
 from sim.stand_ins.arbitrator import ActiveFunction, SystemStatus
+from sim.stand_ins.eps import TAU_S
+from sim.stand_ins.hwa_command_limit import PredictedHwaCommandLimit, StaticHwaCommandLimit
 from sim.stand_ins.lateral_controller import EgoState, LateralController, sample_trajectory
+from sim.stand_ins.lateral_controller import PREVIEW_S
 from interfaces import (
     TRAJECTORY_POINTS,
     TRAJECTORY_STEP_S,
@@ -65,8 +69,8 @@ def no_motion(_request: EgoMotionRequest) -> EgoMotionResponse:
     return EgoMotionResponse(True, 0.0, 0.0, 0.0)
 
 
-def controller(trajectory, path_status=None, rx_us=STAMP):
-    c = LateralController(VP0, K)
+def controller(trajectory, path_status=None, rx_us=STAMP, make_controller=LateralController):
+    c = make_controller(VP0, K)
     c.on_trajectory(trajectory, rx_us)
     c.on_path_status(path_status or status(), rx_us)
     return c
@@ -186,3 +190,53 @@ def test_sample_trajectory_interpolates_and_rejects_outside_horizon():
     assert sample_trajectory(trajectory, 3.0) is not None
     assert sample_trajectory(trajectory, 3.01) is None
     assert sample_trajectory(trajectory, -0.01) is None
+
+
+@pytest.mark.parametrize("side", [-1, 1])
+def test_static_limit_bounds_total_steering(side):
+    make = lambda vehicle, gradient: StaticHwaCommandLimit(vehicle, gradient, sustained_ay_mps2=2.8)
+    c = controller(straight(offset_y=side * 100.0), make_controller=make)
+    request = c.step(STAMP, STRAIGHT_STATE, no_motion)
+    expected = side * VP0.steering_ratio * (VP0.wheelbase + K * SPEED ** 2) * 2.8 / SPEED ** 2
+    assert request.steering_wheel_angle_rad == pytest.approx(expected)
+    assert (c.hwa_command_stats.limited, c.hwa_command_stats.samples) == (1, 1)
+
+
+@pytest.mark.parametrize("variant", [StaticHwaCommandLimit, PredictedHwaCommandLimit])
+@pytest.mark.parametrize("function, override", [(ActiveFunction.LKA, False), (ActiveFunction.ELK, False),
+                                               (ActiveFunction.LCC, True)])
+def test_limits_only_apply_when_hwa_has_authority(variant, function, override):
+    make = lambda vehicle, gradient: variant(vehicle, gradient, sustained_ay_mps2=2.8)
+    trajectory = straight(offset_y=100.0)
+    c = controller(trajectory, status(function=function), make_controller=make)
+    stock = controller(trajectory, status(function=function))
+    state = replace(STRAIGHT_STATE, driver_override=override)
+    assert c.step(STAMP, state, no_motion) == stock.step(STAMP, state, no_motion)
+    assert c.hwa_command_stats.samples == 0
+
+
+def test_predicted_limit_accounts_for_pending_command_and_recovers_when_over_limit():
+    make = lambda vehicle, gradient: PredictedHwaCommandLimit(vehicle, gradient, sustained_ay_mps2=2.8)
+    c = controller(straight(offset_y=100.0), make_controller=make)
+    first = c.step(STAMP, STRAIGHT_STATE, no_motion)
+    gain = SPEED ** 2 / (VP0.wheelbase + K * SPEED ** 2)
+    delayed_target = gain * first.steering_wheel_angle_rad / VP0.steering_ratio
+    # Lệnh đầu có hiệu lực sớm hơn lệnh thứ hai 10 ms.
+    at_application = delayed_target + exp(-0.01 / TAU_S) * (4.0 - delayed_target)
+    remaining = PREVIEW_S - VP0.actuator_delay - 0.001
+    second = c.step(STAMP + 10_000, replace(STRAIGHT_STATE, yaw_rate_rps=4.0 / SPEED), no_motion)
+    target = gain * second.steering_wheel_angle_rad / VP0.steering_ratio
+    end = target + exp(-remaining / TAU_S) * (at_application - target)
+    assert target < 2.8
+    assert end == pytest.approx(2.8)
+
+
+def test_predicted_limit_clears_hwa_history_during_override():
+    make = lambda vehicle, gradient: PredictedHwaCommandLimit(vehicle, gradient, sustained_ay_mps2=2.8)
+    trajectory = straight(offset_y=100.0)
+    c = controller(trajectory, make_controller=make)
+    c.step(STAMP, STRAIGHT_STATE, no_motion)
+    c.step(STAMP + 10_000, replace(STRAIGHT_STATE, driver_override=True), no_motion)
+    fresh = controller(trajectory, make_controller=make)
+    now = STAMP + 20_000
+    assert c.step(now, STRAIGHT_STATE, no_motion) == fresh.step(now, STRAIGHT_STATE, no_motion)

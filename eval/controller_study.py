@@ -4,6 +4,7 @@ import argparse
 import inspect
 import json
 from functools import partial
+from math import sqrt
 from pathlib import Path
 
 import yaml
@@ -11,10 +12,15 @@ import yaml
 from eval import (case, checksum, differential, labels, matrix, metrics, planner_choice,
                   proposed, provenance, report, study, sweep)
 from sim.harness import Harness
+from sim.stand_ins.hwa_command_limit import PredictedHwaCommandLimit, StaticHwaCommandLimit
 from sim.stand_ins.lateral_controller import LateralController
 
 
-CONTROLLERS = {"stock": LateralController}
+CONTROLLERS = {
+    "stock": LateralController,
+    "static_total_limit": StaticHwaCommandLimit,
+    "predicted_total_limit": PredictedHwaCommandLimit,
+}
 
 
 def assess(log, run, vehicle_ay: dict, extra_criteria=()) -> tuple[metrics.Result, set[str]]:
@@ -31,9 +37,11 @@ def assess(log, run, vehicle_ay: dict, extra_criteria=()) -> tuple[metrics.Resul
 
 def run_case(run: list, seed: int, planner, controller_factory, vehicle_ay: dict) -> dict:
     scenario = sweep.load_run(run)
-    log = Harness(scenario, planner, seed, controller_factory=controller_factory).run()
+    harness = Harness(scenario, planner, seed, controller_factory=controller_factory)
+    log = harness.run()
     extra = differential.criteria(scenario, log, planner, seed, controller_factory=controller_factory)
     result, scope = assess(log, run, vehicle_ay, extra)
+    commands = harness.controller.hwa_command_stats
     return {
         "spec": run, "profile": scenario.profile, "acc": scenario.acc, "seed": seed,
         "case_hash": case.case_hash(scenario), "behavior_checksum": checksum.behavior_checksum(log),
@@ -42,6 +50,13 @@ def run_case(run: list, seed: int, planner, controller_factory, vehicle_ay: dict
             if criterion.id in scope and criterion.applicable and not criterion.passed
         ],
         "result": result.to_dict(),
+        "hwa_command": {
+            "samples": commands.samples,
+            "limited_share": commands.limited / commands.samples if commands.samples else None,
+            "preview_tracking_rms_m": sqrt(commands.squared_tracking_error_m2 / commands.samples)
+            if commands.samples else None,
+            "preview_tracking_peak_m": commands.peak_tracking_error_m if commands.samples else None,
+        },
     }
 
 
@@ -120,6 +135,7 @@ def main() -> None:
         for part in parts:
             runs = suite[part]["runs"] if args.case is None else [suite[part]["runs"][args.case - 1]]
             seeds = suite[part]["seeds"] if args.seed is None else [args.seed]
+            print(f"{name} · {part} · {len(runs) * len(seeds)} lượt", flush=True)
             for run in runs:
                 for seed in seeds:
                     row = run_case(run, seed, planner, factory, suite["vehicle_ay"])

@@ -1,4 +1,4 @@
-# Kế hoạch nháp. Cần duyệt cấu hình triển khai và cách ghi lần chạy chính thức trước khi khóa.
+# Kế hoạch nháp. Cần duyệt cách ghi lần chạy chính thức trước khi khóa.
 id: PP-TS-027
 locked: null
 runner: eval.controller_study
