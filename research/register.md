@@ -17,7 +17,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 
 | Ưu tiên | Đầu việc | Hồ sơ | Kết quả hoặc bước tiếp theo |
 |---|---|---|---|
-| P0 | Giữ làn khi yaw rate sai và kiểm trần gia tốc ngang | [PP-PR-049](problems/PP-PR-049-yaw-rate-bias-lane-departure.md), [PP-PR-056](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md), [PP-TS-020](studies/PP-TS-020-path-ay-ceiling/study.md) | Tái hiện F08 và S1b(b). Tách phần vượt giới hạn do controller và phần do path trước khi chọn phương án |
+| P0 | Giữ làn khi yaw rate sai và kiểm trần gia tốc ngang | [PP-PR-049](problems/PP-PR-049-yaw-rate-bias-lane-departure.md), [PP-PR-056](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md), [PP-TS-020](studies/PP-TS-020-path-ay-ceiling/study.md), [PP-TS-027](studies/PP-TS-027-system-lateral-command-limit/study.md) | S1b(b) vượt giới hạn a_y xe. Đã mở TS-027 để so giới hạn tổng lệnh lái cấp hệ thống |
 | P0 | Xử lý hình học làn sai kéo dài và phục hồi sau lỗi | [PP-PR-001](problems/PP-PR-001-f06-wrong-curvature.md), [PP-PR-009](problems/PP-PR-009-f03c-whole-lane-shift.md), [PP-PR-044](problems/PP-PR-044-lka-continues-on-jumped-lane.md), [PP-PR-048](problems/PP-PR-048-shape-check-wrong-curvature-after-fault.md), [PP-PR-057](problems/PP-PR-057-f06d-departure-after-fault-end.md), [PP-TS-001](studies/PP-TS-001-lane-jumps/study.md), [PP-TS-022](studies/PP-TS-022-blend-limit/study.md) | F03(c) đạt cả sáu lượt, đã đóng PR-009. F02(e), F06(d) còn trượt |
 | P0 | Giữ làn trên cua chữ S | [PP-PR-004](problems/PP-PR-004-s14-s-bend.md), [PP-TS-005](studies/PP-TS-005-lane-fit-error/study.md) | Tái hiện S14(e) và review kế hoạch so sánh sai số hình học của V3 với V2 |
 | P0 | Giữ làn và báo giới hạn khi vào cua gắt | [PP-PR-007](problems/PP-PR-007-s14a-overspeed-after-limit.md), [PP-PR-008](problems/PP-PR-008-s1ba-fast-curve-entry-lag.md), [PP-PR-051](problems/PP-PR-051-s1ba-flag-late-vp0.md) | Đã đóng PR-051. S14(a) còn trượt PP-SWR-051. S1b(a) cần xác nhận PP-SWR-006 trên đủ profile và seed |
@@ -55,6 +55,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-025; kế hoạch nháp, V1/V2 chưa cài | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
 | PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-024; kế hoạch nháp, V2–V4 chưa cài | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
 | PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Chờ quyết định; hồi quy 20261118-2030-suite-regression-e3158a5 với V4 | Đề xuất V4 | [study](studies/PP-TS-026-intervention-return/study.md) |
+| PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở 2026-11-23, plan nháp chờ duyệt | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
 
 ## Problem reports
 
@@ -114,7 +115,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-PR-052 | G01 trên S4c: LKA bị hủy khi vạch còn lại bị loại một frame | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 047 | [report](problems/PP-PR-052-g01-s4c-lka-dropped-on-rejected-line.md) |
 | PP-PR-053 | Cách chấm PP-SWR-030 mâu thuẫn với PP-SWR-045 (F20 a) | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-030, 045 | [report](problems/PP-PR-053-eval-030-ignores-045.md) |
 | PP-PR-054 | F17 b và F21 c trên S1c: xe rời làn ở cua chạm aysmax | Không còn tái hiện ở e3158a5: F17 b, F21 c trên S1c đạt | PP-SWR-051 | [report](problems/PP-PR-054-s1c-f17b-f21c-departure.md) |
-| PP-PR-056 | S1b b: a_y của xe vượt aysmax + 0,3 tới cuối ca ở mọi trần path; ca quá ngắn để chấm 2 s của R79 | Mở: S1b b vẫn trượt R79 ở mọi phương án của PP-TS-020 sau PP-TS-021; S1b a, c đạt ở V0, V1a | R79 5.6.2.1.1; PP-TS-020 | [report](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md) |
+| PP-PR-056 | S1b b: a_y của xe vượt giới hạn dù a_y path đạt PP-SWR-001 | Mở, khảo sát giới hạn tổng lệnh lái qua PP-TS-027 | R79 5.6.2.1.1, PP-TS-020, PP-TS-027 | [report](problems/PP-PR-056-s1bb-vehicle-ay-above-r79.md) |
 | PP-PR-055 | S12 c: ELK bắt đầu trễ 0,8 s vì T2 loại frame nhất quán | Đóng (20261114-2252-suite-regression-98a122b) | PP-SWR-088, 085, 100 | [report](problems/PP-PR-055-s12c-elk-late-correlated-noise.md) |
 | PP-PR-057 | F06 d: xe rời làn sau khi lỗi đã hết (T2 loại hình học đúng thêm `T_confirm`, T4 quay về chậm), rồi HWA lái tiếp ở làn bên | Còn mở; cơ chế 2, 3 chờ quyết định | PP-SWR-051, 125, 061; SG-01; PP-TS-001, 005, 021 | [report](problems/PP-PR-057-f06d-departure-after-fault-end.md) |
 | PP-PR-058 | Đa thức dời bằng ego-motion mất 1 m tầm nhìn mỗi chu kỳ khi xe đổi hướng (`pp_cubic_move`); kiểm hình dạng của T2 yếu dần | Đã sửa (9cc3c8e); hồi quy 20261117-0908-suite-regression-c56f0bf không có trượt mới do lần sửa này | PP-SWR-121, 122, 124, 125, 018; PP-PR-048, 057 | [report](problems/PP-PR-058-moved-cubic-loses-view-range.md) |

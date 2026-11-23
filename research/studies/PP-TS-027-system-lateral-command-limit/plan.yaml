@@ -1,0 +1,32 @@
+# Kế hoạch nháp. Cần duyệt và chuẩn bị runner chọn biến thể controller trước khi khóa.
+id: PP-TS-027
+locked: null
+suite: null
+parts: [tuning, test]
+planner_baseline:
+  commit: 591e3de
+  t7: quintic
+  calibration_sha256_prefix: c9618c64d42e
+case_selection:
+  source: benchmark/suites/PP-TS-020.yaml
+  reuse: [runs, seeds]
+  confirmation:
+    source: 20261122-0758-suite-regression-591e3de
+    cases: [S1c F08(c), S1c G01, S9, S17]
+scoring:
+  path_ay: PP-SWR-001
+  vehicle_ay: PP-TS-020/R79-5.6.2.1.1
+  vehicle_ay_mode: S1b với ACC ignore_limits
+  other_criteria: Requirement hiện hành theo điều kiện áp dụng của từng ca
+  reproduction: S1b(b) với ACC ignore_limits phải đạt tiêu chí a_y xe
+tuning_budget: Không quét ở vòng đầu, dùng cùng mục tiêu a_y liên tục cho V1 và V2
+equal_within:
+  PP-SWR-050: 0.005
+  PP-SWR-051: 0.01
+variants:
+  V0:
+    description: Lateral Controller hiện tại
+  V1:
+    description: Giới hạn tổng lệnh theo quan hệ lái ổn định và tốc độ
+  V2:
+    description: Giới hạn tổng lệnh theo dự báo a_y và độ trễ EPS

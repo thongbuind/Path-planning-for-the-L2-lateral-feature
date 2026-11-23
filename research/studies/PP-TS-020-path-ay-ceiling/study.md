@@ -169,6 +169,8 @@ Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0
 
 ## 6. Đề xuất
 
+2026-11-23: [PP-TS-027](../PP-TS-027-system-lateral-command-limit/study.md) khảo sát tổng lệnh lái ở Lateral Controller với trần path và phép chấm hiện hành. Kết quả sẽ bổ sung bằng chứng cho phần a_y xe trong PP-PR-056 trước khi chọn trần path.
+
 2026-11-18, sau lần chạy 20261118-2127-study-PP-TS-020-ac82bb3, chờ người dùng:
 
 - Đề xuất V1a (`ay_margin_hwa` = 0,1 m/s²): nhỏ nhất trong các phương án có lợi, và không thêm lượt trượt nào so với V0.
