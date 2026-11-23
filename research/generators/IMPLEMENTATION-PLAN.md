@@ -238,14 +238,15 @@ Sàn trợ giúp PP-SWR-006 (`confirmed_turn`, `ay_support`) hiện chỉ có �
 
 | Bước | Việc | Trạng thái |
 |---|---|---|
-| 2.1 | `research/generators/README.md`: cách thêm generator, ba tầng L0/L1/L2, quy tắc, link tới PP-T7, SQTS 9.1 và mục 2 của file này (chuyển sang README khi xóa file), không chép tiêu chí sang. Cập nhật mục Thư mục của `research/README.md` | Chưa |
-| 2.2 | `registry.yaml`: tên, base, trạng thái, study, khóa CMake, session phụ trách | Chưa |
-| 2.3 | `templates/generator/`: `generator.yaml`, `generator.cmake`, `src/`, `tests/`, `notes.md` | Chưa |
-| 2.4 | `common/driver_shape.c`: smoothstep bậc 7, dùng chung cho `quintic_tangent_point` và `quintic_ay_sampling` | Chưa |
-| 2.5 | Chuyển `pilot_driver.inc`, `pilot_qp.inc` vào thư mục generator; ghi `research/t7_potential.py` là đã có công cụ thay thế | Chưa |
-| 2.6 | `bench/quick.py`: build nháp, chỉ phần tuning (từ chối seed 3–4 và dòng test), mặc định 1 job. Tập nhanh: 3 dòng vòng hở × 2 seed, S1d, S1g, S1b a vòng kín seed 1 | Chưa |
-| 2.7 | Telemetry nghiên cứu: cờ `PP_T7_TELEMETRY`, chỉ có trong bản lab; `pp_t7_telemetry()` trả khối lượng việc mỗi chu kỳ, số lần dùng `quintic_duration` thay thế kèm lý do, mức T10 sửa path, residual, slack, thời gian suy luận MLP. Bản giao không có | Chưa |
-| 2.8 | `eval/sweep.py` nhận giá trị cho tham số riêng của generator lab (ghi bản sao `generator.yaml` đã đổi giá trị, truyền qua `PP_T7_LAB_DIR`); cần trước GĐ 4 | Chưa |
+| 2.1 | `research/generators/README.md`: cách thêm generator, ba tầng L0/L1/L2, quy tắc, link tới PP-T7, SQTS 9.1 và mục 2 của file này (chuyển sang README khi xóa file), không chép tiêu chí sang. Cập nhật mục Thư mục của `research/README.md` | Xong |
+| 2.2 | `registry.yaml`: tên, base, trạng thái, study, khóa CMake, session phụ trách | Xong |
+| 2.3 | `templates/generator/`: `generator.yaml`, `generator.cmake`, `src/`, `tests/`, `notes.md` | Xong (cùng `new_generator.py`) |
+| 2.4 | `common/driver_shape.c`: smoothstep bậc 7, dùng chung cho `quintic_tangent_point` và `quintic_ay_sampling` | Xong |
+| 2.5 | Chuyển `pilot_driver.inc`, `pilot_qp.inc` vào thư mục generator; ghi `research/t7_potential.py` là đã có công cụ thay thế | Xong: `pilots/`; `t7_potential.py` lấy nguồn từ 3b06b5d |
+| 2.6 | `bench/quick.py`: build nháp, chỉ phần tuning (từ chối seed 3–4 và dòng test), mặc định 1 job. Tập nhanh: 3 dòng vòng hở × 2 seed, S1d, S1g, S1b a vòng kín seed 1 | Xong |
+| 2.7 | Telemetry nghiên cứu: cờ `PP_T7_TELEMETRY`, chỉ có trong bản lab; `pp_t7_telemetry()` trả khối lượng việc mỗi chu kỳ, số lần dùng `quintic_duration` thay thế kèm lý do, mức T10 sửa path, residual, slack, thời gian suy luận MLP. Bản giao không có | Xong phần C (`pp_lcc_t7_telemetry`); đọc telemetry từ eval làm ở GĐ 3 khi có generator đầu tiên |
+| 2.8 | `eval/sweep.py` nhận giá trị cho tham số riêng của generator lab (ghi bản sao `generator.yaml` đã đổi giá trị, truyền qua `PP_T7_LAB_DIR`); cần trước GĐ 4 | Xong (`PP_T7_LAB_CALIBRATION`) |
+| 2.9 | Contract bổ sung cho GĐ 3: input thêm `follow`, `start_from_car`, `objects`; `generators/t7_common.c` (vòng tìm thời lượng trả path Frenet, dựng bài toán QP); `pp_generate_qp_seeded`, `pp_qp_stats`; unit test lab qua `PP_T7_TESTS`. Golden kiểm lại | Xong |
 
 → Người dùng commit.
 

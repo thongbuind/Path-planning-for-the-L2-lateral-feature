@@ -137,6 +137,13 @@ static void test_lcc_path_from_car_to_centre(void)
 #endif
     PP_CHECK_NEAR(out.trajectory.points[30].pose.x, 75.0, 1e-3);
     PP_CHECK_NEAR(out.trajectory.points[10].longitudinal_velocity_mps, 25.0, 1e-6);
+#ifdef PP_T7_TELEMETRY
+    pp_t7_telemetry_t tm;
+    PP_CHECK(pp_lcc_t7_telemetry(memory, &tm));
+    PP_CHECK(tm.work > 0U);
+    PP_CHECK(tm.t10_change_m >= 0.0);
+    PP_CHECK(!pp_lcc_t7_telemetry(NULL, &tm));
+#endif
 
     pp_lcc_inputs_t next = in;
     next.t0_us += PP_PLANNER_PERIOD_US;

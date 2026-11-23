@@ -86,6 +86,8 @@ research/
   problems/PP-PR-nnn-<tên>.md
   runs/INDEX.md        mọi lần chạy chính thức
   runs/<run-id>/       manifest, báo cáo và kết luận theo loại run
+  generators/          generator lab T7 của LCC (PP-TS-031), xem generators/README.md
+  t7_potential.py      nguyên mẫu T7 của PP-TS-024, 025; đã có generators/ thay thế
 ```
 
 ## Liên hệ với tài liệu kỹ thuật

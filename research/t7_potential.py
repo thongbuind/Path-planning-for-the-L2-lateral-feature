@@ -13,6 +13,9 @@ DESCRIPTION = """Isolated T7 proof of concept for PP-TS-024 and PP-TS-025.
 
 Run from the repository root with one CPU worker. The original C sources and
 the two formal study plans remain usable. All build products go under --out.
+
+Superseded by research/generators (PP-TS-031). The hooks patch the LCC planner
+as it was before the T7 contract, so the sources come from commit 3b06b5d.
 """
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,9 +25,10 @@ from adapters.sil.sil_planner import PlannerLibraries
 from eval import metrics, provenance, sweep
 from sim.harness import Harness
 
-STUDIES = ROOT / "research" / "studies"
-DRIVER_HOOK = STUDIES / "PP-TS-024-driver-model-path" / "pilot_driver.inc"
-QP_HOOK = STUDIES / "PP-TS-025-nn-ltv-mpc-path" / "pilot_qp.inc"
+PILOTS = ROOT / "research" / "generators" / "pilots"
+DRIVER_HOOK = PILOTS / "pilot_driver.inc"
+QP_HOOK = PILOTS / "pilot_qp.inc"
+SOURCE_COMMIT = "3b06b5d"  # Last LCC planner before the T7 contract; the hooks patch its pp_lcc.c and qp.c.
 N = 30
 F = 21
 H = 32
@@ -234,8 +238,10 @@ def main():
     out.mkdir(parents=True, exist_ok=False)
     source = out / "source"
     planner = source / "planner"
-    shutil.copytree(ROOT / "planner", planner)
-    shutil.copytree(ROOT / "interfaces" / "c", source / "interfaces" / "c")
+    source.mkdir(parents=True)
+    archive = subprocess.run(["git", "archive", SOURCE_COMMIT, "planner", "interfaces/c"], cwd=ROOT,
+                             check=True, capture_output=True).stdout
+    subprocess.run(["tar", "-x", "-C", str(source)], input=archive, check=True)
     snapshots = {str(p.relative_to(source)): provenance.sha256(p)
                  for p in sorted(source.rglob("*")) if p.is_file()}
     print("Build Quintic and QP 150", flush=True)

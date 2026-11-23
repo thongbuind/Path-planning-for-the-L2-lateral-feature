@@ -105,8 +105,39 @@ static void test_deterministic(void)
     PP_CHECK(memcmp(a.d, b.d, sizeof(a.d)) == 0);
 }
 
+/* Seed NULL giữ đúng lời giải cũ. Seed bằng nghiệm hội tụ cho nghiệm gần nghiệm đó ngay cả với ít vòng. */
+static void test_seed(void)
+{
+    pp_qp_problem_t pb;
+    pp_lateral_path_t plain;
+    pp_lateral_path_t seeded;
+    problem(&pb, 0.3, 1.0 / 300.0, 0.5);
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp(&ws, &pp_calibration, &pb, &plain));
+    PP_CHECK(ws.iterations == (uint32_t)pp_calibration.qp_iters);
+    double residual = 0.0;
+    double slack = -1.0;
+    pp_qp_stats(&ws, &residual, &slack);
+    PP_CHECK(isfinite(residual) && (residual >= 0.0) && (residual < 0.05));
+    PP_CHECK(isfinite(slack) && (slack >= 0.0));
+    double solution[N];
+    (void)memcpy(solution, ws.x, sizeof(solution));
+
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp_seeded(&ws, &pp_calibration, &pb, NULL, &seeded));
+    PP_CHECK(memcmp(plain.d, seeded.d, sizeof(plain.d)) == 0);
+
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp_seeded(&ws, &pp_calibration, &pb, solution, &seeded));
+    PP_CHECK_NEAR(seeded.d[0], 0.3, 1e-12);
+    for (size_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        PP_CHECK_NEAR(seeded.d[k], plain.d[k], 0.01);
+    }
+}
+
 int main(void)
 {
+    test_seed();
     test_recentre_without_overshoot();
     test_curve_at_limit_keeps_the_hard_limit();
     test_curve_beyond_limit_assists_at_the_limit();

@@ -1,0 +1,11 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md.
+name: __NAME__
+base: quintic_duration          # Generator gốc; cũng là nghiệm thay thế khi generator không áp dụng
+study: PP-TS-031
+telemetry:
+  work: số lần thử thời lượng   # Đơn vị của pp_t7_telemetry_t.work
+  fallback: {}                   # Mã lý do dùng nghiệm thay thế → mô tả, ví dụ {1: FOLLOW}
+# Tham số calibration riêng: tên bắt đầu bằng calibration_prefix + "_", cùng định dạng với
+# planner/calibration/calibration.yaml (value, unit, min, max, source).
+calibration_prefix: __PREFIX__
+calibration: {}

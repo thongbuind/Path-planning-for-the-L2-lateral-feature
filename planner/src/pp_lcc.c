@@ -21,6 +21,9 @@
 typedef struct {
     pp_core_state_t core;  /* Core phải là trường đầu để pp_core_init ép con trỏ state về đúng kiểu. */
     pp_t7_ws_t t7;
+#ifdef PP_T7_TELEMETRY
+    pp_t7_telemetry_t t7_telemetry;
+#endif
     pp_offset_state_t offset;
     pp_follow_state_t follow;
     bool recentering;
@@ -156,7 +159,8 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
     const double d_target = goal->hold_now ? measured.d : (follow ? 0.0 : goal->offset);
     const pp_t7_input_t t7_in = {
         .ref = ref, .start = &start, .speed = &speed, .old = &f->old, .from_old = from_old,
-        .recentering = s->recentering, .d_target = d_target, .vehicle = &core->vehicle,
+        .recentering = s->recentering, .follow = follow, .start_from_car = goal->start_from_car,
+        .d_target = d_target, .objects = in->object_list, .vehicle = &core->vehicle,
     };
     const bool ok = pp_t7_generate(&s->t7, cal, &t7_in, out->points, &out->samples);
     if (ok) {
@@ -178,7 +182,20 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
             candidate_limits.ay_support = PP_AYSMAX - (0.5 * (double)cal->epsilon_ay);
         }
 #endif
+#ifdef PP_T7_TELEMETRY
+        pp_trajectory_point_t generated[PP_TRAJECTORY_POINTS];
+        (void)memcpy(generated, out->points, sizeof(generated));
+#endif
         (void)pp_feasibility_limit(out->points, &out->samples, &candidate_limits, &core->vehicle);
+#ifdef PP_T7_TELEMETRY
+        pp_t7_report(&s->t7, &s->t7_telemetry);
+        s->t7_telemetry.t10_change_m = 0.0;
+        for (size_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+            const double dx = (double)out->points[k].pose.x - (double)generated[k].pose.x;
+            const double dy = (double)out->points[k].pose.y - (double)generated[k].pose.y;
+            s->t7_telemetry.t10_change_m = fmax(s->t7_telemetry.t10_change_m, sqrt((dx * dx) + (dy * dy)));
+        }
+#endif
         if (!goal->hold_now) {
             /* FOLLOW chỉ quan sát đến lead. Cửa sổ continuity vẫn lấy từ LaneModel. */
             const double x_limit = pp_core_continuity_limit(follow ? &f->camera_ref : ref);
@@ -195,7 +212,6 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
             out->curve = camera_curve;
         }
     }
-    (void)in;
     return ok;
 }
 
@@ -206,6 +222,11 @@ static void plan_lcc(pp_lcc_state_t *s, uint64_t t0_us, const pp_usable_inputs_t
     (void)memset(out, 0, sizeof(*out));
     out->ay_limit = PP_LCC_LIMITS.ay_max;
     pp_core_frame(&s->core, in, t0_us, ego_motion, context, &f);
+#ifdef PP_T7_TELEMETRY
+    (void)memset(&s->t7_telemetry, 0, sizeof(s->t7_telemetry));
+    s->t7_telemetry.residual = NAN;
+    s->t7_telemetry.slack = NAN;
+#endif
     if (!f.forward) {
         pp_t7_reset(&s->t7);
         pp_offset_reset(&s->offset);
@@ -369,3 +390,15 @@ void pp_lcc_step(void *state,
         }
     }
 }
+
+#ifdef PP_T7_TELEMETRY
+bool pp_lcc_t7_telemetry(const void *state, pp_t7_telemetry_t *out)
+{
+    const pp_lcc_state_t *s = (const pp_lcc_state_t *)state;
+    const bool ok = (s != NULL) && (out != NULL) && (s->core.magic == PP_LCC_MAGIC) && s->core.initialized;
+    if (ok) {
+        *out = s->t7_telemetry;
+    }
+    return ok;
+}
+#endif

@@ -4,6 +4,7 @@
 #define PP_QP_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "lateral_state.h"
 #include "pp_calibration.h"
@@ -24,6 +25,7 @@ typedef struct {
     double rho;
     double d_target;
     bool warm;
+    uint32_t iterations;  /* Số vòng ADMM của lần giải gần nhất. */
 } pp_qp_ws_t;
 
 /* Mảng ứng với t_1 tới t_30; phần tử k là t_{k+1}. */
@@ -46,5 +48,13 @@ void pp_qp_reset(pp_qp_ws_t *ws);
 /* Ghi trạng thái bắt đầu vào điểm 0. Trả false nếu kết quả có giá trị không hữu hạn. */
 bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb,
                     pp_lateral_path_t *out);
+
+/* Như pp_generate_qp, nhưng khi seed khác NULL thì jerk xuất phát của ADMM là seed[0..PP_QP_N-1] thay
+ * cho warm start; biến nới và biến đối ngẫu giữ theo warm start. Dùng cho generator nghiên cứu. */
+bool pp_generate_qp_seeded(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb,
+                           const double seed[PP_QP_N], pp_lateral_path_t *out);
+
+/* Residual nguyên thủy tương đối và tổng trị tuyệt đối biến nới của lần giải gần nhất. */
+void pp_qp_stats(const pp_qp_ws_t *ws, double *residual, double *slack);
 
 #endif

@@ -124,8 +124,27 @@ static void test_non_finite_start_fails_and_recovers(void)
     PP_CHECK(memcmp(fresh, after, sizeof(fresh)) == 0);
 }
 
+#ifdef PP_T7_TELEMETRY
+/* Telemetry qua state của LCC được kiểm ở test_lcc_step; ở đây chỉ kiểm generator khai báo khối lượng việc. */
+static void test_telemetry_reports_work(void)
+{
+    fixture_t fx;
+    pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
+    pp_t7_telemetry_t tm;
+    setup(&fx, 0.3, 0.001);
+    pp_t7_reset(&ws_a);
+    PP_CHECK(generate(&ws_a, &fx, pts));
+    (void)memset(&tm, 0, sizeof(tm));
+    pp_t7_report(&ws_a, &tm);
+    PP_CHECK(tm.work > 0U);
+}
+#endif
+
 int main(void)
 {
+#ifdef PP_T7_TELEMETRY
+    test_telemetry_reports_work();
+#endif
     test_path_starts_at_start_and_moves_to_target();
     test_on_target_stays_on_target();
     test_reset_makes_output_depend_on_input_only();

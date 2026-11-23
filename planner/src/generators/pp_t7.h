@@ -5,24 +5,10 @@
 #define PP_T7_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
-#include "lateral_state.h"
+#include "generators/pp_t7_input.h"
 #include "pp_calibration.h"
-#include "pp_path.h"
-#include "pp_types.h"
-#include "reference_line.h"
-#include "stitching.h"
-
-typedef struct {
-    const pp_reference_line_t *ref;
-    const pp_lateral_state_t *start;  /* Trạng thái tại điểm 0, đã nối với path cũ khi from_old. */
-    const pp_speed_profile_t *speed;
-    const pp_old_path_t *old;  /* Path chu kỳ trước, đã dời về t0. */
-    bool from_old;
-    bool recentering;
-    double d_target;  /* [m] Offset mục tiêu so với đường tham chiếu, dương về trái. */
-    const pp_vehicle_config_t *vehicle;
-} pp_t7_input_t;
 
 /* Header của generator được chọn (sinh lúc configure) định nghĩa:
  * - pp_t7_ws_t: trạng thái giữ giữa các chu kỳ, kích thước cố định, nằm trong state của planner;
@@ -42,5 +28,13 @@ void pp_t7_reset(pp_t7_ws_t *ws);
  * chiếu). Trả false nếu không có path hợp lệ; khi đó ws phải ở trạng thái dùng tiếp được. */
 bool pp_t7_generate(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7_input_t *in,
                     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS], pp_ref_samples_t *samples);
+
+#ifdef PP_T7_TELEMETRY
+/* Generator điền telemetry của lần pp_t7_generate gần nhất; LCC điền t10_change_m. */
+void pp_t7_report(const pp_t7_ws_t *ws, pp_t7_telemetry_t *out);
+
+/* Đọc telemetry của chu kỳ LCC gần nhất từ state. Trả false nếu state không hợp lệ. Chỉ để nghiên cứu. */
+bool pp_lcc_t7_telemetry(const void *state, pp_t7_telemetry_t *out);
+#endif
 
 #endif

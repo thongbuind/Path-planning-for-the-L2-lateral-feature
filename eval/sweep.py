@@ -106,10 +106,36 @@ def scope_of(suite: dict, run: list) -> set[str]:
     return set(scope["always"]) | set(scope.get(key, []))
 
 
+LAB_DIR = ROOT / "research" / "generators"
+
+
+def _lab_calibration(cal_set: CalSet, values: dict, folder: Path) -> list[str]:
+    """Giá trị cho tham số riêng của generator lab: bản chép generator.yaml, truyền qua PP_T7_LAB_CALIBRATION."""
+    if not values:
+        return []
+    cmake = dict(cal_set.cmake)
+    if cmake.get("PP_T7") != "lab" or not cmake.get("PP_T7_LAB"):
+        raise KeyError(f"{cal_set.name}: unknown calibration parameters {sorted(values)}")
+    spec = yaml.safe_load((LAB_DIR / cmake["PP_T7_LAB"] / "generator.yaml").read_text(encoding="utf-8"))
+    own = spec.get("calibration") or {}
+    unknown = sorted(set(values) - set(own))
+    if unknown:
+        raise KeyError(f"{cal_set.name}: not a parameter of {cmake['PP_T7_LAB']}: {unknown}")
+    for name, value in values.items():
+        own[name]["value"] = value
+    lab_file = folder / "generator.yaml"
+    lab_file.write_text(yaml.safe_dump(spec, sort_keys=False, allow_unicode=True), encoding="utf-8")
+    return [f"-DPP_T7_LAB_CALIBRATION={lab_file}"]
+
+
 def _build(cal_set: CalSet, folder: Path) -> Path:
     params = yaml.safe_load(BASE_CALIBRATION.read_text(encoding="utf-8"))
+    lab_values = {}
     for name, value in cal_set.values.items():
-        params["parameters"][name]["value"] = value
+        if name in params["parameters"]:
+            params["parameters"][name]["value"] = value
+        else:
+            lab_values[name] = value
     folder.mkdir(parents=True, exist_ok=True)
     cal_file = folder / "calibration.yaml"
     cal_file.write_text(yaml.safe_dump(params, sort_keys=False, allow_unicode=True), encoding="utf-8")
@@ -117,7 +143,8 @@ def _build(cal_set: CalSet, folder: Path) -> Path:
     subprocess.run(["cmake", "-S", str(ROOT / "planner"), "-B", str(build),
                     f"-DPP_CALIBRATION_FILE={cal_file}", "-DPP_BUILD_TESTS=OFF",
                     "-DPP_BUILD_LAYOUT_PROBE=OFF", "-DCMAKE_BUILD_TYPE=Release"]
-                   + [f"-D{key}={value}" for key, value in cal_set.cmake],
+                   + [f"-D{key}={value}" for key, value in cal_set.cmake]
+                   + _lab_calibration(cal_set, lab_values, folder),
                    check=True, capture_output=True)
     subprocess.run(["cmake", "--build", str(build)], check=True, capture_output=True)
     return build
@@ -164,13 +191,38 @@ def _paired_evidence(log, result, scope: set[str]) -> dict:
     }
 
 
+def run_line(suite: dict, run: list, seed: int, planner, req_cal: dict, folder: Path, name: str) -> dict:
+    """Một lượt của suite: tiêu chí trong phạm vi, giá trị target và, với paired_evidence, bằng chứng ghép
+    cặp; ở vòng hở ghi output từng chu kỳ vào folder/name (eval.output_diff)."""
+    from eval import metrics, proposed
+    from sim.harness import Harness
+
+    scenario = load_run(run, object_list_on_empty_road=suite.get("object_list_on_empty_road", False))
+    scope = scope_of(suite, run)
+    log = Harness(scenario, planner, seed).run()
+    result = metrics.evaluate(log, req_cal)
+    result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
+    result.targets.extend(proposed.targets(log, suite.get("proposed_targets", [])))
+    failed = [c.id for c in result.criteria
+              if c.id in scope and c.applicable and not c.passed]
+    values = {t.id: t.value for t in result.targets if t.id in scope}
+    values[JERK] = next(c.value for c in result.criteria if c.id == JERK)
+    row = {"run": scenario.name, "seed": seed, "failed": failed, "values": values}
+    if suite.get("paired_evidence"):
+        row["spec"] = run
+        row.update(_paired_evidence(log, result, scope))
+        if scenario.loop == "open":
+            from eval import output_diff
+            output_diff.save(folder / name, output_diff.cycle_outputs(log))
+            row["open_loop_file"] = name
+    return row
+
+
 def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None) -> dict:
     suite = load_suite(suite_id)
     folder = (root or SWEEP_DIR / suite_id) / cal_set.name.replace("=", "_")
     lib = _build(cal_set, folder)
     from adapters.sil.sil_planner import PlannerLibraries
-    from eval import metrics, proposed
-    from sim.harness import Harness
 
     planner = PlannerLibraries.at(lib)
     params = yaml.safe_load((folder / "calibration.yaml").read_text(encoding="utf-8"))["parameters"]
@@ -181,27 +233,9 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
         scenario = load_run(run, object_list_on_empty_road=suite.get("object_list_on_empty_road", False))
         if cal_set.loops and scenario.loop not in cal_set.loops:
             continue
-        scope = scope_of(suite, run)
         for seed in part["seeds"]:
-            log = Harness(scenario, planner, seed).run()
-            result = metrics.evaluate(log, req_cal)
-            result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
-            result.targets.extend(proposed.targets(log, suite.get("proposed_targets", [])))
-            failed = [c.id for c in result.criteria
-                      if c.id in scope and c.applicable and not c.passed]
-            values = {t.id: t.value for t in result.targets if t.id in scope}
-            values[JERK] = next(c.value for c in result.criteria if c.id == JERK)
-            row = {"run": scenario.name, "seed": seed, "failed": failed, "values": values}
-            if suite.get("paired_evidence"):
-                row["spec"] = run
-                row.update(_paired_evidence(log, result, scope))
-                if scenario.loop == "open":
-                    # Output từng chu kỳ để ghép cặp giữa các build ở vòng hở (eval.output_diff).
-                    from eval import output_diff
-                    name = f"open_loop/{which}/{index:03d}_s{seed}.npz"
-                    output_diff.save(folder / name, output_diff.cycle_outputs(log))
-                    row["open_loop_file"] = name
-            runs.append(row)
+            runs.append(run_line(suite, run, seed, planner, req_cal, folder,
+                                 f"open_loop/{which}/{index:03d}_s{seed}.npz"))
     summary = summarise(runs)
     out = {"set": cal_set.name, "values": cal_set.values, "cmake": dict(cal_set.cmake),
            "loops": list(cal_set.loops), "part": which, "library": str(lib), "summary": summary, "runs": runs}

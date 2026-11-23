@@ -310,8 +310,30 @@ static void iterate(pp_qp_ws_t *ws, const pp_calibration_t *cal, const qp_data_t
     }
 }
 
+void pp_qp_stats(const pp_qp_ws_t *ws, double *residual, double *slack)
+{
+    double ax[PP_QP_ROWS];
+    double diff[PP_QP_ROWS];
+    mul_a(ws, ws->x, ax);
+    for (size_t r = 0U; r < PP_QP_ROWS; r++) {
+        diff[r] = ax[r] - ws->z[r];
+    }
+    *residual = max_abs(diff, PP_QP_ROWS) / fmax(fmax(max_abs(ax, PP_QP_ROWS), max_abs(ws->z, PP_QP_ROWS)), 1.0e-6);
+    double sum = 0.0;
+    for (size_t i = N; i < (3U * N); i++) {
+        sum += fabs(ws->x[i]);
+    }
+    *slack = sum;
+}
+
 bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb,
                     pp_lateral_path_t *out)
+{
+    return pp_generate_qp_seeded(ws, cal, pb, NULL, out);
+}
+
+bool pp_generate_qp_seeded(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_problem_t *pb,
+                           const double seed[PP_QP_N], pp_lateral_path_t *out)
 {
     bool ok = (ws != NULL) && (cal != NULL) && (pb != NULL) && (out != NULL);
     if (ok) {
@@ -323,6 +345,9 @@ bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_pro
             (void)memset(ws->y, 0, sizeof(ws->y));
             ws->rho = (double)cal->qp_rho0;
         }
+        if (seed != NULL) {
+            (void)memcpy(ws->x, seed, sizeof(double) * N);
+        }
         bounds(ws, cal, pb, &data);
         /* Warm start dùng z và y cũ, kẹp z vào giới hạn của chu kỳ này. */
         double ax[PP_QP_ROWS];
@@ -332,6 +357,7 @@ bool pp_generate_qp(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp_qp_pro
         }
         ok = factor(ws);
         const uint32_t iters = (uint32_t)fmax(1.0, (double)cal->qp_iters);
+        ws->iterations = iters;
         for (uint32_t it = 1U; ok && (it <= iters); it++) {
             iterate(ws, cal, &data);
             if (((it % QP_RHO_EVERY) == 0U) && (it < iters)) {

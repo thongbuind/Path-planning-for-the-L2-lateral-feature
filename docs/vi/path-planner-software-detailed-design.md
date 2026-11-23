@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.32 |
+| Phiên bản | 1.33 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -212,7 +212,7 @@ Với LCC, `PP_T7` chọn generator lúc build và được ghi trong `pp_versio
 | `qp_jerk_admm` (alias `qp`) | Kỹ thuật C | Không; ràng buộc a_y của QP lo PP-SWR-006 |
 | `lab`, cùng `PP_T7_LAB=<tên>` | Generator nghiên cứu trong `research/generators/<tên>/`; `pp_version()` ghi thêm hash nguồn | Generator tự khai báo |
 
-Mọi generator theo cùng contract `generators/pp_t7.h`: nhận reference line, trạng thái đầu, profile tốc độ, path cũ, offset mục tiêu, cờ đưa về giữa và VehicleConfig; trả 31 điểm Trajectory cùng mẫu reference line (gồm T11); `pp_t7_reset` khi khởi tạo và khi không có hướng đi tới. Trạng thái của generator nằm trong state của LCC, kích thước cố định. Generator lab thêm calibration riêng có tiền tố. Với LKA và ELK, mọi bản build dùng quintic. PP-TS-006 theo dõi so sánh kỹ thuật cho can thiệp.
+Mọi generator theo cùng contract `generators/pp_t7.h`: nhận reference line, trạng thái đầu, profile tốc độ, path cũ, offset mục tiêu, cờ đưa về giữa, cờ FOLLOW, cờ bắt đầu tại xe (PP-SWR-039, 040), ObjectList và VehicleConfig; trả 31 điểm Trajectory cùng mẫu reference line (gồm T11); `pp_t7_reset` khi khởi tạo và khi không có hướng đi tới. Trạng thái của generator nằm trong state của LCC, kích thước cố định. Generator lab thêm calibration riêng có tiền tố. Vòng tìm thời lượng của A và phần dựng bài toán của C nằm ở `generators/t7_common.c` để generator lab gọi lại. Với LKA và ELK, mọi bản build dùng quintic. PP-TS-006 theo dõi so sánh kỹ thuật cho can thiệp.
 
 ## 11. T8 Offset {#dd-t8}
 
@@ -346,3 +346,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.30 | 2026-11-23 | Mục 3.1: interface của từng unit (nhiệm vụ, input, output, trạng thái, calibration parameter, lúc chạy) và hai loại tham số. Lý do: quy trình phát triển của công ty, bước 2.2 |
 | 1.31 | 2026-11-23 | T7: ELK vì xe làn bên về tâm hai tốc độ, thêm `d_return_object`. Lý do: PP-TS-030 V2 |
 | 1.32 | 2026-11-23 | Mục 2, 10: T7 của LCC theo contract `generators/pp_t7.h`, giá trị `PP_T7` mới, sàn PP-SWR-006 là thuộc tính của generator. Hành vi không đổi (golden PP-T7 trùng từng bit). Lý do: PP-TS-031 GĐ 1 |
+| 1.33 | 2026-11-23 | Mục 10: input của contract T7 thêm cờ FOLLOW, cờ bắt đầu tại xe và ObjectList; phần dùng chung `generators/t7_common.c`. Hành vi không đổi. Lý do: PP-TS-031 GĐ 2 |

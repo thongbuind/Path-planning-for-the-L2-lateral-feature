@@ -18,6 +18,7 @@ set(PP_T7 "quintic_duration" CACHE STRING
 set_property(CACHE PP_T7 PROPERTY STRINGS quintic_duration qp_jerk_admm lab quintic qp)
 set(PP_T7_LAB "" CACHE STRING "Lab generator research/generators/<name>, used when PP_T7 is lab")
 set(PP_T7_LAB_DIR "" CACHE PATH "Directory of the lab generator; default research/generators/<PP_T7_LAB>")
+set(PP_T7_LAB_CALIBRATION "" CACHE FILEPATH "Calibration of the lab generator instead of its generator.yaml (sweeps)")
 set(PP_T7_NAME ${PP_T7})
 if(PP_T7 STREQUAL "quintic")
     set(PP_T7_NAME quintic_duration)
@@ -26,6 +27,7 @@ elseif(PP_T7 STREQUAL "qp")
 endif()
 set(PP_T7_DEFINES "")
 set(PP_T7_INCLUDE_DIRS "")
+set(PP_T7_TESTS "")
 set(PP_T7_CALIBRATION "")
 set(PP_T7_SOURCE_DIR "")
 if(PP_T7_NAME STREQUAL "quintic_duration" OR PP_T7_NAME STREQUAL "qp_jerk_admm")
@@ -43,14 +45,20 @@ elseif(PP_T7_NAME STREQUAL "lab")
     if(NOT EXISTS ${PP_T7_SOURCE_DIR}/generator.cmake)
         message(FATAL_ERROR "no generator.cmake in ${PP_T7_SOURCE_DIR}")
     endif()
-    # generator.cmake đặt PP_T7_SOURCES, PP_T7_HEADER; tùy chọn PP_T7_INCLUDE_DIRS, PP_T7_DEFINES.
+    # generator.cmake đặt PP_T7_SOURCES, PP_T7_HEADER (đường dẫn theo PP_T7_SOURCE_DIR); tùy chọn
+    # PP_T7_INCLUDE_DIRS, PP_T7_DEFINES, PP_T7_TESTS (unit test C của lab, chạy cùng ctest).
     set(PP_T7_SOURCES "")
     set(PP_T7_HEADER "")
     include(${PP_T7_SOURCE_DIR}/generator.cmake)
     if(PP_T7_SOURCES STREQUAL "" OR PP_T7_HEADER STREQUAL "")
         message(FATAL_ERROR "${PP_T7_SOURCE_DIR}/generator.cmake must set PP_T7_SOURCES and PP_T7_HEADER")
     endif()
-    if(EXISTS ${PP_T7_SOURCE_DIR}/generator.yaml)
+    if(NOT PP_T7_LAB_CALIBRATION STREQUAL "")
+        if(NOT EXISTS ${PP_T7_LAB_CALIBRATION})
+            message(FATAL_ERROR "PP_T7_LAB_CALIBRATION not found: ${PP_T7_LAB_CALIBRATION}")
+        endif()
+        set(PP_T7_CALIBRATION ${PP_T7_LAB_CALIBRATION})
+    elseif(EXISTS ${PP_T7_SOURCE_DIR}/generator.yaml)
         set(PP_T7_CALIBRATION ${PP_T7_SOURCE_DIR}/generator.yaml)
     endif()
     set(PP_T7_NAME ${PP_T7_LAB})
@@ -60,7 +68,8 @@ endif()
 file(CONFIGURE OUTPUT ${PP_GENERATED_DIR}/pp_t7_selected.h
      CONTENT "/* Sinh từ planner/CMakeLists.txt: T7 của LCC là ${PP_T7_NAME}. */\n#include \"${PP_T7_HEADER}\"\n")
 
-# Tệp quyết định generator lab; pp_version() ghi hash của chúng vì nguồn lab nằm ngoài planner/.
+# Mã của generator lab; pp_version() ghi hash của chúng (t7_src) vì nguồn lab nằm ngoài planner/. Calibration
+# của lab nằm trong mã calibration của pp_version(), không trong t7_src.
 set(PP_T7_FILES_LIST "")
 if(NOT PP_T7_SOURCE_DIR STREQUAL "")
     set(PP_T7_FILES ${PP_T7_SOURCE_DIR}/generator.cmake)
@@ -72,9 +81,6 @@ if(NOT PP_T7_SOURCE_DIR STREQUAL "")
         file(GLOB_RECURSE headers ${dir}/*.h)
         list(APPEND PP_T7_FILES ${headers})
     endforeach()
-    if(NOT PP_T7_CALIBRATION STREQUAL "")
-        list(APPEND PP_T7_FILES ${PP_T7_CALIBRATION})
-    endif()
     list(REMOVE_DUPLICATES PP_T7_FILES)
     list(SORT PP_T7_FILES)
     string(REPLACE ";" "\n" files_text "${PP_T7_FILES}")
@@ -99,6 +105,10 @@ option(PP_AY_MARGIN_GATE "PP-TS-020 V2: HWA path a_y margin only while the limit
 if(PP_AY_MARGIN_GATE)
     list(APPEND PP_T7_DEFINES PP_AY_MARGIN_GATE)
 endif()
+option(PP_T7_TELEMETRY "PP-TS-031: research telemetry of the T7 generator (never in a delivered build)" OFF)
+if(PP_T7_TELEMETRY)
+    list(APPEND PP_T7_DEFINES PP_T7_TELEMETRY)
+endif()
 option(PP_REF_SAMPLED "PP-TS-005: read the reference line through sampled nodes" OFF)
 if(PP_REF_SAMPLED)
     list(APPEND PP_T7_DEFINES PP_REF_SAMPLED)
@@ -108,7 +118,8 @@ endif()
 add_custom_target(pp_build_info ALL
     COMMAND ${CMAKE_COMMAND} -DOUT=${PP_GENERATED_DIR}/pp_build_info.h
             -DREPO=${CMAKE_CURRENT_SOURCE_DIR}/.. -DCAL=${PP_CALIBRATION_FILE}
-            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7_NAME} -DT7_FILES=${PP_T7_FILES_LIST}
+            -DVERSION=${PROJECT_VERSION} -DT7=${PP_T7_NAME} -DT7_FILES=${PP_T7_FILES_LIST} -DCAL_EXTRA=${PP_T7_CALIBRATION}
+            -DT7_TELEMETRY=${PP_T7_TELEMETRY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/gen_build_info.cmake
     BYPRODUCTS ${PP_GENERATED_DIR}/pp_build_info.h
     COMMENT "Build identification for pp_version()"
@@ -130,7 +141,7 @@ set(PP_CORE_SOURCES
     src/output.c
     src/pp_core.c
     ${PP_GENERATED_DIR}/pp_calibration.c)
-set(PP_LCC_UNITS src/offset.c src/follow.c src/generators/qp.c ${PP_T7_SOURCES})
+set(PP_LCC_UNITS src/offset.c src/follow.c src/generators/qp.c src/generators/t7_common.c ${PP_T7_SOURCES})
 set(PP_LKAELK_UNITS src/selection.c src/intervention.c)
 set(PP_PRIVATE_INCLUDES ${PP_INTERFACES_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${PP_GENERATED_DIR}
     ${PP_T7_INCLUDE_DIRS})
@@ -176,6 +187,19 @@ if(PP_BUILD_TESTS)
             list(APPEND PP_TEST_PLANNER src/pp_lkaelk.c)
         endif()
         add_executable(${name} ${PP_TEST_DIR}/${name}.c ${PP_TEST_PLANNER} ${PP_ALL_UNITS})
+        target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
+        target_compile_options(${name} PRIVATE ${PP_WARNINGS})
+        target_compile_definitions(${name} PRIVATE ${PP_T7_DEFINES})
+        add_dependencies(${name} pp_build_info)
+        if(NOT APPLE)
+            target_link_libraries(${name} PRIVATE m)
+        endif()
+        add_test(NAME ${name} COMMAND ${name})
+    endforeach()
+    foreach(test_source IN LISTS PP_T7_TESTS)
+        get_filename_component(name ${test_source} NAME_WE)
+        set(name lab_${name})
+        add_executable(${name} ${test_source} ${PP_ALL_UNITS})
         target_include_directories(${name} PRIVATE ${PP_PRIVATE_INCLUDES} ${PP_TEST_DIR})
         target_compile_options(${name} PRIVATE ${PP_WARNINGS})
         target_compile_definitions(${name} PRIVATE ${PP_T7_DEFINES})
