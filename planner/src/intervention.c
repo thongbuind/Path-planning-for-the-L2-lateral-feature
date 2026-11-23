@@ -183,7 +183,16 @@ static void sample_profile(const pp_intervention_path_t *path, double elapsed, p
 {
     for (uint32_t i = 0U; i < PP_TRAJECTORY_POINTS; i++) {
         const double t = elapsed + (double)i * PP_GRID_STEP_S;
-        if (path->two_phase && (t >= path->profile.duration)) {
+        if (path->two_phase && path->two_speed && (t >= path->profile.duration)
+            && ((t - path->profile.duration) < path->fast_reversed.duration)) {
+            /* Đoạn về nhanh: q(T − τ), nên vận tốc đổi dấu. */
+            const double tau = path->fast_reversed.duration - (t - path->profile.duration);
+            pp_quintic_eval(&path->fast_reversed, tau, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+            out->d_dot[i] = -out->d_dot[i];
+        } else if (path->two_phase && path->two_speed && (t >= path->profile.duration)) {
+            pp_quintic_eval(&path->back, t - path->profile.duration - path->fast_reversed.duration,
+                            &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+        } else if (path->two_phase && (t >= path->profile.duration)) {
             pp_quintic_eval(&path->back, t - path->profile.duration, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
         } else {
             pp_quintic_eval(&path->profile, t, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
@@ -193,18 +202,40 @@ static void sample_profile(const pp_intervention_path_t *path, double elapsed, p
 
 /* Hãm chuyển động ra ngoài về vận tốc, gia tốc và jerk bằng không, rồi về tâm chậm để tránh vượt
  * tâm (PP-TS-026). */
+/* Tỉ lệ giữa vận tốc ở điểm chuyển và vận tốc trung bình của đoạn về chậm (PP-TS-030). */
+#define PP_TWO_SPEED_HANDOVER (1.5)
+
 static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *start, double sign,
-                       double target, double duration, double t_return)
+                       double target, double duration, double t_return, double t_fast, double d_mid)
 {
     path->two_phase = false;
+    path->two_speed = false;
+#ifndef PP_RETURN_TWO_SPEED
+    (void)d_mid;
+#endif
     if ((sign * start->d_dot) <= 0.0) {
-        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_return, &path->profile);
+        /* Xe đã đi về phía tâm: một quintic, cùng thời lượng như V0 (T_return_object khi có xe
+         * làn bên). */
+        const double t_single = (t_fast > 0.0) ? t_fast : t_return;
+        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_single, &path->profile);
     } else {
         const double peak = start->d + (0.4 * start->d_dot * duration)
                             + (0.05 * start->d_ddot * duration * duration);
         (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, peak, duration, &path->profile);
-        (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
         path->two_phase = true;
+#ifdef PP_RETURN_TWO_SPEED
+        const double mid = target + (sign * d_mid);
+        if ((t_fast > 0.0) && (d_mid > 0.0) && ((sign * (peak - mid)) > 0.0)) {
+            /* Về nhanh tới mid, giữ vận tốc hướng về tâm, rồi về chậm tới tâm: rời phía có xe làn
+             * bên sớm (PP-SWR-088) mà không vượt qua tâm (PP-SWR-094). */
+            const double v_mid = -sign * PP_TWO_SPEED_HANDOVER * d_mid / t_return;
+            (void)pp_quintic_solve(mid, -v_mid, 0.0, peak, t_fast, &path->fast_reversed);
+            (void)pp_quintic_solve(mid, v_mid, 0.0, target, t_return, &path->back);
+            path->two_speed = true;
+            return;
+        }
+#endif
+        (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
     }
 }
 
@@ -260,9 +291,17 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
     /* Khi xe làn bên sắp ngang hàng, ưu tiên rời phía đó sớm hơn (PP-SWR-088). */
     const bool object = elk && ((req->reason == PP_ELK_REASON_ONCOMING) || (req->reason == PP_ELK_REASON_OVERTAKING));
+#ifdef PP_RETURN_TWO_SPEED
+    /* PP-TS-030 V1: đoạn chậm luôn dài T_return; xe làn bên chỉ rút ngắn đoạn nhanh. */
+    const double t_return = (double)cal->T_return;
+    const double t_fast = object ? (double)cal->T_return_object : 0.0;
+#else
     const double t_return = object ? (double)cal->T_return_object : (double)cal->T_return;
+    const double t_fast = 0.0;
+#endif
+    const double d_mid = (double)cal->d_return_object;
     path->start_us = t0_us;
-    build_path(path, start, sign, target, duration, t_return);
+    build_path(path, start, sign, target, duration, t_return, t_fast, d_mid);
     const double allowed_crossing = elk ? 0.0 : PP_MARK_DTLE_ALLOW_M;
     pp_ref_point_t front;
     double front_d;
@@ -276,7 +315,7 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     for (uint32_t n = 1U; (n <= count) && (best > 0.0); n++) {
         const double t = (double)n * step;
         pp_intervention_path_t candidate = *path;
-        build_path(&candidate, start, sign, target, t, t_return);
+        build_path(&candidate, start, sign, target, t, t_return, t_fast, d_mid);
         const double score = candidate_score(&candidate, ref, speed, limits, vehicle, sign, allowed_crossing, crossing_d);
         if (score < best) {
             best = score;

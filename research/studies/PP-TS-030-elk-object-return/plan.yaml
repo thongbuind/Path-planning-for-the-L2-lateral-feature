@@ -1,0 +1,25 @@
+# Evaluation plan of PP-TS-030 (research/README.md, step 2). Locked 2026-11-23.
+# Requirements decide; targets rank as in Software Qualification Test Specification 9.
+id: PP-TS-030
+locked: 2026-11-23
+suite: PP-TS-030
+parts: [tuning, test]
+equal_within:
+  PP-SWR-082: 0.25
+variants:
+  V0:
+    description: Bản hiện tại; đoạn về tâm một quintic, T_return_object 2 s
+    calibration: {}
+    cmake: {}
+  V1:
+    description: Về hai tốc độ; nhanh tới 0,2 m trước tâm trong 2 s, giữ vận tốc, chậm tới tâm trong T_return
+    calibration: {d_return_object: 0.2, T_return_object: 2.0}
+    cmake: {PP_RETURN_TWO_SPEED: 'ON'}
+  V2:
+    description: Về hai tốc độ; nhanh tới 0,2 m trước tâm trong 1,5 s, giữ vận tốc, chậm tới tâm trong T_return
+    calibration: {d_return_object: 0.2, T_return_object: 1.5}
+    cmake: {PP_RETURN_TWO_SPEED: 'ON'}
+  V3:
+    description: Đối chứng của PP-PR-077; một quintic, T_return_object 4 s
+    calibration: {T_return_object: 4.0}
+    cmake: {}
