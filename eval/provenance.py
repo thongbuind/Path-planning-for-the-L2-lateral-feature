@@ -65,10 +65,16 @@ def parse_version(text: str | None) -> dict:
 
 
 def library_info(path: Path, external: bool = False, family=None) -> dict:
-    from adapters.sil.sil_planner import LCC, library_version
-    text = library_version(Path(path), family or LCC)
+    from adapters.sil.sil_planner import LCC, load_library
+    family = family or LCC
+    lib = load_library(Path(path), family)
+    version = getattr(lib, f"{family.prefix}_version", None)
+    text = version().decode("ascii", errors="replace") if version is not None else None
+    # Kích thước state và tệp thư viện: ngữ cảnh chi phí phần cứng, SQTS 9.1 bước 5 (không xếp hạng).
     return {"path": _rel(path), "sha256": sha256(path), "pp_version": text,
-            "build": parse_version(text), "external": external}
+            "build": parse_version(text), "external": external,
+            "family": family.name, "state_size_bytes": int(getattr(lib, f"{family.prefix}_state_size")()),
+            "file_size_bytes": Path(path).stat().st_size}
 
 
 def library_infos(planner, external: bool = False) -> list[dict]:

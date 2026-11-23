@@ -54,13 +54,14 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-021 | Điểm đầu path HWA khi xe rời path cũ: `stitch_reset` và cách T4 bước 4 trộn | Đã quyết 2026-11-16 theo 20261116-1748-study-PP-TS-021-8726b80; hồi quy 20261117-0908-suite-regression-c56f0bf có trượt mới ở ELK (PP-PR-062) | V7: reset mềm 0,02–0,1 m | [study](studies/PP-TS-021-stitch-start/study.md) |
 | PP-TS-022 | T4 bước 4: mỗi điểm của path so với ngưỡng nào khi tính λ (path quay về chậm ở F06 d, F03 c) | Đã quyết 2026-11-17 theo 20261117-1315-study-PP-TS-022-d2e7d27 (V1 trượt 2 / 3, V0 4 / 5; V1 sửa F06 d, không sửa F03 c, S14 e; lệch tâm xấu hơn ở 19 / 36 lượt); chờ hồi quy | V1: mỗi điểm so với ngưỡng của đoạn mình, một λ | [study](studies/PP-TS-022-blend-limit/study.md) |
 | PP-TS-023 | Dải đặc tính lái (K, steering ratio, actuator delay) của vehicle profile cho phép chấm flexibility | Mở; hướng duyệt 2026-11-23, chạy sau nhóm sửa planner | — | [study](studies/PP-TS-023-profile-steering-dynamics/study.md) |
-| PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-025; kế hoạch nháp, V1/V2 chưa cài | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
-| PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-024; kế hoạch nháp, V2–V4 chưa cài | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
+| PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; giữ thiết kế biến thể, chạy trong PP-TS-031 (`quintic_tangent_point`, `quintic_ay_sampling`) | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
+| PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; giữ thiết kế biến thể, chạy trong PP-TS-031 (`qp_jerk_admm_mlp_*`, `mlp_jerk_direct`) | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
 | PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Đã quyết 2026-11-23 | V4 | [study](studies/PP-TS-026-intervention-return/study.md) |
 | PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở, V0–V2 đã cài cho SIL. Kế hoạch nháp | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
 | PP-TS-028 | Bộ nhớ của planner trôi theo bias yaw của EgoMotionQuery: V0 đến V3 | Mở 2026-11-23 | — | [study](studies/PP-TS-028-memory-heading-drift/study.md) |
 | PP-TS-029 | Calibration chỉnh được khi tune trên xe: V0 đến V3 | Mở 2026-11-23; đề xuất V3 | — | [study](studies/PP-TS-029-runtime-calibration/study.md) |
 | PP-TS-030 | Đường về tâm của ELK vì xe làn bên: V0 đến V3 (về hai tốc độ) | Đóng; hồi quy 20261123-1435-suite-regression-9f2f367 | V2 | [study](studies/PP-TS-030-elk-object-return/study.md) |
+| PP-TS-031 | Chiến dịch generator T7 của LCC: quintic, QP theo số vòng, warm start dịch thời gian, driver model, MLP quanh QP; một plan, một bảng kết quả | Mở 2026-11-23; plan nháp, lab chưa cài (research/generators/) | — | [study](studies/PP-TS-031-t7-generator-campaign/study.md) |
 
 ## Problem reports
 

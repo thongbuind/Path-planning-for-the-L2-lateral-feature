@@ -114,7 +114,7 @@ METRIC_SHORT = {"Khoảng cách ngang nhỏ nhất từ thân xe tới rào ch�
                 "Tốc độ quay vô lăng RMS khi HWA lái, vòng kín": "Tốc độ quay vô lăng RMS"}
 COMFORT_TARGETS = ["PP-SWR-053", "PP-SWR-002", "PP-SWR-004", "PP-SWR-057", "PP-SWR-081", "PP-SWR-087",
                    "PP-SWR-064"]
-LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
+LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-070", "PP-SWR-087"}
 
 
 def _decimal(value, lang):

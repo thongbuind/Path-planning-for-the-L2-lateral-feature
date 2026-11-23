@@ -60,6 +60,8 @@ Các biên độ là tham số nghiên cứu. Ở mỗi chu kỳ, giới hạn h
 
 ## 4. Lần chạy
 
+Từ 2026-11-23, study này giữ thiết kế biến thể; lần chạy chính thức, cách đánh giá và kết quả ở [PP-TS-031](../PP-TS-031-t7-generator-campaign/study.md). Tên ở đó theo thuật toán: V0, VQ, V1, V2 là `quintic_duration`, `qp_jerk_admm`, `quintic_tangent_point`, `quintic_ay_sampling`.
+
 Chạy dò cặp mốc trên tuning bằng `python3 -m eval.study PP-TS-024 --part tuning --variant V0 --variant VQ --jobs 1`. Ghi B0 riêng cho hai thư viện của từng build bằng `python3 -m eval.conformance --planner <thư_mục_build>`. Kết quả dò nằm dưới `build/study/PP-TS-024/draft/`. Khi chấm chính thức, chạy đủ phương án đã khóa trên cùng suite theo quy trình trong [research/README.md](../../README.md).
 
 | Run ID | Phương án | Ghi chú |

@@ -53,7 +53,7 @@ def test_conclusion_ranks_first_then_pairwise_wins(tmp_path):
     c = compare.compare([worse, blocked, good])
     assert c["order"] == ["good", "worse", "blocked"]
     # Xếp hạng Copeland vẫn gồm planner qua C1 và C2 dù bị chặn khi xét requirement (SQTS 9.2).
-    score = {n: c["rows"][n]["copeland"]["An toàn"] for n in c["order"]}
+    score = {n: c["rows"][n]["copeland"][compare.LANE_KEEPING] for n in c["order"]}
     assert score == {"good": 0, "worse": -2, "blocked": 2}
     assert c["rows"]["blocked"]["tier1"]["verdict"] == conclusion.BLOCKED
 

@@ -7,7 +7,7 @@ import numpy as np
 
 from eval.metrics import COMPUTE_BINS_MS
 
-LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
+LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-070", "PP-SWR-087"}
 FLEX_TARGETS = ("PP-SWR-050", "PP-SWR-057", "PP-SWR-087", "PP-SWR-002", "PP-SWR-004", "PP-SWR-053",
                 "PP-SWR-059", "PP-SWR-081", "PP-SWR-082")
 

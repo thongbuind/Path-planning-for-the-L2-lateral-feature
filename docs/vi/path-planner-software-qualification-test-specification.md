@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.51 |
+| Phiên bản | 1.52 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -219,10 +219,10 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 
 | # | Kịch bản | Biến thể | Yêu cầu |
 |---|---|---|---|
-| S1 | LCC bám cua | 90 km/h, vào cua bằng clothoid. a) R = 1000 m (a_y cua 0,6 m/s²); b) R = 500 m (1,25); c) R = 250 m (2,5, chạm aysmax); d) cua chữ S, R = 500 m; e) 130 km/h, R = 1000 m (1,3); f) cua chữ S của R171 Annex 4, 4.2.4.1 (R = 787 m rồi 374 m); g) R = 300 m (2,08 m/s², 83 % aysmax) | PP-SWR-001, 003, 004, 008 (a, b, d, e), 050 (a, b, d, e), 051 (vòng kín), 067 |
-| S1b | LCC cua gắt hơn aysmax | a) 90 km/h, R = 200 m (3,1 m/s²); b) 90 km/h, R = 150 m (4,2); c) 110 km/h, R = 300 m (3,1); d) R = 200 m ngay sau đỉnh dốc, camera thấy 40 m suốt ca (đường phẳng, chỉ mô phỏng tầm nhìn); e) như a, clothoid 60 m; f) 90 km/h, R = 230 m (2,72 m/s², trong dải aysmax + 0,1 tới + 0,4) | PP-SWR-001, 005, 006, 007 (vòng kín), 064 |
-| S2 | LCC bật khi xe lệch tâm | 90 km/h; độ lệch và góc tính tại lúc LCC bắt đầu lái. a) lệch 0,2 m, góc 0°; b) 0,4 m, 1° hướng vào tâm; c) 0,5 m, 2° hướng ra ngoài; d) 0,4 m phía ngoài cua R = 500 m; e) 0,5 m ở 130 km/h | PP-SWR-002, 052, 053, 067 |
-| S3 | LCC dời tâm khi vượt xe tải ở làn bên | Xe tải rộng 2,5 m, làn bên kia không có xe. a) chậm hơn 5 m/s; b) chậm hơn 2 m/s; c) chậm hơn 10 m/s; d) xe tải cách vạch 0,1 m; e) xe tải lấn vạch 0,3 m | PP-SWR-002, 055, 056, 057, 058, 059, 066 (a, b, c) |
+| S1 | LCC bám cua | 90 km/h, vào cua bằng clothoid. a) R = 1000 m (a_y cua 0,6 m/s²); b) R = 500 m (1,25); c) R = 250 m (2,5, chạm aysmax); d) cua chữ S, R = 500 m; e) 130 km/h, R = 1000 m (1,3); f) cua chữ S của R171 Annex 4, 4.2.4.1 (R = 787 m rồi 374 m); g) R = 300 m (2,08 m/s², 83 % aysmax) | PP-SWR-001, 003, 004, 008 (a, b, d, e), 050 (a, b, d, e), 051 (vòng kín), 067, 068 (vòng kín), 069 (vòng kín), 070 (vòng kín) |
+| S1b | LCC cua gắt hơn aysmax | a) 90 km/h, R = 200 m (3,1 m/s²); b) 90 km/h, R = 150 m (4,2); c) 110 km/h, R = 300 m (3,1); d) R = 200 m ngay sau đỉnh dốc, camera thấy 40 m suốt ca (đường phẳng, chỉ mô phỏng tầm nhìn); e) như a, clothoid 60 m; f) 90 km/h, R = 230 m (2,72 m/s², trong dải aysmax + 0,1 tới + 0,4) | PP-SWR-001, 005, 006, 007 (vòng kín), 064, 068 (vòng kín), 069 (vòng kín), 070 (vòng kín) |
+| S2 | LCC bật khi xe lệch tâm | 90 km/h; độ lệch và góc tính tại lúc LCC bắt đầu lái. a) lệch 0,2 m, góc 0°; b) 0,4 m, 1° hướng vào tâm; c) 0,5 m, 2° hướng ra ngoài; d) 0,4 m phía ngoài cua R = 500 m; e) 0,5 m ở 130 km/h | PP-SWR-002, 052, 053, 067, 070 (vòng kín) |
+| S3 | LCC dời tâm khi vượt xe tải ở làn bên | Xe tải rộng 2,5 m, làn bên kia không có xe. a) chậm hơn 5 m/s; b) chậm hơn 2 m/s; c) chậm hơn 10 m/s; d) xe tải cách vạch 0,1 m; e) xe tải lấn vạch 0,3 m | PP-SWR-002, 055, 056, 057, 058, 059, 066 (a, b, c), 070 (vòng kín) |
 | S3b | Xe lớn vượt mình từ phía sau, làn hẹp | Xe tải nhanh hơn 5 m/s, chỉ radar góc thấy trước khi ngang hàng. a) bên kia trống, làn 3,5 m; b) bên kia có xe con; c) bên kia có xe tải; d) như a, làn 3,0 m; e) như c, làn 2,75 m | PP-SWR-056, 057, 065 (b) |
 | S4 | LKA trôi làn đường thẳng | a) 72 km/h, vạch đứt, v_lat 0,2 m/s; b) 72 km/h, vạch liền, 0,4; c) 90 km/h, 0,6; d) trôi do gió ngang; e) trôi do đường nghiêng | PP-SWR-032, 049, 080, 081, 084 (vòng kín), 085 (vòng kín), 086 (vòng kín), 087 (vòng kín), 090, 094 (vòng kín), 110, 112, 114 |
 | S4b | LKA trôi làn trong cua | 90 km/h. a) R = 1000 m, ra ngoài 0,3 m/s; b) R = 500 m, ra ngoài; c) R = 500 m, vào trong; d) R = 250 m, ra ngoài, chỉ còn 0,5 m/s² trong giới hạn LKA; e) ra ngoài ngay đoạn clothoid | PP-SWR-049, 085 (vòng kín), 094 (vòng kín), 110, 112, 114 |
@@ -238,7 +238,7 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | S11 | Tắc đường trên cao tốc | LCC bật. a) 0–30 km/h; b) 0–60 km/h; c) dừng 10 s rồi chạy; d) xe khác cắt vào ở 20 km/h | PP-SWR-050, 054, 067 |
 | S12 | Trời mưa | μ = 0,5, nhiễu camera ban đêm, nhiễu perception × 1,5. a) S1c; b) S4c; c) S7c; d) S4b-d | PP-SWR-001 (a), 094 (b, c, d, vòng kín) |
 | S13 | EPS chậm | S4c và S5c với trễ EPS a) 75 ms; b) 100 ms; c) 150 ms | PP-SWR-091 (a, b, vòng kín), 094 (vòng kín) |
-| S14 | Ngang và dọc trao đổi ràng buộc | Chạy hai lần: ACC đọc và bỏ qua LateralLimits. a) S1b-a; b) xe khác lấn 0,5 m; c) cả hai; d) mất LongitudinalPlan giữa cua; e) cua chữ S của S1f ở 130 km/h (khúc R = 374 m cần 3,5 m/s²) | PP-SWR-009, 150, 151, 152, 153, 154 (d), 155 (d) |
+| S14 | Ngang và dọc trao đổi ràng buộc | Chạy hai lần: ACC đọc và bỏ qua LateralLimits. a) S1b-a; b) xe khác lấn 0,5 m; c) cả hai; d) mất LongitudinalPlan giữa cua; e) cua chữ S của S1f ở 130 km/h (khúc R = 374 m cần 3,5 m/s²) | PP-SWR-009, 068 (vòng kín), 069 (vòng kín), 150, 151, 152, 153, 154 (d), 155 (d) |
 | S15 | Dời tâm khi hai bên có vật | a) xe tải hai bên; b) xe tải và rào chắn; c) xe tải và xe con; d) xe tải hai bên, làn 3,0 m; e) rào chắn hai bên. Vạch liền ở biên làn, rào cách vạch 0,5 m (nhóm tự thống nhất) | PP-SWR-056, 057, 065 (c) |
 | S16 | Can thiệp lặp | a) LKA COMPLETED, REQUEST giữ thêm 1 s; b) như a, REQUEST rời 0,2 s rồi quay lại; c) trôi ba lần, 0,4 m/s, lần sau 2 s sau COMPLETED; d) như c, ELK vạch liền; e) lần hai bắt đầu 0,2 s sau COMPLETED | PP-SWR-034 (a, b), 035 (c, d, e), 041 (a, b), 049, 094 (vòng kín) |
 | S17 | Tài xế chuyển làn khi LCC bật | Lane model đổi làn khi xe qua vạch. a) đường thẳng 90 km/h, 4 s; b) 2,5 s; c) cua R = 500 m; d) hai lần liên tiếp; e) cờ chuyển làn trễ một frame | PP-SWR-039, 040, 061 |
@@ -520,6 +520,9 @@ Không có ngưỡng đạt. Báo cáo giá trị xấu nhất qua mọi seed v�
 | DTLE của LKA | Như 8.1 | Lớn hơn | PP-SWR-087 |
 | Độ cong sai | Lệch ngang đoạn 2–3 s chia cho lệch của path bám đúng lane model sai | Nhỏ hơn | PP-SWR-125 |
 | Tốc độ quay vô lăng RMS | Vòng kín | Nhỏ hơn | Chỉ số phụ cho PP-SWR-004 |
+| a_y của xe | Lớn nhất trong khi LCC lái, vòng kín, theo cách đo trên xe ở dưới bảng | Nhỏ hơn | PP-SWR-068 |
+| Jerk ngang của xe | Lớn nhất trong khi LCC lái, vòng kín, theo cách đo trên xe ở dưới bảng | Nhỏ hơn | PP-SWR-069 |
+| DLC của xe | Nhỏ nhất ở hai phía so với làn thật, trong khi LCC lái và khoảng trống thật mỗi bên ≥ `free_space_min`, vòng kín | Lớn hơn | PP-SWR-070 |
 
 Thời gian tính là thời gian CPU của luồng gọi planner trên máy phát triển, gồm adapter SIL; lúc hệ điều hành ngắt tiến trình không được tính (PP-PR-061). Không đại diện cho ECU trên xe. Chỉ so thời gian tính giữa các lần chạy cùng máy.
 
@@ -527,7 +530,9 @@ Chỉ số của khối Chức năng ADAS (chọn calibration ở P2, P3): số 
 
 Với S7, S8, báo thêm có va chạm với xe mục tiêu trong ca hay không theo Euro NCAP SA 4.3.3.4. Với LKA, ELK, báo a_y và jerk của xe thật theo phương pháp R79 Annex 8, 2.4. Hai kết quả này là thông tin bổ sung.
 
-Thông tin thêm, đo trên xe theo R79 Annex 8, 2.4, trong khi LCC đang lái: a_y tại trọng tâm (ground truth 1 kHz, lọc Butterworth bậc 4 cắt 0,5 Hz, lọc nhân quả từ trạng thái ổn định), jerk là trung bình trượt 0,5 s của đạo hàm; thời gian dài nhất a_y vượt aysmax + 0,3 m/s²; có nằm trong giới hạn của R79 5.6.2.1.1 không (vượt aysmax + 0,3 tối đa 2 s, không vượt min(1,4·aysmax; 3,3) m/s²). Chưa chấm đạt hoặc trượt vì chưa có requirement trỏ tới.
+Cách đo trên xe theo R79 Annex 8, 2.4, trong khi LCC đang lái (PP-SWR-068, 069): a_y tại trọng tâm (ground truth 1 kHz, lọc Butterworth bậc 4 cắt 0,5 Hz, lọc nhân quả từ trạng thái ổn định), jerk là trung bình trượt 0,5 s của đạo hàm.
+
+Thông tin thêm, cùng cách đo: thời gian dài nhất a_y vượt aysmax + 0,3 m/s²; có nằm trong giới hạn của R79 5.6.2.1.1 không (vượt aysmax + 0,3 tối đa 2 s, không vượt min(1,4·aysmax; 3,3) m/s²). Chưa chấm đạt hoặc trượt vì chưa có requirement trỏ tới.
 
 ### 8.3 Flexibility {#benchmark-flexibility}
 
@@ -564,12 +569,15 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 
 | Bước | Tiêu chí |
 |---|---|
-| 1 | Đạt mọi requirement ở mục 8.1 trên mọi profile. Trượt thì loại, dù mượt hơn |
-| 2 | Performance target về an toàn: lệch ngang, khoảng hở, DTLE của LKA |
-| 3 | Performance target về cảm nhận người lái: a_y thêm vào, jerk, thời gian đưa về giữa và trả về, thời lượng can thiệp |
+| 1a | Requirement ở mục 8.1, so với mốc là kỹ thuật đang giao. Loại kỹ thuật trượt một requirement mà mốc đạt ở cùng ca, profile, seed, dù mượt hơn. Trượt chung với mốc vẫn liệt kê và vẫn tính vào kết luận ở mục 8.4 |
+| 1b | Thời gian LCC lái (`path_valid = true` và `lcc_mode` khác NONE). Loại kỹ thuật có thời gian LCC lái ít hơn mốc quá một chu kỳ ở bất kỳ lần chạy nào. Lý do: kỹ thuật không tạo được path thì LCC ngừng lái, độ êm của đoạn đó không được đo |
+| 2 | Performance target về an toàn: DLC của xe (PP-SWR-070), khoảng hở (057), DTLE của LKA (087) |
+| 3 | Performance target về bám làn và cảm nhận người lái: lệch ngang (050), a_y và jerk của xe (068, 069), a_y thêm vào, jerk của path, thời gian đưa về giữa và trả về, thời lượng can thiệp |
 | 4 | Flexibility: độ chênh giữa các profile |
-| 5 | Thời gian tính |
+| 5 | Thời gian tính, dùng để so chi phí phần cứng. Báo kèm thời gian lớn nhất, kích thước state (`pp_lcc_state_size`, `pp_lkaelk_state_size`) và kích thước thư viện; ba giá trị này không xếp hạng |
 
+- Lệch ngang (050) ở bước 3, không ở bước 2: khoảng cách tới biên làn (070) là đại lượng an toàn trực tiếp; lệch khỏi tâm làn chỉ là đại lượng thay thế. Path lệch vào trong cua vẫn có thể giữ DLC lớn hơn.
+- Thắng, thua, hòa ở bước 2 đến 5 theo luật điểm thắng cặp và dung sai ở mục 9.2.
 - Ứng viên: quintic hoặc clothoid theo thời lượng; lấy mẫu trong Frenet (Werling 2010); QP hoặc MPC (Software Detailed Design). Mỗi kỹ thuật chạy với bộ calibration tốt nhất của chính nó (mục 7).
 - Kết quả cho báo cáo: một bảng so sánh, và ít nhất một kỹ thuật bị loại kèm lý do bằng số liệu (đề bài). Bảng lập từ kết quả suite của từng kỹ thuật: `python3 -m eval.techniques`.
 - Thời gian tính trên Python chỉ dùng để so sánh các kỹ thuật, không khẳng định chạy được trên ECU.
@@ -610,9 +618,21 @@ Mức của một lần trượt suy từ cột Type của Software Requirements
 
 - Đơn vị ghép cặp: một lần chạy (ca cụ thể, profile, seed). Riêng flexibility: một ca cụ thể và seed, giá trị là độ chênh giữa các profile.
 - Với mỗi performance target và mỗi cặp planner: lấy hiệu trên từng đơn vị, theo hướng "Tốt hơn khi" ở mục 8.2.
-- Planner A thắng B khi khoảng tin cậy 95 % của trung bình hiệu nằm hẳn về phía A tốt hơn. Khoảng tin cậy tính bằng bootstrap theo đơn vị, 10 000 lần lấy mẫu lại, seed cố định (nhóm tự thống nhất). Không thì hòa.
-- Nhóm flexibility so độ chênh giữa các profile của các target thuộc nhóm an toàn và cảm nhận người lái; độ chênh nhỏ hơn thì tốt hơn. Target không thuộc nhóm nào ở mục 9.1 chỉ báo giá trị tuyệt đối.
-- Chỉ số có ít hơn hai đơn vị chung thì hòa.
+- Planner A thắng B khi cả hai điều sau đúng: khoảng tin cậy 95 % của trung bình hiệu nằm hẳn về phía A tốt hơn; trị tuyệt đối của trung bình hiệu ≥ dung sai của chỉ số ở bảng dưới. Khoảng tin cậy tính bằng bootstrap theo đơn vị, 10 000 lần lấy mẫu lại, seed cố định (nhóm tự thống nhất). Không thì hòa. Lý do của dung sai: simulator gần như tất định nên khoảng tin cậy rất hẹp, chênh lệch không đáng kể vẫn thành thắng.
+- Nhóm flexibility so độ chênh giữa các profile của các target thuộc nhóm an toàn và nhóm bám làn và cảm nhận người lái; độ chênh nhỏ hơn thì tốt hơn, dung sai như chỉ số gốc. Target không thuộc nhóm nào ở mục 9.1 chỉ báo giá trị tuyệt đối.
+- Chỉ số có ít hơn bốn đơn vị chung thì ghi "ít dữ liệu" và tính hòa.
+
+| Chỉ số | Dung sai |
+|---|---|
+| DLC của xe (PP-SWR-070); khoảng hở (057); DTLE của LKA (087) | 0,01 m |
+| Lệch ngang (050) | 0,005 m |
+| a_y của xe (068); a_y thêm vào (002) | 0,10 m/s²; 0,05 m/s² |
+| Jerk ngang của xe (069); jerk của path (004) | 0,10 m/s³ |
+| Tốc độ quay vô lăng RMS (chỉ số phụ của 004) | 5 % của giá trị nhỏ hơn |
+| Thời gian đưa về giữa, trả về, thời lượng can thiệp (053, 059, 081, 082) | 0,1 s |
+| Thời gian tính p99 (016) | 10 % của giá trị nhỏ hơn |
+
+Nguồn dung sai: nhóm tự thống nhất. 0,1 s bằng bốn chu kỳ 25 ms; 5 % và 10 % là tương đối vì chưa có thang tuyệt đối, hoặc vì thời gian đo trên máy phát triển có nhiễu.
 - Điểm của một planner trong một nhóm: số lần thắng trừ số lần thua, qua mọi chỉ số của nhóm và mọi planner khác (phương pháp Copeland). Không dùng trọng số giữa các chỉ số.
 
 ## 10. Trình bày kết quả {#test-reporting}
@@ -732,3 +752,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.49 | 2026-11-18 | Mục 6: ca có lỗi theo sự kiện mà lỗi không được bơm thì không tính là đạt dưới lỗi (PP-PR-069). |
 | 1.50 | 2026-11-19 | Mục 4: trỏ sang Simulation Handbook cho giả định, miền dùng và validation của model. Mục 4.1: chế độ thời gian thực chưa triển khai (PP-PR-068). Mục 4.2: đồng hồ ECU chỉ trôi ở F14 và ca có `realism`. Mục 12: trỏ sang tool confidence của Simulation Handbook. |
 | 1.51 | 2026-11-23 | Mục 5: cột Yêu cầu sinh lại theo SRS 1.26 (PP-SWR-094 ở S4b, S7, S8, S8b, S12, S13, S16, S21). Bên chấm PP-SWR-001 dùng ngưỡng aysmax + 0,3 m/s². Lý do: PP-PR-077, PP-TS-020. Mục 8.2: thời gian tính đo bằng thời gian CPU của luồng gọi planner (PP-PR-061). Lớp nhận SIL không còn tự bỏ message `valid = false` (PP-PR-036). Mục 6: F16 (b) chấm theo PP-SWR-142 thay PP-SWR-130 (SRS 1.27). Mục 4.8: thêm điều kiện vào LCC của khối Chức năng ADAS chạy thử (PP-PR-003). Mục 5: thêm S19 (f), làn hẹp dần trong lúc LCC lái |
+| 1.52 | 2026-11-23 | Mục 5: cột Yêu cầu sinh lại theo SRS 1.28. Mục 8.2: thêm a_y, jerk ngang và DLC của xe (PP-SWR-068, 069, 070); cách đo trên xe theo R79 Annex 8, 2.4 dùng cho 068, 069. Mục 9.1: bước 1 so tương đối với kỹ thuật đang giao và thêm cửa thời gian LCC lái; nhóm an toàn dùng DLC của xe thay cho lệch ngang, lệch ngang chuyển sang nhóm bám làn và cảm nhận người lái; bước 5 so chi phí phần cứng, báo kèm thời gian lớn nhất, kích thước state và thư viện. Mục 9.2: thắng cần thêm dung sai thực tế; ít hơn bốn đơn vị chung thì hòa. Lý do: PP-TS-031; lệch khỏi tâm làn chỉ là đại lượng thay thế cho an toàn, xếp nó ở bước 2 quyết định trước kết quả của kỹ thuật lệch vào trong cua; kỹ thuật ngừng lái trông êm hơn; simulator gần như tất định nên khoảng tin cậy rất hẹp. Ảnh hưởng: `eval/compare.py`, `eval/techniques.py`, `eval/metrics.py`; xếp hạng của mọi lần so sánh sau bản này |

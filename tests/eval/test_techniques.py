@@ -28,9 +28,9 @@ def test_failing_technique_is_eliminated_however_smooth(tmp_path):
     smooth = _folder(tmp_path, "smooth", lambda i: 0.01, failed_first=True)
     good = _folder(tmp_path, "good", lambda i: 0.10 + 0.001 * i)
     worse = _folder(tmp_path, "worse", lambda i: 0.20 + 0.001 * i)
-    c = techniques.rank([smooth, worse, good])
+    c = techniques.rank([smooth, worse, good], baseline="good")
     assert c["eliminated"] == ["smooth"] and c["order"] == ["good", "worse"]
-    assert c["rows"]["smooth"]["step1"]["requirements"] == {"PP-SWR-100": 1}
+    assert c["rows"]["smooth"]["gate"]["requirements"] == {"PP-SWR-100": 1}
     text = "\n".join(techniques.markdown(c))
     assert "smooth bị loại ở bước 1" in text and "| good | đạt |" in text
     assert "PP-SWR-050 Lệch ngang" in text

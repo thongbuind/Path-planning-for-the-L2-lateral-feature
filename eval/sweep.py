@@ -27,6 +27,7 @@ class CalSet:
     name: str
     values: dict
     cmake: tuple = ()
+    loops: tuple = ()  # Rỗng là mọi lượt; ("open",) cho nghiệm tham chiếu chỉ chạy vòng hở.
 
 
 def load_suite(suite_id: str) -> dict:
@@ -154,8 +155,12 @@ def _paired_evidence(log, result, scope: set[str]) -> dict:
         "timed_cycles": len(compute_ms),
         "compute_lcc_ms": timing,
         "hwa_share_after_request": result.info.get("hwa_share_after_request"),
+        "lcc_driving_cycles": result.info.get("lcc_driving_cycles"),
+        "lcc_requested_cycles": result.info.get("lcc_requested_cycles"),
+        "path_near_limit_share": result.info.get("path_near_limit_share"),
         "vehicle": {k: result.info.get(k) for k in
-                    ("ay_vehicle_r79_max", "jerk_vehicle_r79_max", "vehicle_offset_max_m")},
+                    ("ay_vehicle_r79_max", "jerk_vehicle_r79_max", "vehicle_offset_max_m",
+                     "ay_vehicle_r79_over_sustained_s", "ay_vehicle_r79_within_limits")},
     }
 
 
@@ -172,8 +177,10 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
     req_cal = cal_io.from_parameters(params)
     part = suite[which]
     runs = []
-    for run in part["runs"]:
+    for index, run in enumerate(part["runs"]):
         scenario = load_run(run, object_list_on_empty_road=suite.get("object_list_on_empty_road", False))
+        if cal_set.loops and scenario.loop not in cal_set.loops:
+            continue
         scope = scope_of(suite, run)
         for seed in part["seeds"]:
             log = Harness(scenario, planner, seed).run()
@@ -188,10 +195,16 @@ def run_set(suite_id: str, cal_set: CalSet, which: str, root: Path | None = None
             if suite.get("paired_evidence"):
                 row["spec"] = run
                 row.update(_paired_evidence(log, result, scope))
+                if scenario.loop == "open":
+                    # Output từng chu kỳ để ghép cặp giữa các build ở vòng hở (eval.output_diff).
+                    from eval import output_diff
+                    name = f"open_loop/{which}/{index:03d}_s{seed}.npz"
+                    output_diff.save(folder / name, output_diff.cycle_outputs(log))
+                    row["open_loop_file"] = name
             runs.append(row)
     summary = summarise(runs)
     out = {"set": cal_set.name, "values": cal_set.values, "cmake": dict(cal_set.cmake),
-           "part": which, "library": str(lib), "summary": summary, "runs": runs}
+           "loops": list(cal_set.loops), "part": which, "library": str(lib), "summary": summary, "runs": runs}
     (folder / f"{which}.json").write_text(json.dumps(out, indent=2, ensure_ascii=False),
                                           encoding="utf-8")
     return out

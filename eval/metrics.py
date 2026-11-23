@@ -66,6 +66,8 @@ R79_AY_MARGIN = 0.3
 PATH_AY_MAX_HWA = AYSMAX + R79_AY_MARGIN
 R79_AY_SHORT_FACTOR = 1.4
 R79_AY_SHORT_S = 2.0
+# Chẩn đoán PP-TS-031 (nhóm tự thống nhất): path "chạm trần" khi đạt 95 % giới hạn PP-SWR-001 hoặc 003.
+NEAR_LIMIT_SHARE = 0.95
 
 
 @dataclass
@@ -171,6 +173,11 @@ def _valid(c: PlannerCycle) -> bool:
 
 def _hwa(c: PlannerCycle) -> bool:
     return _valid(c) and c.path_status.active_function == ActiveFunction.LCC
+
+
+def _lcc_driving(c: PlannerCycle) -> bool:
+    return (c.lcc_status is not None and bool(c.lcc_status.path_valid)
+            and c.lcc_status.lcc_mode != LccMode.NONE)
 
 
 class _Truth:
@@ -1931,6 +1938,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     ay_max = jerk_max = wheel_max = wheel_rate_max = deviation_max = 0.0
     jerk_sq_sum, jerk_count = 0.0, 0
     ay_floor_margin = np.inf
+    near_limit = 0
     n_window = round(DEVIATION_WINDOW_S / GRID_STEP_S) + 1
     for c, p in zip(cycles, paths):
         if p is None:
@@ -1946,8 +1954,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             mark("PP-SWR-117", now_s)
         if not _hwa(c):
             continue
-        ay_max = max(ay_max, float(np.max(np.abs(p.ay))))
-        jerk_max = max(jerk_max, _jerk_max(p.ay))
+        cycle_ay, cycle_jerk = float(np.max(np.abs(p.ay))), _jerk_max(p.ay)
+        near_limit += (cycle_ay >= NEAR_LIMIT_SHARE * PATH_AY_MAX_HWA
+                       or cycle_jerk >= NEAR_LIMIT_SHARE * JERK_MAX_HWA)
+        ay_max = max(ay_max, cycle_ay)
+        jerk_max = max(jerk_max, cycle_jerk)
         near_jerk = np.diff(p.ay[:n_window]) / GRID_STEP_S
         jerk_sq_sum += float(np.sum(near_jerk ** 2))
         jerk_count += len(near_jerk)
@@ -2056,7 +2067,9 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     lane_wide_enough = free_space >= cal["free_space_min"]
     overriding = np.array([c.function_requests is not None and bool(c.function_requests.message.driver_override)
                            for c in cycles], dtype=bool)
-    judged_051 = hwa & ~overriding & (need_max <= AYSMAX) & (lane_wide_enough or geometry is not None)
+    # PP-SWR-070 đo như PP-SWR-051 nhưng không loại cua có a_y cần > aysmax (SQTS 8.2).
+    judged_070 = hwa & ~overriding & (lane_wide_enough or geometry is not None)
+    judged_051 = judged_070 & (need_max <= AYSMAX)
     if geometry is None:
         narrow_flags = [bool(c.path_status.lane_too_narrow) for c in cycles if _valid(c)]
         judge_narrow = not lane_wide_enough
@@ -2072,15 +2085,28 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         judge_narrow = True
     narrow_share = float(np.mean(narrow_flags)) if narrow_flags else float("nan")
     dlc_left = dlc_right = np.inf
+    dlc_070 = np.inf
     offset_max = 0.0
-    s_hint = None
+    s_hint = s_hint_070 = None
     for t_us, front, rear in zip(log.t_us, truth.front, truth.rear):
         i = int(np.searchsorted(t0s, t_us, side="right")) - 1
-        if i < 0 or not judged_051[i]:
-            s_hint = None  # PP-PR-080: gợi ý cũ không dùng được sau khoảng không chấm.
+        if i < 0 or not judged_070[i]:
+            s_hint = s_hint_070 = None  # PP-PR-080: gợi ý cũ không dùng được sau khoảng không chấm.
+            continue
+        if not judged_051[i]:
+            # Chỉ PP-SWR-070 chấm ở đây. Gợi ý của PP-SWR-051 vẫn bỏ như trước để giá trị 051 không đổi.
+            s_hint = None
+            pf = road.project(front[0], front[1], s_hint_070)
+            s_hint_070 = pf.s
+            if geometry is None:
+                dlc_070 = min(dlc_070, half_lane - abs(pf.d) - half_car)
+            else:
+                low, high = geometry.bounds(pf.s, road._index(pf.s))
+                if (high - low - log.vehicle_width) / 2 >= cal["free_space_min"]:
+                    dlc_070 = min(dlc_070, _dlc(log, pf, Side.LEFT), _dlc(log, pf, Side.RIGHT))
             continue
         pf = road.project(front[0], front[1], s_hint)
-        s_hint = pf.s
+        s_hint = s_hint_070 = pf.s
         if geometry is None:
             dlc_left = min(dlc_left, half_lane - pf.d - half_car)
             dlc_right = min(dlc_right, half_lane + pf.d - half_car)
@@ -2092,6 +2118,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             dlc_right = min(dlc_right, _dlc(log, pf, Side.RIGHT))
         offset_max = max(offset_max, abs(road.project(rear[0], rear[1], s_hint).d))
     dlc_min = float(min(dlc_left, dlc_right))
+    dlc_070 = float(min(dlc_070, dlc_min))
 
     start_offset = time_to_centre = None
     ay_add_recentre = 0.0
@@ -2242,6 +2269,17 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     if wheel_rate_rms is not None:
         targets.append(Target("PP-SWR-004", "Tốc độ quay vô lăng RMS khi HWA lái, vòng kín",
                               wheel_rate_rms, "rad/s"))
+    truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
+    vehicle_r79 = r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),
+                              _cycle_mask_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool))
+    if getattr(log.scenario, "loop", "closed") != "open":
+        if vehicle_r79["ay_vehicle_r79_max"] is not None:
+            targets.append(Target("PP-SWR-068", "a_y lớn nhất của xe khi LCC lái (R79 Annex 8, 2.4)",
+                                  vehicle_r79["ay_vehicle_r79_max"], "m/s²"))
+            targets.append(Target("PP-SWR-069", "Jerk ngang lớn nhất của xe khi LCC lái (R79 Annex 8, 2.4)",
+                                  vehicle_r79["jerk_vehicle_r79_max"], "m/s³"))
+        if np.isfinite(dlc_070):
+            targets.append(Target("PP-SWR-070", "DLC nhỏ nhất của xe ở hai phía khi LCC lái", dlc_070, "m"))
     if big is not None and np.isfinite(big.clearance_057):
         targets.append(Target("PP-SWR-057", "Khoảng cách ngang nhỏ nhất từ thân xe tới xe lớn khi ngang hàng",
                               big.clearance_057, "m"))
@@ -2266,6 +2304,11 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         "first_hwa_s": float(t_s[first_hwa]) if any_hwa else None,
         "hwa_share_after_request": (sum(_hwa(c) for c in hwa_requested) / len(hwa_requested)
                                     if hwa_requested else 0.0),
+        # SQTS 9.1 bước 1b: chu kỳ LCC lái theo output của LCC planner.
+        "lcc_driving_cycles": sum(_lcc_driving(c) for c in cycles),
+        "lcc_requested_cycles": len(hwa_requested),
+        # Chẩn đoán PP-TS-031: chu kỳ HWA mà path chạm gần trần a_y (PP-SWR-001) hoặc jerk (003).
+        "path_near_limit_share": near_limit / int(np.count_nonzero(hwa)) if np.any(hwa) else None,
         "ay_need_max": float(np.max(need_max)) if len(need_max) else 0.0,
         "offset_at_hwa_start_m": start_offset,
         "ay_need_at_car_max": need_car_max,
@@ -2276,9 +2319,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         "calibration": cal,
         "compute_time_note": "Thời gian CPU của luồng gọi planner, gồm cả adapter SIL (ctypes)",
     }
-    truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
-    info.update(r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),
-                            _cycle_mask_at(truth_t, t_s, hwa) if len(cycles) else np.zeros(len(truth_t), bool)))
+    info.update(vehicle_r79)
     for c in criteria:
         if c.applicable and not c.passed:
             c.first_fail_s = first.get(c.id)

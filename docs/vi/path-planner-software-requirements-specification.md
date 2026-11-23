@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.27 |
+| Phiên bản | 1.28 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -398,6 +398,9 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | PP-SWR-053 | Thời gian từ lúc LCC bắt đầu lái (xe lệch tâm tới 0,5 m) tới lúc lệch ngang ≤ 0,1 m nên ngắn | Test: S2 | Performance | nhóm tự thống nhất |
 | PP-SWR-057 | Khoảng cách ngang nhỏ nhất từ thân xe tới vật ở hai bên trong lúc dời tâm nên lớn | Test: S3, S3b, S15 | Performance | nhóm tự thống nhất |
 | PP-SWR-059 | Thời gian từ lúc đuôi xe lớn qua tới lúc lệch ngang ≤ 0,1 m nên ngắn | Test: S3 | Performance | nhóm tự thống nhất |
+| PP-SWR-068 | Trong khi LCC đang lái, a_y lớn nhất của xe nên nhỏ | Test, vòng kín: S1, S1b, S14 | Performance | nhóm tự thống nhất |
+| PP-SWR-069 | Trong khi LCC đang lái, jerk ngang lớn nhất của xe nên nhỏ | Test, vòng kín: S1, S1b, S14 | Performance | nhóm tự thống nhất |
+| PP-SWR-070 | Trong khi LCC đang lái, DLC nhỏ nhất của xe ở hai phía nên lớn | Test, vòng kín: S1, S1b, S2, S3 | Performance | nhóm tự thống nhất |
 | PP-SWR-081 | Thời gian từ lúc LKA bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S4 | Performance | nhóm tự thống nhất |
 | PP-SWR-082 | Thời gian từ lúc ELK bắt đầu path can thiệp tới COMPLETED nên ngắn | Test: S5, S6, S7, S8, S8b (c, d, e), S20, S21 | Performance | nhóm tự thống nhất |
 | PP-SWR-087 | DTLE nhỏ nhất của LKA nên lớn | Test, vòng kín: S4 | Performance | nhóm tự thống nhất |
@@ -436,3 +439,4 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.25 | 2026-11-18 | Mục 7: thêm giới hạn của `T_end_margin`, `T_return`, `T_return_object`. Không đổi requirement. Lý do: PP-TS-026, PP-PR-072 |
 | 1.26 | 2026-11-23 | PP-SWR-001: trần a_y của path LCC từ aysmax lên aysmax + 0,3 m/s² theo R79 5.6.2.1.1; mục 7 thêm `ay_margin_hwa` (0–0,3 m/s²); thêm PP-ASM-029. Lý do: PP-TS-020 chọn V1a; ở cua cần đúng aysmax, path cần phần a_y để kéo xe về khi xe lệch. PP-SWR-094: cột Kiểm chứng mở sang mọi kịch bản có LKA, ELK (S4b, S7, S8, S8b, S12, S13, S16, S21). Lý do: PP-PR-077; câu requirement áp cho mọi lần can thiệp. Ảnh hưởng: PP-SWR-001, 051, 094; Software Architectural Design mục 6.2, 9, 11; Software Detailed Design T10; Software Qualification Test Specification 5; `calibration.yaml` |
 | 1.27 | 2026-11-23 | PP-SWR-130 bỏ qualifier FAULT, chỉ giữ lỗi truyền thông (counter, CRC) và message pub/sub `valid = false`; PP-SWR-142 thêm qualifier FAULT và F16 (b). Lý do: PP-PR-036; qualifier FAULT là cảm biến tự báo hỏng, khác lỗi truyền thông mà E2E bảo vệ, và phản ứng ngay an toàn hơn chờ hết timeout. Ảnh hưởng: PP-SWR-130, 142; Software Qualification Test Specification 6 (F16); `sim/faults/channel.py`. PP-SWR-063: thêm S19 (f), làn hẹp dần trong lúc LCC lái; S19 (b) giờ bị từ chối vào LCC theo ADAS Function Specification mục 7 (PP-PR-003) |
+| 1.28 | 2026-11-23 | Thêm performance target PP-SWR-068 (a_y lớn nhất của xe), 069 (jerk ngang lớn nhất của xe), 070 (DLC nhỏ nhất của xe). Lý do: so sánh kỹ thuật sinh path cần chỉ số đo trên chuyển động thật của xe; giá trị đỉnh trên path bị giới hạn khả thi kẹp nên không phân biệt được kỹ thuật; khoảng cách tới biên làn là đại lượng an toàn trực tiếp, lệch khỏi tâm làn (PP-SWR-050) chỉ là đại lượng thay thế (PP-TS-031). Không đổi requirement. Ảnh hưởng: Software Qualification Test Specification 8.2, 9.1, 9.2; bên chấm |

@@ -22,7 +22,7 @@ def find_plan(study_id: str) -> Path:
 
 def variant_sets(plan: dict) -> list[sweep.CalSet]:
     return [sweep.CalSet(vid, dict(v.get("calibration") or {}),
-                         tuple(sorted((v.get("cmake") or {}).items())))
+                         tuple(sorted((v.get("cmake") or {}).items())), tuple(v.get("loops") or ()))
             for vid, v in plan["variants"].items()]
 
 
@@ -114,6 +114,14 @@ def main() -> None:
     (root / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     (root / "results.json").write_text(json.dumps(results, indent=1, ensure_ascii=False),
                                        encoding="utf-8")
+    files = {"summary.md": root / "summary.md", "results.json": root / "results.json"}
+    if suite.get("paired_evidence"):
+        from eval import output_diff
+        diffs = output_diff.study_diffs(results, plan)
+        if diffs["pairs"]:
+            (root / "output_diff.json").write_text(json.dumps(diffs, indent=1, ensure_ascii=False),
+                                                   encoding="utf-8")
+            files["output_diff.json"] = root / "output_diff.json"
     manifest["libraries"] = [
         info for lib in sorted({r["library"] for r in results})
         for info in provenance.library_infos(PlannerLibraries.at(Path(lib)))
@@ -126,8 +134,7 @@ def main() -> None:
             best = min((r for r in results if r["part"] == parts[-1]),
                        key=lambda r: sweep.rank_key(r["summary"]))
             conclusion = f"Đứng đầu ở {parts[-1]}: {best['set']}"
-        dest = provenance.record(manifest, {"summary.md": root / "summary.md",
-                                            "results.json": root / "results.json"}, conclusion)
+        dest = provenance.record(manifest, files, conclusion)
         print(f"Recorded: {dest}", flush=True)
 
 

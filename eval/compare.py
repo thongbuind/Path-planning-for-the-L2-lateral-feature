@@ -28,13 +28,34 @@ NCAP_LINES = {
 NCAP_MAX = sum(points for _, _, points in NCAP_LINES.values())
 NCAP_DTLE = "PP-SWR-086"
 
+# Nhóm theo SQTS 9.1 bước 2 đến 5. Flexibility dùng các target của hai nhóm đầu.
+SAFETY = "An toàn"
+LANE_KEEPING = "Bám làn và cảm nhận người lái"
+FLEXIBILITY = "Flexibility"
+COMPUTE = "Thời gian tính"
 GROUPS = {
-    "An toàn": ("PP-SWR-050", "PP-SWR-057", "PP-SWR-087"),
-    "Cảm nhận người lái": ("PP-SWR-002", "PP-SWR-004", "PP-SWR-053", "PP-SWR-059", "PP-SWR-081", "PP-SWR-082"),
-    "Flexibility": (),
-    "Thời gian tính": ("PP-SWR-016",),
+    SAFETY: ("PP-SWR-070", "PP-SWR-057", "PP-SWR-087"),
+    LANE_KEEPING: ("PP-SWR-050", "PP-SWR-068", "PP-SWR-069", "PP-SWR-002", "PP-SWR-004", "PP-SWR-053",
+                   "PP-SWR-059", "PP-SWR-081", "PP-SWR-082"),
+    FLEXIBILITY: (),
+    COMPUTE: ("PP-SWR-016",),
 }
-LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}
+LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-070", "PP-SWR-087"}
+# Bước 5 chỉ xếp p99; trung bình, p95 và lớn nhất chỉ báo kèm (SQTS 9.1).
+RANKED_COMPUTE_METRIC = "p99"
+# Dung sai thực tế của SQTS 9.2: (tuyệt đối, tương đối so với giá trị nhỏ hơn).
+TOLERANCES = {
+    "PP-SWR-070": (0.01, None), "PP-SWR-057": (0.01, None), "PP-SWR-087": (0.01, None),
+    "PP-SWR-050": (0.005, None),
+    "PP-SWR-068": (0.10, None), "PP-SWR-002": (0.05, None),
+    "PP-SWR-069": (0.10, None), "PP-SWR-004": (0.10, None),
+    "PP-SWR-053": (0.1, None), "PP-SWR-059": (0.1, None), "PP-SWR-081": (0.1, None), "PP-SWR-082": (0.1, None),
+    "PP-SWR-016": (None, 0.10),
+}
+STEERING_RATE_METRIC = "Tốc độ quay vô lăng"
+STEERING_RATE_RELATIVE = 0.05
+MIN_UNITS = 4
+FEW_UNITS = "ít dữ liệu"
 
 
 def _scope(case: dict) -> list[str]:
@@ -192,17 +213,59 @@ def bootstrap_interval(diff: np.ndarray) -> tuple[float, float]:
     return float(lo), float(hi)
 
 
-def pairwise(a: dict, b: dict, metric: tuple[str, str], flexibility: bool) -> dict:
-    """So A với B: +1 A hơn, -1 B hơn, 0 hòa. Chênh lệch dương luôn có lợi cho A."""
+def tolerance(metric: tuple[str, str], level_a: float | None, level_b: float | None) -> float:
+    """Dung sai tuyệt đối của một chỉ số (SQTS 9.2). level_*: trung bình giá trị gốc của từng bên trên
+    các đơn vị chung, dùng cho dung sai tương đối "phần trăm của giá trị nhỏ hơn".
+    """
+    absolute, relative = TOLERANCES[metric[0]]
+    if metric[0] == "PP-SWR-004" and metric[1].startswith(STEERING_RATE_METRIC):
+        absolute, relative = None, STEERING_RATE_RELATIVE
+    if relative is None:
+        return float(absolute)
+    levels = [abs(v) for v in (level_a, level_b) if v is not None and math.isfinite(v)]
+    return relative * min(levels) if levels else 0.0
+
+
+def verdict(diff: np.ndarray, tol: float) -> dict:
+    """+1 khi khoảng tin cậy 95 % nằm hẳn về phía dương và trung bình ≥ dung sai; -1 ngược lại; còn lại
+    hòa. Ít hơn MIN_UNITS đơn vị thì hòa và ghi ít dữ liệu (SQTS 9.2).
+    """
+    out = {"units": len(diff), "mean": float(diff.mean()) if len(diff) else None, "ci": None,
+           "tolerance": tol, "result": 0, "note": None}
+    if len(diff) < MIN_UNITS:
+        out["note"] = FEW_UNITS
+        return out
+    lo, hi = bootstrap_interval(diff)
+    mean = float(diff.mean())
+    out["ci"] = [lo, hi]
+    if abs(mean) >= tol:
+        out["result"] = 1 if lo > 0 else -1 if hi < 0 else 0
+    return out
+
+
+def paired_diff(a: dict, b: dict, metric: tuple[str, str], flexibility: bool = False,
+                units: set | None = None) -> tuple[np.ndarray, list, float | None, float | None]:
+    """Hiệu theo hướng có lợi cho A trên đơn vị chung; kèm mức trung bình gốc của A và B."""
     ua, ub = _units(a, metric, flexibility), _units(b, metric, flexibility)
-    common = sorted(set(ua) & set(ub), key=str)
+    common = sorted((set(ua) & set(ub)) if units is None else (set(ua) & set(ub) & units), key=str)
     larger = metric[0] in LARGER_IS_BETTER and not flexibility
     diff = np.array([(ua[k] - ub[k]) if larger else (ub[k] - ua[k]) for k in common], dtype=float)
-    if len(diff) < 2:
-        return {"units": len(diff), "mean": float(diff.mean()) if len(diff) else None, "ci": None, "result": 0}
-    lo, hi = bootstrap_interval(diff)
-    return {"units": len(diff), "mean": float(diff.mean()), "ci": [lo, hi],
-            "result": 1 if lo > 0 else -1 if hi < 0 else 0}
+    if flexibility:
+        base_a, base_b = _units(a, metric, False), _units(b, metric, False)
+        level_a = float(np.mean(list(base_a.values()))) if base_a else None
+        level_b = float(np.mean(list(base_b.values()))) if base_b else None
+    else:
+        level_a = float(np.mean([ua[k] for k in common])) if common else None
+        level_b = float(np.mean([ub[k] for k in common])) if common else None
+    return diff, common, level_a, level_b
+
+
+def pairwise(a: dict, b: dict, metric: tuple[str, str], flexibility: bool) -> dict:
+    """So A với B: +1 A hơn, -1 B hơn, 0 hòa. Chênh lệch dương luôn có lợi cho A. Flexibility dùng
+    dung sai của chỉ số gốc.
+    """
+    diff, _, level_a, level_b = paired_diff(a, b, metric, flexibility)
+    return verdict(diff, tolerance(metric, level_a, level_b))
 
 
 def group_metrics(planners: list[dict]) -> dict[str, list[tuple[str, str]]]:
@@ -212,8 +275,9 @@ def group_metrics(planners: list[dict]) -> dict[str, list[tuple[str, str]]]:
             seen |= set(_targets(r))
     out = {}
     for group, ids in GROUPS.items():
-        source = GROUPS["An toàn"] + GROUPS["Cảm nhận người lái"] if group == "Flexibility" else ids
-        out[group] = sorted(m for m in seen if m[0] in source)
+        source = GROUPS[SAFETY] + GROUPS[LANE_KEEPING] if group == FLEXIBILITY else ids
+        out[group] = sorted(m for m in seen if m[0] in source
+                            and (m[0] != "PP-SWR-016" or RANKED_COMPUTE_METRIC in m[1]))
     return out
 
 
@@ -224,7 +288,7 @@ def copeland(planners: list[dict]) -> tuple[dict, list[dict]]:
     for a, b in combinations(planners, 2):
         for group, items in metrics.items():
             for metric in items:
-                d = pairwise(a, b, metric, group == "Flexibility")
+                d = pairwise(a, b, metric, group == FLEXIBILITY)
                 score[a["name"]][group] += d["result"]
                 score[b["name"]][group] -= d["result"]
                 duels.append({"group": group, "metric": list(metric), "a": a["name"], "b": b["name"], **d})
@@ -276,6 +340,16 @@ def compare(planners: list[dict]) -> dict:
                 for p in planners], "runs": len(planners[0]["records"])}
 
 
+def ci_text(d: dict) -> str:
+    return "—" if d.get("ci") is None else f"[{d['ci'][0]:.3g}, {d['ci'][1]:.3g}]"
+
+
+def duel_text(d: dict, a: str = "A thắng", b: str = "B thắng") -> str:
+    if d.get("note"):
+        return f"hòa ({d['note']})"
+    return {1: a, -1: b, 0: "hòa"}[d["result"]]
+
+
 def _f(v, digits=3):
     if v is None:
         return "—"
@@ -313,14 +387,13 @@ def markdown(c: dict) -> list[str]:
         lines.append(f"- {name}: " + (", ".join(c["rows"][name]["tier1"]["blocker_requirements"]) or "không"))
     if c["duels"]:
         lines += ["", "## Thắng cặp", "",
-                  "Hiệu dương: planner A tốt hơn. Khoảng tin cậy 95 %, bootstrap theo lần chạy.", "",
-                  "| Nhóm | Chỉ số | A | B | Số đơn vị | Hiệu trung bình | Khoảng tin cậy | Kết quả |",
-                  "|---|---|---|---|---|---|---|---|"]
-        verdict = {1: "A thắng", -1: "B thắng", 0: "hòa"}
+                  "Hiệu dương: planner A tốt hơn. Khoảng tin cậy 95 %, bootstrap theo lần chạy. Thắng khi khoảng "
+                  "tin cậy không chứa 0 và trị tuyệt đối của hiệu ≥ dung sai (mục 9.2).", "",
+                  "| Nhóm | Chỉ số | A | B | Số đơn vị | Hiệu trung bình | Khoảng tin cậy | Dung sai | Kết quả |",
+                  "|---|---|---|---|---|---|---|---|---|"]
         for d in c["duels"]:
-            ci = "—" if d["ci"] is None else f"[{d['ci'][0]:.3g}, {d['ci'][1]:.3g}]"
             lines.append(f"| {d['group']} | {d['metric'][0]} {d['metric'][1]} | {d['a']} | {d['b']} | {d['units']} | "
-                         f"{_f(d['mean'])} | {ci} | {verdict[d['result']]} |")
+                         f"{_f(d['mean'])} | {ci_text(d)} | {_f(d.get('tolerance'))} | {duel_text(d)} |")
     lines += ["", "## Giá trị tuyệt đối", "", "| Chỉ số | " + " | ".join(c["order"]) + " |",
               "|---|" + "---|" * len(c["order"])]
     metrics = sorted({m for v in c["absolute"].values() for m in v})
