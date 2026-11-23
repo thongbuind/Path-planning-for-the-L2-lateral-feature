@@ -25,8 +25,8 @@ parameters:
   T_lka:            {value: 1.25, unit: s, gt: 0, source: "PP-TS-026 V4; limits of PP-SWR-110, 112, 114"}
   T_elk:            {value: 0.75, unit: s, gt: 0, source: "PP-TS-026 V4; limits of PP-SWR-111, 113, 115"}
   T_return:         {value: 4.0, unit: s, gt: 0, source: "PP-TS-026 V4; PP-SWR-094"}
-  T_return_object:  {value: 2.0, unit: s, gt: 0, source: "nhóm tự thống nhất; PP-SWR-088, PP-TS-026"}
-  d_return_object:  {value: 0.2, unit: m, min: 0, max: 0.5, source: "PP-TS-030; điểm chuyển từ đoạn về nhanh sang đoạn về chậm khi ELK vì xe làn bên"}
+  T_return_object:  {value: 1.5, unit: s, gt: 0, source: "PP-TS-030 V2; đoạn về nhanh khi ELK vì xe làn bên; PP-SWR-088"}
+  d_return_object:  {value: 0.2, unit: m, min: 0, max: 0.5, source: "PP-TS-030 V2; điểm chuyển từ đoạn về nhanh sang đoạn về chậm; PP-SWR-094"}
   intervention_T_step: {value: 0.25, unit: s, min: 0.1, max: 0.5, source: "Software Detailed Design 15; T7 A"}
   intervention_T_max: {value: 10.0, unit: s, gt_param: intervention_T_step, source: "Software Detailed Design 15; T7 A (PP-TS-016)"}
   T_recenter:       {value: 3.5, unit: s, source: "Limits of PP-SWR-001, 003"}

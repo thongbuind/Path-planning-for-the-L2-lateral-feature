@@ -210,9 +210,6 @@ static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *s
 {
     path->two_phase = false;
     path->two_speed = false;
-#ifndef PP_RETURN_TWO_SPEED
-    (void)d_mid;
-#endif
     if ((sign * start->d_dot) <= 0.0) {
         /* Xe đã đi về phía tâm: một quintic, cùng thời lượng như V0 (T_return_object khi có xe
          * làn bên). */
@@ -223,7 +220,6 @@ static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *s
                             + (0.05 * start->d_ddot * duration * duration);
         (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, peak, duration, &path->profile);
         path->two_phase = true;
-#ifdef PP_RETURN_TWO_SPEED
         const double mid = target + (sign * d_mid);
         if ((t_fast > 0.0) && (d_mid > 0.0) && ((sign * (peak - mid)) > 0.0)) {
             /* Về nhanh tới mid, giữ vận tốc hướng về tâm, rồi về chậm tới tâm: rời phía có xe làn
@@ -234,7 +230,6 @@ static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *s
             path->two_speed = true;
             return;
         }
-#endif
         (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
     }
 }
@@ -291,14 +286,9 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
     /* Khi xe làn bên sắp ngang hàng, ưu tiên rời phía đó sớm hơn (PP-SWR-088). */
     const bool object = elk && ((req->reason == PP_ELK_REASON_ONCOMING) || (req->reason == PP_ELK_REASON_OVERTAKING));
-#ifdef PP_RETURN_TWO_SPEED
-    /* PP-TS-030 V1: đoạn chậm luôn dài T_return; xe làn bên chỉ rút ngắn đoạn nhanh. */
+    /* Đoạn chậm luôn dài T_return; xe làn bên chỉ rút ngắn đoạn nhanh (PP-TS-030 V2). */
     const double t_return = (double)cal->T_return;
     const double t_fast = object ? (double)cal->T_return_object : 0.0;
-#else
-    const double t_return = object ? (double)cal->T_return_object : (double)cal->T_return;
-    const double t_fast = 0.0;
-#endif
     const double d_mid = (double)cal->d_return_object;
     path->start_us = t0_us;
     build_path(path, start, sign, target, duration, t_return, t_fast, d_mid);

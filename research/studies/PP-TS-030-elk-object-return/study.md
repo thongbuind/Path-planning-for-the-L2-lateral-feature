@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã khóa |
+| Trạng thái | Đã quyết |
 | Mở ngày | 2026-11-23 |
 | Khóa ngày | 2026-11-23 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-23 |
 | Liên quan | PP-PR-077; PP-SWR-082, 085, 088, 094; PP-TS-026; Software Detailed Design T7 |
 
 ## 1. Câu hỏi
@@ -51,9 +51,31 @@ Lượt nháp trước khi viết suite (thư viện cây làm việc, seed 1; c
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261123-1419-study-PP-TS-030-4e09b0b](../../runs/20261123-1419-study-PP-TS-030-4e09b0b/summary.md) | V0, V1, V2, V3 | Theo plan khóa 2026-11-23; 18 lượt chỉnh, 34 lượt kiểm mỗi phương án |
 
 ## 5. Kết quả
 
+| Phương án | Lượt trượt, bộ chỉnh | Lượt trượt, bộ kiểm | Trượt | 082 xấu nhất, bộ kiểm [s] | 082 trung vị, bộ kiểm [s] | 081 xấu nhất, bộ kiểm [s] |
+|---|---|---|---|---|---|---|
+| V0 | 13 | 22 | PP-SWR-094 ở S7, S8, S8b, S12, S21 | 4,77 | 3,75 | 5,33 |
+| V1 | 0 | 0 | — | 5,10 | 4,67 | 5,33 |
+| V2 | 0 | 0 | — | 3,98 | 3,20 | 5,33 |
+| V3 | 2 | 0 | PP-SWR-088 ở S8b c | 4,50 | 4,02 | 5,33 |
+
+- V0 trượt PP-SWR-094 ở mọi nhóm có xe làn bên, khớp hồi quy 54307f1.
+- V3 (một quintic 4 s) gỡ 094 nhưng trượt 088 ở S8b c: về chậm thì xe phía sau tới ngang khi xe mình còn sát vạch. Đúng lý do đã chọn 2 s trước đây.
+- V1, V2 đạt mọi requirement ở cả hai bộ. V2 tới COMPLETED sớm hơn V1 khoảng 1,1 s ở ca xấu nhất (chênh lớn hơn ngưỡng ngang nhau 0,25 s), sớm hơn cả V0.
+- Target 081 (LKA) như nhau ở mọi phương án: LKA không đổi.
+- `results.json` của `eval.study` không ghi giá trị của tiêu chí, nên chưa có biên còn lại của 088 và 094 theo từng phương án; lượt nháp ở mục 3 cho V2: 088 nhỏ nhất 0,35 m, 094 lớn nhất 0,03 m.
+
 ## 6. Đề xuất
 
+2026-11-23: chọn V2 (`PP_RETURN_TWO_SPEED`, `d_return_object` = 0,2 m, `T_return_object` = 1,5 s). Không bị loại, xếp hạng tốt nhất theo target 082. Chọn V2 thì: bỏ công tắc build, giữ một đường code (bước 8); thêm `d_return_object` vào Software Architectural Design mục 11 và Software Detailed Design T7; đổi `T_return_object` trong calibration; chạy hồi quy, kiểm thêm ca theo protocol Euro NCAP (ngoài suite).
+
 ## 7. Quyết định
+
+- Người quyết, ngày: người phụ trách, 2026-11-23.
+- Chọn: V2. `d_return_object` = 0,2 m, `T_return_object` = 1,5 s.
+- Lý do: không bị loại ở bộ chỉnh và bộ kiểm; tới COMPLETED sớm nhất (target 082).
+- Đưa vào: một đường code, bỏ công tắc `PP_RETURN_TWO_SPEED` (bước 8); `calibration.yaml`; Software Architectural Design mục 11; Software Detailed Design T7.
+- Hồi quy: chưa chạy. Cần xem thêm ca theo protocol Euro NCAP.

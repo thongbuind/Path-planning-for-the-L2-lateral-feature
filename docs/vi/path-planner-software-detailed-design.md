@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.30 |
+| Phiên bản | 1.31 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -192,7 +192,7 @@ Planner tự tính, không dùng chung với khối Chức năng ADAS (PP-ADR-01
 LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần can thiệp mới, T7 dựng quintic từ trạng thái đo được (PP-SWR-080). T7 thử thời lượng trên lưới `intervention_T_step`, tới `intervention_T_max`, nếu path ban đầu chưa đạt.
 
 - Xét giới hạn a_y, a_y thêm vào và jerk theo PP-SWR-110 đến 115. Ứng viên thoả giới hạn là ứng viên T10 bước 2 không cắt; ứng viên bị cắt chỉ dùng khi không còn ứng viên nào khác. Trong số đó, ưu tiên ứng viên giảm phần lốp trước lấn qua hành lang. TLC thu hẹp khoảng cách dự kiến còn lại đến biên khi xe đang trôi ra. T10 kiểm path sau khi trộn với path cũ.
-- Xe đang trôi ra phía `side`: pha chặn đà là quintic từ trạng thái đo (d0, v0, a0) tới đỉnh d0 + 0,4·v0·T + 0,05·a0·T², kết thúc với vận tốc, gia tốc và jerk bằng 0; pha về tâm là quintic từ đỉnh về d = 0 trong `T_return`. Xe đã tự đi về phía tâm: chỉ một quintic về tâm trong `T_return` (PP-TS-026, PP-SWR-094). ELK vì xe ngược chiều hoặc đang vượt dùng `T_return_object` thay cho `T_return`, để rời phía có xe sớm hơn (PP-SWR-088). Ứng viên thời lượng áp cho pha chặn đà.
+- Xe đang trôi ra phía `side`: pha chặn đà là quintic từ trạng thái đo (d0, v0, a0) tới đỉnh d0 + 0,4·v0·T + 0,05·a0·T², kết thúc với vận tốc, gia tốc và jerk bằng 0; pha về tâm là quintic từ đỉnh về d = 0 trong `T_return`. Xe đã tự đi về phía tâm: chỉ một quintic về tâm trong `T_return` (PP-TS-026, PP-SWR-094). ELK vì xe ngược chiều hoặc đang vượt về tâm hai tốc độ (PP-TS-030): quintic nhanh trong `T_return_object` từ đỉnh tới `d_return_object` trước tâm, kết thúc với vận tốc 1,5·`d_return_object` / `T_return` hướng về tâm; rồi quintic chậm tới tâm trong `T_return`. Vận tốc, gia tốc liên tục ở điểm nối. Đoạn nhanh rời phía có xe sớm (PP-SWR-088), đoạn chậm không để xe vượt tâm (PP-SWR-094). Đoạn nhanh dựng bằng quintic đảo thời gian. Đỉnh đã gần tâm hơn `d_return_object` thì một quintic trong `T_return`. Ứng viên thời lượng áp cho pha chặn đà.
 - Giữ hệ số quintic và mốc bắt đầu trong suốt lần can thiệp. Mỗi chu kỳ lấy mẫu theo thời gian đã qua, trên hành lang can thiệp của T9 (bước 7), không trên reference line của chu kỳ đó: biên nhảy không được kéo path theo. Sau thời lượng quintic, mẫu ngang giữ đích và vận tốc ngang bằng 0 cho tới khi T9 kết thúc hoặc hủy.
 - Với ELK mép đường, dựng reference line từ mép nguy hiểm và biên đối diện đủ tin. Khi biên đối diện mất, dùng lại bề rộng đã nhớ nếu mép còn MEASURED và vị trí khớp mép đã gắn với làn sau bù ego-motion. Vạch ngoài làn đo được ở cùng phía loại mép đó khỏi hành lang làn đang chạy (PP-SWR-047).
 
@@ -336,3 +336,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.28 | 2026-11-18 | T7: path LKA, ELK hai pha (PP-ADR-021). T9 bước 3 giữ thêm `T_end_margin`; bước 7 lọc nhiễu bằng `corridor_tau`, `corridor_toward`. T12: bộ nhớ reference line đã hết hạn thì lấy đường đang bám để coast sau khi rời FOLLOW. Bước 1: frame lỗi của LeadTarget không xóa bộ đệm vết. Lý do: PP-TS-026, PP-PR-070, 071, 072 |
 | 1.29 | 2026-11-23 | T10: giới hạn a_y của path LCC là aysmax + `ay_margin_hwa`; cờ và `v_max` giữ theo aysmax. Lý do: PP-TS-020 V1a, SRS 1.26 |
 | 1.30 | 2026-11-23 | Mục 3.1: interface của từng unit (nhiệm vụ, input, output, trạng thái, calibration parameter, lúc chạy) và hai loại tham số. Lý do: quy trình phát triển của công ty, bước 2.2 |
+| 1.31 | 2026-11-23 | T7: ELK vì xe làn bên về tâm hai tốc độ, thêm `d_return_object`. Lý do: PP-TS-030 V2 |

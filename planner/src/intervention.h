@@ -18,7 +18,7 @@ typedef struct {
     pp_quintic_t profile;
     pp_quintic_t back;
     bool two_phase;
-    /* PP-TS-030 V1: đoạn về nhanh lưu dạng đảo thời gian, rồi `back` là đoạn về chậm. */
+    /* PP-TS-030 V2: đoạn về nhanh lưu dạng đảo thời gian, rồi `back` là đoạn về chậm. */
     pp_quintic_t fast_reversed;
     bool two_speed;
     uint64_t start_us;
