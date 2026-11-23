@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Chờ quyết định |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-11 |
 | Khóa ngày | 2026-11-11 (luật quyết định, mục 3) |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-23 |
 | Liên quan | PP-SWR-001, 005, 006, 007, 064, 151; SG-01; SOTIF TC-04, TC-05; R79 5.6.2.1.1; R171 5.3.7.1.2 |
 
 ## 1. Câu hỏi
@@ -63,3 +63,9 @@ Chọn A cho BL1. Mở lại study khi S1b d có trong simulator; nếu S1b d v�
 Đã chạy điều kiện mở lại (2026-11-13): S1b d với ACC `on` không lần nào chạm vạch; cờ báo trước 0,9 s vẫn đủ để ACC giảm về 20,1 m/s. Với `ignore_limits`, PP-SWR-007 đạt ở cả 12 lần (cờ bật trước lúc chạm vạch). Theo luật ở mục 3: chọn A. Không cần chạy B.
 
 ## 7. Quyết định
+
+- Người quyết, ngày: người phụ trách, 2026-11-23.
+- Chọn: A (V0). PP-SWR-001 không có khoảng nới 40 % trong 2 s.
+- Lý do: theo luật ở mục 3, ACC đọc LateralLimits giữ xe trong làn ở mọi biến thể, kể cả S1b d. Khoảng nới của R79 5.6.2.1.1 là dung sai cho a_y đo trên xe trong thời gian ngắn, không phải ngân sách để lên path; openpilot cũng cắt cứng, không dùng khoảng nới.
+- Đưa vào: không đổi code. PP-SWR-001 đổi riêng theo PP-TS-020 (mức liên tục + 0,3).
+- Hồi quy: bản đang dùng là A, [20261122-0758-suite-regression-591e3de](../../runs/20261122-0758-suite-regression-591e3de/report.md).

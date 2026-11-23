@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, đã tìm nguyên nhân; cần quyết định về điều kiện vào HWA |
+| Trạng thái | Đã sửa, chờ hồi quy |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-051, 052 |
 | Tái hiện | 20261111-1024-matrix-M1-b9e5d4d: S2c (24/24 lần chạy), S2d (4/24), cả ACC `off` và `on` |
@@ -45,7 +45,10 @@ Chưa chọn. Các hướng chung, không riêng cho S2c:
 
 A cần làm trong mọi trường hợp. B hoặc C xử lý phần còn lại ở VP-0, VP-1.
 
+Tác động của hướng A (2026-11-23, tính từ trạng thái đầu của anchor, chưa chạy): với `hwa_entry_dlc` 0,2 m, `hwa_entry_offset` 0,5 m, `hwa_entry_heading` 2°, khối Chức năng ADAS sẽ từ chối LCC ở 9 anchor trên một số profile: S2 b, c, d, e; S3b e; S9 a, c; S19 a, b. Ở S19 (làn 2,5 m), mọi profile rộng từ 2,11 m trở lên bị từ chối, nên PP-SWR-063 mất ca chấm lúc bắt đầu. Cần quyết cùng lúc cách giữ độ phủ của PP-SWR-063 (làn hẹp lại trong lúc LCC đang lái).
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |
 |---|---|
+| Sửa 2026-11-23, hướng A, người phụ trách duyệt | `sim/stand_ins/hwa_entry_gate.py`, nối ở `sim/harness.py` `_gated_hwa` cho cả chế độ scripted và A, B. DLC tại trục trước theo ADAS Function Specification mục 5. Bị từ chối mà không có mô hình tài xế thì xe được giữ bám làn. Lượt nháp: S2 c từ chối ở mọi profile (VP-0: DLC tại trục trước 0,199 m < 0,2 m vì góc 2° hướng ra ngoài); S2 b VP-0 vào được; S2 b, d, e, S3b e, S9 a, c trên VP-5 đạt; S19 b đạt PP-SWR-063. Thêm S19 (f) để giữ độ phủ của PP-SWR-063 khi làn hẹp lại trong lúc LCC lái. Hướng B, C không cần nữa: điều kiện DLC tại trục trước đã loại trạng thái đầu chắc chắn đè vạch |

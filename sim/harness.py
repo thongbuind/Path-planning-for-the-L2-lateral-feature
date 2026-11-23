@@ -75,6 +75,7 @@ from sim.stand_ins.adas_function import AdasFunction, AdasInputs, PathFeedback
 from sim.stand_ins.adas_observation import VehicleMotion
 from sim.stand_ins.arbitrator import PATH_STATUS_TIMEOUT_US, ActiveFunction, Arbitrator, SystemStatus
 from sim.stand_ins.eps import Eps
+from sim.stand_ins.hwa_entry_gate import HwaEntryGate
 from sim.stand_ins.hwa_view_gate import HwaViewGate
 from sim.stand_ins.lateral_controller import CONTROLLER_PERIOD_US, EgoState, LateralController
 from sim.stand_ins.acc import EGO_LENGTH_M, Acc, LeadSelector, LongitudinalActuator
@@ -128,11 +129,6 @@ def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int |
     if age < -FUTURE_STAMP_TOLERANCE_US or max_age_us is not None and age > max_age_us:
         return None
     return rx.message
-
-
-def _receive_valid(message, _rx_us):
-    """Frame invalid không cập nhật receive buffer, tương đương mất frame trong mô hình nhận."""
-    return message if message.header.valid else None
 
 
 def plan_in_range(plan: LongitudinalPlan) -> bool:
@@ -298,6 +294,8 @@ class Harness:
         hwa_request_us = None if scenario.hwa_request_s is None else round(scenario.hwa_request_s * 1e6)
         self.function_requests = ScriptedFunctionRequests(hwa_request_us, scenario.request_events)
         self._hwa_view_gate = HwaViewGate() if scenario.hwa_view_gate else None
+        self._hwa_entry_gate = HwaEntryGate(self.vehicle_config)
+        self._held_after_refusal = False
         self._driver = DriverSignals()
         self._driver_torque = 0.0
         self._adas_modes: tuple[AdasFunction, AdasFunction] | None = None
@@ -322,11 +320,9 @@ class Harness:
 
         camera_us = round(scenario.camera_latency_ms * 1000)
         jitter_us = round(scenario.camera_jitter_ms * 1000)
-        receive = self._can_rx.decode if self.can else restamp
-
-        def receive_chassis(frame, rx_us):
-            message = receive(frame, rx_us)
-            return _receive_valid(message, rx_us) if message is not None else None
+        # Interface Control Document 5.3: lớp nhận chỉ bỏ khung CRC sai hoặc counter lặp. Khung và
+        # message có `valid = false` tới planner; planner xử lý như mất message (PP-SWR-130, PP-PR-036).
+        receive_chassis = self._can_rx.decode if self.can else restamp
 
         self._injectors: dict[str, ChannelFaultInjector] = {}
 
@@ -339,19 +335,17 @@ class Harness:
 
         self.ch = {
             "lane_model": Channel("lane_model", latency_us=camera_us, jitter_us=jitter_us,
-                                  rng=self.rngs["latency"], on_deliver=_receive_valid, faults=faults("lane_model")),
+                                  rng=self.rngs["latency"], faults=faults("lane_model")),
             "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
                                    rng=self.rngs["latency"], faults=faults("object_list")),
             "lead_target": Channel("lead_target", latency_us=camera_us, jitter_us=jitter_us,
-                                   rng=self.rngs["latency"], on_deliver=_receive_valid,
-                                   faults=faults("lead_target")),
+                                   rng=self.rngs["latency"], faults=faults("lead_target")),
             "imu": Channel("imu", on_deliver=receive_chassis, faults=faults("imu")),
             "steering": Channel("steering", on_deliver=receive_chassis, faults=faults("steering")),
             "speed": Channel("speed", on_deliver=receive_chassis, faults=faults("speed")),
             "vehicle_state": Channel("vehicle_state", faults=faults("vehicle_state")),
             "function_requests": Channel("function_requests",
                                          latency_us=round(scenario.function_requests_latency_ms * 1000),
-                                         on_deliver=_receive_valid,
                                          faults=faults("function_requests")),
             "longitudinal_plan": Channel("longitudinal_plan", faults=faults("longitudinal_plan")),
             "open_trajectory": Channel("open_trajectory"),
@@ -618,10 +612,19 @@ class Harness:
         self.ch["function_requests"].publish(message, now_us)
 
     def _gated_hwa(self, hwa: FunctionRequest, now_us: int) -> FunctionRequest:
+        lane = _fresh(self.ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
+        hwa = self._hwa_entry_gate.apply(hwa, now_us, lane, self._driver.indicator)
+        if (self._hwa_entry_gate.state == "refused" and self.scenario.driver is None
+                and not self._holding and not self._held_after_refusal):
+            # LCC bị từ chối và kịch bản không có mô hình tài xế: tài xế tự lái bám làn như lúc
+            # giữ xe trước khi LCC vào (hold_until_hwa), thay vì để xe không ai lái (PP-PR-003).
+            self._held_after_refusal = True
+            self._holding = True
+            self._hold_s = self._s_hint
+            self._place_held()
         if self._hwa_view_gate is None:
             return hwa
         speed = _fresh(self.ch["speed"].latest, now_us, SPEED_TIMEOUT_US)
-        lane = _fresh(self.ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
         return self._hwa_view_gate.apply(hwa, now_us, lane,
                                          speed.speed_mps if speed is not None else self.vehicle.v_x,
                                          following=self._lcc_following)
@@ -715,11 +718,12 @@ class Harness:
                 request = EgoMotionRequest(adas.to_global(request.t1_us), adas.to_global(request.t2_us))
             return self.ego_motion.query(request)
 
-        start = time.perf_counter_ns()
+        # Thời gian CPU của luồng gọi planner, không tính lúc hệ điều hành ngắt tiến trình (PP-PR-061).
+        start = time.thread_time_ns()
         lcc_out = self.planners.lcc.step(inputs, ego_motion) if self.planners.lcc is not None else LccOutputs()
-        middle = time.perf_counter_ns()
+        middle = time.thread_time_ns()
         ka_out = self.planners.lka_elk.step(ka_inputs, ego_motion) if self.planners.lka_elk is not None else LkaElkOutputs()
-        compute_lcc_ns, compute_ka_ns = middle - start, time.perf_counter_ns() - middle
+        compute_lcc_ns, compute_ka_ns = middle - start, time.thread_time_ns() - middle
         if self.planners.lcc is None:
             compute_lcc_ns = 0
         if self.planners.lka_elk is None:

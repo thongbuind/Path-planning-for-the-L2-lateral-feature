@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; chưa xác nhận được: harness bỏ khung valid = false, F16 không kiểm planner. Chờ trả harness về và sửa ở planner |
+| Trạng thái | Đã sửa, chờ hồi quy |
 | Mở ngày | 2026-11-13 |
 | Requirement bị ảnh hưởng | PP-SWR-130 |
 | Tái hiện | [20261113-1803-suite-regression-3c31309](../runs/20261113-1803-suite-regression-3c31309/report.md): F16 a (lane model), F16 c (FunctionRequests) trên S1a, S1c |
@@ -35,3 +35,11 @@ Trong SIL cục bộ, 24/24 lượt F16 đạt PP-SWR-130. Cả sáu lượt F16
 | Run ID | Kết quả |
 |---|---|
 | [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md) | Không xác nhận. F16 a, b, c đạt 130 ở 24/24 lượt, nhưng `_receive_valid` trong `sim/harness.py` vẫn bỏ khung `valid = false` trước khi tới planner, nên kết quả đạt không kiểm hành vi của planner |
+| Sửa 2026-11-23, người phụ trách duyệt | `sim/harness.py` bỏ `_receive_valid`: lane model, LeadTarget, FunctionRequests và khung chassis có `valid = false` tới planner như Interface Control Document 5.3; lớp giải mã CAN vẫn bỏ khung CRC sai và counter lặp. `tests/sim` 147 test đạt. Chờ chạy lại F16 |
+| Lượt nháp 2026-11-23, S1 a seed 1 | F16 a, c đạt PP-SWR-130. F16 b (IMU qualifier FAULT) trượt 1 chu kỳ lúc 4,008 s: planner đặt `path_valid = false` ngay ở khung FAULT đầu tiên, ca mất khung đặt ở chu kỳ sau khi hết timeout. Hai chu kỳ sau đó giống nhau |
+
+## 5. Mâu thuẫn requirement (2026-11-23)
+
+- PP-SWR-130 đòi qualifier FAULT cho output giống ca mất message. PP-SWR-142 đòi IMU, tốc độ, góc lái không hợp lệ thì `path_valid = false` trong không quá một chu kỳ. Planner hiện coi qualifier FAULT là cảm biến không hợp lệ và phản ứng sớm hơn ca mất khung một chu kỳ.
+- Chờ người phụ trách chọn: giữ PP-SWR-130 và sửa planner, hoặc tách qualifier FAULT khỏi PP-SWR-130 (lỗi truyền thông theo E2E) sang PP-SWR-142 (cảm biến tự báo lỗi).
+- 2026-11-23, người phụ trách chọn tách: SRS 1.27 bỏ qualifier FAULT khỏi PP-SWR-130, thêm vào PP-SWR-142 với F16 (b). `sim/faults/channel.py` không còn dựng ca mất khung cho qualifier FAULT trên kênh chassis. Lượt nháp F16 b: PP-SWR-142 đạt.

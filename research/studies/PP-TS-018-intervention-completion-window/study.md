@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; V1 phía requirement đã áp dụng (`T_end_late` = 0,5 s, SRS 1.20); phía planner cần biến thể mới, plan chưa soạn |
+| Trạng thái | Mở; V1 phía requirement đã áp dụng (`T_end_late` = 0,5 s, SRS 1.20); hướng phía planner duyệt 2026-11-23, plan chưa soạn |
 | Mở ngày | 2026-11-14 |
 | Liên quan | PP-PR-018, PP-PR-020, PP-PR-033; PP-TS-012; PP-SWR-032, 090 |
 
@@ -65,3 +65,14 @@ Người dùng chốt `T_end_late` = 0,5 s (nhóm tự thống nhất). SRS 1.20
 | S12 b | Không báo COMPLETED (13 s) |
 
 Phát hiện: với lane model nhiễu, v_lat và heading của planner lấy từ từng frame dao động quanh ngưỡng (S12 b: σ của v_lat ≈ 0,094 m/s so với `v_lat_end` = 0,1 m/s, chuỗi đạt dài nhất 20 chu kỳ). Nới requirement một mình không đủ. Cần biến thể phía planner cho điều kiện kết thúc (lọc thông thấp v_lat và heading, hoặc kết hợp yaw rate), kiểm cả PP-SWR-090. Bỏ hướng `k_end_margin` của §6: nó làm điều kiện chặt thêm.
+
+## 8. Hướng phía planner (2026-11-23)
+
+Người phụ trách duyệt hướng sau, plan soạn khi PP-TS-005 có V3:
+
+| Mục | Nội dung |
+|---|---|
+| Nguyên nhân | v_lat của T6 dùng hướng làn từ c1 của từng frame; ở S12 b σ của v_lat ≈ 0,094 m/s so với `v_lat_end` |
+| Hướng chính | T6 và T9 dùng d₀, ψ₀ của road estimator (PP-TS-005 V3): Kalman filter dự báo bằng yaw rate và tốc độ, cập nhật bằng c0, c1. Mượt mà không thêm độ trễ kiểu lọc thông thấp |
+| Dự phòng | Nếu không chọn V3: Kalman filter hai trạng thái (lệch ngang, hướng so với làn) trong T6 |
+| Không đổi | PP-SWR-032, 090; `T_end_late` = 0,5 s |

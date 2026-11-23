@@ -139,6 +139,10 @@ CAN_CHANNELS = ("imu", "steering", "speed")
 
 def has_twin(fault: ChannelFault, can_bus: bool = False) -> bool:
     can = can_bus and fault.channel in CAN_CHANNELS
+    if fault.kind == "invalid" and fault.channel in CAN_CHANNELS:
+        # Qualifier FAULT là cảm biến tự báo hỏng, chấm theo PP-SWR-142, không so với ca mất khung
+        # (SRS 1.27, PP-PR-036).
+        return False
     return fault.kind in LOSS_EQUIVALENT + NO_FAULT_EQUIVALENT or (can and fault.kind == "crc")
 
 

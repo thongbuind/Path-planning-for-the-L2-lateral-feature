@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; plan nháp chờ duyệt (cập nhật 2026-11-16: thêm V3 và bước chuẩn bị) |
+| Trạng thái | Mở; plan duyệt 2026-11-23, chưa khóa |
 | Mở ngày | 2026-11-11 |
 | Khóa ngày | — |
 | Quyết định ngày | — |
@@ -110,3 +110,8 @@ F08 b (bias yaw rate 0,3 °/s) thêm ngày 2026-11-16, trước khi có lần ch
 - 2026-11-16, trước khi cài: làm bước chuẩn bị; cài V3 làm phương án chính và V2 làm đối chứng; bỏ V1. Người dùng duyệt cùng ngày. Plan khóa sau khi V2, V3 đã cài và có bộ calibration của từng phương án.
 
 ## 7. Quyết định
+
+- 2026-11-23, người phụ trách duyệt plan: V0 mốc, V2 đối chứng, V3 phương án chính.
+- V3 cài thành một unit riêng (road estimator) có interface rõ ràng, để sau này chuyển được sang khối perception hoặc fusion. Nếu chọn V3 thì viết ADR mới thay phần liên quan của PP-ADR-007.
+- Trước khi khóa plan: chẩn đoán S14 e trên hồi quy 20261122-0758-suite-regression-591e3de (6 lượt trượt BLOCKER PP-SWR-051) để xác nhận nguyên nhân là sai số khớp, không phải phạm vi chấm.
+- Nguồn bổ sung: Elster và Henrysson (Chalmers), mô hình đường lấy mẫu độ cong; Gackstatter và cộng sự (2010), Kalman filter cho từng vạch với lệch ngang, hướng và tham số clothoid.

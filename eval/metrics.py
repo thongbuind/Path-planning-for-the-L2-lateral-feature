@@ -62,6 +62,8 @@ R79_FILTER_HZ = 0.5
 R79_MIN_RATE_HZ = 100.0
 R79_AY_TABLE_MAX = 3.0
 R79_AY_MARGIN = 0.3
+# PP-SWR-001 (SRS 1.26): a_y của path LCC ≤ aysmax + 0,3 m/s² theo R79 5.6.2.1.1.
+PATH_AY_MAX_HWA = AYSMAX + R79_AY_MARGIN
 R79_AY_SHORT_FACTOR = 1.4
 R79_AY_SHORT_S = 2.0
 
@@ -1894,6 +1896,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
             p, s_hint = _path_truth(c, truth, road, s_hint)
             paths.append(p)
         else:
+            # Sau khoảng không chấm, xe có thể đã đi quá cửa sổ tìm của gợi ý cũ (PP-PR-080).
+            s_hint = None
             paths.append(None)
     need_max = np.array([p.ay_need_max if p is not None else 0.0 for p in paths])
 
@@ -1947,7 +1951,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         near_jerk = np.diff(p.ay[:n_window]) / GRID_STEP_S
         jerk_sq_sum += float(np.sum(near_jerk ** 2))
         jerk_count += len(near_jerk)
-        if ay_max > AYSMAX:
+        if ay_max > PATH_AY_MAX_HWA:
             mark("PP-SWR-001", now_s)
         if jerk_max > JERK_MAX_HWA:
             mark("PP-SWR-003", now_s)
@@ -2073,6 +2077,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
     for t_us, front, rear in zip(log.t_us, truth.front, truth.rear):
         i = int(np.searchsorted(t0s, t_us, side="right")) - 1
         if i < 0 or not judged_051[i]:
+            s_hint = None  # PP-PR-080: gợi ý cũ không dùng được sau khoảng không chấm.
             continue
         pf = road.project(front[0], front[1], s_hint)
         s_hint = pf.s
@@ -2166,8 +2171,8 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         Criterion("PP-SWR-063", "Tỉ lệ chu kỳ có path hợp lệ báo lane_too_narrow khi khoảng trống thật < free_space_min",
                   narrow_share, "= 1", narrow_share == 1.0,
                   applicable=bool(judge_narrow and narrow_flags)),
-        Criterion("PP-SWR-001", "a_y lớn nhất của path, HWA [m/s²]", ay_max, f"<= {AYSMAX}",
-                  ay_max <= AYSMAX, applicable=any_hwa),
+        Criterion("PP-SWR-001", "a_y lớn nhất của path, HWA [m/s²]", ay_max, f"<= {PATH_AY_MAX_HWA:g}",
+                  ay_max <= PATH_AY_MAX_HWA, applicable=any_hwa),
         Criterion("PP-SWR-003", "Jerk ngang lớn nhất của path, HWA [m/s³]", jerk_max,
                   f"<= {JERK_MAX_HWA}", jerk_max <= JERK_MAX_HWA, applicable=any_hwa),
         Criterion("PP-SWR-005", "Chu kỳ cua gắt mà mất path hoặc HWA",
@@ -2269,7 +2274,7 @@ def evaluate(log: RunLog, calibration: dict[str, float] | None = None) -> Result
         "vehicle_offset_max_m": offset_max,
         "free_space_each_side_m": free_space,
         "calibration": cal,
-        "compute_time_note": "Đồng hồ thật của máy, gồm cả adapter SIL (ctypes)",
+        "compute_time_note": "Thời gian CPU của luồng gọi planner, gồm cả adapter SIL (ctypes)",
     }
     truth_t = np.asarray(log.t_us, dtype=float) * 1e-6
     info.update(r79_vehicle(truth_t, np.asarray(log.a_y, dtype=float),

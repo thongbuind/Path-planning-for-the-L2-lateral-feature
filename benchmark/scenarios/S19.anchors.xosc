@@ -49,6 +49,16 @@
             <ParameterAssignment parameterRef="other_t_m" value="3" />
             <ParameterAssignment parameterRef="other_speed_mps" value="20" />
           </ParameterValueSet>
+          <ParameterValueSet>
+            <ParameterAssignment parameterRef="variant" value="f" />
+            <ParameterAssignment parameterRef="description" value="VP-5, làn 3.5 m hẹp dần còn 2.5 m trong lúc LCC lái (s = 150–250 m, mép phải dời vào), R = 500 m, số xe tải ngang hành trình: 0" />
+            <ParameterAssignment parameterRef="lane_width_m" value="3.5" />
+            <ParameterAssignment parameterRef="profile" value="VP-5" />
+            <ParameterAssignment parameterRef="road_file" value="../roads/S19f.xodr" />
+            <ParameterAssignment parameterRef="truck_t_m" value="-3.5" />
+            <ParameterAssignment parameterRef="other_t_m" value="3.5" />
+            <ParameterAssignment parameterRef="expected_outcome" value="drive_limited" />
+          </ParameterValueSet>
         </ValueSetDistribution>
       </DeterministicMultiParameterDistribution>
     </Deterministic>

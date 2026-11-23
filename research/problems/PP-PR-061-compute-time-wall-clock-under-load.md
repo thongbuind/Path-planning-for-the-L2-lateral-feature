@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; lỗi ở phía đánh giá |
+| Trạng thái | Đã sửa, chờ xác nhận |
 | Mở ngày | 2026-11-17 |
 | Requirement bị ảnh hưởng | PP-SWR-015; target PP-SWR-016; Software Qualification Test Specification 9.1 |
 | Tái hiện | [20261115-1126-suite-full-7495822](../runs/20261115-1126-suite-full-7495822/report.md), `--jobs 4` |
@@ -24,3 +24,4 @@ Phía đánh giá, người dùng quyết định: đo thời gian CPU của lu�
 
 | Run ID | Kết quả |
 |---|---|
+| Sửa 2026-11-23, người phụ trách duyệt | `sim/harness.py` đo `time.thread_time_ns()` của luồng gọi `pp_*_step` thay cho đồng hồ thật. Software Qualification Test Specification 1.51 mục 8.2. Chờ chạy lại để xác nhận phân bố thời gian tính |

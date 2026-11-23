@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-14 |
 | Requirement bị ảnh hưởng | PP-SWR-051; liên quan 142 |
 | Tái hiện | [20261114-1021-suite-regression-d7ed84c](../runs/20261114-1021-suite-regression-d7ed84c/report.md): F17-b-S1c, VP-0, VP-1, VP-5, seed 1 |
@@ -38,3 +38,5 @@ Chờ phân tích nguyên nhân.
 
 | Run ID | Kết quả |
 |---|---|
+| [20261117-0908-suite-regression-c56f0bf](../runs/20261117-0908-suite-regression-c56f0bf/report.md) | F17 b trên S1c hết trượt PP-SWR-051 sau khi sửa PP-PR-059 |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | F17 b không có trong lượt trượt. Đóng 2026-11-23: cùng gốc với PP-PR-059 |

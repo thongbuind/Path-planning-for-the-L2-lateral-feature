@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Mở; đã quyết phạm vi, chờ sửa planner |
 | Mở ngày | 2026-11-19 |
 | Requirement bị ảnh hưởng | PP-SWR-094 |
 | Tái hiện | [20261118-2030-suite-regression-e3158a5](../runs/20261118-2030-suite-regression-e3158a5/report.md), mục "Trượt ngoài phạm vi chấm của ca", PP-SWR-094 |
@@ -34,7 +34,9 @@ Nghi vấn về phạm vi: câu requirement áp cho mọi lần LKA, ELK, còn c
 
 ## 3. Cách sửa
 
-Chưa làm. Cần quyết một trong hai hướng:
+Người phụ trách chọn hướng thứ nhất ngày 2026-11-23. Câu requirement áp cho mọi lần LKA, ELK; thu hẹp phạm vi sau khi đã thấy trượt là đối phó bài thi. SRS 1.26 mở cột Kiểm chứng của PP-SWR-094 sang S4b, S7, S8, S8b (c, d, e), S12 (b, c, d), S13, S16, S21. Hướng sửa đầu tiên: `T_return_object` dài hơn, kiểm cùng PP-SWR-088.
+
+Hai hướng đã xét:
 
 - Mở rộng cột Kiểm chứng của PP-SWR-094 sang S7, S8, S8b, S12, S21 và sửa planner (cần plan mới, kể cả PP-TS-026).
 - Giữ phạm vi hiện tại và ghi giới hạn vào Assumptions and dependencies của Software Requirements Specification.

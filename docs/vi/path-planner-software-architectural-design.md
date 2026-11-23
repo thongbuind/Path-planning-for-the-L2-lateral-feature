@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SAD` |
-| Phiên bản | 1.13 |
+| Phiên bản | 1.14 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-18 |
+| Cập nhật | 2026-11-23 |
 
 ## 1. Purpose and scope {#design-scope}
 
@@ -199,7 +199,7 @@ Theo R171 5.3.7.1.1.1 (tốc độ phải chỉnh theo độ cong) và 5.3.7.1.3
 |---|---|---|---|---|---|
 | Đường thẳng, cua nhẹ | `v_max` ≥ tốc độ hiện tại | Cao | Bám tâm làn; gửi `v_max` và khoảng cách tới chỗ cong nhất mỗi chu kỳ | Theo tốc độ đặt hoặc xe trước | PP-SWR-150 đến 152 |
 | Thấy cua | `v_max` < tốc độ hiện tại | Giảm | Như pha trước; path dùng v(t) của LongitudinalPlan | Giảm tốc theo đường bao, tới chỗ cong nhất với tốc độ ≤ v_max·√(1 − 0,3 / aysmax) | PP-SWR-151 đến 153 |
-| Trong cua | Xe tới đoạn cong nhất | Thấp | Bám tâm làn, a_y ≤ aysmax, jerk ≤ 5 m/s³ | Giữ tốc độ dưới đường bao | PP-SWR-001, 003 |
+| Trong cua | Xe tới đoạn cong nhất | Thấp | Bám tâm làn, a_y ≤ aysmax + `ay_margin_hwa`, jerk ≤ 5 m/s³ | Giữ tốc độ dưới đường bao | PP-SWR-001, 003 |
 | Chạm giới hạn | a_y cần > aysmax: thấy cua muộn hoặc giảm tốc không kịp | Giữ | Path cong ít hơn đường thật, a_y ≥ aysmax − `epsilon_ay`; bật `lateral_limit_reached`, cờ đã bật khi lốp trước đè vạch | Không tăng tốc khi cờ bật | PP-SWR-005 đến 007 |
 | Ra cua | a_y cần lớn nhất < aysmax | Tăng | Tắt `lateral_limit_reached` | Tăng tốc về tốc độ đặt | Target PP-SWR-008 |
 
@@ -308,7 +308,7 @@ Gom mục 8.1, 8.2 theo mức chức năng còn lại (R79 Annex 6, 3.4.3: (a) c
 
 | Chức năng | a_y | a_y thêm vào | Jerk | Requirement |
 |---|---|---|---|---|
-| LCC | ≤ 2,5 m/s² | ≤ `ay_add_max_hwa` | ≤ 5 m/s³; mục tiêu `jerk_target_hwa` | PP-SWR-001, 003; target 002, 004 |
+| LCC | ≤ aysmax + `ay_margin_hwa` | ≤ `ay_add_max_hwa` | ≤ 5 m/s³; mục tiêu `jerk_target_hwa` | PP-SWR-001, 003; target 002, 004 |
 | LKA | ≤ 3,0 m/s² | ≤ 1,5 m/s² | ≤ 5 m/s³ | PP-SWR-110, 112, 114 |
 | ELK | ≤ 4,0 m/s² | ≤ 3,0 m/s² | ≤ 10 m/s³ | PP-SWR-111, 113, 115 |
 
@@ -353,6 +353,7 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `free_space_min` | m | 0,1 | 0–0,3 | ≥ 0 | PP-SWR-063 |
 | `delta_ay` | m/s² | 0,2 | 0,1–0,4 | ≥ 0 | Target 008, 064 |
 | `epsilon_ay` | m/s² | 0,2 | 0–0,5 | 0–2,5 | PP-SWR-006 |
+| `ay_margin_hwa` | m/s² | 0,1 | 0–0,2 | 0–0,3 (PP-SWR-001) | Phần a_y path LCC được vượt aysmax để kéo xe về. PP-SWR-051, 136; PP-ASM-029 |
 | `T_flag` | s | 0,2 | 0,15–0,5 | > 0 | Target 008, 064 |
 | `v_lat_end` | m/s | 0,15 | 0,05–0,15 | ≤ 0,15 (mentor) | PP-SWR-032, 090 |
 | `d_end` | m | 0,10 | 0,05–0,10 | ≤ 0,10 (mentor) | PP-SWR-032, 084, 090 |
@@ -365,7 +366,7 @@ Một bộ calibration cho mọi xe. Giá trị khởi đầu là điểm xuất
 | `T_return` | s | 4,0 | 3,0–5,0 | > 0 | Pha về tâm của LKA, ELK. PP-SWR-085, 094. Target 081, 082 |
 | `T_return_object` | s | 2,0 | 1,5–3,0 | > 0 | Pha về tâm của ELK vì xe làn bên. PP-SWR-088 |
 | `T_recenter` | s | 3,5 | 2,5–5,0 | Giới hạn của PP-SWR-001, 003 | Target 002, 053 |
-| `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,5 (PP-SWR-001) | Target 002, 053, 059 |
+| `ay_add_max_hwa` | m/s² | 0,5 | 0,3–1,0 | ≤ 2,8 (PP-SWR-001) | Target 002, 053, 059 |
 | `jerk_target_hwa` | m/s³ | 2,5 | 1,5–5,0 | ≤ 5 (PP-SWR-003) | Target 004 |
 | `ref_rate` | m/s | 0,1 | 0,05–0,3 | ≥ 0 | Target 050; PP-SWR-093, 120 |
 | `stitch_reset` | m | 0,1 | 0,05–0,2 | ≥ 0 | Target 050; PP-SWR-100 |
@@ -450,3 +451,4 @@ T = 2 s vượt jerk 5 m/s³; T = 4 s đưa xe ra gần vạch hơn (còn 0,10�
 | 1.11 | 2026-11-17 | Mục 4.2, 7: LKA, ELK bắt đầu từ trạng thái đo, chu kỳ đầu không trộn với path cũ (SRS 1.23, PP-PR-062) |
 | 1.12 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 3: bảng hai planner, thành phần Lead trail, arbitrator trong cycle sequence và latency chain. Mục 5: Arbitration đổi thành Intervention selection của LKA/ELK planner, bỏ nhánh HWA. Mục 6: dời tâm một xe lớn 10 cm, hai xe lớn giữ cân bằng, xe ở làn bên kia chặn dời; mục 6.3 bám xe trước. Mục 7: đích tâm làn, điều kiện kết thúc thêm `d_end`, `v_lat_end` = 0,15 m/s; mục 7.2 hành lang can thiệp. Mục 8, 10: bậc suy giảm FOLLOW, edge case 17 đến 19. Mục 11: thêm `d_end`, `offset_truck`, `follow_lat_max`, `follow_vlat_max`; bỏ `dlc_target_lka`. Appendix A.7. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-030 đến 049, 055, 065, 066, 084, 093, 094, 170 đến 178, 180, 181 |
 | 1.13 | 2026-11-18 | Mục 7: path LKA, ELK hai pha (PP-ADR-021). Mục 7.2: hành lang lọc nhiễu lane model. Mục 11: thêm `T_end_margin`, `T_return`; đổi giá trị `T_lka`, `T_elk`. Lý do: PP-TS-026, PP-PR-071, 072 |
+| 1.14 | 2026-11-23 | Mục 6.2, 9: trần a_y của path LCC là aysmax + `ay_margin_hwa`. Mục 11: thêm `ay_margin_hwa` (khởi đầu 0,1 m/s²); giới hạn của `ay_add_max_hwa` theo PP-SWR-001 mới. Lý do: PP-TS-020 V1a, SRS 1.26 |

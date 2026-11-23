@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Chờ quyết định; V4 đang được áp dụng để chạy hồi quy |
+| Trạng thái | Đã quyết |
 | Mở ngày | 2026-11-18 |
 | Khóa ngày | 2026-11-18 |
 | Liên quan | PP-SWR-032, 084, 085, 086, 090, 091, 094, 110 đến 115; target 081, 082, 087; PP-PR-071, 072; Software Detailed Design mục 10 |
@@ -55,5 +55,8 @@ Pha chặn đà kết thúc với tốc độ ngang, gia tốc và jerk bằng 0
 
 ## 7. Quyết định
 
-- Chờ người phụ trách xác nhận. V4 đã đưa vào calibration để chạy hồi quy.
+- Người quyết, ngày: người phụ trách, 2026-11-23.
+- Chọn: V4, `T_lka` 1,25 s, `T_elk` 0,75 s, `T_return` 4 s.
+- Lý do: V3 và V4 trượt ít nhất; V4 tới COMPLETED sớm hơn và giữ DTLE tốt hơn. Không văn bản nào quy định hình dạng đường về tâm. R79 5.1.6.1.2.2 bắt cảnh báo âm thanh khi có từ hai lần can thiệp trong 180 s, nên tránh đẩy về rồi kéo ra có cơ sở. Euro NCAP LSS 7.4.6 chỉ đo 2 s sau điểm lệch xa nhất.
+- `T_return_object` = 2 s không thuộc so sánh của study; xử lý ở PP-PR-077.
 - Hồi quy [20261118-2030-suite-regression-e3158a5](../../runs/20261118-2030-suite-regression-e3158a5/report.md): PP-SWR-094 từ 124 lần còn 0, PP-SWR-085 từ 23 còn 0, PP-SWR-086 từ 7 còn 0.

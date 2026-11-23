@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SRS` |
-| Phiên bản | 1.25 |
+| Phiên bản | 1.27 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-18 |
+| Cập nhật | 2026-11-23 |
 
 ## 1. Purpose and scope {#req-scope}
 
@@ -136,6 +136,7 @@ Mỗi dòng ghi requirement nào dựa vào nó và cách kiểm lại khi có x
 | PP-ASM-026 | Ngưỡng 0,8 m của điều kiện M1 còn bị chặn theo khoảng trống mỗi bên trừ `dlc_offset_min`, để path bám xe không đưa xe qua vạch ở làn hẹp | PP-SWR-172 | Hỏi mentor | nhóm tự thống nhất |
 | PP-ASM-027 | Khi mất hai vạch làn mình mà còn biên làn bên hoặc mép đường đủ tin, LCC planner dùng tâm làn suy ra (PP-ADR-011) và không bám xe | PP-SWR-147, 148, 170 | Hỏi mentor thứ tự ưu tiên | nhóm tự thống nhất |
 | PP-ASM-028 | Ngưỡng cắt 10 cm và 0,15 m/s của mentor áp cho cả LKA và ELK | PP-SWR-032, 084, 090 | Hỏi mentor | nhóm tự thống nhất |
+| PP-ASM-029 | Khi path LCC ở trần a_y, Lateral Controller giữ a_y đo trên xe vượt a_y của path không quá 0,3 m/s² − `ay_margin_hwa`, để a_y của xe vẫn trong R79 5.6.2.1.1 | PP-SWR-001, 051; SG-01 | PP-TS-027 trong SIL: a_y của xe lọc theo R79 Annex 8, 2.4 khi path ở trần | R79 5.6.2.1.1; nhóm tự thống nhất (PP-TS-020) |
 
 ## 7. Calibration parameter limits {#req-calibration-limits}
 
@@ -149,6 +150,7 @@ Chỉ liệt kê tham số mà requirement trỏ tới. Danh mục đầy đủ,
 | `T_coast` | Thời gian bám path cũ khi không còn biên làn đủ tin | 0–1 s | Analysis: lệch dead reckoning 0,06 m sau 1 s (Software Architectural Design Appendix A.4) |
 | `free_space_min` | Khoảng trống tối thiểu mỗi bên để LCC khả dụng | ≥ 0 m | PP-SWR-051 |
 | `epsilon_ay` | Mức a_y của path được thấp hơn aysmax khi a_y cần vượt aysmax | 0–2,5 m/s² | — |
+| `ay_margin_hwa` | Phần a_y của path LCC được vượt aysmax | 0–0,3 m/s² | R79 5.6.2.1.1 (PP-SWR-001); phần còn lại dành cho controller (PP-ASM-029) |
 | `gap_truck_min` | Khoảng hở tới xe lớn mà dưới mức đó LCC dời tâm | > 0 m | — |
 | `d_end` | Ngưỡng lệch tâm của điều kiện kết thúc | 0–0,10 m | mentor (cắt khi cách tâm làn dưới 10 cm) |
 | `v_lat_end` | Ngưỡng v_lat của điều kiện kết thúc | 0–0,15 m/s | mentor (cắt khi v_lat dưới 0,15 m/s) |
@@ -206,7 +208,7 @@ PP-SWR-030 đến 038, 041, 045 đến 047, 049 áp cho LKA/ELK planner. PP-SWR-
 
 | ID | Yêu cầu | Kiểm chứng | Type | Nguồn |
 |---|---|---|---|---|
-| PP-SWR-001 | Trong khi LCC đang lái, a_y của path phải ≤ aysmax = 2,5 m/s² tại mọi điểm | Test: S1, S1b, S12 (a) | Regulatory, SG-01 | R79 5.6.2.1.3 (≤ 3 m/s²) |
+| PP-SWR-001 | Trong khi LCC đang lái, a_y của path phải ≤ aysmax + 0,3 m/s² tại mọi điểm, với aysmax = 2,5 m/s² | Test: S1, S1b, S12 (a) | Regulatory, SG-01 | R79 5.6.2.1.1 (+0,3 m/s²), 5.6.2.1.3 (≤ 3 m/s²); PP-TS-020 |
 | PP-SWR-003 | Trong khi LCC đang lái, jerk ngang của path phải ≤ 5 m/s³ | Test: S1 | Regulatory, SG-01 | R79 5.6.2.1.3 c |
 | PP-SWR-005 | Nếu a_y cần lớn nhất > aysmax trong khi LCC đang lái, thì LCC planner phải giữ `path_valid = true` và `lcc_mode` khác NONE | Test: S1b | Regulatory, SG-02 | R79 5.6.2.2.3 |
 | PP-SWR-006 | Nếu a_y cần > aysmax tại một điểm trên đoạn 0–1 s của path trong khi LCC đang lái, thì a_y của path tại điểm đó phải ≥ aysmax − `epsilon_ay` | Test: S1b | Regulatory, SG-02 | R79 5.6.2.2.3 (hỗ trợ trong khả năng); mức `epsilon_ay`: nhóm tự thống nhất |
@@ -234,7 +236,7 @@ PP-SWR-030 đến 038, 041, 045 đến 047, 049 áp cho LKA/ELK planner. PP-SWR-
 | PP-SWR-060 | Khi một biên làn mở rộng (làn dừng khẩn cấp, tách nhánh, thêm làn), DLC so với biên làn thật ở phía mở rộng phải ≥ 0 | Test, vòng kín: S6b | Safety, SG-01 | mentor |
 | PP-SWR-061 | Khi lane model chuyển sang làn mới, path phải thoả PP-SWR-100 đến 102 | Test: S17 | Safety, SG-04 | nhóm tự thống nhất |
 | PP-SWR-062 | Mọi requirement ở mục 8 phải thoả trong toàn bộ ODD ở mục 5, với cùng một bộ calibration | Test: S19 | Functional | nhóm tự thống nhất |
-| PP-SWR-063 | Khi khoảng trống mỗi bên nhỏ hơn `free_space_min`, LCC planner phải đặt `lane_too_narrow = true` trong LccStatus | Test: S19 (b) | Safety, SG-01 | nhóm tự thống nhất |
+| PP-SWR-063 | Khi khoảng trống mỗi bên nhỏ hơn `free_space_min`, LCC planner phải đặt `lane_too_narrow = true` trong LccStatus | Test: S19 (b, f) | Safety, SG-01 | nhóm tự thống nhất |
 
 ### 8.6 LKA và ELK {#req-intervention}
 
@@ -251,7 +253,7 @@ PP-SWR-030 đến 038, 041, 045 đến 047, 049 áp cho LKA/ELK planner. PP-SWR-
 | PP-SWR-091 | Khi trễ EPS tới 100 ms, DTLE nhỏ nhất phải vẫn đạt PP-SWR-086 | Test, vòng kín: S13 (a, b) | Safety, SG-03 | nhóm tự thống nhất |
 | PP-SWR-092 | Nếu LKA, hoặc ELK với lý do khác mép đường, được yêu cầu về một phía mà vạch làn mình ở phía đó không là biên làn đủ tin trong lane model planner nhận, thì planner không được bắt đầu can thiệp đó | Test: F04 | Safety, SG-01 | EU 2021/646 recital 6, Annex I 3.6.2 (vạch nhìn thấy được); Euro NCAP LSS 7.2.6 |
 | PP-SWR-093 | Nếu biên phía nguy hiểm của làn đang chạy báo nhảy ra xa biên thật 0,3–1,0 m trong lúc LKA hoặc ELK đang can thiệp, thì PP-SWR-085 và 086 phải vẫn thoả | Test, vòng kín: F24 (a–e) | Safety, SG-01 | mentor (làn nhảy ra xa, planner đẩy xe về làn rồi kéo ra) |
-| PP-SWR-094 | Trong một lần LKA hoặc ELK, sau thời điểm DLC thật phía `side` nhỏ nhất của lần đó, DLC này không được giảm quá 0,1 m so với giá trị lớn nhất đã đạt sau thời điểm đó | Test, vòng kín: S4, S5, S6, S20, F24 | Safety, SG-01 | mentor (hiện tượng đẩy về rồi kéo ra); 0,1 m ≈ 3·σ_c0 ban ngày (PP-ASM-011): nhóm tự thống nhất |
+| PP-SWR-094 | Trong một lần LKA hoặc ELK, sau thời điểm DLC thật phía `side` nhỏ nhất của lần đó, DLC này không được giảm quá 0,1 m so với giá trị lớn nhất đã đạt sau thời điểm đó | Test, vòng kín: S4, S4b, S5, S6, S7, S8, S8b (c, d, e), S12 (b, c, d), S13, S16, S20, S21, F24 | Safety, SG-01 | mentor (hiện tượng đẩy về rồi kéo ra); 0,1 m ≈ 3·σ_c0 ban ngày (PP-ASM-011): nhóm tự thống nhất |
 
 Không có mốc cắt thời lượng. Một lần LKA hoặc ELK kết thúc khi COMPLETED (PP-SWR-032), khi REQUEST rời (PP-SWR-036, 037), khi tài xế ghi đè, hoặc khi không còn đủ điều kiện tiếp tục (PP-SWR-046, 047). Can thiệp dài hơn 10 s được cảnh báo âm thanh ở khối Chức năng ADAS (ADAS Function Specification mục 10).
 
@@ -294,7 +296,7 @@ Nguồn của giới hạn quyền lái: R79 không giới hạn a_y của CSF. 
 | PP-SWR-127 | Khi message đến muộn hoặc sai thứ tự, path phải thoả PP-SWR-100 đến 102 | Test: F11 | Safety, SG-04 | nhóm tự thống nhất |
 | PP-SWR-128 | Trong khi camera gửi 20 Hz và planner chạy 40 Hz, path phải thoả PP-SWR-100 đến 102 ở mọi chu kỳ | Test: mọi kịch bản, F13 | Safety, SG-04 | nhóm tự thống nhất |
 | PP-SWR-129 | Nếu message pub/sub bị lặp, hoặc counter của nó tăng không quá MaxDeltaCounter của Interface Control Document mục 3 so với message nhận trước đó, thì output phải giống ca không lỗi cùng seed | Test: F15 (lặp, nhảy trong giới hạn) | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (OK, OKSOMELOST) |
-| PP-SWR-130 | Nếu counter đứng yên hoặc tăng quá MaxDeltaCounter, valid = false, qualifier FAULT hoặc CRC sai, thì output phải giống ca mất message tương ứng | Test: F15 (nhảy quá giới hạn, đứng yên), F16, F17 | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (REPEATED, WRONGSEQUENCE); nhóm tự thống nhất |
+| PP-SWR-130 | Nếu counter đứng yên hoặc tăng quá MaxDeltaCounter, message pub/sub có valid = false hoặc khung CAN có CRC sai, thì output phải giống ca mất message tương ứng | Test: F15 (nhảy quá giới hạn, đứng yên), F16 (a, c), F17 | Safety | AUTOSAR PRS E2E R22-11 [PRS_E2E_00591] (REPEATED, WRONGSEQUENCE); nhóm tự thống nhất |
 | PP-SWR-131 | Nếu tuổi của lane model hoặc ObjectList vượt 250 ms, thì planner phải coi input đó không hợp lệ | Test: Q1 (300 ms) | Safety | nhóm tự thống nhất |
 | PP-SWR-132 | Nếu stamp của input ở tương lai quá 10 ms, thì planner phải coi input đó không hợp lệ | Test: F19 | Safety | nhóm tự thống nhất |
 | PP-SWR-133 | Trong khi tuổi của lane model hoặc ObjectList trong khoảng 170–250 ms, planner phải tiếp tục dùng input đó | Test: Q1 (200 ms) | Functional | nhóm tự thống nhất |
@@ -308,7 +310,7 @@ Nguồn: 170 ms = trễ giả định lớn nhất 120 ms (PP-ASM-001) cộng 50
 |---|---|---|---|---|
 | PP-SWR-140 | Nếu ObjectList không hợp lệ, thì LCC planner phải đưa phần dời tâm của LCC về 0, vẫn thoả PP-SWR-001, 003 và 100 đến 102 | Test: F12 (Perception, trong S3) | Safety | nhóm tự thống nhất |
 | PP-SWR-141 | Nếu ObjectList không hợp lệ, thì LKA/ELK planner vẫn phải thực hiện can thiệp ELK được yêu cầu | Test: F12 (Perception, trong S5) | Safety, SG-03 | nhóm tự thống nhất |
-| PP-SWR-142 | Nếu IMU, tốc độ hoặc góc lái không hợp lệ, thì planner phải đặt `path_valid = false` trong không quá một chu kỳ | Test: F12 (IMU, tốc độ, góc lái), F17 | Safety | nhóm tự thống nhất |
+| PP-SWR-142 | Nếu IMU, tốc độ hoặc góc lái không hợp lệ, kể cả khi khung CAN báo qualifier FAULT, thì planner phải đặt `path_valid = false` trong không quá một chu kỳ | Test: F12 (IMU, tốc độ, góc lái), F16 (b), F17 | Safety | nhóm tự thống nhất |
 | PP-SWR-143 | Nếu ego-motion không hợp lệ, thì planner phải đặt `path_valid = false` trong không quá một chu kỳ | Test: F20 | Safety | nhóm tự thống nhất |
 | PP-SWR-144 | Nếu VehicleStateEstimate không hợp lệ, thì planner không được bắt đầu can thiệp LKA hoặc ELK mới | Test: F12 (v_y) | Safety | nhóm tự thống nhất |
 | PP-SWR-145 | Nếu FunctionRequests quá timeout 75 ms, thì mỗi planner phải đặt `lcc_mode` hoặc `active_function` bằng NONE và `path_valid = false` trong không quá một chu kỳ | Test: F12 (FunctionRequests) | Safety | nhóm tự thống nhất |
@@ -432,3 +434,5 @@ Không có ngưỡng đạt. Software Qualification Test Specification đo các 
 | 1.23 | 2026-11-17 | PP-SWR-031: ngoại lệ áp cho chu kỳ đầu của mọi lần LKA, ELK bắt đầu, bỏ điều kiện xe lệch path cũ quá 0,1 m hoặc 0,1 m/s. Thêm PP-SWR-049: độ cong điểm đầu khớp độ cong thật của xe. Lý do: PP-PR-062; path của chức năng trước bám theo xe đang trôi ra, nên khi xe còn trong dung sai, path ELK bị trộn với path hướng ra ngoài và ELK quay vào muộn (DTLE tới −0,54 m). Đề bài chỉ đòi không có bước nhảy ở lệnh lái. Ảnh hưởng: PP-SWR-031, 049, 080, 100 đến 102; Software Qualification Test Specification 8.1; T4, T7 |
 | 1.24 | 2026-11-18 | Tách thành hai planner: LCC planner (LCC, tên khác của HWA) và LKA/ELK planner; bỏ arbitration giữa ba chức năng vì arbitrator thuộc công ty (PP-ASM-022). Giữ LKA và ELK riêng, chọn ELK > LKA trong LKA/ELK planner. Điều kiện kết thúc thêm lệch tâm ≤ `d_end` = 10 cm và `v_lat_end` = 0,15 m/s theo mentor; PP-SWR-084 đổi theo đích tâm làn. Dời tâm vì xe lớn: một xe lớn thì lệch 10 cm khi làn bên kia không có xe tới, hai xe lớn thì giữ cách cân bằng (PP-SWR-055, 065, 066). Thêm PP-SWR-093, 094 (biên nhảy lúc can thiệp), 170 đến 178 (LCC bám xe trước), 180, 181, 019, 067 (LCC phải lái khi ở REQUEST, trước đây nằm trong PP-SWR-030); PP-SWR-039, 040 thêm vế LKA, LCC ở REQUEST; PP-ASM-022 đến 028. Lý do: mentor đổi sản phẩm ngày 18/11. Ảnh hưởng: mọi requirement dùng chữ HWA, `active_function`, PathStatus; Interface Control Document, Software Architectural Design, Software Detailed Design, ADAS Function Specification, Hazard Analysis and Risk Assessment, Software Qualification Test Specification, Mentor Report |
 | 1.25 | 2026-11-18 | Mục 7: thêm giới hạn của `T_end_margin`, `T_return`, `T_return_object`. Không đổi requirement. Lý do: PP-TS-026, PP-PR-072 |
+| 1.26 | 2026-11-23 | PP-SWR-001: trần a_y của path LCC từ aysmax lên aysmax + 0,3 m/s² theo R79 5.6.2.1.1; mục 7 thêm `ay_margin_hwa` (0–0,3 m/s²); thêm PP-ASM-029. Lý do: PP-TS-020 chọn V1a; ở cua cần đúng aysmax, path cần phần a_y để kéo xe về khi xe lệch. PP-SWR-094: cột Kiểm chứng mở sang mọi kịch bản có LKA, ELK (S4b, S7, S8, S8b, S12, S13, S16, S21). Lý do: PP-PR-077; câu requirement áp cho mọi lần can thiệp. Ảnh hưởng: PP-SWR-001, 051, 094; Software Architectural Design mục 6.2, 9, 11; Software Detailed Design T10; Software Qualification Test Specification 5; `calibration.yaml` |
+| 1.27 | 2026-11-23 | PP-SWR-130 bỏ qualifier FAULT, chỉ giữ lỗi truyền thông (counter, CRC) và message pub/sub `valid = false`; PP-SWR-142 thêm qualifier FAULT và F16 (b). Lý do: PP-PR-036; qualifier FAULT là cảm biến tự báo hỏng, khác lỗi truyền thông mà E2E bảo vệ, và phản ứng ngay an toàn hơn chờ hết timeout. Ảnh hưởng: PP-SWR-130, 142; Software Qualification Test Specification 6 (F16); `sim/faults/channel.py`. PP-SWR-063: thêm S19 (f), làn hẹp dần trong lúc LCC lái; S19 (b) giờ bị từ chối vào LCC theo ADAS Function Specification mục 7 (PP-PR-003) |

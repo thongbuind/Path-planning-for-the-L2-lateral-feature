@@ -86,7 +86,7 @@ REQ_SHORT = {"PP-SWR-100": "Hai path liên tiếp lệch ngang trong ngưỡng",
              "PP-SWR-039": "Path bắt đầu tại xe khi tài xế ghi đè", "PP-SWR-040": "Path HWA bắt đầu tại xe khi hết ghi đè",
              "PP-SWR-030": "Chọn đúng chức năng theo ưu tiên", "PP-SWR-032": "Báo COMPLETED đúng lúc",
              "PP-SWR-006": "a_y path khi cua gắt hơn aysmax", "PP-SWR-086": "DTLE ≥ −0,3 m khi LKA, ELK",
-             "PP-SWR-001": "a_y path ≤ aysmax khi HWA lái", "PP-SWR-007": "Báo cờ giới hạn trước khi đè vạch",
+             "PP-SWR-001": "a_y path ≤ aysmax + 0,3 khi HWA lái", "PP-SWR-007": "Báo cờ giới hạn trước khi đè vạch",
              "PP-SWR-088": "Khoảng cách tới xe làn bên ≥ 0,3 m", "PP-SWR-143": "Path không hợp lệ khi ego-motion hỏng",
              "PP-SWR-124": "Xử lý mất lane model đúng hạn", "PP-SWR-063": "Báo làn quá hẹp",
              "EXECUTION_FAULT": "Planner dừng hoặc ra NaN",
@@ -1461,7 +1461,7 @@ class Report:
                 for v, r in sorted(p99s, key=lambda x: x[0], reverse=True)[:4]]
         m = self.d['manifest']
         env = m.get('environment', {})
-        how = [self.tr("Đồng hồ thật của máy phát triển ({platform}), gồm adapter ctypes; không đại diện ECU trên xe.", platform=env.get('platform') or self.tr("chưa ghi nhận")),
+        how = [self.tr("Thời gian CPU của luồng gọi planner trên máy phát triển ({platform}), gồm adapter ctypes; không đại diện ECU trên xe.", platform=env.get('platform') or self.tr("chưa ghi nhận")),
                self.tr("Chạy song song {workers} tiến trình ({start_method}); giá trị lớn hơn khi chạy một mình.", workers=m.get('jobs', self.tr("chưa ghi nhận")), start_method=m.get('start_method', self.tr("chưa ghi nhận"))),
                self.tr("Chỉ so với lần chạy cùng máy và cùng số tiến trình (Software Qualification Test Specification 8.2)."),
                self.tr("Chu kỳ {period} ms là chu kỳ planner 40 Hz, chỉ để tham chiếu, không phải ngưỡng.", period=precise(period, lang=self.lang)),

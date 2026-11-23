@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.28 |
+| Phiên bản | 1.29 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-18 |
+| Cập nhật | 2026-11-23 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -219,6 +219,7 @@ Kết quả khớp bảng intervention state ở Software Architectural Design m
 - Với LCC, bước 2 chạy hai lần: trên path ứng viên trước T4 bước 4, và trên path gửi sau đó. Tổ hợp lồi của hai path khả thi vẫn khả thi, nên lần sau chỉ gặp phần do tốc độ đổi; T10 không phá liên tục sau khi trộn (PP-TS-003).
 - Bước 2 cắt cả độ cong của điểm 0, giữ vị trí. Jerk cắt theo từng bước 0,1 s, chặt hơn trung bình 0,5 s của requirement. Mỗi giới hạn chừa 10⁻⁶ tương đối để giá trị float32 gửi đi không vượt.
 - Bước 3 và 4 chỉ chạy ở LCC planner (LccStatus, LateralLimits). LKA/ELK planner chỉ chạy bước 1 và 2, và ghi `lateral_limit_reached` của InterventionStatus khi bước 2 cắt path.
+- Với LCC, giới hạn a_y ở bước 2 là aysmax + `ay_margin_hwa` (PP-SWR-001, PP-TS-020). Cờ ở bước 3 và `v_max` ở bước 4 vẫn tính theo aysmax.
 - Bước 3 và 4 dùng độ cong lớn hơn giữa reference line của camera và của T5: cờ và `v_max` báo trước cho khối dọc, nên lấy phía an toàn. Path vẫn bám độ cong của T5.
 
 ## 14. T11 Output {#dd-t11}
@@ -307,3 +308,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.26 | 2026-11-18 | Hai planner (PP-ADR-016). Mục 3: unit nào ở planner nào; thêm T12 (mục 5.1, bám xe trước, PP-ADR-018). T9 đổi tên Intervention selection, bỏ nhánh HWA, thêm bước 7 hành lang can thiệp (PP-ADR-019). T4: LCC planner bắt đầu từ trạng thái đo cả khi LKA, ELK ở REQUEST. T7: LKA, ELK về tâm làn, lấy mẫu trên hành lang can thiệp. T8: dời `offset_truck`, xe ở làn bên kia chặn dời. T10, T11 theo từng planner. Mục 15: thêm `trail_n`, `trail_spacing`, `trail_fit_max`. Lý do: mentor đổi sản phẩm ngày 18/11 (SRS 1.24). Ảnh hưởng: PP-SWR-039, 040, 055, 065, 066, 093, 094, 170 đến 178, 180, 181 |
 | 1.27 | 2026-11-18 | Khớp với mã đã tách hai planner. Mục 3: module T9 là `selection.c`. T12: bộ đệm vết ghi không cần `target_id` khớp; reference line ảo là parabol có điểm neo theo `heading` xe trước, M2 theo RMS (`trail_fit_max` 0,4 m); thêm `exist_min`, `corridor_tol`. Lý do: bám xe trước chạy đầu cuối trong simulator cho thấy sai số lớn nhất và hệ số bậc 3 làm FOLLOW ngắt liên tục với nhiễu vị trí xe trước 0,25 m. Ảnh hưởng: calibration.yaml, PP-SWR-172 (xe trước đổi thì rời FOLLOW vẫn đúng theo M6) |
 | 1.28 | 2026-11-18 | T7: path LKA, ELK hai pha (PP-ADR-021). T9 bước 3 giữ thêm `T_end_margin`; bước 7 lọc nhiễu bằng `corridor_tau`, `corridor_toward`. T12: bộ nhớ reference line đã hết hạn thì lấy đường đang bám để coast sau khi rời FOLLOW. Bước 1: frame lỗi của LeadTarget không xóa bộ đệm vết. Lý do: PP-TS-026, PP-PR-070, 071, 072 |
+| 1.29 | 2026-11-23 | T10: giới hạn a_y của path LCC là aysmax + `ay_margin_hwa`; cờ và `v_max` giữ theo aysmax. Lý do: PP-TS-020 V1a, SRS 1.26 |
