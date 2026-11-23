@@ -4,6 +4,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 
 ## Đọc trước buổi review
 
+- Hồi quy [20261123-1435-suite-regression-9f2f367](runs/20261123-1435-suite-regression-9f2f367/report.md): 2.310 lượt, 20 BLOCKER (F08 8, S12 d 6, F02 2, F06 2, S19 f 1, S7 a 1), 43 MINOR. Requirement coverage 99/106, pass rate 97,7 %.
 - Hồi quy [20261123-1254-suite-regression-54307f1](runs/20261123-1254-suite-regression-54307f1/report.md): 2.310 lượt, 223 BLOCKER (146 do PP-SWR-094 mở phạm vi, 64 do PP-PR-083), 43 MINOR. Simulator ghi `-dirty` vì cây làm việc đổi trong lúc chạy; thư viện planner sạch.
 - Hồi quy hai planner [20261122-0758-suite-regression-591e3de](runs/20261122-0758-suite-regression-591e3de/report.md) có 62 trên 2.309 lượt trượt và 28 vi phạm BLOCKER. Ngày 2026-11-23 đã quyết PP-TS-020 (V1a), PP-TS-026 (V4), PP-TS-002 (A) và phạm vi PP-SWR-094 (PP-PR-077); chưa hồi quy.
 - So sánh quintic và QP cho HWA, chọn giới hạn tính khả thi trước khi nối path. [PP-TS-003](studies/PP-TS-003-path-generator/study.md)
@@ -59,7 +60,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở, V0–V2 đã cài cho SIL. Kế hoạch nháp | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
 | PP-TS-028 | Bộ nhớ của planner trôi theo bias yaw của EgoMotionQuery: V0 đến V3 | Mở 2026-11-23 | — | [study](studies/PP-TS-028-memory-heading-drift/study.md) |
 | PP-TS-029 | Calibration chỉnh được khi tune trên xe: V0 đến V3 | Mở 2026-11-23; đề xuất V3 | — | [study](studies/PP-TS-029-runtime-calibration/study.md) |
-| PP-TS-030 | Đường về tâm của ELK vì xe làn bên: V0 đến V3 (về hai tốc độ) | Đã quyết 2026-11-23; chờ hồi quy | V2 | [study](studies/PP-TS-030-elk-object-return/study.md) |
+| PP-TS-030 | Đường về tâm của ELK vì xe làn bên: V0 đến V3 (về hai tốc độ) | Đóng; hồi quy 20261123-1435-suite-regression-9f2f367 | V2 | [study](studies/PP-TS-030-elk-object-return/study.md) |
 
 ## Problem reports
 
@@ -141,10 +142,11 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-PR-074 | Vào lại FOLLOW chậm sau lỗi LeadTarget | Mở | PP-SWR-170 | [report](problems/PP-PR-074-follow-reentry-after-fault.md) |
 | PP-PR-075 | S22 a: độ cong đổi quá ngưỡng giữa hai path | Đóng, S22 a VP-0 seed 1 đạt ở 591e3de | PP-SWR-102 | [report](problems/PP-PR-075-s22a-curvature-step.md) |
 | PP-PR-076 | G01 trên S1c, VP-5: DLC âm nhẹ | Mở | PP-SWR-051 | [report](problems/PP-PR-076-g01-s1c-vp5-departure.md) |
-| PP-PR-077 | PP-SWR-094 trượt 146 lượt ELK vì xe làn bên (S7, S8, S8b, S12, S21), ngoài phạm vi chấm; tăng từ 97 sau PP-TS-026 V4 | Đã sửa qua PP-TS-030 V2, chờ hồi quy | PP-SWR-094; PP-TS-026 | [report](problems/PP-PR-077-094-outside-checked-scenarios.md) |
+| PP-PR-077 | PP-SWR-094 trượt 146 lượt ELK vì xe làn bên (S7, S8, S8b, S12, S21), ngoài phạm vi chấm; tăng từ 97 sau PP-TS-026 V4 | Đóng phần ELK vì xe làn bên (PP-TS-030 V2); S12 d ở PP-PR-084 | PP-SWR-094; PP-TS-026 | [report](problems/PP-PR-077-094-outside-checked-scenarios.md) |
 | PP-PR-078 | `lcc_mode` = COAST khoảng 1 s mỗi lần camera mất một vạch, dù vạch làn mình còn đo được; 200 lượt trượt PP-SWR-177 ngoài phạm vi | Mở; đã tái hiện trên S1b b, nguyên nhân gốc chưa xác nhận | PP-SWR-177, 121, 124 | [report](problems/PP-PR-078-coast-label-while-lines-measured.md) |
 | PP-PR-079 | S22 e: vào FOLLOW khi xe trước lệch tâm 0,8 đến 0,9 m, 6 lượt | Mở; chưa phân tích | PP-SWR-171; PP-ASM-025, 026 | [report](problems/PP-PR-079-s22e-follow-entry-off-centre.md) |
 | PP-PR-080 | S14 a, VP-0: PP-SWR-051 báo DLC −23 m sau đoạn cua vượt giới hạn; ground truth −2,96 m | Đã sửa phép chiếu 2026-11-23; S14 a đạt 051 ở lượt nháp, chờ hồi quy | PP-SWR-051; 006, 007 | [report](problems/PP-PR-080-s14a-dlc-after-over-limit.md) |
 | PP-PR-081 | S19 f: không báo `lane_too_narrow` khi làn hẹp dần trong lúc LCC lái | Mở | PP-SWR-063; 062 | [report](problems/PP-PR-081-s19f-lane-too-narrow-not-set.md) |
 | PP-PR-082 | 6 requirement trong phạm vi chấm nhưng chưa có criterion; PP-SWR-132 chưa lần nào áp dụng được | Mở; phía đánh giá | PP-SWR-045, 046, 132, 141, 144, 151, 152 | [report](problems/PP-PR-082-requirements-without-criterion.md) |
-| PP-PR-083 | ACC chạy thử bỏ mục tiêu khi cảm biến sót một khung; LeadTarget `valid = false`, PP-SWR-172, 176 trượt 64 lượt | Đã sửa 2026-11-23 (`sim/stand_ins/acc.py`), chờ hồi quy | PP-SWR-172, 176 | [report](problems/PP-PR-083-acc-target-drop-on-missed-detection.md) |
+| PP-PR-083 | ACC chạy thử bỏ mục tiêu khi cảm biến sót một khung; LeadTarget `valid = false`, PP-SWR-172, 176 trượt 64 lượt | Đóng; xác nhận ở 20261123-1435-suite-regression-9f2f367 (PP-SWR-172, 176 không còn trượt) | PP-SWR-172, 176 | [report](problems/PP-PR-083-acc-target-drop-on-missed-detection.md) |
+| PP-PR-084 | S12 d: PP-SWR-094 sau LKA trong mưa (6 lượt); S7 a VP-0: PP-SWR-088 = 0,287 m | Mở | PP-SWR-094, 088 | [report](problems/PP-PR-084-s12d-reversal-s7a-gap.md) |

@@ -53,3 +53,4 @@ Mỗi dòng do `--record` của `eval.runner`, `eval.matrix`, `eval.sweep`, `eva
 | 20261122-0758-suite-regression-591e3de | suite | regression | 591e3de | calibration c9618c64d42e, c9618c64d42e | Không đạt; {"executed": 2309, "failed": 62, "errors": 0} | So với bb08d77: 0 vi phạm mới trong phạm vi, 13 vi phạm hết trượt. Xác nhận PP-PR-009, 051, 075 |
 | 20261123-1254-suite-regression-54307f1 | suite | regression | 54307f1 | calibration 69e3337d118c, 69e3337d118c | Không đạt; {"executed": 2310, "failed": 235, "errors": 0} | |
 | 20261123-1419-study-PP-TS-030-4e09b0b | study | PP-TS-030 | 4e09b0b | calibration de62c2d6048d, de62c2d6048d, de62c2d6048d, de62c2d6048d, 1caffaf3d0c7, 1caffaf3d0c7, 92066570b611, 92066570b611 | Đứng đầu ở test: V1 | |
+| 20261123-1435-suite-regression-9f2f367 | suite | regression | 9f2f367 | calibration 2432aea753bc, 2432aea753bc | Không đạt; {"executed": 2310, "failed": 52, "errors": 0} | |

@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở; đã quyết phạm vi, chờ sửa planner |
+| Trạng thái | Đóng phần ELK vì xe làn bên; S12 d theo dõi ở PP-PR-084 |
 | Mở ngày | 2026-11-19 |
 | Requirement bị ảnh hưởng | PP-SWR-094 |
 | Tái hiện | [20261118-2030-suite-regression-e3158a5](../runs/20261118-2030-suite-regression-e3158a5/report.md), mục "Trượt ngoài phạm vi chấm của ca", PP-SWR-094 |
@@ -46,3 +46,5 @@ Hai hướng đã xét:
 | Run ID | Kết quả |
 |---|---|
 | 20261118-2030-suite-regression-e3158a5 | 146 lượt trượt ngoài phạm vi |
+| 20261123-1254-suite-regression-54307f1 | Sau khi mở phạm vi: 146 lượt PP-SWR-094 trong phạm vi |
+| [20261123-1435-suite-regression-9f2f367](../runs/20261123-1435-suite-regression-9f2f367/report.md) | Sau PP-TS-030 V2: PP-SWR-094 còn 6 lượt, đều S12 d (mưa, LKA trong cua R = 250 m, không có xe làn bên); S7, S8, S8b, S21, S12 c hết trượt |

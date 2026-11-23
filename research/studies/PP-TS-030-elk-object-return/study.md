@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Đã quyết |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-23 |
 | Khóa ngày | 2026-11-23 |
 | Quyết định ngày | 2026-11-23 |
@@ -78,4 +78,4 @@ Lượt nháp trước khi viết suite (thư viện cây làm việc, seed 1; c
 - Chọn: V2. `d_return_object` = 0,2 m, `T_return_object` = 1,5 s.
 - Lý do: không bị loại ở bộ chỉnh và bộ kiểm; tới COMPLETED sớm nhất (target 082).
 - Đưa vào: một đường code, bỏ công tắc `PP_RETURN_TWO_SPEED` (bước 8); `calibration.yaml`; Software Architectural Design mục 11; Software Detailed Design T7.
-- Hồi quy: chưa chạy. Cần xem thêm ca theo protocol Euro NCAP.
+- Hồi quy [20261123-1435-suite-regression-9f2f367](../../runs/20261123-1435-suite-regression-9f2f367/report.md): PP-SWR-094 ở S7, S8, S8b, S21, S12 c và các ca protocol Euro NCAP hết trượt; còn S12 d (LKA, ngoài phạm vi của study) và PP-SWR-088 ở S7 a VP-0 (0,287 m), theo dõi ở PP-PR-084.

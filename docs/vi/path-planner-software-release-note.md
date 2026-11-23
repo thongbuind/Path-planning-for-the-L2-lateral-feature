@@ -91,7 +91,7 @@ Nhóm đề xuất; bản giao vào HIL khi mọi dòng đạt.
 | ID | Hiện trạng ngày 2026-11-23 |
 |---|---|
 | G1 | 99/106; còn PP-SWR-132 chưa chấm và 6 requirement chưa có criterion (PP-PR-082) |
-| G2 | 223 BLOCKER ở 54307f1 |
+| G2 | 20 BLOCKER ở 9f2f367 |
 | G3 | Đạt: 0 MAJOR |
 | G4 | Đạt phần ca; còn thiếu loại ca ở T3, T4, T6, T9, T10, T11 (Unit Test Specification mục 7) |
 | G5 | Đã đo từ unit test; chưa có giải trình cho nhánh chưa chạy; chưa đo khi chạy SIL |
@@ -107,6 +107,7 @@ Nhóm đề xuất; bản giao vào HIL khi mọi dòng đạt.
 |---|---|---|
 | `20261122-0758-suite-regression-591e3de` | 591e3de | 2.309 lượt; 28 BLOCKER, 0 MAJOR, 42 MINOR |
 | `20261123-1254-suite-regression-54307f1` | 54307f1 | 2.310 lượt; 223 BLOCKER (146 PP-SWR-094 sau khi mở phạm vi, 64 PP-SWR-172, 176 do PP-PR-083, 9 PP-SWR-051), 0 MAJOR, 43 MINOR. Requirement coverage 99/106; requirement đạt ở mọi lượt chấm 70/81; pass rate theo lượt 89,8 % |
+| `20261123-1435-suite-regression-9f2f367` | 9f2f367 | 2.310 lượt; 20 BLOCKER, 0 MAJOR, 43 MINOR. Requirement coverage 99/106; requirement đạt ở mọi lượt chấm 71/81; pass rate theo lượt 97,7 % |
 
 ## Revision history {#revision-history}
 
