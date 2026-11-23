@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.29 |
+| Phiên bản | 1.30 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -51,6 +51,32 @@ Ký hiệu: s là toạ độ dọc theo reference line, d là lệch ngang (dư
 - Mọi calibration parameter nằm trong `planner/calibration/calibration.yaml`. Lúc build, file này sinh thành struct hằng trong C. Lúc `pp_init`, planner kiểm từng giá trị nằm trong giới hạn của Software Requirements Specification mục 7; sai thì không gửi Trajectory, như khi thiếu VehicleConfig.
 - Planner chỉ dùng `interfaces/c/`; không gọi gì của simulator hay code test.
 - Hàm số học dùng chung (khớp đa thức bậc 3, hệ 4×4) ở `pp_math.c`. Trong planner tính bằng double; chỉ struct của interface là float32.
+
+### 3.1 Interface của từng unit {#dd-unit-interface}
+
+Mọi unit chạy trong một lần gọi `pp_*_step`, mỗi chu kỳ 25 ms, theo thứ tự ở Software Architectural Design mục 3.2. Trạng thái là phần giữ giữa hai chu kỳ, nằm trong vùng nhớ do bên gọi cấp.
+
+| Unit | Nhiệm vụ | Input | Output | Trạng thái giữa chu kỳ | Calibration parameter | Chạy khi |
+|---|---|---|---|---|---|---|
+| T1 | Kiểm valid, counter, CRC, timeout, tuổi; dời lane model về t0 | Mọi input, EgoMotionQuery | Input dùng được, lane model tại t0 | Counter và message dùng được gần nhất của mỗi input | `imu_filter_delay` | Mỗi chu kỳ; dời lane model khi có frame mới |
+| T2 | Chọn biên đủ tin, dựng tâm và bề rộng, suy tâm từ biên khác, COAST | Lane model tại t0, ego-motion | Reference line, bề rộng, `lane_too_narrow`, cờ biên bị loại | Track từng vạch (đã nhận, chờ xác nhận, vị trí cũ), bề rộng nhớ, reference line cũ cho COAST | `conf_ego`, `conf_edge`, `conf_inferred`, `k_jump`, `T_confirm`, `T_coast`, `free_space_min`, `tau_mem`, `sigma_mem0`, `q_mem`, `parallel_max`, `width_dev_max` | Mỗi chu kỳ |
+| T3 | Làm mượt reference line, giới hạn tốc độ dời | Reference line thô, ego-motion | Reference line đã làm mượt | r(s) của chu kỳ trước | `ref_rate` | Mỗi chu kỳ |
+| T4 | Nối path mới với path cũ, giữ continuity | Path ứng viên, path cũ, ego-motion | Path đã nối, trạng thái đầu của path | Path đã gửi ở chu kỳ trước | `stitch_reset`, `stitch_soft_min`, `cont_margin` | Mỗi chu kỳ |
+| T5 | Ước lượng độ cong κ(s) của tâm làn | Reference line, yaw rate, tốc độ | c2, c3 của tâm làn | κ và phương sai trên lưới 2 m, stamp của frame cuối | `q_kappa`, `sigma_r`, `sigma_kappa_min`, `k_jump` | Dự báo mỗi chu kỳ; cập nhật camera khi có frame mới |
+| T6 | Trạng thái ngang của xe so với làn | Reference line tại t0, v_y, r, v, VehicleConfig | d, ḋ, d̈, góc lệch, DLC | Không | — | Mỗi chu kỳ |
+| T7 | Path LCC (quintic hoặc QP) hoặc path can thiệp hai pha | Reference line, trạng thái đầu, LongitudinalPlan, độ dời tâm | Path ứng viên 31 điểm | Vùng làm việc của QP (khởi tạo nóng) | `T_hwa`, `T_max`, `T_recenter`, `ay_add_max_hwa`, `jerk_target_hwa`, `T_lka`, `T_elk`, `T_return`, `T_return_object`, nhóm `w_*`, nhóm `qp_*` | Mỗi chu kỳ |
+| T8 | Dời tâm LCC vì xe lớn | ObjectList, reference line | Độ dời tâm | Độ dời hiện tại, lúc bắt đầu giữ | `offset_max`, `offset_truck`, `gap_truck_min`, `dlc_offset_min`, `ttc_offset_start`, `t_offset_hold` | Mỗi chu kỳ, chỉ LCC planner |
+| T9 | Chọn LKA hoặc ELK, pha, hành lang, báo COMPLETED | FunctionRequests, cờ hợp lệ, VehicleStateEstimate | `active_function`, pha, hành lang | Pha của từng chức năng, hành lang can thiệp, bộ đếm `T_end_hold` | `d_end`, `v_lat_end`, `heading_end`, `ay_add_end`, `T_end_hold`, `T_end_margin`, `corridor_tol`, `corridor_tau`, `corridor_toward` | Mỗi chu kỳ, chỉ LKA/ELK planner |
+| T10 | Kiểm và cắt a_y, jerk, góc và tốc độ lái; cờ giới hạn; LateralLimits | Path, VehicleConfig, reference line của camera | Path cuối, `lateral_limit_reached`, LateralLimits | Cờ giới hạn có trễ và bộ đếm xác nhận | `epsilon_ay`, `ay_margin_hwa`, `delta_ay`, `T_flag` | Mỗi chu kỳ; bước 2 chạy hai lần ở LCC planner |
+| T11 | Đổi sang `base_link`, lấy mẫu 31 điểm, điền header | Path cuối, trạng thái của planner | Trajectory, LccStatus hoặc InterventionStatus, LateralLimits | Counter của từng output | — | Mỗi chu kỳ |
+| T12 | Lưu vết xe trước, dựng reference line ảo | LeadTarget, LongitudinalPlan, ego-motion | Reference line ảo, `lcc_mode = FOLLOW` | Vết xe trước, tâm làn gốc | `trail_n`, `trail_spacing`, `trail_fit_max`, `exist_min`, `follow_lat_max`, `follow_vlat_max` | Mỗi chu kỳ, chỉ LCC planner |
+
+Hai loại tham số:
+
+| Loại | Gồm | Ở đâu |
+|---|---|---|
+| Cố định | Giới hạn từ requirement (aysmax, jerk của từng chức năng, 31 điểm, chu kỳ 25 ms, giới hạn của FOLLOW) và hằng số của thuật toán (lưới 2 m của T5, bước 0,1 s của path) | Hằng số trong `planner/src/*.h`, trỏ về requirement |
+| Calibration parameter | Mọi con số người thiết kế chọn | `planner/calibration/calibration.yaml`, sinh struct hằng lúc build; chỉnh lúc chạy xét ở PP-TS-029 |
 
 ## 4. T1 Latency compensation {#dd-t1}
 
@@ -309,3 +335,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.27 | 2026-11-18 | Khớp với mã đã tách hai planner. Mục 3: module T9 là `selection.c`. T12: bộ đệm vết ghi không cần `target_id` khớp; reference line ảo là parabol có điểm neo theo `heading` xe trước, M2 theo RMS (`trail_fit_max` 0,4 m); thêm `exist_min`, `corridor_tol`. Lý do: bám xe trước chạy đầu cuối trong simulator cho thấy sai số lớn nhất và hệ số bậc 3 làm FOLLOW ngắt liên tục với nhiễu vị trí xe trước 0,25 m. Ảnh hưởng: calibration.yaml, PP-SWR-172 (xe trước đổi thì rời FOLLOW vẫn đúng theo M6) |
 | 1.28 | 2026-11-18 | T7: path LKA, ELK hai pha (PP-ADR-021). T9 bước 3 giữ thêm `T_end_margin`; bước 7 lọc nhiễu bằng `corridor_tau`, `corridor_toward`. T12: bộ nhớ reference line đã hết hạn thì lấy đường đang bám để coast sau khi rời FOLLOW. Bước 1: frame lỗi của LeadTarget không xóa bộ đệm vết. Lý do: PP-TS-026, PP-PR-070, 071, 072 |
 | 1.29 | 2026-11-23 | T10: giới hạn a_y của path LCC là aysmax + `ay_margin_hwa`; cờ và `v_max` giữ theo aysmax. Lý do: PP-TS-020 V1a, SRS 1.26 |
+| 1.30 | 2026-11-23 | Mục 3.1: interface của từng unit (nhiệm vụ, input, output, trạng thái, calibration parameter, lúc chạy) và hai loại tham số. Lý do: quy trình phát triển của công ty, bước 2.2 |

@@ -4,6 +4,7 @@ Quy trình: [README.md](README.md). Lần chạy chính thức: [runs/INDEX.md](
 
 ## Đọc trước buổi review
 
+- Hồi quy [20261123-1254-suite-regression-54307f1](runs/20261123-1254-suite-regression-54307f1/report.md): 2.310 lượt, 223 BLOCKER (146 do PP-SWR-094 mở phạm vi, 64 do PP-PR-083), 43 MINOR. Simulator ghi `-dirty` vì cây làm việc đổi trong lúc chạy; thư viện planner sạch.
 - Hồi quy hai planner [20261122-0758-suite-regression-591e3de](runs/20261122-0758-suite-regression-591e3de/report.md) có 62 trên 2.309 lượt trượt và 28 vi phạm BLOCKER. Ngày 2026-11-23 đã quyết PP-TS-020 (V1a), PP-TS-026 (V4), PP-TS-002 (A) và phạm vi PP-SWR-094 (PP-PR-077); chưa hồi quy.
 - So sánh quintic và QP cho HWA, chọn giới hạn tính khả thi trước khi nối path. [PP-TS-003](studies/PP-TS-003-path-generator/study.md)
 - Đối chứng kiểm hình dạng lane model và các lỗi kéo dài vẫn cần xử lý. [PP-TS-001](studies/PP-TS-001-lane-jumps/study.md)
@@ -57,6 +58,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Đã quyết 2026-11-23 | V4 | [study](studies/PP-TS-026-intervention-return/study.md) |
 | PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở, V0–V2 đã cài cho SIL. Kế hoạch nháp | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
 | PP-TS-028 | Bộ nhớ của planner trôi theo bias yaw của EgoMotionQuery: V0 đến V3 | Mở 2026-11-23 | — | [study](studies/PP-TS-028-memory-heading-drift/study.md) |
+| PP-TS-029 | Calibration chỉnh được khi tune trên xe: V0 đến V3 | Mở 2026-11-23; đề xuất V3 | — | [study](studies/PP-TS-029-runtime-calibration/study.md) |
 
 ## Problem reports
 
@@ -143,3 +145,5 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-PR-079 | S22 e: vào FOLLOW khi xe trước lệch tâm 0,8 đến 0,9 m, 6 lượt | Mở; chưa phân tích | PP-SWR-171; PP-ASM-025, 026 | [report](problems/PP-PR-079-s22e-follow-entry-off-centre.md) |
 | PP-PR-080 | S14 a, VP-0: PP-SWR-051 báo DLC −23 m sau đoạn cua vượt giới hạn; ground truth −2,96 m | Đã sửa phép chiếu 2026-11-23; S14 a đạt 051 ở lượt nháp, chờ hồi quy | PP-SWR-051; 006, 007 | [report](problems/PP-PR-080-s14a-dlc-after-over-limit.md) |
 | PP-PR-081 | S19 f: không báo `lane_too_narrow` khi làn hẹp dần trong lúc LCC lái | Mở | PP-SWR-063; 062 | [report](problems/PP-PR-081-s19f-lane-too-narrow-not-set.md) |
+| PP-PR-082 | 6 requirement trong phạm vi chấm nhưng chưa có criterion; PP-SWR-132 chưa lần nào áp dụng được | Mở; phía đánh giá | PP-SWR-045, 046, 132, 141, 144, 151, 152 | [report](problems/PP-PR-082-requirements-without-criterion.md) |
+| PP-PR-083 | ACC chạy thử bỏ mục tiêu khi cảm biến sót một khung; LeadTarget `valid = false`, PP-SWR-172, 176 trượt 64 lượt | Đã sửa 2026-11-23 (`sim/stand_ins/acc.py`), chờ hồi quy | PP-SWR-172, 176 | [report](problems/PP-PR-083-acc-target-drop-on-missed-detection.md) |

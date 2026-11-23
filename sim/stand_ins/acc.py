@@ -57,6 +57,8 @@ class LeadSelector:
         self._moving: set[int] = set()
         self._target: int | None = None
         self._outside_since: int | None = None
+        self._no_objects_since: int | None = None
+        self._missing_since: int | None = None
 
     @staticmethod
     def _centre(x: float, path: list[tuple[float, float]], lane: LaneModel | None) -> float:
@@ -81,8 +83,13 @@ class LeadSelector:
     def update(self, now_us: int, objects: ObjectList | None, trajectory: Trajectory | None,
                lane: LaneModel | None, v: float) -> Lead | None:
         if objects is None:
-            self._target = None
+            # Một khung ObjectList trễ không làm mất mục tiêu; mất quá KEEP_S mới bỏ (PP-PR-083).
+            if self._no_objects_since is None:
+                self._no_objects_since = now_us
+            if now_us - self._no_objects_since > KEEP_S * 1e6:
+                self._target = None
             return None
+        self._no_objects_since = None
         path = ([(p.pose.x, p.pose.y) for p in trajectory.points] if trajectory is not None else [])
         age = max(0.0, (now_us - objects.header.stamp_us) * 1e-6)
         best, chosen = None, None
@@ -103,6 +110,8 @@ class LeadSelector:
                 chosen = (inside, lead)
             if inside < self.half + CORRIDOR_MARGIN_M and (best is None or gap < best[1].gap):
                 best = (obj.id, lead)
+        if chosen is not None:
+            self._missing_since = None
         if chosen is not None and self._target is not None:
             if chosen[0] < self.half + CORRIDOR_MARGIN_M + KEEP_MARGIN_M:
                 self._outside_since = None
@@ -112,7 +121,14 @@ class LeadSelector:
                 if best is None or chosen[1].gap <= best[1].gap:
                     return chosen[1]
         elif self._target is not None and chosen is None:
+            # Cảm biến bỏ sót mục tiêu vài khung: giữ track tới KEEP_S nếu không có ứng viên khác,
+            # như bộ track của ACC thật (PP-PR-083).
+            if self._missing_since is None:
+                self._missing_since = now_us
+            if best is None and now_us - self._missing_since <= KEEP_S * 1e6:
+                return None
             self._target = None
+            self._missing_since = None
         if best is None:
             self._target = None
             return None

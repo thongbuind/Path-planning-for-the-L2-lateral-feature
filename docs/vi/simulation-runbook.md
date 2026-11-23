@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `SIM-RB` |
-| Phiên bản | 1.1 |
+| Phiên bản | 1.2 |
 | Trạng thái | v1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-21 |
+| Cập nhật | 2026-11-23 |
 
 ## 1. Purpose and scope {#rb-scope}
 
@@ -158,6 +158,17 @@ shasum -a 256 libpp_lcc.* libpp_lkaelk.* > SHA256SUMS      # macOS; Linux: sha25
 
 Bản Linux chỉ có kết quả smoke và B0 chạy trên chính nó; kết quả regression chính thức là của bản macOS.
 
+Catalog ca kiểm đi kèm bản giao, để đội khác dựng test cho planner của họ mà không cần thư viện của nhóm:
+
+```bash
+python -m eval.catalog --suite regression --out build/catalog
+```
+
+| File | Nội dung |
+|---|---|
+| `planner-test-catalog.md`, `.csv`, `.json` | Mỗi anchor một dòng: Given (mô tả, ca chủ, profile, vòng), When chung, Then là requirement trong phạm vi chấm, Then vòng hở là phần chấm được khi xe đi theo quỹ đạo định sẵn; bảng câu requirement và mức nghiêm trọng |
+| `benchmark/scenarios/`, `benchmark/faults/`, `benchmark/roads/` | OpenSCENARIO, OpenDRIVE của từng mã; ca tự chứa sinh bằng `eval.generate` |
+
 ## 10. Thêm một SUT mới {#rb-new-sut}
 
 Thêm một SUT (ví dụ ACC, Lane Change Assist) cần năm thứ. Lõi thực thi, bundle, vòng đời run, server, quy trình `PP-TS`, `PP-PR`, `tools/trace.py` và bộ planner mồi (phương pháp) giữ nguyên.
@@ -208,3 +219,4 @@ Việc kèm theo: viết bộ planner mồi riêng cho SUT (`eval/bait/`), thêm
 |---|---|---|
 | 1.1 | 2026-11-21 | Bổ sung ghi, khôi phục và dọn kết quả suite |
 | 1.0 | 2026-11-19 | Bản đầu: cài đặt, kiểm cài đặt, ba hành trình, so sánh và campaign, lần chạy chính thức, gói bàn giao, thêm SUT mới, xử lý sự cố, việc để sau |
+| 1.2 | 2026-11-23 | Mục 9: catalog ca kiểm đi kèm bản giao (`eval.catalog`) |
