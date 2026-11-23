@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở, plan nháp chờ duyệt |
+| Trạng thái | Mở, bộ ca và runner nháp sẵn sàng cho V0. V1 và V2 chờ duyệt triển khai |
 | Mở ngày | 2026-11-23 |
 | Khóa ngày | — |
 | Quyết định ngày | — |
@@ -24,9 +24,15 @@
 
 Giới hạn của V1 và V2 chỉ áp khi lệnh của LCC đang có hiệu lực. Giữ xử lý sẵn có khi driver override, đổi nguồn path hoặc LKA/ELK lái. Các phương án dùng tín hiệu controller nhận lúc chạy và tham số profile đã có. Ground truth chỉ dùng để chấm.
 
+**Cấu hình đề xuất cho lần chạy đầu:**
+
+- V1 dùng `delta_max = (L + K·v²)·2,8/v²` cho biên góc bánh trước. `L` và `K` lấy như feedforward hiện tại. Kết hợp biên này với giới hạn góc bánh của xe. Khi `v = 0`, dùng giới hạn góc bánh sẵn có.
+- V2 dự báo từ `v·yaw_rate` và các lệnh controller đã gửi trong khoảng trễ EPS. Dùng đáp ứng bậc nhất với tham số EPS hiện có. Sau độ trễ, chọn tổng lệnh gần lệnh gốc nhất sao cho dự báo tới hết cửa sổ preview nằm trong khoảng ±2,8 m/s². Khi trạng thái ban đầu đã vượt mục tiêu, giới hạn phần lệnh có thể làm a_y tăng thêm theo hướng đang vượt và ghi thời gian trở lại giới hạn.
+- Cả hai dùng 2,8 m/s² làm mục tiêu của lệnh. Kết luận vẫn dùng a_y xe đã lọc, cả đỉnh và thời gian vượt, theo phép chấm hiện hành.
+
 ## 3. Cách đánh giá
 
-Kế hoạch nháp nằm trong [plan.yaml](plan.yaml). Khóa danh sách ca, seed, tiêu chí loại và ngân sách chỉnh sau khi duyệt.
+Kế hoạch nháp nằm trong [plan.yaml](plan.yaml). Bộ ca [PP-TS-027](../../../benchmark/suites/PP-TS-027.yaml) có 22 lượt chỉnh và 28 lượt kiểm trên mỗi phương án. Khóa danh sách ca, seed, tiêu chí loại và ngân sách chỉnh sau khi duyệt.
 
 | Mục | Nội dung |
 |---|---|
@@ -37,7 +43,16 @@ Kế hoạch nháp nằm trong [plan.yaml](plan.yaml). Khóa danh sách ca, seed
 | Xếp hạng | Dùng thứ tự SQTS mục 9. So theo ca, profile và seed. Báo riêng đỉnh a_y xe, thời gian vượt ngưỡng liên tục, DLC trong phạm vi chấm, sai số bám path, jerk và tỷ lệ chu kỳ bão hòa. Chỉ số chẩn đoán không đổi kết luận đạt/trượt |
 | Coi như ngang nhau khi | Dùng mức chênh của PP-TS-020 cho PP-SWR-050 (0,005 m) và PP-SWR-051 (0,01 m). Mức chênh chỉ dùng để xếp hạng |
 
-Trước lần chạy cần chuẩn bị cách chọn controller theo từng phương án và ghi mã phương án, phiên bản controller, tham số, đầu vào và bản build planner vào manifest. `eval.study` hiện chỉ truyền calibration và tùy chọn CMake của planner.
+Runner nháp `eval.controller_study` chọn controller theo phương án và kiểm hash của cả hai thư viện planner từ hồi quy `591e3de`. Manifest ghi cấu hình, hash mã controller và đầu vào. Mỗi kết quả giữ hash ca, checksum hành vi, phạm vi chấm, tiêu chí và chỉ số gốc. Ca đối chứng của PP-SWR-129/130 dùng cùng controller với ca bơm lỗi.
+
+Xem danh sách ca bằng `python3 -m eval.controller_study PP-TS-027 --list`. V0 sẵn sàng chạy nháp. V1 và V2 có cấu hình dự kiến và sẽ được đăng ký khi cài đặt. Trước lần chạy chính thức cần chốt cách build một lần trên commit đã khóa, dùng lại hai thư viện đó cho toàn bộ phương án và giữ quy tắc provenance của dự án.
+
+Chạy nháp riêng S1b(b), seed 3, với hai thư viện đã đóng băng:
+
+```bash
+python3 -m eval.controller_study PP-TS-027 --planner build/p0/planner \
+  --variant V0 --part test --case 2 --seed 3 --out build/study/PP-TS-027/v0-check
+```
 
 ## 4. Lần chạy
 

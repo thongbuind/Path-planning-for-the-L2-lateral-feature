@@ -37,6 +37,7 @@ from interfaces import (
     PlannerId,
     Received,
     Trajectory,
+    VehicleConfig,
 )
 from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, STEERING_TIMEOUT_US, Direction
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
@@ -226,7 +227,8 @@ def _fresh(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int | 
 
 class Harness:
     def __init__(self, scenario: Scenario, planner_factory: PlannerFactory, seed: int,
-                 observer: Callable[["Harness", int], None] | None = None) -> None:
+                 observer: Callable[["Harness", int], None] | None = None, *,
+                 controller_factory: Callable[[VehicleConfig, float], LateralController] = LateralController) -> None:
         """Observer nhận snapshot sau khi ghi chu kỳ và nằm ngoài thời gian đo planner."""
         self.scenario = scenario
         self.seed = seed
@@ -262,7 +264,7 @@ class Harness:
         self._hold_s = scenario.start_s
         if self._holding:
             self._place_held()
-        self.controller = LateralController(self.vehicle_config, self.profile.understeer_gradient)
+        self.controller = controller_factory(self.vehicle_config, self.profile.understeer_gradient)
         self.camera = LaneCamera(self.road, view_end_m=scenario.camera_view_m,
                                  view_start_m=scenario.camera_view_start_m)
         drift = scenario.driver.drift_curvature if scenario.driver is not None else None

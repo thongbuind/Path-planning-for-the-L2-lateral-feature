@@ -1,0 +1,40 @@
+# Ca, profile và seed lấy từ bộ PP-TS-020. Phạm vi chấm lấy từ scope.yaml và SRS hiện hành.
+id: PP-TS-027
+title: Giới hạn tổng lệnh lái HWA
+vehicle_ay:
+  criterion: PP-TS-020/R79-5.6.2.1.1
+  scenario: S1b
+  acc: ignore_limits
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S1, a]
+    - [S1, c]
+    - [S1, c, {profile: VP-5}]
+    - [S1, g]
+    - [S1b, a, {acc: ignore_limits}]
+    - [S1b, f, {acc: ignore_limits}]
+    - [S2, b]
+    - [S12, a]
+    - [S12, a, {profile: VP-5}]
+    - [S1, c, F08, a]
+    - [S1, c, F08, a, {profile: VP-5}]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S1, f]
+    - [S1b, b, {acc: ignore_limits}]
+    - [S1b, c, {acc: ignore_limits}]
+    - [S1b, e, {acc: "on"}]
+    - [S2, a]
+    - [S14, a, {acc: "on"}]
+    - [S1, c, F08, b]
+    - [S1, c, F08, b, {profile: VP-5}]
+    - [S1, c, F01, c]
+    - [S1, c, F01, c, {profile: VP-5}]
+    - [S1, c, F06, e]
+    - [S1, c, F06, e, {profile: VP-5}]
+    - [S1, c, F17, b]
+    - [S1, c, F17, b, {profile: VP-5}]

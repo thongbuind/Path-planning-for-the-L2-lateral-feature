@@ -8,6 +8,7 @@ from eval.metrics import Criterion
 from sim.faults import channel as channel_faults
 from sim.harness import Harness, RunLog
 from sim.scenario import Scenario
+from sim.stand_ins.lateral_controller import LateralController
 
 
 def needs_twin(scenario: Scenario) -> bool:
@@ -32,11 +33,12 @@ def _outputs(c):
     return c.trajectory, c.path_status, c.lateral_limits
 
 
-def criteria(scenario: Scenario, log: RunLog, planner, seed: int) -> list[Criterion]:
+def criteria(scenario: Scenario, log: RunLog, planner, seed: int, *,
+             controller_factory=LateralController) -> list[Criterion]:
     if not needs_twin(scenario):
         return []
     twin_scenario, requirements = twin_of(scenario, log)
-    twin = Harness(twin_scenario, planner, seed).run()
+    twin = Harness(twin_scenario, planner, seed, controller_factory=controller_factory).run()
     differ = [a.t0_us for a, b in zip(log.cycles, twin.cycles) if _outputs(a) != _outputs(b)]
     differ += [c.t0_us for c in log.cycles[len(twin.cycles):]]
     first = differ[0] * 1e-6 if differ else None

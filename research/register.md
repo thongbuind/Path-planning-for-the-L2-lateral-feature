@@ -55,7 +55,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-024 | Driver model cho path HWA (T7): tangent point và quy tắc theo a_y, so với Quintic và QP | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-025; kế hoạch nháp, V1/V2 chưa cài | — | [study](studies/PP-TS-024-driver-model-path/study.md) |
 | PP-TS-025 | NN và LTV-MPC cho path HWA (T7): so NN warm start với Quintic, QP 150 vòng và QP cùng ngân sách vòng | Mở 2026-11-18; cùng suite PP-T7 với PP-TS-024; kế hoạch nháp, V2–V4 chưa cài | — | [study](studies/PP-TS-025-nn-ltv-mpc-path/study.md) |
 | PP-TS-026 | Path LKA, ELK về tâm làn: một quintic hay hai pha (chặn đà rồi về chậm) | Chờ quyết định; hồi quy 20261118-2030-suite-regression-e3158a5 với V4 | Đề xuất V4 | [study](studies/PP-TS-026-intervention-return/study.md) |
-| PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở 2026-11-23, plan nháp chờ duyệt | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
+| PP-TS-027 | Giới hạn tổng lệnh lái HWA để kiểm a_y xe và khả năng bám làn cấp hệ thống | Mở, bộ ca và runner nháp sẵn sàng cho V0. V1 và V2 chờ duyệt triển khai | — | [study](studies/PP-TS-027-system-lateral-command-limit/study.md) |
 
 ## Problem reports
 

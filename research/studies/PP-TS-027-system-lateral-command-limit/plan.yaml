@@ -1,18 +1,26 @@
-# Kế hoạch nháp. Cần duyệt và chuẩn bị runner chọn biến thể controller trước khi khóa.
+# Kế hoạch nháp. Cần duyệt cấu hình triển khai và cách ghi lần chạy chính thức trước khi khóa.
 id: PP-TS-027
 locked: null
-suite: null
+runner: eval.controller_study
+suite: PP-TS-027
 parts: [tuning, test]
 planner_baseline:
   commit: 591e3de
   t7: quintic
   calibration_sha256_prefix: c9618c64d42e
+  libraries_sha256:
+    pp_lcc: 3d8ce5aee1f3e794de3b64d46593513bb466b76f1c61eb79907be25780df9a15
+    pp_lkaelk: a5b106c19eab6a8057ec1188f4e9e32402f869b7afe15f3462a34231f91fc600
 case_selection:
   source: benchmark/suites/PP-TS-020.yaml
   reuse: [runs, seeds]
   confirmation:
     source: 20261122-0758-suite-regression-591e3de
-    cases: [S1c F08(c), S1c G01, S9, S17]
+    cases:
+      - {id: F08-c-S1c-VP-5-06d7bb8fda8b, seeds: [1]}
+      - {id: G01-S1c-VP-5-38898514a806, seeds: [1, 2]}
+      - {id: S9-a-VP-5-6fda0ebe7bd8, seeds: [1]}
+      - {id: S17-b-VP-5-7c84dc0ea45e, seeds: [1]}
 scoring:
   path_ay: PP-SWR-001
   vehicle_ay: PP-TS-020/R79-5.6.2.1.1
@@ -26,7 +34,12 @@ equal_within:
 variants:
   V0:
     description: Lateral Controller hiện tại
+    controller: stock
   V1:
     description: Giới hạn tổng lệnh theo quan hệ lái ổn định và tốc độ
+    controller: static_total_limit
+    parameters: {sustained_ay_mps2: 2.8}
   V2:
     description: Giới hạn tổng lệnh theo dự báo a_y và độ trễ EPS
+    controller: predicted_total_limit
+    parameters: {sustained_ay_mps2: 2.8}

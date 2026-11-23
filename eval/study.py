@@ -56,6 +56,8 @@ def main() -> None:
 
     plan_path = find_plan(args.study)
     plan = yaml.safe_load(plan_path.read_text(encoding="utf-8"))
+    if plan.get("runner") == "eval.controller_study":
+        parser.error(f"run {args.study} with python3 -m eval.controller_study {args.study}")
     parts = plan.get("parts", ["tuning", "test"])
     sets = variant_sets(plan)
     if args.record and (args.variant or args.part):
