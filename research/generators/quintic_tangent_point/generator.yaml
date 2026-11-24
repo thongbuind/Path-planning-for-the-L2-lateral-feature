@@ -1,0 +1,31 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md.
+name: quintic_tangent_point
+base: quintic_duration          # Generator gốc; cũng là nghiệm thay thế khi generator không áp dụng
+study: PP-TS-031
+telemetry:
+  work: số path đã dựng (lần thử thời lượng của quintic cộng ứng viên có hiệu chỉnh)
+  fallback:
+    1: FOLLOW (ref là đường ảo bám xe trước)
+    2: start_from_car (tài xế override, LKA/ELK REQUEST hoặc chu kỳ đầu sau đó)
+    3: đang đưa về giữa
+    4: có offset mục tiêu (d_target khác 0)
+    5: ước lượng làn thiếu điều kiện (không hợp lệ, COAST, suy ra, bỏ vạch, làn hẹp)
+    6: vật thể (không có ObjectList, hoặc có vật thể chạm vạch phía trong cua hay ở làn bên phía trong)
+    7: tầm nhìn ngắn hơn cửa sổ tìm tiếp điểm
+    8: không có cua (a_y cần lớn nhất dưới qtp_ay_need_min)
+    9: cua gần giới hạn trợ giúp (a_y cần lớn nhất từ aysmax − qtp_ay_need_margin)
+    10: không có tiếp điểm trong cửa sổ (khi đang hiệu chỉnh, từ 0 tới cuối cửa sổ) và biên độ đã về 0
+    11: biên độ đích sau khi chặn theo hành lang nhỏ hơn qtp_amplitude_min_m (hoặc chu kỳ đầu, chưa có thời gian để tăng biên độ)
+    12: cả hai ứng viên (biên độ đủ và một nửa) vượt hành lang, aysmax hoặc jerk_target_hwa
+    13: dữ liệu không hữu hạn
+# Tham số calibration riêng: tên bắt đầu bằng calibration_prefix + "_", cùng định dạng với
+# planner/calibration/calibration.yaml (value, unit, min, max, source).
+# Hai tham số đầu được quét (lưới của plan.yaml PP-TS-031); các tham số còn lại giữ cố định.
+calibration_prefix: qtp
+calibration:
+  qtp_center_s:        {value: 1.5, unit: s, min: 1.0, max: 2.0, source: "PP-TS-024 2.2, 3 (Land và Lee 1994: nhìn trước 1–2 s); tâm lưới PP-TS-031"}
+  qtp_amplitude_m:     {value: 0.20, unit: m, min: 0, max: 0.5, source: "PP-TS-024 3 (lưới 0,10/0,20/0,30 m); max theo dlc_offset_min và làn 2,5 m chưa trừ xe; tâm lưới PP-TS-031"}
+  qtp_window_half_s:   {value: 0.25, unit: s, min: 0, max: 0.5, source: "PP-TS-024 3 (cửa sổ ±0,25 s quanh tâm)"}
+  qtp_ay_need_min:     {value: 0.4, unit: m/s^2, min: 0, max: 2.5, source: "PP-TS-024 pilot_driver.inc; dưới mức này coi như không có cua"}
+  qtp_ay_need_margin:  {value: 0.1, unit: m/s^2, min: 0, max: 2.5, source: "PP-TS-024 pilot_driver.inc; giữ cua sát aysmax cho sàn trợ giúp PP-SWR-006"}
+  qtp_amplitude_min_m: {value: 0.01, unit: m, min: 0, max: 0.1, source: "nhóm tự thống nhất; 2 lần dung sai 0,005 m của PP-SWR-050 (IMPLEMENTATION-PLAN 2.3)"}
