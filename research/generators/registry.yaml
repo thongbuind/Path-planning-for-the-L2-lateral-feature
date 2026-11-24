@@ -72,7 +72,7 @@ generators:
   qp_jerk_admm_mlp_weights:
     kind: lab
     base: qp_jerk_admm
-    status: planned
+    status: tuning
     cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_weights}
     study: PP-TS-031
     session: C

@@ -95,7 +95,7 @@ tuning_grid:
   quintic_tangent_point: {qtp_center_s: [1.5, 1.75, 2.0], qtp_dlc_margin_m: [0.0, 0.01, 0.02]}
   quintic_ay_sampling: {qas_peak_early+qas_peak_late: [[0.35, 0.55], [0.40, 0.60], [0.45, 0.65]],
                         qas_amplitude_m: [0.10, 0.20, 0.30]}
-  qp_jerk_admm_mlp_weights: {mlp_regularisation: null}   # 3 levels, chosen with the training plan
+  qp_jerk_admm_mlp_weights: {mlpw_regularisation: [1.0e-4, 1.0e-3, 1.0e-2]}   # L2 of training, centre 1e-3 (stream C2)
 
 variants:
   quintic_duration:
