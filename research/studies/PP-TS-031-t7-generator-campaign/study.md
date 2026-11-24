@@ -51,7 +51,7 @@ Dữ liệu MLP theo mục 2 của PP-TS-025: sinh riêng (seed từ 100, tốc 
 
 | Mục | Nội dung |
 |---|---|
-| Bộ chạy | [PP-T7](../../../benchmark/suites/PP-T7.yaml): tuning 12 dòng × seed 1, 2; test 32 dòng × seed 3, 4 |
+| Bộ chạy | [PP-T7](../../../benchmark/suites/PP-T7.yaml): tuning 13 dòng × seed 1, 2; test 32 dòng × seed 3, 4 |
 | Cờ cảnh báo | Không loại thuật toán nào. Bật khi: trượt một requirement mà mốc đạt ở cùng ca, profile, seed; thời gian LCC lái ít hơn mốc quá một chu kỳ ở một lần chạy; B0 (C1, C2) |
 | So sánh | Chỉ số và nhóm theo SQTS 9.1 bước 2 đến 5. Mỗi ô là hiệu ghép cặp so với mốc, kèm CI 95 %; "khác có ý nghĩa" khi CI không chứa 0 và hiệu vượt dung sai của SQTS 9.2. Không có thứ hạng hay điểm tổng |
 | Calibration | Không chọn; cả lưới hiện ở phần độ nhạy calibration của dashboard |

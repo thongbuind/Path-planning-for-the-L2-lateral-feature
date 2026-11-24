@@ -26,7 +26,7 @@ SUITE = "PP-T7"
 OUT = ROOT / "build" / "lab"
 REGISTRY = ROOT / "research" / "generators" / "registry.yaml"
 TIMEOUT_S = 600
-# 3 dòng vòng hở × seed 1, 2; S1d, S1g, S1b a vòng kín seed 1.
+# 3 dòng vòng hở × seed 1, 2; S1d, S1g, S1b a, S24a (cua ngắn) vòng kín seed 1.
 QUICK = (
     (["S1", "d", {"loop": "open"}], (1, 2)),
     (["S1", "g", "F01", "a", {"loop": "open"}], (1, 2)),
@@ -34,6 +34,7 @@ QUICK = (
     (["S1", "d"], (1,)),
     (["S1", "g"], (1,)),
     (["S1b", "a", {"acc": "ignore_limits"}], (1,)),
+    (["S24", "a"], (1,)),
 )
 # 016 lấy p99 thời gian LCC từ bằng chứng ghép cặp: values chỉ giữ một trong bốn target cùng ID.
 COLUMNS = ("PP-SWR-070", "PP-SWR-068", "PP-SWR-069", "PP-SWR-050", "PP-SWR-004")

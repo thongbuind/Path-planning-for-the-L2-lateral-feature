@@ -54,7 +54,7 @@ cmake --build build/lab/<tên>-tests && ctest --test-dir build/lab/<tên>-tests 
 | Tầng | Lệnh | Dùng cho | Được trích trong study |
 |---|---|---|---|
 | L0 unit | `ctest` của build lab: `test_t7_contract` chung cho mọi generator, cùng `tests/` của generator | Đúng contract, đúng phần mới; được biết bên trong | Không |
-| L1 quick bench | `python3 research/generators/bench/quick.py <tên> [--set tên=giá trị] [--telemetry] [--against <nhãn>]` | Dò nhanh trên 3 dòng vòng hở × seed 1, 2 và S1d, S1g, S1b a vòng kín seed 1 (`--runs tuning`: cả phần tuning). Kết quả nháp trong `build/lab/<nhãn>/` | Không |
+| L1 quick bench | `python3 research/generators/bench/quick.py <tên> [--set tên=giá trị] [--telemetry] [--against <nhãn>]` | Dò nhanh trên 3 dòng vòng hở × seed 1, 2 và S1d, S1g, S1b a, S24 a vòng kín seed 1 (`--runs tuning`: cả phần tuning). Kết quả nháp trong `build/lab/<nhãn>/` | Không |
 | L2 chính thức | `python3 -m eval.study PP-TS-031 --record --part <phần> [--group <biến thể>]` theo GĐ 4, 5; rồi `python3 -m eval.campaign` và `python3 research/generators/dashboard/build.py` | Cả lưới calibration trên tuning và test; số liệu của dashboard | Có |
 
 Quick bench từ chối seed 3–4 và dòng chỉ có ở phần test.

@@ -54,8 +54,8 @@ def test_quick_bench_refuses_test_seeds_and_lines():
     quick = load(LAB / "bench" / "quick.py", "quick_bench")
     suite = sweep.load_suite("PP-T7")
     chosen = quick.runs_for("quick", suite)
-    assert len(chosen) == 9 and {seed for _, seed in chosen} <= {1, 2}
-    assert len(quick.runs_for("tuning", suite)) == 24
+    assert len(chosen) == 10 and {seed for _, seed in chosen} <= {1, 2}
+    assert len(quick.runs_for("tuning", suite)) == 26
     quick.QUICK = ((["S1", "f"], (3,)),)
     with pytest.raises(SystemExit):
         quick.runs_for("quick", suite)

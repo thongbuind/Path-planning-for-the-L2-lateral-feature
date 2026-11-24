@@ -161,8 +161,10 @@ Không chọn cấu hình nào. Mọi cấu hình của lưới chạy trên c�
 
 | Phần | Lượt | Seed | Lượt mỗi cấu hình |
 |---|---|---|---|
-| Tuning | 12 dòng PP-T7 | 1, 2 | 24 |
+| Tuning | 13 dòng PP-T7 | 1, 2 | 26 |
 | Test | 28 dòng PP-T7 + 4 dòng mới | 3, 4 | 64 |
+
+Dòng mới thêm vào tuning: `[S24, a]`, cua ngắn 110 km/h R = 450 m (Software Qualification Test Specification mục 5). Lý do: tuning chưa có cua ngắn nên các generator cắt cua không chỉnh được; S1 f, S14 e chỉ ở test. Thêm ngày 2026-11-24, trước GĐ 4.
 
 Bốn dòng mới thêm vào test:
 
@@ -183,7 +185,7 @@ Bốn dòng mới thêm vào test:
 | Quick bench mỗi lần dò (GĐ 3) | ~10 | ~1 phút |
 | Sinh dữ liệu MLP (GĐ 3): kịch bản sinh riêng + giải QP 1000 vòng offline | ≤ 10.000 cửa sổ | Ước lượng khi cài bộ sinh, hỏi trước |
 | Nhãn của `qp_jerk_admm_mlp_weights`: lưới trọng số offline trên từng cửa sổ | Lưới × số cửa sổ | Ước lượng khi chốt lưới, hỏi trước |
-| Lưới trên tuning (GĐ 4) | 53 × 24 = 1272, cộng các lượt vòng hở của bản tham chiếu | ~65 phút |
+| Lưới trên tuning (GĐ 4) | 53 × 26 = 1378, cộng các lượt vòng hở của bản tham chiếu | ~70 phút |
 | Lưới trên test (GĐ 5) | 53 × 64 = 3392, cộng các lượt vòng hở của bản tham chiếu | ~3 giờ |
 | Phiên đo thời gian (GĐ 5) | 19 cấu hình (mặc định của mỗi lưới, mỗi mức số vòng) × 4 lượt × 3 lần lặp, 1 job | ~25 phút |
 | **Tổng** | | **~4,5–5 giờ**, chưa tính dữ liệu và nhãn MLP; chia nhiều lần, mỗi lần một nhóm thuật toán; bản QP có thể nặng hơn ~30 % |
@@ -290,7 +292,7 @@ Không có bước chọn. Lần chạy này cho phần tuning của dashboard v
 |---|---|---|
 | 4.1 | Khóa `plan.yaml` của PP-TS-031 (`locked`) trước lần chạy `--record` đầu tiên: lưới, cấu hình mặc định, cờ, dung sai, giả thuyết, nhóm ca, các khía cạnh của dashboard | Chưa |
 | 4.2 | `eval.study` chạy được cả lưới (`tuning_grid`) như các biến thể riêng, trên cả hai phần. `--group <biến thể>` chạy một thuật toán cùng lưới của nó, kể cả khi `--record`, và tự thêm mốc, nghiệm tham chiếu để hiệu ghép cặp tính trong cùng lần chạy | Xong code (`eval/study.py`) |
-| 4.3 | Chạy 53 cấu hình × 24 lượt tuning, chia theo nhóm thuật toán khi generator của nhóm đó xong GĐ 3. Thứ tự không phụ thuộc nhau, vì mọi bản dùng trọng số mặc định | Chưa |
+| 4.3 | Chạy 53 cấu hình × 26 lượt tuning, chia theo nhóm thuật toán khi generator của nhóm đó xong GĐ 3. Thứ tự không phụ thuộc nhau, vì mọi bản dùng trọng số mặc định | Chưa |
 
 → Người dùng commit, cây làm việc sạch.
 
