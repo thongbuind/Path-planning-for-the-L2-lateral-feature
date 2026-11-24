@@ -290,7 +290,7 @@ Không có bước chọn. Lần chạy này cho phần tuning của dashboard v
 
 | Bước | Việc | Trạng thái |
 |---|---|---|
-| 4.1 | Khóa `plan.yaml` của PP-TS-031 (`locked`) trước lần chạy `--record` đầu tiên: lưới, cấu hình mặc định, cờ, dung sai, giả thuyết, nhóm ca, các khía cạnh của dashboard | Chưa |
+| 4.1 | Khóa `plan.yaml` của PP-TS-031 (`locked`) trước lần chạy `--record` đầu tiên: lưới, cấu hình mặc định, cờ, dung sai, giả thuyết, nhóm ca, các khía cạnh của dashboard | Xong 2026-11-24: lưới đủ 54 cấu hình (gồm nghiệm tham chiếu), `grid_sets` strict không cảnh báo |
 | 4.2 | `eval.study` chạy được cả lưới (`tuning_grid`) như các biến thể riêng, trên cả hai phần. `--group <biến thể>` chạy một thuật toán cùng lưới của nó, kể cả khi `--record`, và tự thêm mốc, nghiệm tham chiếu để hiệu ghép cặp tính trong cùng lần chạy | Xong code (`eval/study.py`) |
 | 4.3 | Chạy 53 cấu hình × 28 lượt tuning, chia theo nhóm thuật toán khi generator của nhóm đó xong GĐ 3. Thứ tự không phụ thuộc nhau, vì mọi bản dùng trọng số mặc định | Chưa |
 

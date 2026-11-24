@@ -3,7 +3,7 @@
 # Research comparison for a dashboard: no generator or calibration set is chosen, no overall rank.
 # Tolerances and win rule: SQTS 9.2 (eval.compare.TOLERANCES), not repeated here.
 id: PP-TS-031
-locked: null
+locked: 2026-11-24
 suite: PP-T7
 parts: [tuning, test]
 baseline: quintic_duration
