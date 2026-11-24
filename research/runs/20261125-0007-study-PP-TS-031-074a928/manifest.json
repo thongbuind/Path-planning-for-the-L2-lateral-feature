@@ -1,0 +1,2740 @@
+{
+ "run_id": "20261125-0007-study-PP-TS-031-074a928",
+ "kind": "study",
+ "target": "PP-TS-031",
+ "started": "2026-11-25T00:07:17+07:00",
+ "command": [
+  "study.py",
+  "PP-TS-031",
+  "--record",
+  "--jobs",
+  "2",
+  "--part",
+  "test"
+ ],
+ "git": {
+  "commit": "074a92863d03f9d3e2f44445d4fea8966be1e8d9",
+  "short": "074a928",
+  "branch": "sil-baseline",
+  "dirty": false,
+  "changed": []
+ },
+ "libraries": [
+  {
+   "path": "build/study/PP-TS-031/record/test/mlp_jerk_direct/build/libpp_lcc.dylib",
+   "sha256": "5838825521b741cac4aa3db472fdbfa16a5f19d1aecad517d101a84e5ee79e25",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 57ec36c938ae t7 mlp_jerk_direct t7_src d3d2a68077f2",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "57ec36c938ae",
+    "t7": "mlp_jerk_direct",
+    "t7_src": "d3d2a68077f2",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10992,
+   "file_size_bytes": 105392
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/mlp_jerk_direct/build/libpp_lkaelk.dylib",
+   "sha256": "cc83623f248b18e2a5b3262dd4f46c2cfe2e4a34d5c2ef66ba35043672435d5a",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 57ec36c938ae",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "57ec36c938ae",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort10.0/build/libpp_lcc.dylib",
+   "sha256": "26688e831b930cc4baef2612da944081d8d6969dd6b803b804b6e7ba4376925a",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 1d62b4416a54 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1d62b4416a54",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort10.0/build/libpp_lkaelk.dylib",
+   "sha256": "95b054423dca44f0948a25d5e145b2224e89a2ffb0ddc7bbdec63b968d242f5c",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 1d62b4416a54",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1d62b4416a54",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort2.5/build/libpp_lcc.dylib",
+   "sha256": "db1d749422e189e490e8b3d47f95db3e886c929afef6e1227add83f6c24b83f5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 98de98b9ef0b t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "98de98b9ef0b",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort2.5/build/libpp_lkaelk.dylib",
+   "sha256": "29cef5e9b656b457e70b53926ff397a2364ba718ed21e0c83db7be6872c3e59e",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 98de98b9ef0b",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "98de98b9ef0b",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort5.0/build/libpp_lcc.dylib",
+   "sha256": "48dcb25fa8617454fcf2af137719d7db8b69355c75d99b9cb02befea93b3b396",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 85da2f2e5759 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "85da2f2e5759",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.15-qp_w_comfort5.0/build/libpp_lkaelk.dylib",
+   "sha256": "b79f98c516b4b05e5c23055585bbed57d7b4de3fcb908c8d94b626cde182805a",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 85da2f2e5759",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "85da2f2e5759",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.3-qp_w_comfort10.0/build/libpp_lcc.dylib",
+   "sha256": "a29033e810e4131a09b8b9d7d53a86b536f3900001f6271935cabd79d5cdc789",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration f400ffdbb504 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "f400ffdbb504",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.3-qp_w_comfort10.0/build/libpp_lkaelk.dylib",
+   "sha256": "25eb180f46d339e0799ddb874874410d9c56812b11cfd406dc24de337145a893",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration f400ffdbb504",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "f400ffdbb504",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.3-qp_w_comfort2.5/build/libpp_lcc.dylib",
+   "sha256": "620e6f4b1ffa344f0476100dc928ad6ed769766bc1f2f58a4971f2435a2833db",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 995ec734fa95 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "995ec734fa95",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.3-qp_w_comfort2.5/build/libpp_lkaelk.dylib",
+   "sha256": "705d317802a8b361ebf7c349d2c327c15279f2224887132cea7cb82b6ffa0f86",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 995ec734fa95",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "995ec734fa95",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort10.0/build/libpp_lcc.dylib",
+   "sha256": "a49d7101bf05e0c16afbdd6a36203727524fbaf04bb5991cf9906b3ce67e5f22",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 0cefca1850cc t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0cefca1850cc",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort10.0/build/libpp_lkaelk.dylib",
+   "sha256": "d8edaad545895b89075cf0c0ddbaf67e80828893579904b859da3ab86d172fba",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 0cefca1850cc",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0cefca1850cc",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort2.5/build/libpp_lcc.dylib",
+   "sha256": "288c5aaa4ba9b702c3d310030dd5efa3dbb4bcb91e4baa06cd546d4a6c4869d5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 6363c5f5e8d2 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6363c5f5e8d2",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort2.5/build/libpp_lkaelk.dylib",
+   "sha256": "8fa9d4eb622fa4ed6ee78463a70c6f57f07368d8654871bc2f853450de4e2ee3",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 6363c5f5e8d2",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6363c5f5e8d2",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort5.0/build/libpp_lcc.dylib",
+   "sha256": "91803af47e9147912615bcfee35b25f8be94eb70deb4b11b11fe3b8f4ee52ab1",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration d0b60de98ede t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d0b60de98ede",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm-qp_w_dev0.6-qp_w_comfort5.0/build/libpp_lkaelk.dylib",
+   "sha256": "b85b928428a2a75da9c6233e747fee02e83e6a1f36e1662494242d7764405805",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration d0b60de98ede",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d0b60de98ede",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm/build/libpp_lcc.dylib",
+   "sha256": "58f2997ec95bbcb210680fd6d67d139705c1e4dd5d1bde67f098a4ecc4bbac15",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 981c00a3e31f t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "981c00a3e31f",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm/build/libpp_lkaelk.dylib",
+   "sha256": "87f729ab16ece62496b3261dca90b40fad23542f6f6e9cc15ee9262173768cdf",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 981c00a3e31f",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "981c00a3e31f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it010/build/libpp_lcc.dylib",
+   "sha256": "602d2635de76db28986d0650a63aaee299f7a165acd442a20770104e6810aba5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 41b3fe66698d t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "41b3fe66698d",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it010/build/libpp_lkaelk.dylib",
+   "sha256": "12cffa20f133327fae559cf58ce37eeb7d24c3ca07b9828c8dc3fbfa42684e98",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 41b3fe66698d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "41b3fe66698d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it025/build/libpp_lcc.dylib",
+   "sha256": "b58a169c256cea3475d05e78c1aec7c5e369db3b07d8e4d47fe46f5662092470",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration aa18f305ac26 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "aa18f305ac26",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it025/build/libpp_lkaelk.dylib",
+   "sha256": "a2117682a0721d7fe312139fc350413c9ccafcca8196c25d272ee1074b00192d",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration aa18f305ac26",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "aa18f305ac26",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it050/build/libpp_lcc.dylib",
+   "sha256": "09914a266fc11a4fe0d8eedd419f84a48b7496f42b7f6b9863a47074c91e03db",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 9c110d058e5c t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "9c110d058e5c",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it050/build/libpp_lkaelk.dylib",
+   "sha256": "ed63783d0e083e315ddd3dc41f7d94e556f9e50ddec8d9c13fb373d2a462586e",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 9c110d058e5c",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "9c110d058e5c",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it075/build/libpp_lcc.dylib",
+   "sha256": "0b57faeae269670d889c74b6c2cf29c9c1caf8c8b249ba6cdfe15c3ca1bde9d6",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 0a0861dfe951 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0a0861dfe951",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it075/build/libpp_lkaelk.dylib",
+   "sha256": "becf1e98de7572b04566ba6182bb799afc9201e88ef521009a46ab02c9769a5b",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 0a0861dfe951",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0a0861dfe951",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it100/build/libpp_lcc.dylib",
+   "sha256": "359ca02e37180ba03f0df41a6d7c9340092acf0599ac00dcf881833b8c340323",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 1e012030e476 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1e012030e476",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it100/build/libpp_lkaelk.dylib",
+   "sha256": "6ba4677b0fb4810c4392dd571e5fac6571bba7c8a1d0947d6fd284d1794ed14d",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 1e012030e476",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1e012030e476",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it1000_ref/build/libpp_lcc.dylib",
+   "sha256": "1c3db8c179ab458a7575b4535d314389fbe2537fe3fbe36422ada2ba0b6039d1",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 3a1bf731bd18 t7 qp_jerk_admm",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "3a1bf731bd18",
+    "t7": "qp_jerk_admm",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44600,
+   "file_size_bytes": 88384
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_it1000_ref/build/libpp_lkaelk.dylib",
+   "sha256": "3cb879a3e58080e77d8d5bf156cbfacf57cff901ea0efec200a248fe5d7cd05b",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 3a1bf731bd18",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "3a1bf731bd18",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it010/build/libpp_lcc.dylib",
+   "sha256": "98ad82044b21d53f4521813f285bafd51528068e64d9b0e9de9ae35478a11a71",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 0fc787288093 t7 qp_jerk_admm_mlp_warmstart t7_src 577bd794df4f",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0fc787288093",
+    "t7": "qp_jerk_admm_mlp_warmstart",
+    "t7_src": "577bd794df4f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44616,
+   "file_size_bytes": 105456
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it010/build/libpp_lkaelk.dylib",
+   "sha256": "324f56451254ab81e0b2740c40bb7b7e2404d91b0c4a5c21ad43f926848f2f42",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 0fc787288093",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0fc787288093",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it025/build/libpp_lcc.dylib",
+   "sha256": "ce4815aea715c5713072821ca0e7013024d808d48948b5ebf686033135d7f06c",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 6531a90e07bd t7 qp_jerk_admm_mlp_warmstart t7_src 577bd794df4f",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6531a90e07bd",
+    "t7": "qp_jerk_admm_mlp_warmstart",
+    "t7_src": "577bd794df4f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44616,
+   "file_size_bytes": 105456
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it025/build/libpp_lkaelk.dylib",
+   "sha256": "b67a9ff830bbdb2cfbeba54aeb259b26d8a3d67cdaff5b42d8086efb25209b75",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 6531a90e07bd",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6531a90e07bd",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it050/build/libpp_lcc.dylib",
+   "sha256": "2762ff387a05c542aed52a2aacc7be4b7cb48c338d228341d8e6705d5c5f8339",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 24cd73b5458d t7 qp_jerk_admm_mlp_warmstart t7_src 577bd794df4f",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "24cd73b5458d",
+    "t7": "qp_jerk_admm_mlp_warmstart",
+    "t7_src": "577bd794df4f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44616,
+   "file_size_bytes": 105456
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it050/build/libpp_lkaelk.dylib",
+   "sha256": "bce5bb346ff88936fb81c7481d21a60a96787f228d5d2ccd25decd1eea84ccbc",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 24cd73b5458d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "24cd73b5458d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it075/build/libpp_lcc.dylib",
+   "sha256": "8747b34d7f8ffa6c2f3ea528011afe5869ad7e16546b208f6dd56a5094a5545f",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration e60e23d3030d t7 qp_jerk_admm_mlp_warmstart t7_src 577bd794df4f",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "e60e23d3030d",
+    "t7": "qp_jerk_admm_mlp_warmstart",
+    "t7_src": "577bd794df4f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44616,
+   "file_size_bytes": 105456
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_warmstart_it075/build/libpp_lkaelk.dylib",
+   "sha256": "0560547e65ffb8e830bb19811924c54eed6f33bdb965be87692f4cf8316dcdeb",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration e60e23d3030d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "e60e23d3030d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights-mlpw_regularisation0.0001/build/libpp_lcc.dylib",
+   "sha256": "bfcde2d93beaa8868570be6bb32d0da55bc23eca6d6be1a6d4ae60f0d2e9c566",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 875ebd85fb91 t7 qp_jerk_admm_mlp_weights t7_src a0e762fb593a",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "875ebd85fb91",
+    "t7": "qp_jerk_admm_mlp_weights",
+    "t7_src": "a0e762fb593a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44640,
+   "file_size_bytes": 123088
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights-mlpw_regularisation0.0001/build/libpp_lkaelk.dylib",
+   "sha256": "091a8c33efc4c25f11d08263c6cba94ea498c544bb04ae8fc889c369e7b68e35",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 875ebd85fb91",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "875ebd85fb91",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights-mlpw_regularisation0.01/build/libpp_lcc.dylib",
+   "sha256": "1881c092e848efc845217d448078f46685ffef2baea5f36f305fc3b489e385f7",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 6168efa8bf4a t7 qp_jerk_admm_mlp_weights t7_src a0e762fb593a",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6168efa8bf4a",
+    "t7": "qp_jerk_admm_mlp_weights",
+    "t7_src": "a0e762fb593a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44640,
+   "file_size_bytes": 123088
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights-mlpw_regularisation0.01/build/libpp_lkaelk.dylib",
+   "sha256": "2a21f92d25ac5e79bd134e5ba6de1e6dd22d714bd7644fd5e2fdbaa8a8cc62a6",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 6168efa8bf4a",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "6168efa8bf4a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights/build/libpp_lcc.dylib",
+   "sha256": "3fe6f2006cb29d74447a0faa915b43900ad253271337367b8df01eae4a9e71fe",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 19f1dbcd45d3 t7 qp_jerk_admm_mlp_weights t7_src a0e762fb593a",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "19f1dbcd45d3",
+    "t7": "qp_jerk_admm_mlp_weights",
+    "t7_src": "a0e762fb593a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44640,
+   "file_size_bytes": 123088
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_mlp_weights/build/libpp_lkaelk.dylib",
+   "sha256": "347e7c004b8b88d6d7679f4c4645677e4daddd54e96dda6e2927b13bb559614a",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 19f1dbcd45d3",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "19f1dbcd45d3",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it010/build/libpp_lcc.dylib",
+   "sha256": "551f5fc1138185110634099a5a336670a9dbaf2354cff982886c67f94a566ae7",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration d594b50c8b17 t7 qp_jerk_admm_shift_warmstart t7_src 5ed701cea43c",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d594b50c8b17",
+    "t7": "qp_jerk_admm_shift_warmstart",
+    "t7_src": "5ed701cea43c",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44608,
+   "file_size_bytes": 88448
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it010/build/libpp_lkaelk.dylib",
+   "sha256": "c825cd4faeb434532a432bea8ee79247c2418b9936769aa044a0eefac334a000",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration d594b50c8b17",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d594b50c8b17",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it025/build/libpp_lcc.dylib",
+   "sha256": "11916291eb4a08584bf18db9ea323bb9ccf6c247e687d03ae71d78c4b328b5f5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration a68f5518745d t7 qp_jerk_admm_shift_warmstart t7_src 5ed701cea43c",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a68f5518745d",
+    "t7": "qp_jerk_admm_shift_warmstart",
+    "t7_src": "5ed701cea43c",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44608,
+   "file_size_bytes": 88448
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it025/build/libpp_lkaelk.dylib",
+   "sha256": "53a8370491a45d224b3cfe48e285eb3f6746ef0e64b2b26dfb683c2e587372fc",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration a68f5518745d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a68f5518745d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it050/build/libpp_lcc.dylib",
+   "sha256": "3ca0b371a1546c98eebd32411e661f829102b81516fc1b74f08894367b7ab7e0",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 20577188d943 t7 qp_jerk_admm_shift_warmstart t7_src 5ed701cea43c",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "20577188d943",
+    "t7": "qp_jerk_admm_shift_warmstart",
+    "t7_src": "5ed701cea43c",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44608,
+   "file_size_bytes": 88448
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it050/build/libpp_lkaelk.dylib",
+   "sha256": "2c5775ceb7a9819bf4b8229a3ed10b06c4b87c4dac9383d77fcd725217c05bf4",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 20577188d943",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "20577188d943",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it075/build/libpp_lcc.dylib",
+   "sha256": "feaf037a127708bc56ad7cb968d88d9c10b36b79fa91cf7024cbac8ecce90193",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration a8b4353d3205 t7 qp_jerk_admm_shift_warmstart t7_src 5ed701cea43c",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a8b4353d3205",
+    "t7": "qp_jerk_admm_shift_warmstart",
+    "t7_src": "5ed701cea43c",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 44608,
+   "file_size_bytes": 88448
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/qp_jerk_admm_shift_warmstart_it075/build/libpp_lkaelk.dylib",
+   "sha256": "768d6482d05dc7c0db1c7debf7abc96d8b9edfafda362e24646aadee6e8cf374",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration a8b4353d3205",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a8b4353d3205",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.1/build/libpp_lcc.dylib",
+   "sha256": "b0f1c940f2d8e3d80e8e55d6e4a0ae59b6268396b6a189d246bbb124d87c6596",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 06dea9ea7929 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "06dea9ea7929",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.1/build/libpp_lkaelk.dylib",
+   "sha256": "9dfa0cef1d03951f319dd648ff0ed7c3240f6823a3a3b907d3fa714c9ba0bc73",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 06dea9ea7929",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "06dea9ea7929",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.2/build/libpp_lcc.dylib",
+   "sha256": "4f1aef696d473f04c68778d29533f02ae3cce6426de262d199a56a1394a9bb49",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 1b58ec0553a6 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1b58ec0553a6",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.2/build/libpp_lkaelk.dylib",
+   "sha256": "4b4f4a6e59b6e3bfeb2edcff155aaad9143edbaeba7c53b37e991445a7ee8bf5",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 1b58ec0553a6",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "1b58ec0553a6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.3/build/libpp_lcc.dylib",
+   "sha256": "e17de5fbd6338942c968e6b81897dbc992ba8d7c5a64011d5c1d1444d0f211f5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 23a7f75b0ec1 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "23a7f75b0ec1",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.3/build/libpp_lkaelk.dylib",
+   "sha256": "681d7bf71e3c4881d5d9de39e6668ddbc94c6837cf3116d9ab8faa1a7f3ea19e",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 23a7f75b0ec1",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "23a7f75b0ec1",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.1/build/libpp_lcc.dylib",
+   "sha256": "246c5ce6a392f4b588eb154128185f5d495668407b0dcfa7c68bf02613547b74",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration f71beb000b5a t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "f71beb000b5a",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.1/build/libpp_lkaelk.dylib",
+   "sha256": "f696e895de176ff0440a6499678f208762074107b4150b7ed5cb457c62c93166",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration f71beb000b5a",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "f71beb000b5a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.3/build/libpp_lcc.dylib",
+   "sha256": "cea6104f0d595e39b49cdfa585f21fe9fea2bb849295baacf0e9f798cb773304",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 8eda79810aa2 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "8eda79810aa2",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.3/build/libpp_lkaelk.dylib",
+   "sha256": "1bd50633314480b04125609c10561de3b8d9b7c128a072ce5f8077cb7f16969d",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 8eda79810aa2",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "8eda79810aa2",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.1/build/libpp_lcc.dylib",
+   "sha256": "dc62f464365d7423a37c79a2f19bcbbe8e7e5ed46d154098ddf08b8f7a0f38cb",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 834649d78761 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "834649d78761",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.1/build/libpp_lkaelk.dylib",
+   "sha256": "fc89dbc59298fc113b2f4ed318bca6129697edc42cd0d81a89bb9ba4b8b61fad",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 834649d78761",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "834649d78761",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.2/build/libpp_lcc.dylib",
+   "sha256": "d1edc89e464fa408248e08926a3498b0d218ca204aa7b6dc0bfa8422b52fe9b7",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 560ec05d133f t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "560ec05d133f",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.2/build/libpp_lkaelk.dylib",
+   "sha256": "7aa7fa6d52e9eef1e61d32f43ac1e5e6b22e7743e6273dabfceae77e6a2accca",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 560ec05d133f",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "560ec05d133f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.3/build/libpp_lcc.dylib",
+   "sha256": "467838da3ac11ecd5827b6a58d61e6ee31a7b8defa81926d6d0cdcd12d0f9cd5",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 03f673610fdc t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "03f673610fdc",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.3/build/libpp_lkaelk.dylib",
+   "sha256": "6af7759f712fb2aa43aed7e9a16a2cbfc26fa6d951aba78a13f3ecfe4cdd976f",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 03f673610fdc",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "03f673610fdc",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling/build/libpp_lcc.dylib",
+   "sha256": "e15287f9828375f3da4fcb2b740e2ac1fe83fd84a718eb4015fe470a2b3bcb2a",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 23f8480b5e71 t7 quintic_ay_sampling t7_src ce78040fc94d",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "23f8480b5e71",
+    "t7": "quintic_ay_sampling",
+    "t7_src": "ce78040fc94d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88656
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_ay_sampling/build/libpp_lkaelk.dylib",
+   "sha256": "27f251e37e08dff67b48e973d81bde80fc914d026487d12fc65f3dfaaca89396",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 23f8480b5e71",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "23f8480b5e71",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter3.0/build/libpp_lcc.dylib",
+   "sha256": "f9a959c2d113f66d5bedd3686dea9dee55201d721ca2e8e4dbf354db440cb9f1",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 01adeb6044a8 t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "01adeb6044a8",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter3.0/build/libpp_lkaelk.dylib",
+   "sha256": "7f3649e2cd9463f7422e37f2aac0a8dcc9586249ae78d5c70d1277c91c6ae343",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 01adeb6044a8",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "01adeb6044a8",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter3.5/build/libpp_lcc.dylib",
+   "sha256": "a602dad5b92ac806f444abe6981d9497fc599e8d90c68024993be7ebeaca7f17",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 087e325e475e t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "087e325e475e",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter3.5/build/libpp_lkaelk.dylib",
+   "sha256": "dcad4d0ea7eceee40240b31dedd7181806172425eacad1223e9e0a1fd8061e73",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 087e325e475e",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "087e325e475e",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter4.0/build/libpp_lcc.dylib",
+   "sha256": "8de7c0e18439463ae89e622511eecb99fda7c9cdf1e688dffce0a06f9de8ecc0",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration e28f1d4f91c8 t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "e28f1d4f91c8",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa2.5-T_recenter4.0/build/libpp_lkaelk.dylib",
+   "sha256": "13166a40c6bc6b0d0300157d5dbd6b6f1343704a492c8c999a9e4907d2554c2b",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration e28f1d4f91c8",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "e28f1d4f91c8",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.0-T_recenter3.0/build/libpp_lcc.dylib",
+   "sha256": "ffb8f74030b5f1cc24396b6fcfbc33f70e88547cd416c80c6a120b14e6b0b654",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration fdbe09f2e8c2 t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "fdbe09f2e8c2",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.0-T_recenter3.0/build/libpp_lkaelk.dylib",
+   "sha256": "ca5e7d9b1127c25a6a09f762672eb2ade2ff9303d23d9a695065f973028a3004",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration fdbe09f2e8c2",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "fdbe09f2e8c2",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.0-T_recenter4.0/build/libpp_lcc.dylib",
+   "sha256": "47c99a42d00aeb83359d0fba0732974aba92d0147ecad55096df4ccb6177efa8",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration cedbcddad0bd t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "cedbcddad0bd",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.0-T_recenter4.0/build/libpp_lkaelk.dylib",
+   "sha256": "f8008a93b3a022ef88c6e5e9a815790da6cb12a5b7349c14eb7214e7eede9823",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration cedbcddad0bd",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "cedbcddad0bd",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter3.0/build/libpp_lcc.dylib",
+   "sha256": "b834c50f49ea638974f3c2a807f2455105ef6bd6e3b921ab406fdb3bf7c049a6",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 230e58399a02 t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "230e58399a02",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter3.0/build/libpp_lkaelk.dylib",
+   "sha256": "1ca84a6178588e3b81aa6e352bc6134258ba6a3ffe153603f8a30786c0cfa130",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 230e58399a02",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "230e58399a02",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter3.5/build/libpp_lcc.dylib",
+   "sha256": "7d3d24ca8fb2e52306971be488e94d25932e7de1f61c3357f14a08bd496644ab",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration ee6e48cd0847 t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "ee6e48cd0847",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter3.5/build/libpp_lkaelk.dylib",
+   "sha256": "5b3705c47c422306b42104a9d3c5d374d0116e3d42730d26c157127ca787a66d",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration ee6e48cd0847",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "ee6e48cd0847",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter4.0/build/libpp_lcc.dylib",
+   "sha256": "529d8b335cf8ea4639eee07a8693dca291a13e793d39388bd152accca7d12772",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration a57a8dc1c10b t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a57a8dc1c10b",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration-T_hwa3.5-T_recenter4.0/build/libpp_lkaelk.dylib",
+   "sha256": "e2971e75627b484e3ee4cd5f7abae3cca6242f2670cf592759b8cd2bd603ddf4",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration a57a8dc1c10b",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "a57a8dc1c10b",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration/build/libpp_lcc.dylib",
+   "sha256": "da964bcb682c97025e56b630367e334dccc11fb2eb493e6fa01c3322aa2bcd86",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 981c00a3e31f t7 quintic_duration",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "981c00a3e31f",
+    "t7": "quintic_duration",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 10984,
+   "file_size_bytes": 88416
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_duration/build/libpp_lkaelk.dylib",
+   "sha256": "87f729ab16ece62496b3261dca90b40fad23542f6f6e9cc15ee9262173768cdf",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 981c00a3e31f",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "981c00a3e31f",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.0/build/libpp_lcc.dylib",
+   "sha256": "7822569a540331b14c4f36f3c5a2204b2b7930b5adac3787f08ffb68d2a6db45",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 59ede2c38a6d t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "59ede2c38a6d",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.0/build/libpp_lkaelk.dylib",
+   "sha256": "5376581fa989e9535da4f438d58456b225e80efeb9080d6bb20125d8f831f148",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 59ede2c38a6d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "59ede2c38a6d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.01/build/libpp_lcc.dylib",
+   "sha256": "a183d8933f509bacd127c0e6a9781b9edddb5d3f4557071fce66e2014dd0c028",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 7c92cf9bb26a t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "7c92cf9bb26a",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.01/build/libpp_lkaelk.dylib",
+   "sha256": "7fc947bf2b782a4cb824fe3c096de03b9b8d4bbb5ca56ac80c3bc60b9c35df94",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 7c92cf9bb26a",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "7c92cf9bb26a",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.02/build/libpp_lcc.dylib",
+   "sha256": "5ee0614946389825829a6bb17ec1031b83b1f876fa2745bc7e062e5c9d67614f",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration ed994a864899 t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "ed994a864899",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.02/build/libpp_lkaelk.dylib",
+   "sha256": "ea7d5be40ac5d5395c913265ba44cfaf6b0ded1c41d012ced7344aa3cce6cdc3",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration ed994a864899",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "ed994a864899",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.0/build/libpp_lcc.dylib",
+   "sha256": "3e3bc104b6d4c09fead54f035148b23e37cf53a7737725fba6735f88e8f0f427",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 37c216aadfde t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "37c216aadfde",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.0/build/libpp_lkaelk.dylib",
+   "sha256": "3e02e395d7f4752d5541ea3128159643a929ed85caf9c7883b01abf67f5c73d1",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 37c216aadfde",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "37c216aadfde",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.02/build/libpp_lcc.dylib",
+   "sha256": "60a6eba8b57c85b02c24f438936cefbe423eebae092d8c4d92608b1c36528f9f",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 441f7aef13e3 t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "441f7aef13e3",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.02/build/libpp_lkaelk.dylib",
+   "sha256": "2a8d008d0f47a18ffd7fb9e0e715d2cded94aebebe22ecc9befe5efea9b606eb",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 441f7aef13e3",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "441f7aef13e3",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.0/build/libpp_lcc.dylib",
+   "sha256": "9619e6b76f0a83546191cb782bf801550642a4e55672711b9b3bee38e1053f7b",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 74fb9c10414d t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "74fb9c10414d",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.0/build/libpp_lkaelk.dylib",
+   "sha256": "2a9802f04b2df8d5179a676791d79d1225e195121cfbfbeaeb9199125e5b03b2",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 74fb9c10414d",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "74fb9c10414d",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.01/build/libpp_lcc.dylib",
+   "sha256": "942582963083f7cb8ad82cfcc8eb3b05e6924dcda26fe92e159b844f44cb03e0",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 318ffc8e77a1 t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "318ffc8e77a1",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.01/build/libpp_lkaelk.dylib",
+   "sha256": "7e622217e07a59c0bca7ea4d0be5b6567c6d645cf528712611b18e7aee5387fa",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 318ffc8e77a1",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "318ffc8e77a1",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.02/build/libpp_lcc.dylib",
+   "sha256": "071378118ac1d141a0add0503ff871258e065146d87a24d1f0aac95d628706f0",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration 0ff982a56004 t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0ff982a56004",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.02/build/libpp_lkaelk.dylib",
+   "sha256": "4efa8c3eb545d58d04ca66bb8a5ca530a9559bcd33ae53fc7e5bf0d08156e746",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration 0ff982a56004",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "0ff982a56004",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point/build/libpp_lcc.dylib",
+   "sha256": "a34ff109974e3c3e28c244842879be1d7e940cec39b736d58fe01a0532ab11fb",
+   "pp_version": "pp_lcc 0.3.0 commit 074a92863d03 calibration d63dca02e213 t7 quintic_tangent_point t7_src 7516cfee25d6",
+   "build": {
+    "name": "pp_lcc",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d63dca02e213",
+    "t7": "quintic_tangent_point",
+    "t7_src": "7516cfee25d6",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lcc",
+   "state_size_bytes": 11000,
+   "file_size_bytes": 88688
+  },
+  {
+   "path": "build/study/PP-TS-031/record/test/quintic_tangent_point/build/libpp_lkaelk.dylib",
+   "sha256": "043d97dc338f21aeeee61f0e6cd6bcf1aa8563390795a0ee4826f78ba088f55d",
+   "pp_version": "pp_lkaelk 0.3.0 commit 074a92863d03 calibration d63dca02e213",
+   "build": {
+    "name": "pp_lkaelk",
+    "version": "0.3.0",
+    "commit": "074a92863d03",
+    "calibration": "d63dca02e213",
+    "dirty": false
+   },
+   "external": false,
+   "family": "lkaelk",
+   "state_size_bytes": 13112,
+   "file_size_bytes": 71824
+  }
+ ],
+ "simulator": {
+  "commit": "074a92863d03f9d3e2f44445d4fea8966be1e8d9",
+  "dirty": false,
+  "checksum_version": "behavior_checksum/2",
+  "bundle_schema": "run_bundle/1",
+  "handbook": "docs/vi/simulation-handbook.md",
+  "models": [
+   {
+    "id": "vehicle",
+    "name": "Mô hình xe (bicycle, lốp tuyến tính, sáu vehicle profile)",
+    "validation": "Chưa validation: không có dữ liệu xe thật",
+    "validated": false
+   },
+   {
+    "id": "controller",
+    "name": "Lateral Controller và EPS chạy thử",
+    "validation": "Chưa validation: stand-in theo đặc tả, không có khối thật để đối chiếu",
+    "validated": false
+   },
+   {
+    "id": "acc",
+    "name": "ACC chạy thử",
+    "validation": "Chưa validation: stand-in theo đặc tả, không có khối thật để đối chiếu",
+    "validated": false
+   },
+   {
+    "id": "adas",
+    "name": "Tài xế và Chức năng ADAS chạy thử",
+    "validation": "Chưa validation: stand-in theo đặc tả, không có khối thật để đối chiếu",
+    "validated": false
+   },
+   {
+    "id": "arbitrator",
+    "name": "Arbitrator chạy thử (PP-ASM-022)",
+    "validation": "Chưa validation: stand-in theo đặc tả, không có khối thật để đối chiếu",
+    "validated": false
+   },
+   {
+    "id": "camera",
+    "name": "Camera và lane model",
+    "validation": "Chưa validation: không có dữ liệu xe thật",
+    "validated": false
+   },
+   {
+    "id": "objects",
+    "name": "Cảm biến đối tượng và traffic",
+    "validation": "Chưa validation: không có dữ liệu xe thật",
+    "validated": false
+   },
+   {
+    "id": "timing",
+    "name": "Đồng hồ ECU, kênh truyền, lỗi timing",
+    "validation": "Chưa validation: không có dữ liệu xe thật",
+    "validated": false
+   },
+   {
+    "id": "faults",
+    "name": "Fault injector",
+    "validation": "Không áp dụng: không phải mô hình vật lý; kiểm bằng fault_hits và NEVER_S",
+    "validated": false
+   }
+  ]
+ },
+ "inputs": {
+  "benchmark/combinations/G01.yaml": "fda0a062391b8cd559c08bcf9ee1fd9dc28345afef97a25ec1f816bc68b0dda6",
+  "benchmark/faults/F01.anchors.xosc": "3c8b75b9d0fc6ff9ad7f11db329e9fd8ad046a13a0375b9b35f03a83e19021ee",
+  "benchmark/faults/F01.ranges.xosc": "7e5c8c24fd41149ff4dd07fed659c04634916f803f0fb699706b4b1fdfb3dbd0",
+  "benchmark/faults/F01.xosc": "67b834c15491a42393a8b09d3b97347fd13ee5d36fababdb18a3ca9915a6a221",
+  "benchmark/faults/F02.anchors.xosc": "d53e9035ec735ea14fa890ff219b0fcaeda4b5dda42c34eceb4a5e70906f190f",
+  "benchmark/faults/F02.ranges.xosc": "5b55a974673d05b6b5d8b46ddf6f8109e298ff2e893fa51a6cd183010ed0565d",
+  "benchmark/faults/F02.xosc": "7fb0f7dedccceac936a43c33524f84d5972f9efa37d61cd406a6d25a77fbd0be",
+  "benchmark/faults/F03.anchors.xosc": "bd5b071d9a6fca15f0468e22b518a1e1adc0aa4dc54a651558c139d6847f1ef3",
+  "benchmark/faults/F03.ranges.xosc": "55224fd55a823f945db44c11bd983fcbe3cbeeebff10a6d7e16f4eeef073c083",
+  "benchmark/faults/F03.xosc": "cfbe04e907e94d4f182421b312ecb8fe1a47d23ef0edf8f659b8981ce8f783f1",
+  "benchmark/faults/F04.anchors.xosc": "72e1305021727adcdc13cf5bfddbed52c2880bb8811efe61bd90b2096fe2a616",
+  "benchmark/faults/F04.ranges.xosc": "3dfb367717dd6adfba0d7a4feb9430cd01e20561d86fa3038e7b6fb8a1aa3cf5",
+  "benchmark/faults/F04.xosc": "35f7ffef2d4b01b5d65adc96221b575d765e0d5ca9f31e5eed4d1e82e7be45f0",
+  "benchmark/faults/F05.anchors.xosc": "537864fe43bb833e09ba9999cd332a368b22b845beb1c59d157ca516cf1b4a38",
+  "benchmark/faults/F05.ranges.xosc": "f3faf24dbb6697459a72de0e143e899385a44b09703a7d03dfacce25ab4854eb",
+  "benchmark/faults/F05.xosc": "b564c925e6b2db9c3e8ec6975ce2dfbe2e1715a1b14282aef2dbf0456394cf56",
+  "benchmark/faults/F06.anchors.xosc": "4ca2b1d574443781d52eed364327da49b42664b1bce92dd4281bd8482aa18ec7",
+  "benchmark/faults/F06.ranges.xosc": "a038cbfc6e2eb052eec0dddd0c9b4673c788937b5f31fbcab9a04d7c6ea66de1",
+  "benchmark/faults/F06.xosc": "170ff56429fafbcfa922a83ea4ae7d2f50ce88b0550bf1825a8246f9133e6a54",
+  "benchmark/faults/F07.anchors.xosc": "b5e4ed98d306606b4430e80b27feef48091c63565124a89c42ddaf1bf1274a87",
+  "benchmark/faults/F07.ranges.xosc": "89388fe714e1a7138d69940f6a779d8a9eb8ef64487e7c74b29289e10b9fab13",
+  "benchmark/faults/F07.xosc": "2da437fd19d4061579eaafe95601894876273d8de1e5c86450125cb2c7720a21",
+  "benchmark/faults/F08.anchors.xosc": "01b2157310dc9607d8de420582d30eaeba90d896a9a28b5467bf9c10fabb353a",
+  "benchmark/faults/F08.ranges.xosc": "e3cfec55362b3db0fadf7ed6174f16a36a8e30912dd16020a0808905604dc729",
+  "benchmark/faults/F08.xosc": "fa0c4f2d9f039208c8d7f8a51099f4783a1677fe8b11b7c7ec9a410d925e2196",
+  "benchmark/faults/F10.anchors.xosc": "54a389c83b1d2e9d25c587d608b237fa6aa624debd84307852ce8b0d03d48468",
+  "benchmark/faults/F10.ranges.xosc": "d1ee56270c85fa2a2415e0d67af99669a18fadcca5f0f2b1f3395f1495979fbb",
+  "benchmark/faults/F10.xosc": "6b51e5cab4fe579cc33976964af358573460e155f8e101f0d3769f774ef6cac9",
+  "benchmark/faults/F11.anchors.xosc": "e87de1600dafa98c9d7867ebcf4f685fb77d5a782af66e3aa832b9879ba25eca",
+  "benchmark/faults/F11.ranges.xosc": "de43af086ac0ba2620fadb040e70fdcd2bead22ddf221a2aa55fa34740ad7530",
+  "benchmark/faults/F11.xosc": "4e0f6c7efb65f43634c8cc50eabbd991b71dcaaf687e4cd8a18ff0f0694a8962",
+  "benchmark/faults/F12.anchors.xosc": "fe288c526293b49c354adc4dd26d768812239868e06fd540c49cffcc8bc37525",
+  "benchmark/faults/F12.ranges.xosc": "0f9b7aae83c5469ebe4e8ae2af6ddd5bbbcf6c06d5718b629981f32a47d0d908",
+  "benchmark/faults/F12.xosc": "eb9aa67ed27077c2e908f4db2bd680138f740ad984366ada6c57c2c3acd5629a",
+  "benchmark/faults/F13.anchors.xosc": "d1f60b697d1fb407a8d479d9d2b568f9ac293f384c7587d65cafc4789b94c140",
+  "benchmark/faults/F13.ranges.xosc": "50ac437f99bb4aecc3b2a9442ae9e5360af979af0aa08f779f8a13b2f27ee3ad",
+  "benchmark/faults/F13.xosc": "a9ed7660c1c5ec4a931c40d7812cb9762f02235f353d561228806231a8d93960",
+  "benchmark/faults/F14.anchors.xosc": "57d0f8d32669cedd866b3f2be2797d87f7a9b3c842c4c1e032946cf0c87437ca",
+  "benchmark/faults/F14.ranges.xosc": "a6119b80d2d8ba37a2f2d8cb26111f31e577a01f40b1ec78f2afd0db1a923162",
+  "benchmark/faults/F14.xosc": "f3ab7c734369960b3a1a902dd26b7c6f1ec548cdf19d7b262a22011ee61bad1f",
+  "benchmark/faults/F15.anchors.xosc": "5040c3a78e3192ae7b29716a5e4f0e7987ca1568d8a04e9756f5e00613d18eb6",
+  "benchmark/faults/F15.ranges.xosc": "d2632be3fba1046b619e25f67fb177ecbbf97be0736d6311936e668a1553c490",
+  "benchmark/faults/F15.xosc": "33c87fe74b75aea6efe2b1a99cacd06f738a5553a6ccecf0063b1c6736970ded",
+  "benchmark/faults/F16.anchors.xosc": "5b89af7300a3a217a72c6fcd62263e9cbb1c8bec115319a9bee96b78854312d6",
+  "benchmark/faults/F16.ranges.xosc": "08335792cb2d55edc30af4c83993390e32b5eeb456f1e5c3510a7ec183570027",
+  "benchmark/faults/F16.xosc": "f3dd1ab42c6661e60d366d75a8dc5505364ddd1c8c823aa899dc240654ad9cc0",
+  "benchmark/faults/F17.anchors.xosc": "6cfd453388726e01d7b4b0e8a2b4bd17800928c0b3c05714eee06c1d9e29cda3",
+  "benchmark/faults/F17.ranges.xosc": "58c50ff4f457a83c85b20c23682a15d950a7c4d70904b2bdc1662fba8f002fa0",
+  "benchmark/faults/F17.xosc": "1a89d26a75b3fa91913f4721ad371a73844d3ce40fd6979d7d279f3add309d41",
+  "benchmark/faults/F18.anchors.xosc": "f5689a5d306dd1493507b183a4feabd955098daaa686338e923bdd4deb526ca4",
+  "benchmark/faults/F18.ranges.xosc": "0933e635e995860f313ed0454681319a7ba2d320cb5a4497dc0fa596e6e3f0cc",
+  "benchmark/faults/F18.xosc": "11bab170bb9da0be12ee4d7adf327ad11927a45c530ae718eedd4294a12b9d4c",
+  "benchmark/faults/F19.anchors.xosc": "3b02d5d686079d4b06f98d90a3f1d3a647c1962500d18ea0c9bb7a6b5bd7d3f1",
+  "benchmark/faults/F19.ranges.xosc": "ba5c10b6cbc42256c5d239b03f13afb56891a70427d498192a42bd748cf51fba",
+  "benchmark/faults/F19.xosc": "0897a4fa2fd4cc90959fe71cd509da84adf7c3651166b20f86fde0d273bd860f",
+  "benchmark/faults/F20.anchors.xosc": "1e58f6a2d6c7c3eef3610d18c5ec041d34062db1fdfc156f36a0e184d1c95fbd",
+  "benchmark/faults/F20.ranges.xosc": "cfeb3bb5cf969cca409fd8c4ae2ae6224120d3e061dcdcf6ec8ff0e0ef386567",
+  "benchmark/faults/F20.xosc": "397cdb49beb151db0b9ce94d5c80456009dbcdaaa47335bc83e6173db590e9af",
+  "benchmark/faults/F21.anchors.xosc": "5c6790def2c1b4acfd20036649eaf5c7bcd6457316aa33970f673c4cc2b0af21",
+  "benchmark/faults/F21.ranges.xosc": "1e2aed7b662885b1c80c23e34f9dd1620b970b1ea7aff0a73e24cbec91c9d20f",
+  "benchmark/faults/F21.xosc": "9ae989f3a7b23e04ae52853972490bfc3e67cbda1e7f4b81dbbc4d4dba691920",
+  "benchmark/faults/F22.anchors.xosc": "27525f1aadb54ed5ca2a6f9cd074ef4f536b5e3abf77cc2fafe15cea1cd7b346",
+  "benchmark/faults/F22.ranges.xosc": "92b78bdf91320fa007a4e8e6a6b90f851d5aea2b8e0c5c41e01813ac637be611",
+  "benchmark/faults/F22.xosc": "d0687d41f676cd84f7e38b85b9a0ef6b2a32fe7c142d9a20dddaaadefc9a99a9",
+  "benchmark/faults/F23.anchors.xosc": "64f389c9737702eab5ab1e56a06551587b816d60348bfe43173f72c23edfc9a9",
+  "benchmark/faults/F23.ranges.xosc": "bfa968f901b6578c69c656cb8f3cc567918d1a119472dd674acc97b1ee40eb44",
+  "benchmark/faults/F23.xosc": "804541fc2025a04c9bd5cce72c64aa1fd960b8cc177abc16bc9399e136ed1967",
+  "benchmark/faults/F24.anchors.xosc": "ee08994e6e722f318c7ec4c0bb4b0326aa8f6d6395dcaff4bf62fffbe9123965",
+  "benchmark/faults/F24.ranges.xosc": "1c680cba1490e8ccfb01a67cfcb39cc68352c7fae597cf7b6f4644a8cca1fcf4",
+  "benchmark/faults/F24.xosc": "c9592a26cc126d07cc7277464cb4ca7829eb4fbdb86326ff08c0fd0d73f2b5d2",
+  "benchmark/faults/F25.anchors.xosc": "8020bf36053a17a62a7c02d7c24dd2e7f3bbf44c5aad6a8403b3fc442a6ce4a0",
+  "benchmark/faults/F25.ranges.xosc": "526b3427756d3903a0ae9563bf8c0961279302a7ef9c5870ca539e8c4bf604a3",
+  "benchmark/faults/F25.xosc": "8a462b6cc8526e7fcfcb9f9454d2bbe7e8744b8d2a077b727efdf336fcc78be1",
+  "benchmark/roads/F21c.xodr": "90aef40f4a67ad1cbaca2579bdca1c211f9d51e7d0dc7069b01def15e03e085e",
+  "benchmark/roads/S12a.xodr": "01e3ec2ef9952585a23576c85dd8cfa4bce61a8632dd956e12fd2464581a759e",
+  "benchmark/roads/S14a.xodr": "23b20fdbc4e0a57cec2b384708b099e345e802533d9c22106b2b4e88b407bd6e",
+  "benchmark/roads/S14e.xodr": "6db22f05f6538a3303dc1bf5b663ba6abe6dc6cb912933344d9ceec3a493c8b8",
+  "benchmark/roads/S15b.xodr": "ee8210e67cbea3794cf0db7d4a75f830cc60e9dc4b2bb820d8035e78639dca2b",
+  "benchmark/roads/S15d.xodr": "e6218f531d7c3fb142138437d533bda431a67c28579e7ed4601d301270337970",
+  "benchmark/roads/S15e.xodr": "8c00af41690f384e36f1e375c8c1792e3bab44884f5916530f995c3f9986dfd7",
+  "benchmark/roads/S19a.xodr": "a7ee88f333d698d62b42b7a02fb01cb8bf467985c69f2a218302b512035ebee9",
+  "benchmark/roads/S19c.xodr": "186e4395ccba0ea3e9c6573eb8a4b9239c49f4a706a1c5d13886334e925085f9",
+  "benchmark/roads/S19d.xodr": "ad0b11a34ffb58bfc3bcb6dcdc69defdf2f7035d5d5af014d764d8d4d5bd8e85",
+  "benchmark/roads/S19f.xodr": "63a930f3145407e01e39ad00161ef5180214817d895ee5558d59d91062a887ca",
+  "benchmark/roads/S1a.xodr": "0628cdcc6f007c0b9ee60488807fe9765d4f69059132adaf6579379ac9c881a7",
+  "benchmark/roads/S1b.xodr": "7dec07d2d53df40fa6c7a357982edd8303e1ebbbb16b24a9c97fad8a5f4f51ac",
+  "benchmark/roads/S1ba.xodr": "23b20fdbc4e0a57cec2b384708b099e345e802533d9c22106b2b4e88b407bd6e",
+  "benchmark/roads/S1bb.xodr": "7870ed7db4491d048fcb5c8281afe9146e71256af9c98e059f045362c8a7c57c",
+  "benchmark/roads/S1bc.xodr": "c734c5c6eb7f2d6675057a786b6e3ea507f86758b74c05ca6a410a241c040728",
+  "benchmark/roads/S1be.xodr": "5f4e78bda2392861f08ca4601bbab653d9bd43ba314e502ff773be10fcb82450",
+  "benchmark/roads/S1bf.xodr": "e2d77cb6f0f3f07b6c7cc2c2e623808466c4a27d088f1eaeb7215d2b69fb57a7",
+  "benchmark/roads/S1c.xodr": "dfce0567d491785677e65050d0063151323b64693d48fac24921e88e7664a7ec",
+  "benchmark/roads/S1d.xodr": "d66beb1d253d7743fda2442e44eefde10f8ebe8e0f03d6a2e85c5d23004297f6",
+  "benchmark/roads/S1e.xodr": "b45b2526146a86e0ad7c7d95d6fe5b969690e9e03725acc87d8ed541103d9ee2",
+  "benchmark/roads/S1f.xodr": "6db22f05f6538a3303dc1bf5b663ba6abe6dc6cb912933344d9ceec3a493c8b8",
+  "benchmark/roads/S1g.xodr": "e7766ad704e4a6b692a9c903023fa67b1f5e8619d54332fbc0c5f7481289f9bf",
+  "benchmark/roads/S20a.xodr": "b58ee48316b13097cfe27ecf2f1082ce7e579cb50eceb3ecf8f26b26b4be427d",
+  "benchmark/roads/S20c.xodr": "26889562349693f7ae31a32274127a79f7e2cc9a3c9330234f973641770b54ce",
+  "benchmark/roads/S20d.xodr": "d39161574dd133bba55f57cd5d5f267a4e40876d001fcd3dc02fec0fafbbb384",
+  "benchmark/roads/S21b.xodr": "b58ee48316b13097cfe27ecf2f1082ce7e579cb50eceb3ecf8f26b26b4be427d",
+  "benchmark/roads/S22a.xodr": "1bfa69543a7d96b99281d23361ff678f6fc6ae4b0521dc04196ea635d05b31a0",
+  "benchmark/roads/S22c.xodr": "4e94c07573de85fb15e7b05e07df2e576b1e9387524b76e1a399bdb6a845bafd",
+  "benchmark/roads/S24a.xodr": "a861ff890ee099b60dc45bffde0e3f4c0f7c2c4d5124cd998dc431508b8572ce",
+  "benchmark/roads/S24b.xodr": "d34ef9c854114ff11ffc9965b4b12417e1764f96607c2ad5a5a15a8d9ccb5a24",
+  "benchmark/roads/S2a.xodr": "5cf9d933f9bb8a0b17cf50cce4c3ebae869bcf820dcb1afa90d641a1e892820d",
+  "benchmark/roads/S2b.xodr": "5cf9d933f9bb8a0b17cf50cce4c3ebae869bcf820dcb1afa90d641a1e892820d",
+  "benchmark/roads/S2c.xodr": "5cf9d933f9bb8a0b17cf50cce4c3ebae869bcf820dcb1afa90d641a1e892820d",
+  "benchmark/roads/S2d.xodr": "25501d94d3a8626a7465e2b8ac12816ed3f7f8057668bdaeed40c75773e64a66",
+  "benchmark/roads/S2e.xodr": "3d27386522be135d1590856c01e9e8813968374aea61b6210a84cc4bf59b6597",
+  "benchmark/roads/S3a.xodr": "eaea4cad97db8dbda483a152480aa8f5a7b483442c197cd48cd2fbcae6a59d6f",
+  "benchmark/roads/S3bd.xodr": "e48325a0ae6dd8a59bff92929aaafcd3789bf056bc10741385f8f3854a194b5f",
+  "benchmark/roads/S3be.xodr": "e12238df0cbcffeca7e34e7ca370b9a903aa246fa0404be577d96e72b35c3f6f",
+  "benchmark/roads/S4a.xodr": "f676b56f651374e1ecf6c57514c39bfc0ea40a1d704b2b4c628f5cfd5e4ee3af",
+  "benchmark/roads/S4ba.xodr": "1ce8ecaaf80f863c1d869ca94115fa1be167b8ab87d4de3a588e3300f3684e17",
+  "benchmark/roads/S4bb.xodr": "9f8e33d081fb129bdec1eba319380fe1d46501f0fd29eeeffac16b365e644df2",
+  "benchmark/roads/S4bd.xodr": "676387a29374be45ad3a06aa1a0ca2274b95c5026d121a37268f8859196a24a8",
+  "benchmark/roads/S4be.xodr": "818ac106875d1de9024a426e7b2d4cb1a67843cbc65e46e1e743c07a80542561",
+  "benchmark/roads/S5a.xodr": "cf1fb41900164819507b7dff05e4ff89c62171b61601a1cde65a04ee655e9163",
+  "benchmark/roads/S5e.xodr": "892a376d040ae9bebf15c0ef61b6f48865358ff9c6ec3a880ce84ad67c88024e",
+  "benchmark/roads/S6a.xodr": "b40febce1fac578e5f2de417211186efa22ea705046db58205dfc03a5e167986",
+  "benchmark/roads/S6ba.xodr": "0a693c88c0c60447e0b96d8e2bd6d500fbafe916e2fc513f7746e2947d28ca74",
+  "benchmark/roads/S6bb.xodr": "ddba4fe706268084814ad4f544ef0383274d2f255d507bcb8d276c0eb06dbb9f",
+  "benchmark/roads/S6bc.xodr": "6059754b1daa2ac9e89b88ad9d2c52c13f0a868e56ecf3f04963fe864dcf4f6f",
+  "benchmark/roads/S6bd.xodr": "7f9f767c7fec0db7a9897f865519f7fbbca1b05acd651ae9363a1de5e77b5825",
+  "benchmark/roads/S6be.xodr": "d98c68b27b0a921c0e8acb692ced42c35137d735f80e594de431e8625b2f1c8c",
+  "benchmark/roads/S6c.xodr": "119949e2e0a309dd0d3aaffcfdf62d92d5bdd0838dde0660c07905c84f807cea",
+  "benchmark/roads/S6d.xodr": "7217f94f3fa72b8c72b8fea7e14b3ac5290231af2574270e4ba881c5329cda0c",
+  "benchmark/roads/S7e.xodr": "3767d9cba5f8238f7dbc67a19775fb627eea2f417f3c136673cf69122a24388c",
+  "benchmark/scenarios/S1.anchors.xosc": "07b54fe23922dad1ddfb202a6cc38b3af7019503232046e882ca3209d6d1cee7",
+  "benchmark/scenarios/S1.ranges.xosc": "5dde3f4863536a098de0e7445ce9c605d613925534d4d9426f92c2a55257880e",
+  "benchmark/scenarios/S1.xosc": "5e4f8af8c17434cd334f9588699456df344dcc114c4ea2ee48af956f7bef527b",
+  "benchmark/scenarios/S10.anchors.xosc": "cca96f84472fc1d9b231a88fbd83175dfcceea8200fc48bf884a7b9b4ea61793",
+  "benchmark/scenarios/S10.ranges.xosc": "d196bf60489baba42a3d90951392e660e323c4b210e4158881788d5554e380a8",
+  "benchmark/scenarios/S10.xosc": "ad1b4c4f3642101e8cd892c049a1584f1abe9441dcc8cfe5c8ff81d1e07d0248",
+  "benchmark/scenarios/S11.anchors.xosc": "87bd0be3600c50833f1025672e4199e80babaef3b1e09d39ef586bd7b429d635",
+  "benchmark/scenarios/S11.ranges.xosc": "3d1f02cc8c053191133a015b800620148ff0139cb1a8daa26f906c5894f54b72",
+  "benchmark/scenarios/S11.xosc": "a66441a8ac3f34a9493f1df48b6504d66e6fcf2f9e6ff8535d44661d326ba891",
+  "benchmark/scenarios/S12.anchors.xosc": "c5a61846fd3a68b8cee71d802b08388f002e7c1d075783a9c13d76f8b3839a5d",
+  "benchmark/scenarios/S12.ranges.xosc": "504f065161d7a73f61aa7a26bb4a78f5189da1010a1fa0d8566effa85b0ddfc5",
+  "benchmark/scenarios/S12.xosc": "227b745a9a7fea7bb888692852b887de74fb9490e942d8475f557d4eb561ffc4",
+  "benchmark/scenarios/S13.anchors.xosc": "dfbb8a47f4f0cff25e4d21da54377dbeff0f39f3ad633b99fb0544eb10dfa329",
+  "benchmark/scenarios/S13.ranges.xosc": "7685be3fbf504ca1a953b95fd3c73f2f88b9a0732dd40242e459bc97849e22f5",
+  "benchmark/scenarios/S13.xosc": "acad5189942db18cb6b64592175323e3fa688e5c985621257a7930647add07bc",
+  "benchmark/scenarios/S14.anchors.xosc": "1d994f80c654ccf5cfd2a2bb62c52dabc792e58684976ac445f36f83d4ac3ee0",
+  "benchmark/scenarios/S14.ranges.xosc": "54f627627185f30625b221451f4339cc9d7d022b9999aab0ba71c3e285d5d333",
+  "benchmark/scenarios/S14.xosc": "fedd11ed4e250ea31ac09576a94ee3e0c8372658d2da4aa84f789910a6eb453d",
+  "benchmark/scenarios/S15.anchors.xosc": "e78772777a695406ca32b292eebad0f4a8dceffc19dcc810b15e470840991684",
+  "benchmark/scenarios/S15.ranges.xosc": "3b8caf5b464a2565ae478c5ab450ffcdd04e59947ab57d06c8d81d1da0e734df",
+  "benchmark/scenarios/S15.xosc": "9a3acbdb5b59e2d6ea979dbd817604a05acaea8253e1eb9886c9688a048da10f",
+  "benchmark/scenarios/S16.anchors.xosc": "3df2dd80403d33933393512e4a124e03dd3b191d9daa7743f7176f110ab433ab",
+  "benchmark/scenarios/S16.ranges.xosc": "398968576b0659cc75671ae28fd79a6afe51843f58c4da9bfdd218167055ac9e",
+  "benchmark/scenarios/S16.xosc": "2e292c3fe6e27ba253d2bdd04962f997dea67a01bff1d217582f0e610c145e16",
+  "benchmark/scenarios/S17.anchors.xosc": "0679d3d3c69e9744b5e0ea8cf22f48a706106e7d03f85455652b49d2d1146fb4",
+  "benchmark/scenarios/S17.ranges.xosc": "fa2dab91e169a9011d3b46cb9f775e71f0123095f8d6e17b2b7587319e9b0960",
+  "benchmark/scenarios/S17.xosc": "35f5fa4ec4416bb406054dc6d6ecc1838a70b17f545448523810ef5f5fd98960",
+  "benchmark/scenarios/S19.anchors.xosc": "aa595e500c8ff0c371303ed16880ed1dd3acedf6c1e2b8e07b04cdec04e6bed3",
+  "benchmark/scenarios/S19.ranges.xosc": "065c0c14b39fc44d65274be7eb5ba8e7d84235546570e449be6790d1f8326469",
+  "benchmark/scenarios/S19.xosc": "3773c65cdb2e9903b41ebaf260fdd9cd8f5e8591085146703a2f18c795ce2d62",
+  "benchmark/scenarios/S1b.anchors.xosc": "08d91165b98322d51b7e8ba2c33ec47ec479585efffb01998b34db7d08c263d2",
+  "benchmark/scenarios/S1b.ranges.xosc": "69d89da2c7be6a6000286301098633f805d610145fda313b545dde2db924042f",
+  "benchmark/scenarios/S1b.xosc": "4fc2bb03e2c9a7d32ff9c477e1ab05d5d76e2b67df41181b219d8d899bb556f1",
+  "benchmark/scenarios/S2.anchors.xosc": "f11bbc836b6cf915ce0afab32d19388a603cbce53ab889e0a5bec14018451f43",
+  "benchmark/scenarios/S2.ranges.xosc": "fc9035326bea6227ec3f9b439c6090ede81d5293f05cca186165428bd48b522b",
+  "benchmark/scenarios/S2.xosc": "743de6d0100856a25cc9cb362ed0f5948a10b1bd77b4947992c28f441ef1de66",
+  "benchmark/scenarios/S20.anchors.xosc": "8afe158f68074ece5fe7d6cc6c94a0497fae1dfb582df932d06a9dcf547ba56d",
+  "benchmark/scenarios/S20.ranges.xosc": "4b036cc45bbc1cca8ca45195f67179dd7a199ef47b363a4fddbc3a0f9e7920de",
+  "benchmark/scenarios/S20.xosc": "2971e78596621137341c92075ae260be19daded0931f34f639ef331d3ad7b92b",
+  "benchmark/scenarios/S21.anchors.xosc": "8274461bf849d724c0bd8359016b1d1a34900c3ac205bb1a799d6ecaf8579cbb",
+  "benchmark/scenarios/S21.ranges.xosc": "1455e4d745d3ed793fe8a512690b38171b359a3257fe672ba660750996c577f1",
+  "benchmark/scenarios/S21.xosc": "f35481c11253d07a4feac73ca51f0046d872b6ba9c05954d087d126214f04e9a",
+  "benchmark/scenarios/S22.anchors.xosc": "026a84ad0c9a7319593a3e5fc476fe933622d6044a24f5e93dfeb3867fbc070d",
+  "benchmark/scenarios/S22.ranges.xosc": "f069bc0ddc94f0434529594b69166067e8fc7a2f741c33760bf17e55f7ee9d38",
+  "benchmark/scenarios/S22.xosc": "377a3ff04b76bb3178ad6f03aa0ddc186b4d584339b834112aeb497e4625085b",
+  "benchmark/scenarios/S23.anchors.xosc": "4e0018c36d3f9b1c9d262def58bb44495fce920492b25116661a4ba6362040e6",
+  "benchmark/scenarios/S23.ranges.xosc": "17e18e0c894da9419d253a4bf8c7cdda8af5b9df50e0dc225939118f3533011d",
+  "benchmark/scenarios/S23.xosc": "480aa947e0cbed8ddea0b80c1d95e8740a124d4b5d977515624c668b0069fb2a",
+  "benchmark/scenarios/S24.anchors.xosc": "7bf7b797227f1474bd58fbb36b7da6a060cc1ea66e34a6b67948bfe0008111d8",
+  "benchmark/scenarios/S24.ranges.xosc": "03d731e07217616ce597e764b899dc68289118084d76ce8b0796c22875996757",
+  "benchmark/scenarios/S24.xosc": "5b906026924cdaf074d5216ecad67d99caa8bf437e8280535abc5606f528c8a3",
+  "benchmark/scenarios/S3.anchors.xosc": "9a44c865fda6c8ee2b7f661182b2fa398dbb934ac8e06e852fa673d4f95fb34e",
+  "benchmark/scenarios/S3.ranges.xosc": "a373d6eaedd5db32dde18f5747d638da1cbc637c981f84df979e0c31cd7ae390",
+  "benchmark/scenarios/S3.xosc": "fb6b09314fe60051f41074d5384dd693d0e974fbe5c8ed3438992cbc38ce878c",
+  "benchmark/scenarios/S3b.anchors.xosc": "a6c04052fb65dc8306492fad8962d71b76db1c67c48c83576556b6f95bf3cce6",
+  "benchmark/scenarios/S3b.ranges.xosc": "99761e99540da6a2b7796674ab791f81455d35b0d06b19ad746203295b3b0143",
+  "benchmark/scenarios/S3b.xosc": "6fc0f97a6583eac0543a443bd6e015f08501228633bfa38835d4a1d096a154d3",
+  "benchmark/scenarios/S4.anchors.xosc": "d8475d92570aee274b926cb6c4a907ab359376a9f858051f0966f084b0096d4c",
+  "benchmark/scenarios/S4.protocol.xosc": "e8705a9e7cc1b4982ec66df0a1db9cd26d8764218fb25e3a3405428a52b8e680",
+  "benchmark/scenarios/S4.ranges.xosc": "7bea4d640883a71f321837f7c06623bd9b707a789ee1f11bc7b44080e3e5cb74",
+  "benchmark/scenarios/S4.xosc": "d21975c585328f59aee89c4ede4f9de0a71e9857780530e183437cb03858c2cb",
+  "benchmark/scenarios/S4b.anchors.xosc": "8a1a5f61a69c641e1c6b6a383e610407433206d40714bfdd8caaf0bdea2afdfd",
+  "benchmark/scenarios/S4b.ranges.xosc": "15d2fad8bf298fca20af967d4d6c1621db9a3210d80db6423294865f9623affc",
+  "benchmark/scenarios/S4b.xosc": "a985e8fab2a603e856c5e7e7977f0f4679571c90321927e636c9d46376523482",
+  "benchmark/scenarios/S5.anchors.xosc": "83989e7cbdbdbcd41e05d325933e59d47b5f26931ad087c32480f58d976de9cf",
+  "benchmark/scenarios/S5.protocol.xosc": "6672afddfe448f32ab2bb8b3f31e1e6bf933ea1eefbaee018d87a0d51a4b2803",
+  "benchmark/scenarios/S5.ranges.xosc": "b7c9a193e429e2a59c2c14f8f9bade29c401f250effd64a388a6efe6cdd77a69",
+  "benchmark/scenarios/S5.xosc": "a15ed6496068a7816987bd43f9fce23aea6f63ee3249a4d417b7856c134d7694",
+  "benchmark/scenarios/S6.anchors.xosc": "8426b9f01dc19b67d6a2c4cb46260384eb99effbd1de1ef73eacdafa228b0e18",
+  "benchmark/scenarios/S6.protocol.xosc": "da7eefe1849f8c6aa604681ddff9c1e51c83ee7cf7e9fb55fc8ead3a749c1357",
+  "benchmark/scenarios/S6.ranges.xosc": "6bc5f8b014726c067a204554bfcb65b7779256699198959f43a63315987d5c81",
+  "benchmark/scenarios/S6.xosc": "875efb1b9e3861a0679a6988663c6cecb04407903dbee677ca1851f0c2fb7d18",
+  "benchmark/scenarios/S6b.anchors.xosc": "791eda326afbc139505b94c09f89f9b0abd8f797652cc610ce09cb53d24585ca",
+  "benchmark/scenarios/S6b.ranges.xosc": "9b3034b296596f338f77fd2e4c97e19bc8a9ce1205742e113f73864f469fc9af",
+  "benchmark/scenarios/S6b.xosc": "3527817ce60691106ab8f31f09ac9afbe8f6511c98460cee18b98a6b24655501",
+  "benchmark/scenarios/S7.anchors.xosc": "137a8f05ec7c08945158af01ad59c02f8afa5657093f3db3dde1df1005908984",
+  "benchmark/scenarios/S7.protocol.xosc": "65a81af11a98779f4d9e446f3faaebc7c8b0499ca03b3a657fc5b24023a94063",
+  "benchmark/scenarios/S7.ranges.xosc": "b0052b1b73ac5d0c91c24cce2f0d7e8716329d0ead6732947dec138d26f6f91d",
+  "benchmark/scenarios/S7.xosc": "157cedb303a6164db08446dd58db81484532927dadff1dda6e8b3ca06b18f1ee",
+  "benchmark/scenarios/S8.anchors.xosc": "e8ec5b89d3ff947394366c6d1644625715f34a1170c32b4a3f75c23b5b14be8b",
+  "benchmark/scenarios/S8.protocol.xosc": "c17b90eb246f3996015f1525f92bc2fb5f3a8701f59eb4bedd7097c1543ca31c",
+  "benchmark/scenarios/S8.ranges.xosc": "8c903a1611a39067d07298e91f679f29236eb57a7c07cdb425f100e2bf54ea58",
+  "benchmark/scenarios/S8.xosc": "e3085f49427fb3334a171cb96f7a8231515beae99d75864624567c817b353603",
+  "benchmark/scenarios/S8b.anchors.xosc": "f69c8c5e135d77c26fc16a2db093757160e3ba2464c9b749e65fc184c75d5186",
+  "benchmark/scenarios/S8b.ranges.xosc": "5e881e60d236899bd7537a4e064ab3220ed2afea446ed91dd6e41c44e2d097ed",
+  "benchmark/scenarios/S8b.xosc": "6213d70b61c1bd3b875b41198af8f17c9470a77673c8783feec3bbab51ff64e6",
+  "benchmark/scenarios/S8c.anchors.xosc": "3d1aae7ab6dc9b00fc638e3e1c02e156b117dea8286efa77b501c52389db4a89",
+  "benchmark/scenarios/S8c.ranges.xosc": "ec1063403aaa0b0b58767809fa2691780533b80f6db1344057cf20fcb124b6f2",
+  "benchmark/scenarios/S8c.xosc": "4d3cb2aaf610936b22430031756b5e5ec619cf4b36e5306bdba2f4af1b78d3e1",
+  "benchmark/scenarios/S9.anchors.xosc": "f6bc80ad2607da4266564cb8ed43096e6e56e95928db1a197920e1e9aae915d6",
+  "benchmark/scenarios/S9.ranges.xosc": "d565fa83b67fe1aa1f0e29e5e65cda0d5d5d704d4ae5c35fd2bac926cf447051",
+  "benchmark/scenarios/S9.xosc": "1813fe887ccc1fbd2107649fbe3a63a6d51d58ec24672d2566463209be925f62",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Core.xsd": "afc44f4fd82083d1f43dd3d2c1d3e78626c1149173e9b9795cb00cfca7531fee",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Junction.xsd": "73fd0bc0a461b872e3bae1226060b5db117b0697ff44ed2a905116e7b8b7b54e",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Lane.xsd": "ca5cea10128dbba577cca92fe4b7ec8b78697d89c612e1c3baefc4936cbb655c",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Object.xsd": "68b3133e8216e1ab94029b927104ee842ac364a41b2cdfff1080d9b093278407",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Railroad.xsd": "ab7f1cd39f1d7142de036641f7ac5728f89df195c56218a1faa8c25d3a28b08f",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Road.xsd": "753f90461f65b28a559d3244fe30e59134accf1f46fb8b2025d1a8d544762bb0",
+  "benchmark/schema/opendrive-1.8.1/OpenDRIVE_Signal.xsd": "08fe2aebf6459f43198271ec37be7b4f5d4d4f7e8135fb89073fba2888811e86",
+  "benchmark/schema/openscenario-1.3.1/OpenSCENARIO.xsd": "1c86539c61264c691c1031ec78e3a93dcde63876f7f769428c330d4fd86c26a4",
+  "benchmark/schema/sources.json": "ef485a66b387072b543bb9735c586bedcbc5a709d2e1ef1666a2fe008c1149a1",
+  "benchmark/suites/M1.yaml": "aceff5d59fc956d8c4cdf6e196c78a1b3d10f07cfdf39bef6599dab5f5475e82",
+  "benchmark/suites/P1.yaml": "cc6e83b88b3ebb12518c24602a3843827de0cfc9011b06025051ed5566bd5d51",
+  "benchmark/suites/PP-PR-032.yaml": "77fb47b6ab232b3dc9d7b2c557edf63902d658eb1ac4ea025c67fe518fc7fa2f",
+  "benchmark/suites/PP-T7.yaml": "8b434ac697b806d7d24902704f262ce82fb27a35188b00e692524b1cbd68fdce",
+  "benchmark/suites/PP-TS-001.yaml": "be55812a4ccf5497ff0f5899b6d39d7ef6822130fcec50596a9fb9b114058685",
+  "benchmark/suites/PP-TS-002.yaml": "1e58b89caad474e022e4c10110f43250ec2685e4b85008676ca580f6500e3f5d",
+  "benchmark/suites/PP-TS-003.yaml": "5319a7e7c0d7a5f463a5a90c7ecaef0291dd9fa75c6f025ca18c4f0a3609fafb",
+  "benchmark/suites/PP-TS-005.yaml": "06258883708a30979c4fa0a70d4374d24c927405980203fc51596c30c637b086",
+  "benchmark/suites/PP-TS-014.yaml": "ae36e6c6b55452b894ff391b2073cd4198188d645481a2896921163b565f8b19",
+  "benchmark/suites/PP-TS-020.yaml": "ea05ff8696a632240dd0a42fed08200a4cfb33146f090e608d691bec9b6048c6",
+  "benchmark/suites/PP-TS-021.yaml": "aec3e93a2360d24bb6d252143612333c8b9dcdd57df1ce42763f842511b3a934",
+  "benchmark/suites/PP-TS-022.yaml": "a7dead4e55427de7b7b1fcd077792898b25f76c5204260a2bcf050e8ff6fe54d",
+  "benchmark/suites/PP-TS-026.yaml": "69f991089d5ff949139ea03b0e222e402a3265188c1819dafdf309c4bbe48f61",
+  "benchmark/suites/PP-TS-027.yaml": "9d9205ce9d25212d5e23bd25e8b0279f6db3338f65b538e72d1fd1f862dd869f",
+  "benchmark/suites/PP-TS-030.yaml": "4d7f8c97be38db79f644cfd7ea20a8f69da999387307f38092c2d5e50e50de8f",
+  "benchmark/suites/Q1.yaml": "4cb20c027cd6049262b0f34ba9114208f43e6e954c9f2bfa67a3abd8e7cd3b45",
+  "benchmark/suites/Q2.yaml": "67e39602f33979ac2053d2d32b16e53eb7fee46c74a38a16b3ffcaf59467b83d",
+  "benchmark/suites/Q3.yaml": "52ed5ab001ce434f940da1941074fcf2efb909124499caa0055e0b2c1100a7d6",
+  "benchmark/suites/Q4.yaml": "0e9e1e7b4a8b7862b86b5fdce63ba5cd01f36498380b40e9a655381c057766db",
+  "benchmark/suites/aspects.yaml": "fc0a471b61beac521fdd593b162311f555dfdcaddd8b126cb2e5a2ffe02a48bc",
+  "benchmark/suites/full.json": "b121d39b35067ba1fc9790093d57c0641c0ce299737a11a7bc99fd034d970abc",
+  "benchmark/suites/golden.yaml": "d95f6bbcbddec46b8c4ea394fc38d0aed901fb6ad6819d89ba9c55b5cccb7255",
+  "benchmark/suites/regression.json": "53909d5d8444c311b4d39a5609f8faaa1bedf42f9f086a5dbc6e4afe5aaba4e2",
+  "benchmark/suites/scope.yaml": "0284954e87e9f45fc112f06e33ded55b0b1b0434be81c31fbe68ce8ed6890438",
+  "benchmark/suites/selfcheck.yaml": "0f548504457503005b8f493c5174b83fcb94afabd29d3f50b5bfffccb92d7d30",
+  "benchmark/suites/smoke.json": "ea76cd3b4100709f3387f8b5116ace6f48f44c2b07cb83909a48f1b67a0883b8",
+  "planner/calibration/calibration.yaml": "2432aea753bc5917bc60e0e9ad4542eaab72f6a853f123fb4ff2781633cc4e87",
+  "docs/vi/path-planner-software-requirements-specification.md": "789e9fa778acb51bf6c5a44fc94b479ca2f9f09dd25c64edc718974e3f51c3d8"
+ },
+ "environment": {
+  "python": "3.13.11",
+  "numpy": "2.5.2",
+  "platform": "macOS-26.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64"
+ },
+ "jobs": 2,
+ "parts": [
+  "test"
+ ],
+ "variants": [
+  "quintic_duration",
+  "qp_jerk_admm",
+  "qp_jerk_admm_it010",
+  "qp_jerk_admm_it025",
+  "qp_jerk_admm_it050",
+  "qp_jerk_admm_it075",
+  "qp_jerk_admm_it100",
+  "qp_jerk_admm_it1000_ref",
+  "qp_jerk_admm_shift_warmstart_it010",
+  "qp_jerk_admm_shift_warmstart_it025",
+  "qp_jerk_admm_shift_warmstart_it050",
+  "qp_jerk_admm_shift_warmstart_it075",
+  "quintic_tangent_point",
+  "quintic_ay_sampling",
+  "qp_jerk_admm_mlp_warmstart_it010",
+  "qp_jerk_admm_mlp_warmstart_it025",
+  "qp_jerk_admm_mlp_warmstart_it050",
+  "qp_jerk_admm_mlp_warmstart_it075",
+  "qp_jerk_admm_mlp_weights",
+  "mlp_jerk_direct",
+  "quintic_duration-T_hwa2.5-T_recenter3.0",
+  "quintic_duration-T_hwa2.5-T_recenter3.5",
+  "quintic_duration-T_hwa2.5-T_recenter4.0",
+  "quintic_duration-T_hwa3.0-T_recenter3.0",
+  "quintic_duration-T_hwa3.0-T_recenter4.0",
+  "quintic_duration-T_hwa3.5-T_recenter3.0",
+  "quintic_duration-T_hwa3.5-T_recenter3.5",
+  "quintic_duration-T_hwa3.5-T_recenter4.0",
+  "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort2.5",
+  "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort5.0",
+  "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort10.0",
+  "qp_jerk_admm-qp_w_dev0.3-qp_w_comfort2.5",
+  "qp_jerk_admm-qp_w_dev0.3-qp_w_comfort10.0",
+  "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort2.5",
+  "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort5.0",
+  "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort10.0",
+  "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.0",
+  "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.01",
+  "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.02",
+  "quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.0",
+  "quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.02",
+  "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.0",
+  "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.01",
+  "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.02",
+  "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.1",
+  "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.2",
+  "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.3",
+  "quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.1",
+  "quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.3",
+  "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.1",
+  "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.2",
+  "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.3",
+  "qp_jerk_admm_mlp_weights-mlpw_regularisation0.0001",
+  "qp_jerk_admm_mlp_weights-mlpw_regularisation0.01"
+ ],
+ "groups": [],
+ "grid": {
+  "quintic_duration": [
+   "quintic_duration",
+   "quintic_duration-T_hwa2.5-T_recenter3.0",
+   "quintic_duration-T_hwa2.5-T_recenter3.5",
+   "quintic_duration-T_hwa2.5-T_recenter4.0",
+   "quintic_duration-T_hwa3.0-T_recenter3.0",
+   "quintic_duration-T_hwa3.0-T_recenter4.0",
+   "quintic_duration-T_hwa3.5-T_recenter3.0",
+   "quintic_duration-T_hwa3.5-T_recenter3.5",
+   "quintic_duration-T_hwa3.5-T_recenter4.0"
+  ],
+  "qp_jerk_admm": [
+   "qp_jerk_admm",
+   "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort2.5",
+   "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort5.0",
+   "qp_jerk_admm-qp_w_dev0.15-qp_w_comfort10.0",
+   "qp_jerk_admm-qp_w_dev0.3-qp_w_comfort2.5",
+   "qp_jerk_admm-qp_w_dev0.3-qp_w_comfort10.0",
+   "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort2.5",
+   "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort5.0",
+   "qp_jerk_admm-qp_w_dev0.6-qp_w_comfort10.0"
+  ],
+  "quintic_tangent_point": [
+   "quintic_tangent_point",
+   "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.0",
+   "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.01",
+   "quintic_tangent_point-qtp_center_s1.5-qtp_dlc_margin_m0.02",
+   "quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.0",
+   "quintic_tangent_point-qtp_center_s1.75-qtp_dlc_margin_m0.02",
+   "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.0",
+   "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.01",
+   "quintic_tangent_point-qtp_center_s2.0-qtp_dlc_margin_m0.02"
+  ],
+  "quintic_ay_sampling": [
+   "quintic_ay_sampling",
+   "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.1",
+   "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.2",
+   "quintic_ay_sampling-qas_peak_early0.35-qas_peak_late0.55-qas_amplitude_m0.3",
+   "quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.1",
+   "quintic_ay_sampling-qas_peak_early0.4-qas_peak_late0.6-qas_amplitude_m0.3",
+   "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.1",
+   "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.2",
+   "quintic_ay_sampling-qas_peak_early0.45-qas_peak_late0.65-qas_amplitude_m0.3"
+  ],
+  "qp_jerk_admm_mlp_weights": [
+   "qp_jerk_admm_mlp_weights",
+   "qp_jerk_admm_mlp_weights-mlpw_regularisation0.0001",
+   "qp_jerk_admm_mlp_weights-mlpw_regularisation0.01"
+  ]
+ },
+ "plan": {
+  "path": "research/studies/PP-TS-031-t7-generator-campaign/plan.yaml",
+  "sha256": "f3457772ab050e27352aa26bb10b02888fb70df0895565dc3c03de5f6c3a1889",
+  "content": {
+   "id": "PP-TS-031",
+   "locked": "2026-11-24",
+   "suite": "PP-T7",
+   "parts": [
+    "tuning",
+    "test"
+   ],
+   "baseline": "quintic_duration",
+   "flags": {
+    "relative_failures": true,
+    "lcc_cycles_lost_max": 1
+   },
+   "report": "research/generators/dashboard/index.html",
+   "case_groups": {
+    "cua ngắn": [
+     [
+      "S1",
+      "f"
+     ],
+     [
+      "S14",
+      "e"
+     ]
+    ],
+    "cua gắt": [
+     [
+      "S1",
+      "c"
+     ],
+     [
+      "S1b"
+     ]
+    ],
+    "nhiễu": [
+     [
+      "F01"
+     ],
+     [
+      "S12"
+     ]
+    ],
+    "chức năng": [
+     [
+      "S2"
+     ],
+     [
+      "S3"
+     ],
+     [
+      "S17"
+     ],
+     [
+      "S22"
+     ]
+    ]
+   },
+   "hypotheses": [
+    {
+     "id": "H1",
+     "kind": "paired",
+     "variants": [
+      "quintic_tangent_point",
+      "quintic_ay_sampling"
+     ],
+     "against": "quintic_duration",
+     "cases": [
+      [
+       "S1",
+       "f"
+      ],
+      [
+       "S14",
+       "e"
+      ],
+      [
+       "S1b",
+       "f"
+      ]
+     ],
+     "primary": {
+      "target": "PP-SWR-068",
+      "improve_at_least": 0.1
+     },
+     "guards": [
+      {
+       "target": "PP-SWR-069",
+       "worsen_at_most": 0.1
+      },
+      {
+       "target": "PP-SWR-070",
+       "worsen_at_most": 0.01
+      }
+     ]
+    },
+    {
+     "id": "H2",
+     "kind": "smallest",
+     "variants": [
+      "qp_jerk_admm_it010",
+      "qp_jerk_admm_it025",
+      "qp_jerk_admm_it050",
+      "qp_jerk_admm_it075",
+      "qp_jerk_admm_it100",
+      "qp_jerk_admm"
+     ],
+     "reference": "qp_jerk_admm_it1000_ref",
+     "at_most": 0.005
+    },
+    {
+     "id": "H3",
+     "kind": "beats",
+     "reference": "qp_jerk_admm_it1000_ref",
+     "better_by": 0.005,
+     "pairs": [
+      [
+       "qp_jerk_admm_shift_warmstart_it010",
+       "qp_jerk_admm_it010"
+      ],
+      [
+       "qp_jerk_admm_shift_warmstart_it025",
+       "qp_jerk_admm_it025"
+      ],
+      [
+       "qp_jerk_admm_shift_warmstart_it050",
+       "qp_jerk_admm_it050"
+      ],
+      [
+       "qp_jerk_admm_shift_warmstart_it075",
+       "qp_jerk_admm_it075"
+      ]
+     ]
+    },
+    {
+     "id": "H4a",
+     "kind": "beats",
+     "reference": "qp_jerk_admm_it1000_ref",
+     "better_by": 0.005,
+     "pairs": [
+      [
+       "qp_jerk_admm_mlp_warmstart_it010",
+       "qp_jerk_admm_it010"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it025",
+       "qp_jerk_admm_it025"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it050",
+       "qp_jerk_admm_it050"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it075",
+       "qp_jerk_admm_it075"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it010",
+       "qp_jerk_admm_shift_warmstart_it010"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it025",
+       "qp_jerk_admm_shift_warmstart_it025"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it050",
+       "qp_jerk_admm_shift_warmstart_it050"
+      ],
+      [
+       "qp_jerk_admm_mlp_warmstart_it075",
+       "qp_jerk_admm_shift_warmstart_it075"
+      ]
+     ]
+    },
+    {
+     "id": "H4b",
+     "kind": "cheaper",
+     "variants": [
+      "qp_jerk_admm_mlp_warmstart_it010",
+      "qp_jerk_admm_mlp_warmstart_it025",
+      "qp_jerk_admm_mlp_warmstart_it050",
+      "qp_jerk_admm_mlp_warmstart_it075"
+     ],
+     "against": "qp_jerk_admm",
+     "reference": "qp_jerk_admm_it1000_ref",
+     "p99_ratio_max": 0.9
+    },
+    {
+     "id": "H5",
+     "kind": "cells",
+     "variants": [
+      "qp_jerk_admm_mlp_weights"
+     ],
+     "against": "qp_jerk_admm"
+    },
+    {
+     "id": "H6",
+     "kind": "report",
+     "variants": [
+      "mlp_jerk_direct"
+     ]
+    }
+   ],
+   "tuning_grid": {
+    "quintic_duration": {
+     "T_hwa": [
+      2.5,
+      3.0,
+      3.5
+     ],
+     "T_recenter": [
+      3.0,
+      3.5,
+      4.0
+     ]
+    },
+    "qp_jerk_admm": {
+     "qp_w_dev": [
+      0.15,
+      0.3,
+      0.6
+     ],
+     "qp_w_comfort": [
+      2.5,
+      5.0,
+      10.0
+     ]
+    },
+    "quintic_tangent_point": {
+     "qtp_center_s": [
+      1.5,
+      1.75,
+      2.0
+     ],
+     "qtp_dlc_margin_m": [
+      0.0,
+      0.01,
+      0.02
+     ]
+    },
+    "quintic_ay_sampling": {
+     "qas_peak_early+qas_peak_late": [
+      [
+       0.35,
+       0.55
+      ],
+      [
+       0.4,
+       0.6
+      ],
+      [
+       0.45,
+       0.65
+      ]
+     ],
+     "qas_amplitude_m": [
+      0.1,
+      0.2,
+      0.3
+     ]
+    },
+    "qp_jerk_admm_mlp_weights": {
+     "mlpw_regularisation": [
+      0.0001,
+      0.001,
+      0.01
+     ]
+    }
+   },
+   "variants": {
+    "quintic_duration": {
+     "description": "Quintic theo thời lượng, bản đang giao (mốc)",
+     "calibration": {},
+     "cmake": {
+      "PP_T7": "quintic_duration"
+     }
+    },
+    "qp_jerk_admm": {
+     "description": "QP jerk, ADMM 150 vòng",
+     "calibration": {
+      "qp_iters": 150
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it010": {
+     "description": "QP jerk, ADMM 10 vòng",
+     "calibration": {
+      "qp_iters": 10
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it025": {
+     "description": "QP jerk, ADMM 25 vòng",
+     "calibration": {
+      "qp_iters": 25
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it050": {
+     "description": "QP jerk, ADMM 50 vòng",
+     "calibration": {
+      "qp_iters": 50
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it075": {
+     "description": "QP jerk, ADMM 75 vòng",
+     "calibration": {
+      "qp_iters": 75
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it100": {
+     "description": "QP jerk, ADMM 100 vòng",
+     "calibration": {
+      "qp_iters": 100
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     }
+    },
+    "qp_jerk_admm_it1000_ref": {
+     "description": "QP jerk, ADMM 1000 vòng, nghiệm tham chiếu; chỉ vòng hở, không xếp hạng",
+     "calibration": {
+      "qp_iters": 1000
+     },
+     "cmake": {
+      "PP_T7": "qp_jerk_admm"
+     },
+     "loops": [
+      "open"
+     ],
+     "ranked": false
+    },
+    "qp_jerk_admm_shift_warmstart_it010": {
+     "description": "QP jerk, warm start dịch thời gian, 10 vòng",
+     "calibration": {
+      "qp_iters": 10
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_shift_warmstart"
+     }
+    },
+    "qp_jerk_admm_shift_warmstart_it025": {
+     "description": "QP jerk, warm start dịch thời gian, 25 vòng",
+     "calibration": {
+      "qp_iters": 25
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_shift_warmstart"
+     }
+    },
+    "qp_jerk_admm_shift_warmstart_it050": {
+     "description": "QP jerk, warm start dịch thời gian, 50 vòng",
+     "calibration": {
+      "qp_iters": 50
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_shift_warmstart"
+     }
+    },
+    "qp_jerk_admm_shift_warmstart_it075": {
+     "description": "QP jerk, warm start dịch thời gian, 75 vòng",
+     "calibration": {
+      "qp_iters": 75
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_shift_warmstart"
+     }
+    },
+    "quintic_tangent_point": {
+     "description": "Quintic cộng hiệu chỉnh ngang theo tangent point",
+     "calibration": {},
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "quintic_tangent_point"
+     }
+    },
+    "quintic_ay_sampling": {
+     "description": "Quintic cộng hiệu chỉnh ngang chọn theo a_y và jerk dự báo",
+     "calibration": {},
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "quintic_ay_sampling"
+     }
+    },
+    "qp_jerk_admm_mlp_warmstart_it010": {
+     "description": "QP jerk, MLP warm start, 10 vòng",
+     "calibration": {
+      "qp_iters": 10
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_mlp_warmstart"
+     }
+    },
+    "qp_jerk_admm_mlp_warmstart_it025": {
+     "description": "QP jerk, MLP warm start, 25 vòng",
+     "calibration": {
+      "qp_iters": 25
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_mlp_warmstart"
+     }
+    },
+    "qp_jerk_admm_mlp_warmstart_it050": {
+     "description": "QP jerk, MLP warm start, 50 vòng",
+     "calibration": {
+      "qp_iters": 50
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_mlp_warmstart"
+     }
+    },
+    "qp_jerk_admm_mlp_warmstart_it075": {
+     "description": "QP jerk, MLP warm start, 75 vòng",
+     "calibration": {
+      "qp_iters": 75
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_mlp_warmstart"
+     }
+    },
+    "qp_jerk_admm_mlp_weights": {
+     "description": "QP jerk, MLP chọn trọng số, 150 vòng",
+     "calibration": {
+      "qp_iters": 150
+     },
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "qp_jerk_admm_mlp_weights"
+     }
+    },
+    "mlp_jerk_direct": {
+     "description": "MLP xuất chuỗi jerk, không có QP (đối chứng)",
+     "calibration": {},
+     "cmake": {
+      "PP_T7": "lab",
+      "PP_T7_LAB": "mlp_jerk_direct"
+     }
+    }
+   }
+  }
+ },
+ "finished": "2026-11-25T02:08:13+07:00"
+}
