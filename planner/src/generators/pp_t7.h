@@ -30,7 +30,7 @@ bool pp_t7_generate(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7_inp
                     pp_trajectory_point_t points[PP_TRAJECTORY_POINTS], pp_ref_samples_t *samples);
 
 #ifdef PP_T7_TELEMETRY
-/* Generator điền telemetry của lần pp_t7_generate gần nhất; LCC điền t10_change_m. */
+/* Generator điền telemetry của lần pp_t7_generate gần nhất, kể cả khi trả false; LCC điền t10_change_m. */
 void pp_t7_report(const pp_t7_ws_t *ws, pp_t7_telemetry_t *out);
 
 /* Đọc telemetry của chu kỳ LCC gần nhất từ state. Trả false nếu state không hợp lệ. Chỉ để nghiên cứu. */

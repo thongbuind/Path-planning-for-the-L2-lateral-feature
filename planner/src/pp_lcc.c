@@ -163,6 +163,12 @@ static bool build_path(pp_lcc_state_t *s, const pp_usable_inputs_t *in, const pp
         .d_target = d_target, .objects = in->object_list, .vehicle = &core->vehicle,
     };
     const bool ok = pp_t7_generate(&s->t7, cal, &t7_in, out->points, &out->samples);
+#ifdef PP_T7_TELEMETRY
+    if (!ok) {  /* Không có path: vẫn ghi mã fallback của generator; T10 không chạy. */
+        pp_t7_report(&s->t7, &s->t7_telemetry);
+        s->t7_telemetry.t10_change_m = 0.0;
+    }
+#endif
     if (ok) {
         const double wheelbase = (double)core->vehicle.wheelbase;
         /* Giới hạn candidate trước khi blend. Lần T10 sau bù chênh lệch do tốc độ thay đổi
