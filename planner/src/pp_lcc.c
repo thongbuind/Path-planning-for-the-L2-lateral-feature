@@ -401,4 +401,14 @@ bool pp_lcc_t7_telemetry(const void *state, pp_t7_telemetry_t *out)
     }
     return ok;
 }
+
+const void *pp_lcc_t7_workspace(const void *state, size_t *size)
+{
+    const pp_lcc_state_t *s = (const pp_lcc_state_t *)state;
+    const bool ok = (s != NULL) && (s->core.magic == PP_LCC_MAGIC) && s->core.initialized;
+    if (size != NULL) {
+        *size = ok ? sizeof(pp_t7_ws_t) : 0U;
+    }
+    return ok ? (const void *)&s->t7 : NULL;
+}
 #endif

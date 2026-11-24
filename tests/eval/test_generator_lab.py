@@ -22,8 +22,8 @@ def load(path: Path, name: str):
 def test_registry_names_follow_the_naming_rule():
     entries = yaml.safe_load((LAB / "registry.yaml").read_text(encoding="utf-8"))["generators"]
     for name, entry in entries.items():
-        assert entry["kind"] in ("builtin", "config", "lab")
-        if entry["kind"] == "lab":
+        assert entry["kind"] in ("builtin", "config", "lab", "tool")
+        if entry["kind"] in ("lab", "tool"):
             assert entry["cmake"] == {"PP_T7": "lab", "PP_T7_LAB": name}
             assert entry["base"] in entries
     plan = yaml.safe_load((ROOT / "research/studies/PP-TS-031-t7-generator-campaign/plan.yaml").read_text())

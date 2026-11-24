@@ -61,7 +61,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-028 | Bộ nhớ của planner trôi theo bias yaw của EgoMotionQuery: V0 đến V3 | Mở 2026-11-23 | — | [study](studies/PP-TS-028-memory-heading-drift/study.md) |
 | PP-TS-029 | Calibration chỉnh được khi tune trên xe: V0 đến V3 | Mở 2026-11-23; đề xuất V3 | — | [study](studies/PP-TS-029-runtime-calibration/study.md) |
 | PP-TS-030 | Đường về tâm của ELK vì xe làn bên: V0 đến V3 (về hai tốc độ) | Đóng; hồi quy 20261123-1435-suite-regression-9f2f367 | V2 | [study](studies/PP-TS-030-elk-object-return/study.md) |
-| PP-TS-031 | Chiến dịch generator T7 của LCC: quintic, QP theo số vòng, warm start dịch thời gian, driver model, MLP quanh QP; một plan, một bảng kết quả | Mở 2026-11-23; plan nháp, lab chưa cài (research/generators/) | — | [study](studies/PP-TS-031-t7-generator-campaign/study.md) |
+| PP-TS-031 | Chiến dịch generator T7 của LCC: quintic, QP theo số vòng, warm start dịch thời gian, driver model, MLP quanh QP; một plan, một dashboard so sánh cho mentor, không chọn generator | Mở 2026-11-23; plan nháp, khung lab đã có (research/generators/), generator chưa cài | — | [study](studies/PP-TS-031-t7-generator-campaign/study.md) |
 
 ## Problem reports
 

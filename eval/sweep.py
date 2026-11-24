@@ -198,7 +198,9 @@ def run_line(suite: dict, run: list, seed: int, planner, req_cal: dict, folder: 
     from sim.harness import Harness
 
     scenario = load_run(run, object_list_on_empty_road=suite.get("object_list_on_empty_road", False))
+    from eval import telemetry
     scope = scope_of(suite, run)
+    planner = telemetry.wrap(planner)  # Không đổi gì nếu thư viện không có telemetry (bản thường).
     log = Harness(scenario, planner, seed).run()
     result = metrics.evaluate(log, req_cal)
     result.criteria.extend(proposed.criteria(result, suite.get("proposed", [])))
@@ -208,6 +210,8 @@ def run_line(suite: dict, run: list, seed: int, planner, req_cal: dict, folder: 
     values = {t.id: t.value for t in result.targets if t.id in scope}
     values[JERK] = next(c.value for c in result.criteria if c.id == JERK)
     row = {"run": scenario.name, "seed": seed, "failed": failed, "values": values}
+    if isinstance(planner, telemetry.Recording):
+        row["t7_telemetry"] = telemetry.summary(planner.records)
     if suite.get("paired_evidence"):
         row["spec"] = run
         row.update(_paired_evidence(log, result, scope))

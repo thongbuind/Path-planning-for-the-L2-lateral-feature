@@ -19,6 +19,9 @@ sys.path.insert(0, str(ROOT))
 from eval import calibration as cal_io  # noqa: E402
 from eval import isolation, output_diff, sweep  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import slots  # noqa: E402
+
 SUITE = "PP-T7"
 OUT = ROOT / "build" / "lab"
 REGISTRY = ROOT / "research" / "generators" / "registry.yaml"
@@ -87,6 +90,9 @@ def table(rows: list[dict], against: dict | None) -> list[str]:
     head = ["Run", "Seed", "Trượt"] + [c.removeprefix("PP-SWR-") for c in COLUMNS] + ["016 p99 LCC [ms]"]
     if against:
         head += ["Lệch output max [m]"]
+    telemetry = any(r.get("t7_telemetry") for r in rows)
+    if telemetry:  # p99 thời gian của bản telemetry không dùng được (đọc telemetry trong vùng đo).
+        head += ["work p99", "work max", "tỉ lệ fallback", "T10 sửa max [m]"]
     lines = ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     for r in rows:
         cells = [r["run"], str(r["seed"]), ", ".join(x.removeprefix("PP-SWR-") for x in r["failed"]) or "—"]
@@ -101,6 +107,11 @@ def table(rows: list[dict], against: dict | None) -> list[str]:
         cells.append(fmt(p99))
         if against:
             cells.append(fmt(r.get("output_diff_max_m")))
+        if telemetry:
+            tm = r.get("t7_telemetry") or {}
+            work = tm.get("work") or {}
+            t10 = tm.get("t10_change_m") or {}
+            cells += [fmt(work.get("p99")), fmt(work.get("max")), fmt(tm.get("fallback_share")), fmt(t10.get("max"))]
         lines.append("| " + " | ".join(cells) + " |")
     return lines
 
@@ -129,7 +140,9 @@ def main() -> None:
     tasks = [(run, seed, str(lib), str(folder), f"open_loop/{i:03d}_s{seed}.npz")
              for i, (run, seed) in enumerate(chosen)]
     rows = []
-    for (run, seed, *_), (status, value) in zip(tasks, isolation.map_isolated(one, tasks, args.jobs, TIMEOUT_S)):
+    with slots.hold(args.jobs, f"quick {label}"):
+        results = list(isolation.map_isolated(one, tasks, args.jobs, TIMEOUT_S))
+    for (run, seed, *_), (status, value) in zip(tasks, results):
         if status != "ok":
             raise SystemExit(f"{run} seed {seed}: {status} {str(value).splitlines()[0] if value else ''}")
         rows.append(value)

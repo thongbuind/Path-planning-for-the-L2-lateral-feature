@@ -35,6 +35,10 @@ void pp_t7_report(const pp_t7_ws_t *ws, pp_t7_telemetry_t *out);
 
 /* Đọc telemetry của chu kỳ LCC gần nhất từ state. Trả false nếu state không hợp lệ. Chỉ để nghiên cứu. */
 bool pp_lcc_t7_telemetry(const void *state, pp_t7_telemetry_t *out);
+
+/* Con trỏ tới ws của generator trong state, *size = sizeof(pp_t7_ws_t); NULL nếu state không hợp lệ.
+ * Chỉ để nghiên cứu: generator lab (teacher của MLP) đặt dữ liệu cần ghi trong ws theo bố cục nó khai báo. */
+const void *pp_lcc_t7_workspace(const void *state, size_t *size);
 #endif
 
 #endif

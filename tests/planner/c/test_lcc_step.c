@@ -143,6 +143,11 @@ static void test_lcc_path_from_car_to_centre(void)
     PP_CHECK(tm.work > 0U);
     PP_CHECK(tm.t10_change_m >= 0.0);
     PP_CHECK(!pp_lcc_t7_telemetry(NULL, &tm));
+    size_t ws_size = 1U;
+    PP_CHECK(pp_lcc_t7_workspace(memory, &ws_size) != NULL);
+    PP_CHECK(ws_size == sizeof(pp_t7_ws_t));
+    PP_CHECK(pp_lcc_t7_workspace(NULL, &ws_size) == NULL);
+    PP_CHECK(ws_size == 0U);
 #endif
 
     pp_lcc_inputs_t next = in;

@@ -1,26 +1,28 @@
 # Draft for review (study.md section 3). Lab variants need GĐ 1 to 3 of
 # research/generators/IMPLEMENTATION-PLAN.md before they build.
+# Research comparison for a dashboard: no generator or calibration set is chosen, no overall rank.
 # Tolerances and win rule: SQTS 9.2 (eval.compare.TOLERANCES), not repeated here.
 id: PP-TS-031
 locked: null
 suite: PP-T7
 parts: [tuning, test]
 baseline: quintic_duration
-gates:
-  relative_failures: true      # SQTS 9.1 step 1a
-  lcc_cycles_lost_max: 1       # SQTS 9.1 step 1b: LCC driving cycles lost against the baseline, per run
-report: research/generators/RESULTS.md   # written by python3 -m eval.techniques --study PP-TS-031
+# Warning flags only, they never remove a variant (eval.campaign).
+flags:
+  relative_failures: true      # failure the baseline passes on the same case, profile, seed
+  lcc_cycles_lost_max: 1       # LCC driving cycles lost against the baseline, per run
+report: research/generators/dashboard/index.html   # data: dashboard/techniques.json (eval.campaign)
 
 # Case patterns (eval.techniques.matches): [S1, f] = family and variant without fault; [S12] = whole family;
 # [F01] = every run with that fault. Simulator keys (profile, acc, loop) are not matched.
-# Groups of table 2 in RESULTS.md (IMPLEMENTATION-PLAN.md, GĐ 5.3).
+# Case groups of the dashboard (IMPLEMENTATION-PLAN.md, GĐ 5.4).
 case_groups:
   cua ngắn: [[S1, f], [S14, e]]
   cua gắt: [[S1, c], [S1b]]
   nhiễu: [[F01], [S12]]
   chức năng: [[S2], [S3], [S17], [S22]]
 
-# Read by eval.techniques (table "Giả thuyết"). kinds:
+# Read by eval.campaign, per configuration of the grid ("held in x/n"). kinds:
 #   paired   variant against `against` on `cases`: primary improves by at least the bound with a
 #            95 % interval excluding 0; every guard worsens by at most its bound; no new failure.
 #   smallest first variant in order whose open-loop output difference to `reference` stays within
@@ -29,7 +31,7 @@ case_groups:
 #            the second's by at least `better_by` [m].
 #   cheaper  some variant has output difference <= that of `against` and median paired p99 ratio
 #            to `against` <= `p99_ratio_max`.
-#   copeland variant wins at least one of the groups and loses none against `against` (SQTS 9.1 steps 2, 3).
+#   cells    at least one cell of groups 2, 3 significantly better than `against`, none significantly worse.
 #   report   result only.
 hypotheses:
   - id: H1
@@ -77,21 +79,22 @@ hypotheses:
     reference: qp_jerk_admm_it1000_ref
     p99_ratio_max: 0.90
   - id: H5
-    kind: copeland
+    kind: cells
     variants: [qp_jerk_admm_mlp_weights]
     against: qp_jerk_admm
   - id: H6
     kind: report
     variants: [mlp_jerk_direct]
 
-# Tuning grids (study.md section 2). The best set of each technique is written into `variants`
-# before `locked` is set (GĐ 4).
+# Calibration grids (study.md section 2). Every set runs on tuning and test; none is chosen.
+# The centre of each grid is the default set (the row shown on the dashboard overview).
 tuning_grid:
   quintic_duration: {T_hwa: [2.5, 3.0, 3.5], T_recenter: [3.0, 3.5, 4.0]}
   qp_jerk_admm: {qp_w_dev: [0.15, 0.30, 0.60], qp_w_comfort: [2.5, 5.0, 10.0]}
-  quintic_tangent_point: {drv_tp_center_s: [1.0, 1.5, 2.0], drv_amplitude_m: [0.10, 0.20, 0.30]}
-  quintic_ay_sampling: {drv_peak_pair: [[0.35, 0.55], [0.40, 0.60], [0.45, 0.65]],
-                        drv_amplitude_m: [0.10, 0.20, 0.30]}
+  # A key "a+b" lists levels of two parameters that move together.
+  quintic_tangent_point: {qtp_center_s: [1.0, 1.5, 2.0], qtp_amplitude_m: [0.10, 0.20, 0.30]}
+  quintic_ay_sampling: {qas_peak_early+qas_peak_late: [[0.35, 0.55], [0.40, 0.60], [0.45, 0.65]],
+                        qas_amplitude_m: [0.10, 0.20, 0.30]}
   qp_jerk_admm_mlp_weights: {mlp_regularisation: null}   # 3 levels, chosen with the training plan
 
 variants:
