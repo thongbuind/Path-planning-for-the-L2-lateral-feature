@@ -55,7 +55,7 @@ generators:
   qp_jerk_admm_mlp_warmstart:
     kind: lab
     base: qp_jerk_admm
-    status: developing
+    status: tuning
     variants: [it010, it025, it050, it075]
     cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_warmstart}
     study: PP-TS-031
@@ -64,7 +64,7 @@ generators:
   qp_jerk_admm_teacher:
     kind: tool
     base: qp_jerk_admm
-    status: planned
+    status: tuning
     cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_teacher}
     study: PP-TS-031
     session: C
@@ -79,7 +79,7 @@ generators:
   mlp_jerk_direct:
     kind: lab
     base: qp_jerk_admm
-    status: developing
+    status: tuning
     cmake: {PP_T7: lab, PP_T7_LAB: mlp_jerk_direct}
     study: PP-TS-031
     session: C

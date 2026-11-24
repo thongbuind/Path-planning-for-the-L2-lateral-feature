@@ -1,0 +1,14 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md.
+name: mlp_jerk_direct
+base: qp_jerk_admm          # Dữ liệu và teacher của qp_jerk_admm; không có QP, không có nghiệm thay thế
+study: PP-TS-031
+telemetry:
+  work: số lần suy luận MLP (1 khi MLP chạy, 0 khi dừng ở bước kiểm đầu vào)
+  # fallback: lý do không có path (generator trả false, LCC xử lý như khi T7 không có path).
+  fallback:
+    1: MLP_NOT_FINITE (đặc trưng không hữu hạn)
+    2: MLP_OUT_OF_DOMAIN (một đặc trưng lệch quá 5 σ so với train)
+    3: NOT_FINITE_PATH (path tích phân từ jerk không hữu hạn)
+# Không có tham số riêng (plan.yaml: không có lưới).
+calibration_prefix: mjd
+calibration: {}

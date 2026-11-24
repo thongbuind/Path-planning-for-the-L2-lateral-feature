@@ -1,0 +1,10 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md. Công cụ sinh dữ liệu (registry kind tool).
+name: qp_jerk_admm_teacher
+base: qp_jerk_admm          # Lái giống hệt qp_jerk_admm (trọng số mặc định, qp_iters chung)
+study: PP-TS-031
+telemetry:
+  work: số vòng ADMM của chuỗi lái (không tính 1000 vòng của nhãn)
+  fallback: {}
+# Bản ghi trong ws (src/qp_jerk_admm_teacher.h): đặc trưng, nhãn 1000 vòng, residual, vi phạm, bài toán QP.
+calibration_prefix: qjat
+calibration: {}
