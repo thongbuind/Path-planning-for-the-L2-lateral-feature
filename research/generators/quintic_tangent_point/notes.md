@@ -78,7 +78,27 @@ Nhận xét:
 - Tâm 1,0 không bao giờ bắt đầu trên dòng tuning nào kể cả S24a: tiếp điểm nhỏ nhất khoảng 1,25 s, cửa sổ [1,0; 1,25] (tính tay từ path, không tốn lần bench).
 - Thời gian (lần 10): p99 LCC vòng kín 0,87–1,39 ms, mốc 0,57–0,71 ms (lần 1); lần 2, 3 có telemetry chỉ 0,60–0,64 ms. Chênh do bench khác chạy song song (luật 2 slot), không do generator: thêm 1 (ít khi 2) lần dựng path.
 
-Đề xuất cho plan.yaml: `qtp_center_s` [1,5; 1,75; 2,0] (bỏ 1,0 vì không bao giờ chạy), tâm 1,75 làm mặc định theo luật tâm lưới; `qtp_amplitude_m` giữ [0,10; 0,20; 0,30]. `generator.yaml` vẫn để 1,5 cho tới khi plan.yaml đổi.
+Đề xuất cho plan.yaml: `qtp_center_s` [1,5; 1,75; 2,0] (bỏ 1,0 vì không bao giờ chạy), tâm 1,75 làm mặc định theo luật tâm lưới; `qtp_amplitude_m` giữ [0,10; 0,20; 0,30]. Đã áp dụng (a89c70a): mặc định 1,75 ở `generator.yaml` và plan.yaml.
+
+## Kiểm tra lại với S24b (cua ngắn thứ hai, tuning)
+
+S24b: 72 km/h (20 m/s), thẳng 200 m, clothoid 20 m vào R = 180 m, cung 10 m, clothoid 20 m ra (2,22 m/s², cả cua 2,5 s). Quick set 11 dòng. Mốc `quintic_duration-a7769a8c` chạy lại cho có S24b. Ngân sách 6 lần, dùng 5.
+
+| Lần | Lệnh | S1d 070 / 068 / 069 | S1g 070 / 068 / 069 | S24a 070 / 068 / 069 | S24b 070 / 068 / 069 / 050 | fb S24b |
+|---|---|---|---|---|---|---|
+| 1 | `quintic_duration --set T_recenter=3.5` (mốc) | 0,770 / 1,288 / 0,365 | 0,758 / 2,145 / 0,581 | 0,606 / 2,175 / 1,647 | 0,205 / 1,791 / 1,465 / 0,673 | — |
+| 2 | `--telemetry` (mặc định 1,75; 0,20) | −0,248 / −0,013 / +0,028 | −0,192 / +0,066 / +0,207 | +0,054 / +0,002 / −0,094 | −0,167 / +0,143 / +0,269 / +0,162 | 0,94 |
+| 3 | `--telemetry --set qtp_center_s=1.5` | −0,251 / +0,090 / +0,043 | −0,246 / −0,036 / +0,073 | +0,064 / +0,101 / −0,226 | −0,193 / +0,122 / +0,167 / +0,187 | 0,97 |
+| 4 | `--telemetry --set qtp_center_s=2.0` | −0,164 / −0,032 / +0,025 | −0,087 / +0,011 / +0,065 | +0,017 / −0,005 / −0,027 | −0,136 / +0,109 / +0,203 / +0,132 | 0,94 |
+| 5 | `--telemetry --set qtp_amplitude_m=0.10` | −0,116 / −0,033 / +0,020 | −0,135 / +0,043 / +0,091 | +0,054 / +0,002 / −0,094 | −0,175 / +0,143 / +0,265 / +0,170 | 0,94 |
+
+Nhận xét:
+
+- Các dòng cũ trùng số lần dò trước (S1d, S1g, S24a); S1b a gần như trùng mốc (fb 0,98–1,00).
+- S24b xấu ở mọi mức: DLC giảm 0,14–0,19 m (còn 0,01–0,07 m), a_y +0,11–0,14, jerk +0,17–0,27. Hiệu chỉnh chạy 3–6 % chu kỳ; mã trội 8 (618), 10 (102–125), 9 (19), 12 (4–8).
+- Biên độ 0,10 gần như trùng 0,20 trên S24b: biên độ tăng theo `qtp_amplitude_rate` chưa tới mức đặt thì đã thả, nên hại không do biên độ mà do cơ chế.
+- Cơ chế: tính tay từ đường tham chiếu, tiếp điểm có từ 2,8 s trước (s ≈ 160 m), giảm tới 1,3 s ở đầu cua rồi mất ở s ≈ 218 m (tổng góc cua 0,17 rad). Hiệu chỉnh bắt đầu khoảng 1 s trước cua và thả ngay giữa clothoid vào, đúng lúc path quintic đã cắt vào trong (DLC mốc 0,205 m).
+- Không đổi lưới hay mặc định: 2,0 vẫn ít hại nhất (S24b cũng vậy), 1,75 là tâm. Cần một cơ chế chung (chưa làm): chỉ bắt đầu khi tiếp điểm còn tồn tại tới đỉnh, hoặc giới hạn phần cộng thêm theo DLC phía trong của path quintic.
 
 ## Vấn đề còn mở
 
