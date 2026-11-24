@@ -36,8 +36,9 @@ Sổ tay phát triển, không phải kết quả. Kết quả chính thức ch�
 ### Dịch biến nào (`sws_shift_vars`)
 
 - 0: chỉ jerk; 1: cả x (jerk, nới a_y, nới hành lang); 2: cả x và y.
-- Chọn 1. Dịch y làm lệch so với bản 1000 vòng tăng gần gấp đôi (trung bình) ở 10 và 25 vòng; residual ADMM của S1ba tăng từ p50 0,006 lên 0,20. 0 và 1 cho kết quả như nhau; giữ 1 cho z ban đầu nhất quán, thêm 60 phép nhân cộng mỗi chu kỳ.
-- Lý do dịch x gần như không đổi kết quả: x chỉ vào bước giải đầu qua σ = 1e-6 và qua z = clamp(A·x); thông tin warm start chủ yếu nằm ở y.
+- Chọn 1. Với `qp.c` cũ (rho không chỉnh ở 10, 25 vòng), dịch y làm lệch so với bản 1000 vòng tăng gần gấp đôi (trung bình) ở 10 và 25 vòng; residual ADMM của S1ba tăng từ p50 0,006 lên 0,20. 0 và 1 cho kết quả như nhau; giữ 1 cho z ban đầu nhất quán, thêm 60 phép nhân cộng mỗi chu kỳ.
+- Với `qp.c` mới (28c4995), ở 10 vòng mức 2 và mức 1 ngang nhau (lệch max 46,7 so với 42,9 mm, trung bình 4,63 so với 4,77 mm), nên vẫn giữ 1.
+- x chỉ vào bước giải đầu qua σ = 1e-6 và qua z = clamp(A·x); phần còn lại của warm start nằm ở y. Với `qp.c` cũ, dịch x gần như không đổi kết quả; với `qp.c` mới, dịch x đổi kết quả rõ (xem mục Đo lại).
 
 ### Chi phí CPU
 
@@ -74,11 +75,33 @@ Nhận xét:
 - H3 (lệch nhỏ hơn bản gốc cùng số vòng ít nhất 5 mm) không đạt ở mức nào trên quick bench. Ở 10, 25 vòng lệch max do S1b a chi phối (~130 mm) ở mọi bản; ở 50, 75 vòng mọi bản đã dưới 5 mm.
 - Lệch max 10–25 vòng gần như không phụ thuộc warm start: hai mức này không lần nào chỉnh rho (xem dưới), nên ADMM hội tụ chậm bất kể điểm xuất phát.
 - p99 nhiễu tới ±50 % giữa các lần (bản dịch có lúc nhanh hơn bản gốc dù làm thêm việc), nên không đọc chênh thời gian từ quick bench.
-- Đã dùng 18/20 lần quick bench.
+- Đã dùng 18/20 lần quick bench của đợt đầu.
+
+## Đo lại sau khi sửa rho (`qp.c` 28c4995, SDD 1.34)
+
+- `qp.c` mới chỉnh rho mỗi ⌈qp_iters/6⌉ vòng, kể cả vòng cuối. Quick bench có thêm `[S24, a]` vòng kín (10 lượt). Cùng nhãn với bảng trên, thư mục `build/lab/<nhãn>` đã bị ghi đè; số cũ giữ ở bảng trên.
+- Tham chiếu 1000 vòng mới: các chỉ số 050, 068, 070 trùng bản cũ tới 3 chữ số; p99 4,09 ms.
+- Đã dùng 8/8 lần đo lại. Không đo 75 và 150 vòng vì hết ngân sách (cần thêm 4 lần).
+
+| K | Lệch gốc max / p99 / trung bình [mm], mới (cũ) | Lệch dịch mức 1, mới (cũ) | Trượt (10 lượt) | p99 gốc / dịch [ms] |
+|---|---|---|---|---|
+| 10 | 29,2 / 24,8 / 2,23 (130,4 / 64,6 / 4,68) | 42,9 / 36,5 / 4,77 (130,4 / 64,6 / 4,95) | Không / không | 0,78 / 0,76 |
+| 10, mức 2 | — | 46,7 / 38,5 / 4,63 (131,1 / 65,8 / 8,15) | Không | — / 1,24 |
+| 25 | 9,4 / 5,6 / 0,42 (128,7 / 58,7 / 2,50) | 6,4 / 4,1 / 0,35 (128,7 / 58,7 / 2,51) | Không / không | 1,15 / 1,45 |
+| 50 | 2,2 / 0,9 / 0,06 (4,7 / 0,8 / 0,06) | 3,3 / 1,1 / 0,08 (2,9 / 1,0 / 0,09) | Không / không | 1,41 / 1,33 |
+
+Nhận xét:
+
+- Sửa rho làm lệch của mọi bản giảm mạnh ở 10, 25 vòng (130 mm còn 9–47 mm); trượt 006 ở S1b a vòng kín hết.
+- H3 vẫn không đạt: ở 10 vòng dịch xấu hơn gốc 13,7 mm (max); ở 25 vòng dịch tốt hơn 3,0 mm, chưa tới 5 mm; ở 50 vòng xấu hơn 1,1 mm.
+- Ở S24 a vòng kín, 10 vòng: dịch cho 050 lớn hơn (0,263 so với 0,214 m) và DLC 070 nhỏ hơn (0,498 so với 0,548 m); từ 25 vòng hai bản gần như trùng.
+- Giả thuyết: warm start gốc là một cặp (z, y) mà ADMM đã tự cân bằng ở chu kỳ trước. Dịch x làm z = clamp(A·x) dời đi còn y giữ chỗ cũ; dịch cả y thì nội suy trải nhân tử của hàng đang chạm biên sang hàng kề chưa chạm biên. Cả hai đều làm mất complementarity, ADMM phải sửa lại, nên lợi của việc khớp thời gian (1/4 bước) bị ăn mất ở ít vòng.
+- Không đổi mặc định (`sws_shift_vars` = 1) và không đổi lưới (4 mức số vòng): số liệu không cho mức nào tốt hơn rõ ràng, và H3 là kết quả để báo, không phải để chỉnh.
 
 ## Vấn đề còn mở
 
-- Rho chỉ được chỉnh ở vòng 25, 50, … và bỏ ở vòng cuối (`it < iters`), mà rho mang sang chu kỳ sau. Vì vậy 10 và 25 vòng giữ rho = `qp_rho0` mãi mãi; 50 vòng là mức đầu tiên có chỉnh rho, giải thích bước nhảy lệch từ ~130 mm xuống ~5 mm. Không sửa ở đây (thuộc `qp.c`); nêu cho dashboard và session contract.
-- Vì sao dịch y làm xấu đi chưa rõ. Giả thuyết: ở ít vòng với rho cố định, (x, z, y) chưa cân bằng; dịch y mà z đặt lại theo clamp(A·x) phá cặp z–y.
-- Lỗi CMake: `planner/CMakeLists.txt` dòng 40 `set(PP_T7_SOURCE_DIR ${PP_T7_LAB_DIR})` không ngoặc kép; khi `PP_T7_LAB_DIR` rỗng thì biến bị xóa, `if(... STREQUAL "")` sai, configure lỗi ở dòng 44. Build bằng lệnh của README cần thêm `-DPP_T7_LAB_DIR=<đường dẫn tuyệt đối>`; quick bench ở đây chạy được nhờ tạo sẵn CMakeCache có biến đó trong `build/lab/<nhãn>/build`.
+- Đã xử lý ở `qp.c` 28c4995: trước đó rho chỉ được chỉnh ở vòng 25, 50, … và bỏ ở vòng cuối, nên 10 và 25 vòng giữ rho = `qp_rho0` mãi mãi.
+- `qp.c` mới gọi `factor()` khi rho đổi ở vòng cuối, nhưng chu kỳ sau luôn `factor()` lại từ đầu: lần phân rã ở vòng cuối là việc thừa (tới 1/7 số lần phân rã). Nếu nó thất bại thì path của chu kỳ bị bỏ dù nghiệm đã xong. Có thể chỉ lưu rho mới ở vòng cuối. Thuộc `qp.c`, ngoài thư mục này.
+- Vì sao dịch làm xấu đi ở 10 vòng chưa được kiểm chứng; giả thuyết mất complementarity của cặp (z, y) ở mục Đo lại. Kiểm được bằng telemetry residual ở 10 vòng (cần thêm quick bench).
+- Lỗi CMake (`set(PP_T7_SOURCE_DIR ${PP_T7_LAB_DIR})` không ngoặc kép, configure lỗi khi biến rỗng) đã sửa ở `planner/CMakeLists.txt`. 18 lần đo đầu chạy nhờ tạo sẵn CMakeCache có `PP_T7_LAB_DIR`; 8 lần đo lại không cần.
 - Cơ hội giảm CPU chung cho mọi bản QP (ngoài lab, `qp.c`): `integrators()` và phần ρ·AᵀA của `factor()` không đổi giữa các chu kỳ nhưng tính lại mỗi lần.

@@ -12,7 +12,7 @@
 #define QP_SIGMA (1.0e-6)
 #define QP_ALPHA (1.6)
 /* Số lần chỉnh rho mỗi chu kỳ; khoảng cách tỉ lệ với qp_iters và lần cuối rơi vào vòng cuối, nên số lần
- * phân rã KKT mỗi chu kỳ có chặn (tối đa 1 + QP_RHO_ADAPTS) với mọi qp_iters. */
+ * phân rã KKT mỗi chu kỳ có chặn (tối đa QP_RHO_ADAPTS, vòng cuối không phân rã) với mọi qp_iters. */
 #define QP_RHO_ADAPTS (6U)
 #define QP_RHO_MIN (1.0e-3)
 #define QP_RHO_MAX (1.0e4)
@@ -368,7 +368,9 @@ bool pp_generate_qp_seeded(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp
                 const double rho = next_rho(ws, cal, &data);
                 if ((rho > (QP_RHO_CHANGE * ws->rho)) || (rho < (ws->rho / QP_RHO_CHANGE))) {
                     ws->rho = rho;
-                    ok = factor(ws);
+                    if (it < iters) {  /* Chu kỳ sau luôn phân rã lại, nên vòng cuối chỉ lưu rho. */
+                        ok = factor(ws);
+                    }
                 }
             }
         }
