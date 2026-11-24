@@ -11,7 +11,9 @@
 #define QP_MIN_Q (0.1)
 #define QP_SIGMA (1.0e-6)
 #define QP_ALPHA (1.6)
-#define QP_RHO_EVERY (25U)
+/* Số lần chỉnh rho mỗi chu kỳ; khoảng cách tỉ lệ với qp_iters và lần cuối rơi vào vòng cuối, nên số lần
+ * phân rã KKT mỗi chu kỳ có chặn (tối đa 1 + QP_RHO_ADAPTS) với mọi qp_iters. */
+#define QP_RHO_ADAPTS (6U)
 #define QP_RHO_MIN (1.0e-3)
 #define QP_RHO_MAX (1.0e4)
 #define QP_RHO_CHANGE (5.0)
@@ -357,10 +359,12 @@ bool pp_generate_qp_seeded(pp_qp_ws_t *ws, const pp_calibration_t *cal, const pp
         }
         ok = factor(ws);
         const uint32_t iters = (uint32_t)fmax(1.0, (double)cal->qp_iters);
+        const uint32_t every = (iters / QP_RHO_ADAPTS) + (((iters % QP_RHO_ADAPTS) != 0U) ? 1U : 0U);
         ws->iterations = iters;
         for (uint32_t it = 1U; ok && (it <= iters); it++) {
             iterate(ws, cal, &data);
-            if (((it % QP_RHO_EVERY) == 0U) && (it < iters)) {
+            /* rho chỉnh ở vòng cuối không đổi nghiệm chu kỳ này, nhưng được giữ cho warm start chu kỳ sau. */
+            if (((it % every) == 0U) || (it == iters)) {
                 const double rho = next_rho(ws, cal, &data);
                 if ((rho > (QP_RHO_CHANGE * ws->rho)) || (rho < (ws->rho / QP_RHO_CHANGE))) {
                     ws->rho = rho;

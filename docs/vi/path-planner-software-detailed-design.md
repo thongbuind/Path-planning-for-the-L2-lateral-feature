@@ -3,11 +3,11 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SDD` |
-| Phiên bản | 1.33 |
+| Phiên bản | 1.34 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
-| Cập nhật | 2026-11-23 |
+| Cập nhật | 2026-11-24 |
 
 ## 1. Purpose and scope {#dd-scope}
 
@@ -202,7 +202,7 @@ LKA và ELK dùng kỹ thuật A trong cả hai bản build. Khi T9 chọn lần
 |---|---|---|
 | A. Quintic theo thời lượng | d(t) bậc 5 từ trạng thái đầu tới (d mục tiêu, 0, 0) trong T. Chưa đạt `ay_add_max_hwa`, `jerk_target_hwa` thì tăng T theo bước 0,25 s tới `T_max`; giới hạn cứng do T10 cắt | `T_max` |
 | B. Lấy mẫu Frenet | Sinh quintic với d cuối trong d mục tiêu ± `d_sample_span` bước `d_sample_step`, T trong `T_set`. Bỏ path vượt giới hạn hoặc ra khỏi corridor. Chọn path có J = `w_jerk`·∫d⃛² + `w_time`·T + `w_dev`·(d cuối − d mục tiêu)² + `w_cons`·∫(d − d_cũ)² nhỏ nhất | `d_sample_span`, `d_sample_step`, `T_set`, `w_jerk`, `w_time`, `w_dev`, `w_cons` |
-| C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); trị tuyệt đối của a_y ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất LCC. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ thích nghi, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định, warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
+| C. QP hợp nhất | Biến là jerk ngang j_k trên 30 bước (dạng nén); d, ḋ, d̈ có được bằng tích phân chính xác từ trạng thái đầu của T4. Cực tiểu `qp_w_jerk`·Σj² + `qp_w_dev`·Σ ramp·(d − o)² + `qp_w_cont`·Σ(d − d_cũ)² + cuối horizon `qp_w_term_d`·(d − o)² + `qp_w_term_v`·ḋ² + `qp_w_comfort`·Σσ² + `qp_w_corridor`·Σe²; o là offset của T8, d_cũ là path cũ chiếu lên reference line mới rồi dời theo phần o vừa đổi so với chu kỳ trước. Ràng buộc tuyến tính: a_y = d̈/q² + v²κ_ref/q, q = 1 − κ_ref·d lấy tại path cũ (như T11); trị tuyệt đối của a_y ≤ `qp_ay_margin`·aysmax; điểm có a_y cần > aysmax − epsilon_ay/2 thì a_y giữ trong [aysmax − epsilon_ay/2, aysmax] (PP-SWR-006) và không vào σ; điểm khác a_y vượt `qp_a_comfort` thì vào σ; d ra ngoài corridor (bề rộng làn − bề rộng xe − `qp_corridor_margin`) thì vào e; jerk của path (j + v³·dκ_ref/ds) trong ±0,9·jerk lớn nhất LCC. Cắt cua chỉ xuất hiện khi các ràng buộc này chạm; không có chế độ riêng. Giải bằng ADMM, ρ riêng từng khối hàng (a_y ×10, jerk ×0,1), `qp_iters` vòng cố định; ρ thích nghi tối đa 6 lần mỗi chu kỳ, cách nhau ⌈`qp_iters`/6⌉ vòng, lần cuối ở vòng cuối (ρ giữ sang chu kỳ sau), nên mỗi chu kỳ phân rã KKT tối đa 7 lần với mọi `qp_iters`; warm start từ chu kỳ trước; ma trận KKT khối chéo nên chỉ phân rã một khối 30×30. Sau đó T4 trộn như kỹ thuật A; T10 vẫn kiểm path cuối | Mục 15 |
 
 Với LCC, `PP_T7` chọn generator lúc build và được ghi trong `pp_version()` (PP-TS-003, PP-TS-031):
 
@@ -347,3 +347,4 @@ Giới hạn của T12: `trail_n`·`trail_spacing` ≥ 50 m, bằng khoảng cá
 | 1.31 | 2026-11-23 | T7: ELK vì xe làn bên về tâm hai tốc độ, thêm `d_return_object`. Lý do: PP-TS-030 V2 |
 | 1.32 | 2026-11-23 | Mục 2, 10: T7 của LCC theo contract `generators/pp_t7.h`, giá trị `PP_T7` mới, sàn PP-SWR-006 là thuộc tính của generator. Hành vi không đổi (golden PP-T7 trùng từng bit). Lý do: PP-TS-031 GĐ 1 |
 | 1.33 | 2026-11-23 | Mục 10: input của contract T7 thêm cờ FOLLOW, cờ bắt đầu tại xe và ObjectList; phần dùng chung `generators/t7_common.c`. Hành vi không đổi. Lý do: PP-TS-031 GĐ 2 |
+| 1.34 | 2026-11-24 | T7 C: ρ thích nghi cách nhau ⌈`qp_iters`/6⌉ vòng, có vòng cuối (trước đây cố định 25 vòng, bỏ vòng cuối, nên ρ không đổi khi `qp_iters` ≤ 25). Kỹ thuật A không đổi. Lý do: PP-TS-031 luồng A |
