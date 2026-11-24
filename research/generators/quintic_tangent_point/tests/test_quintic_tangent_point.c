@@ -12,6 +12,8 @@
 
 static const pp_vehicle_config_t VP0 = {2.9F, 1.45F, 1.9F, 15.0F, 0.61F, 6.0F, 0.05F};
 static pp_t7_ws_t ws;
+/* Calibration mặc định nhưng tắt chặn DLC (lề 0,5 m: sàn về dlc_offset_min), cho các test của biên độ. */
+static pp_calibration_t cal0;
 
 #define SPEED (20.0)
 /* Cua với tiếp điểm ở khoảng 1,5 s: sqrt(2·R·h) = 30 m với h = 1,75 m, nên R ≈ 257 m. */
@@ -105,7 +107,7 @@ static void test_tangent_point_on_known_arc(void)
         fixture_t fx;
         result_t r;
         setup(&fx, sides[i] * KAPPA_TP15);
-        run(&pp_calibration, &fx, &r);
+        run(&cal0, &fx, &r);
         const double expected = brute_tangent_s(&fx.ref, sides[i]) / SPEED;
         PP_CHECK_NEAR(expected, 1.5, 0.05);
         const double found = lab_qtp_tangent_time(r.base, &r.lateral, &r.samples, sides[i], 1.75, 1.0, 2.0, 30U);
@@ -126,7 +128,7 @@ static void test_correction_moves_inside_bounded_and_continuous(void)
         fixture_t fx;
         result_t r;
         setup(&fx, sides[i] * KAPPA_TP15);
-        run(&pp_calibration, &fx, &r);
+        run(&cal0, &fx, &r);
         PP_CHECK(r.ok);
         PP_CHECK(ws.fallback == 0U);
         PP_CHECK(ws.work >= 2U);
@@ -169,7 +171,7 @@ static void test_straight_road_matches_base(void)
     result_t r;
     setup(&fx, 0.0);
     fx.start.d = 0.3;
-    run(&pp_calibration, &fx, &r);
+    run(&cal0, &fx, &r);
     PP_CHECK(r.ok);
     PP_CHECK(ws.fallback == 8U);
     PP_CHECK(memcmp(r.mine, r.base, sizeof(r.mine)) == 0);
@@ -181,7 +183,7 @@ static void test_fallbacks_give_base_path(void)
     for (uint32_t c = 1U; c <= 11U; c++) {
         fixture_t fx;
         result_t r;
-        pp_calibration_t cal = pp_calibration;
+        pp_calibration_t cal = cal0;
         uint32_t expected = c;
         setup(&fx, KAPPA_TP15);
         switch (c) {
@@ -211,7 +213,7 @@ static void test_fallbacks_give_base_path(void)
     setup(&fx, KAPPA_TP15);
     fx.ref.width = NAN;
     pp_t7_reset(&ws);
-    PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, r.mine, &r.samples));
+    PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, r.mine, &r.samples));
     PP_CHECK(ws.fallback == 13U);
     PP_CHECK(ws.amp == 0.0);
 }
@@ -226,16 +228,16 @@ static void test_ramp_hold_and_release(void)
     const double step = (double)pp_calibration.qtp_amplitude_rate * CYCLE_S;
     setup(&fx, KAPPA_TP15);
     pp_t7_reset(&ws);
-    PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+    PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     PP_CHECK(ws.fallback == 0U);
     PP_CHECK_NEAR(ws.amp, step, 1e-12);
     for (uint32_t i = 0U; i < RAMP_CYCLES; i++) {
-        PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+        PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     }
     PP_CHECK_NEAR(ws.amp, (double)pp_calibration.qtp_amplitude_m, 1e-9);
 
     /* Cửa sổ [1,6; 1,75]: tiếp điểm 1,5 s gần hơn đầu cửa sổ vẫn bắt đầu và giữ, đỉnh đặt ở đầu cửa sổ. */
-    pp_calibration_t cal = pp_calibration;
+    pp_calibration_t cal = cal0;
     cal.qtp_center_s = 1.675F;
     cal.qtp_window_half_s = 0.075F;
     PP_CHECK(pp_t7_generate(&ws, &cal, &fx.in, pts, &samples));
@@ -247,7 +249,7 @@ static void test_ramp_hold_and_release(void)
     /* Cuối cửa sổ ở 1,0 s: tiếp điểm 1,5 s mất, thả ngay về path gốc. */
     pp_t7_reset(&ws);
     for (uint32_t i = 0U; i < 10U; i++) {
-        PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+        PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     }
     cal.qtp_center_s = 1.0F;
     cal.qtp_window_half_s = 0.0F;
@@ -257,18 +259,18 @@ static void test_ramp_hold_and_release(void)
     /* Không có path cũ: không có thời gian giữa hai chu kỳ nên không bắt đầu. */
     fx.old.valid = false;
     pp_t7_reset(&ws);
-    PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+    PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     PP_CHECK(ws.fallback == 11U);
 
     /* Đang hiệu chỉnh mà FOLLOW bật: thả ngay. */
     fx.old.valid = true;
     pp_t7_reset(&ws);
     for (uint32_t i = 0U; i < 10U; i++) {
-        PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+        PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     }
     PP_CHECK(ws.amp > 0.0);
     fx.in.follow = true;
-    PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
+    PP_CHECK(pp_t7_generate(&ws, &cal0, &fx.in, pts, &samples));
     PP_CHECK((ws.fallback == 1U) && (ws.amp == 0.0));
 }
 
@@ -288,7 +290,7 @@ static void test_objects_by_side(void)
         fx.objects.objects[0].length = 4.5F;
         fx.objects.objects[0].width = 1.8F;
         fx.objects.objects[0].existence_probability = 0.9F;
-        run(&pp_calibration, &fx, &r);
+        run(&cal0, &fx, &r);
         PP_CHECK(ws.fallback == expected[i]);
     }
 }
@@ -298,7 +300,7 @@ static void test_amplitude_bound(void)
 {
     fixture_t fx;
     result_t r;
-    pp_calibration_t cal = pp_calibration;
+    pp_calibration_t cal = cal0;
     cal.qtp_amplitude_m = 0.5F;
     setup(&fx, KAPPA_TP15);
     fx.ref.width = 3.0;
@@ -311,12 +313,92 @@ static void test_amplitude_bound(void)
     setup(&fx, KAPPA_TP15);
     fx.ref.view_end = 2.3 * SPEED + 0.5;
     run(&cal, &fx, &r);
-    PP_CHECK((ws.fallback == 0U) || (ws.fallback == 11U) || (ws.fallback == 12U));
+    PP_CHECK((ws.fallback == 0U) || (ws.fallback == 11U) || (ws.fallback == 12U) || (ws.fallback == 15U));
     PP_CHECK(max_shift(&r) <= 0.03);
+}
+
+/* Chặn DLC: path không vào trong hơn path quintic quá qtp_dlc_margin_m; lề 0 thì không hiệu chỉnh (mã 14).
+ * Mốc DLC giữ từ lúc bắt đầu, không trôi khi path quintic các chu kỳ sau vào trong hơn. */
+static void test_dlc_cap(void)
+{
+    const double sides[] = {1.0, -1.0};
+    for (size_t i = 0U; i < 2U; i++) {
+        fixture_t fx;
+        result_t r;
+        pp_calibration_t cal = pp_calibration;
+        cal.qtp_dlc_margin_m = 0.05F;
+        setup(&fx, sides[i] * KAPPA_TP15);
+        run(&cal, &fx, &r);
+        PP_CHECK(ws.fallback == 0U);
+        PP_CHECK(max_shift(&r) > 0.02);
+        PP_CHECK(max_shift(&r) <= (double)cal.qtp_dlc_margin_m + 1e-3);
+        const double ref0 = ws.dlc_ref;
+        PP_CHECK_NEAR(ref0, 0.5 * (3.5 - 1.9), 1e-6);
+        fx.start.d = sides[i] * 0.1;
+        pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
+        PP_CHECK(pp_t7_generate(&ws, &cal, &fx.in, pts, &r.samples));
+        PP_CHECK((ws.fallback == 0U) || (ws.fallback == 12U) || (ws.fallback == 16U));
+        if (ws.fallback != 12U) {
+            PP_CHECK(ws.dlc_ref == ref0);  /* Path quintic vào trong hơn: mốc không giảm theo. */
+        }
+        /* Path quintic ra ngoài (xe ở ngoài 0,1 m): mốc tăng theo, biên độ giảm ngay theo mốc mới. */
+        fx.start.d = -sides[i] * 0.1;
+        PP_CHECK(pp_t7_generate(&ws, &cal, &fx.in, pts, &r.samples));
+        PP_CHECK((ws.amp == 0.0) || (ws.dlc_ref > ref0));
+        PP_CHECK(sides[i] * ws.amp <= (0.5 * (3.5 - 1.9)) - ws.dlc_ref + (double)cal.qtp_dlc_margin_m + 1e-9);
+        if (ws.amp == 0.0) {
+            PP_CHECK(ws.fallback == 14U);  /* Mốc mới ngoài hơn biên độ cho phép: thả. */
+        }
+
+        cal.qtp_dlc_margin_m = 0.0F;
+        setup(&fx, sides[i] * KAPPA_TP15);
+        run(&cal, &fx, &r);
+        PP_CHECK(ws.fallback == 14U);
+        PP_CHECK(memcmp(r.mine, r.base, sizeof(r.mine)) == 0);
+
+        /* Xe đang ở trong 0,6 m: path quintic tại đỉnh ở trong hơn biên độ 0,2 m, giữ path quintic (mã 16),
+         * không kéo ra ngoài, biên độ vẫn giữ. */
+        setup(&fx, sides[i] * KAPPA_TP15);
+        fx.start.d = sides[i] * 0.6;
+        run(&cal0, &fx, &r);
+        PP_CHECK(ws.fallback == 16U);
+        PP_CHECK(sides[i] * ws.amp > 0.0);
+        PP_CHECK(memcmp(r.mine, r.base, sizeof(r.mine)) == 0);
+    }
+}
+
+/* Lúc bắt đầu, từ đỉnh phải còn thấy tiếp điểm: tầm nhìn 2,3 s, tiếp điểm từ đỉnh 1,5 s nằm ở 3 s, ngoài
+ * tầm nhìn nên không bắt đầu (mã 15). Tắt qtp_peak_check thì không có mã này. Trên cung dài vẫn thấy. */
+static void test_peak_tangent(void)
+{
+    fixture_t fx;
+    result_t r;
+    pp_calibration_t cal = cal0;
+    cal.qtp_peak_check = 1.0F;
+    setup(&fx, KAPPA_TP15);
+    fx.ref.view_end = 2.3 * SPEED + 0.5;
+    run(&cal, &fx, &r);
+    PP_CHECK(ws.fallback == 15U);
+    PP_CHECK(memcmp(r.mine, r.base, sizeof(r.mine)) == 0);
+    cal.qtp_peak_check = 0.0F;
+    run(&cal, &fx, &r);
+    PP_CHECK(ws.fallback != 15U);
+
+    setup(&fx, KAPPA_TP15);
+    run(&cal0, &fx, &r);
+    /* Từ điểm 1,5 s (30 m), tiếp điểm ở khoảng 60 m: thấy khi tầm nhìn 80 m, không thấy khi 50 m. */
+    const double px = (double)r.base[15].pose.x;
+    const double py = (double)r.base[15].pose.y;
+    PP_CHECK(lab_qtp_tangent_after(&fx.ref, px, py, 1.0, 1.75, fx.speed.s[15]));
+    PP_CHECK(!lab_qtp_tangent_after(&fx.ref, px, py, -1.0, 1.75, fx.speed.s[15]));
+    fx.ref.view_end = 50.0;
+    PP_CHECK(!lab_qtp_tangent_after(&fx.ref, px, py, 1.0, 1.75, fx.speed.s[15]));
 }
 
 int main(void)
 {
+    cal0 = pp_calibration;
+    cal0.qtp_dlc_margin_m = 0.5F;
     test_tangent_point_on_known_arc();
     test_correction_moves_inside_bounded_and_continuous();
     test_straight_road_matches_base();
@@ -324,5 +406,7 @@ int main(void)
     test_objects_by_side();
     test_ramp_hold_and_release();
     test_amplitude_bound();
+    test_dlc_cap();
+    test_peak_tangent();
     return PP_TEST_RESULT();
 }

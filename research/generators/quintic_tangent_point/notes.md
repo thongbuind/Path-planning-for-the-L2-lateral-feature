@@ -17,7 +17,9 @@ PP-TS-024 V1 (Land và Lee 1994): path `quintic_duration` cộng một hiệu ch
 | Bắt đầu, giữ, thả | Bắt đầu và giữ khi tiếp điểm nằm trong [0; cuối cửa sổ] (bản đầu: bắt đầu chỉ khi tiếp điểm trong cửa sổ); đỉnh = max(tiếp điểm, đầu cửa sổ). Tiếp điểm mất (gần hết cua) thì thả: quintic đưa về d_target | Trên cung dài, tiếp điểm luôn ở trước xe một khoảng cố định; không giữ thì hiệu chỉnh tắt giữa cua và xe trở ra trong cua (lần 2: 068 S1g +0,23) |
 | Tăng biên độ | Biên độ tăng theo `qtp_amplitude_rate` (mặc định 0,1 m/s = `ref_rate`, PP-SWR-120), thời gian chu kỳ lấy từ `old->shift_s` | Path không đổi đột ngột ở chu kỳ đầu; giảm 069 (lần 3 → 5). Tách khỏi `ref_rate` để dò riêng; 0,2 không hơn 0,1 (dò lại, lần 8) |
 | Giới hạn | Hành lang 0,5·(W − w) − `dlc_offset_min` như offset; phần cộng thêm ≤ jerk_target_hwa·T³/52,5 và ≤ ay_add_max_hwa·T²/7,51 (T = nửa ngắn hơn); path cuối ≤ max(aysmax, a_y của path quintic) và ≤ max(jerk_target_hwa, jerk của path quintic), không đạt thì thử một nửa (pilot) | PP-TS-024 2.1; PP-SWR-051, 003, 001. Cận theo path quintic: cua gắt mà quintic đã vượt thì hiệu chỉnh không được làm xấu hơn, thay vì luôn fallback |
-| Fallback | Mã 1–13 trong `generator.yaml`; dùng path `quintic_duration` nguyên bit | PP-TS-024 2.4 cùng dữ liệu thiếu |
+| Chặn DLC phía trong | Hiệu chỉnh chỉ đi vào trong. Biên độ tuyệt đối tại đỉnh ≤ lệch vào trong của path quintic tại đỉnh + `qtp_dlc_margin_m` (0,01 m, cận 070 của H1). Mốc lấy lúc bắt đầu, sau đó chỉ được tăng DLC (ra ngoài). Path quintic tại đỉnh đã ở trong hơn biên độ thì giữ path quintic, giữ biên độ (mã 16). Ứng viên không được có DLC phía trong dưới min(sàn, DLC của path quintic) | PP-SWR-070 xếp trên êm. Bản đầu cộng phần (biên độ − path quintic tại đỉnh) có dấu, nên khi xe ở xa tâm thì kéo path đi xa (S24b 070 −0,19). Mốc lấy ở đỉnh, không lấy cả path: điểm đầu là vị trí xe. Mốc cố định thì giữ xe ở trong khi path quintic về giữa (S1g −0,026); mốc theo path quintic thì trôi vào trong |
+| Tiếp điểm từ đỉnh | `qtp_peak_check` (mặc định tắt): lúc bắt đầu, đi theo đường tham chiếu từ đỉnh tới cuối tầm nhìn tìm tiếp điểm | Thử phương án 1; bỏ vì S1d không bao giờ bắt đầu (tầm nhìn không đủ), S24b không chặn được (lane model bậc ba vẫn cong sau đỉnh) |
+| Fallback | Mã 1–16 trong `generator.yaml`; dùng path `quintic_duration` nguyên bit | PP-TS-024 2.4 cùng dữ liệu thiếu |
 | Vật thể | Fallback khi không có ObjectList, hoặc vật thể (existence ≥ `exist_min`) chạm vạch trong hay ở làn bên phía trong, trong phạm vi path. Vật thể phía ngoài cua hay trong làn mình mà không chạm vạch trong thì không chặn | Hiệu chỉnh chỉ đi vào trong; ngưỡng làn bên lấy như `offset.c` |
 | Sàn PP-SWR-006 | `PP_T7_SUPPORT_FLOOR` 1; không hiệu chỉnh khi a_y cần ≥ aysmax − `qtp_ay_need_margin` | Cua sát giới hạn giữ nguyên quintic |
 | Chi phí | Thêm 1 (ít khi 2) lần dựng path; p99 trong nhiễu đo | — |
@@ -99,6 +101,30 @@ Nhận xét:
 - Biên độ 0,10 gần như trùng 0,20 trên S24b: biên độ tăng theo `qtp_amplitude_rate` chưa tới mức đặt thì đã thả, nên hại không do biên độ mà do cơ chế.
 - Cơ chế: tính tay từ đường tham chiếu, tiếp điểm có từ 2,8 s trước (s ≈ 160 m), giảm tới 1,3 s ở đầu cua rồi mất ở s ≈ 218 m (tổng góc cua 0,17 rad). Hiệu chỉnh bắt đầu khoảng 1 s trước cua và thả ngay giữa clothoid vào, đúng lúc path quintic đã cắt vào trong (DLC mốc 0,205 m).
 - Không đổi lưới hay mặc định: 2,0 vẫn ít hại nhất (S24b cũng vậy), 1,75 là tâm. Cần một cơ chế chung (chưa làm): chỉ bắt đầu khi tiếp điểm còn tồn tại tới đỉnh, hoặc giới hạn phần cộng thêm theo DLC phía trong của path quintic.
+
+## Chặn DLC phía trong (an toàn xếp trên êm)
+
+Yêu cầu: QTP không xấu hơn mốc ở 070 trên mọi dòng quick, giữ lợi a_y/jerk nếu có. Mốc `quintic_duration-a7769a8c` như trên. Ngân sách 6 lần, dùng 6. Số là hiệu so với mốc; fb tính cả mã 16 (path quintic giữ nguyên).
+
+| Lần | Bản | S1d 070 / 068 / 069 | S1g 070 / 068 / 069 | S24a 070 / 068 / 069 | S24b 070 / 068 / 069 | fb S1d / S1g |
+|---|---|---|---|---|---|---|
+| — | Trước khi chặn (mặc định 1,75; 0,20) | −0,248 / −0,013 / +0,028 | −0,192 / +0,066 / +0,207 | +0,054 / +0,002 / −0,094 | −0,167 / +0,143 / +0,269 | 0,41 / 0,36 |
+| 1 | Mốc DLC nhỏ nhất của cả path quintic, cố định; `qtp_peak_check=0` | −0,020 / −0,004 / +0,003 | −0,046 / +0,015 / +0,023 | +0,054 / +0,002 / −0,094 | −0,194 / +0,145 / +0,255 | 0,43 / 0,36 |
+| 2 | Chỉ tiếp điểm từ đỉnh (`qtp_dlc_margin_m=0.5`, tức không chặn) | 0 / 0 / 0 | −0,183 / −0,049 / +0,068 | 0 / 0 / 0 | −0,167 / +0,143 / +0,269 | 1,00 / 0,39 |
+| 3 | Mốc tại đỉnh, cố định; chỉ đi vào trong (mã 16) | −0,008 / +0,003 / +0,001 | −0,026 / +0,004 / +0,008 | 0 / 0 / 0 | 0 / 0 / 0 | 0,56 / 0,42 |
+| 4 | Như lần 3, `qtp_dlc_margin_m=0.05` | −0,037 / −0,009 / +0,007 | −0,081 / +0,011 / +0,024 | 0 / 0 / 0 | 0 / 0 / 0 | 0,43 / 0,38 |
+| 5 | Mốc tại đỉnh, chỉ tăng ra ngoài (bản giữ, mặc định) | −0,000 / −0,002 / +0,002 | −0,014 / −0,009 / +0,006 | 0 / 0 / 0 | 0 / 0 / 0 | 0,75 / 0,50 |
+| 6 | Như lần 5, `qtp_dlc_margin_m=0` | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 0 / 0 / 0 | 1,00 / 1,00 |
+
+Nhận xét:
+
+- Hại trên S24a, S24b trước đây không do biên độ mà do phần cộng thêm có dấu (biên độ − path quintic tại đỉnh): xe ở xa tâm thì path bị kéo mạnh. Chỉ đi vào trong (lần 3 trở đi) thì S24a, S24b trùng mốc bit-exact ở cả 5 chỉ số.
+- Lần 5 (mặc định mới): S1d, S1b a, S24a, S24b không xấu hơn mốc; S1g 070 −0,014 (vượt cận 0,01 của H1 một chút: path vào trong 0,01 m, xe vào trong khoảng 1,4 lần). Lợi a_y chỉ −0,009 (S1g), −0,002 (S1d); jerk +0,002 tới +0,006. Vòng hở: 050 và 004 +0,000, lệch output lớn nhất 0,008–0,009 m.
+- Lề 0 (lần 6) trùng mốc mọi dòng: QTP không đổi path lần nào. Lề 0,05 (lần 4) mất DLC gần gấp đôi lề.
+- Kết luận: khi giữ 070, hiệu chỉnh tiếp điểm còn khoảng 0,01 m nên không còn lợi a_y/jerk đo được trên dòng tuning. Biên độ (`qtp_amplitude_m`) không còn có tác dụng (chặn DLC luôn nhỏ hơn); nên quét `qtp_dlc_margin_m` thay cho biên độ.
+- Thời gian: p99 LCC vòng kín 0,73–0,89 ms, mốc 0,70–1,32 ms; giá trị max 37–80 ms có cả ở mốc (nhiễu máy).
+
+Đề xuất cho plan.yaml: giữ `qtp_center_s` [1,5; 1,75; 2,0] tâm 1,75 (chưa dò lại tâm với luật mới); thay `qtp_amplitude_m` bằng `qtp_dlc_margin_m` [0; 0,01; 0,02], tâm 0,01 = mặc định trong `generator.yaml`.
 
 ## Vấn đề còn mở
 

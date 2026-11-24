@@ -39,7 +39,7 @@ Lưới calibration (tối đa 9 cấu hình mỗi kỹ thuật, `research/READM
 | `quintic_duration` | `T_hwa` 2,5/3,0/3,5 s × `T_recenter` 3,0/3,5/4,0 s |
 | `qp_jerk_admm` | `qp_w_dev` 0,15/0,30/0,60 × `qp_w_comfort` 2,5/5/10 |
 | Bản QP ít vòng, bản dịch thời gian, bản MLP warm start | Không có lưới; dùng trọng số mặc định của `qp_jerk_admm` |
-| `quintic_tangent_point` | Tâm cửa sổ nhìn trước 1,0/1,5/2,0 s × biên độ 0,10/0,20/0,30 m |
+| `quintic_tangent_point` | Tâm cửa sổ nhìn trước 1,5/1,75/2,0 s × biên DLC 0/0,01/0,02 m (biên độ giữ 0,20 m: chặn theo DLC luôn chặn trước; 1,0 s không bao giờ kích hoạt trên tuning) |
 | `quintic_ay_sampling` | Cặp vị trí đỉnh (0,35; 0,55)/(0,40; 0,60)/(0,45; 0,65) × biên độ 0,10/0,20/0,30 m |
 | `qp_jerk_admm_mlp_weights` | Hệ số điều chuẩn khi huấn luyện, 3 mức |
 

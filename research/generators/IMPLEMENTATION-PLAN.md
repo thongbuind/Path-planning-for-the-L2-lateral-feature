@@ -144,7 +144,7 @@ Không chọn cấu hình nào. Mọi cấu hình của lưới chạy trên c�
 | `qp_jerk_admm` (150 vòng) | `qp_w_dev` 0,15/0,30/0,60 × `qp_w_comfort` 2,5/5/10 | 9 | 0,30; 5,0 |
 | `qp_jerk_admm_it010` … `_it100` | Không có lưới; trọng số mặc định của `qp_jerk_admm` | 5 | — |
 | `qp_jerk_admm_it1000_ref` | Chỉ chạy lượt vòng hở | — | — |
-| `quintic_tangent_point` | Tâm cửa sổ nhìn trước 1,0/1,5/2,0 s × biên độ 0,10/0,20/0,30 m | 9 | Tâm lưới, khai báo trong `generator.yaml` |
+| `quintic_tangent_point` | Tâm cửa sổ nhìn trước 1,5/1,75/2,0 s × biên DLC 0/0,01/0,02 m (biên độ giữ 0,20 m: chặn theo DLC luôn chặn trước; 1,0 s không bao giờ kích hoạt trên tuning) | 9 | Tâm lưới, khai báo trong `generator.yaml` |
 | `quintic_ay_sampling` | Cặp vị trí đỉnh (0,35; 0,55)/(0,40; 0,60)/(0,45; 0,65) × biên độ 0,10/0,20/0,30 m | 9 | Tâm lưới, khai báo trong `generator.yaml` |
 | `qp_jerk_admm_shift_warmstart_it010` … `_it075` | Không có lưới; 4 mức số vòng, trọng số mặc định của `qp_jerk_admm` | 4 | — |
 | `qp_jerk_admm_mlp_warmstart_it010` … `_it075` | 4 mức số vòng, ghép cặp với bản QP và bản dịch thời gian cùng số vòng | 4 | — |

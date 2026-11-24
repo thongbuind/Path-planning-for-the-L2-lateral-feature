@@ -18,6 +18,7 @@ typedef struct {
     uint32_t work;  /* Telemetry: số path đã dựng ở chu kỳ gần nhất. */
     uint32_t fallback;  /* Telemetry: mã lý do dùng quintic_duration; 0 nếu đã cộng hiệu chỉnh. */
     double amp;  /* [m] Biên độ hiện tại, dương về trái; 0 khi không hiệu chỉnh. Giữ giữa các chu kỳ. */
+    double dlc_ref;  /* [m] DLC phía trong nhỏ nhất của path quintic lúc bắt đầu hiệu chỉnh; giữ tới khi thả. */
 } pp_t7_ws_t;
 
 /* Thời điểm [s] tới tiếp điểm gần nhất trên vạch phía side (+1 trái, −1 phải), cách tâm half_width,
@@ -26,5 +27,11 @@ typedef struct {
 double lab_qtp_tangent_time(const pp_trajectory_point_t points[PP_TRAJECTORY_POINTS],
                             const pp_lateral_path_t *lateral, const pp_ref_samples_t *samples,
                             double side, double half_width, double lo, double hi, size_t last);
+
+/* true nếu từ điểm (px, py) vẫn thấy tiếp điểm trên vạch phía side, cách tâm half_width: tiếp tuyến của
+ * vạch tại một điểm có s trong (s_from, cuối tầm nhìn] đi qua điểm đó. Đi theo đường tham chiếu, vì path
+ * chỉ dài 3 s, ngắn hơn tầm nhìn; không đi qua cuối tầm nhìn (phần nối cung là ngoại suy). */
+bool lab_qtp_tangent_after(const pp_reference_line_t *ref, double px, double py, double side,
+                           double half_width, double s_from);
 
 #endif
