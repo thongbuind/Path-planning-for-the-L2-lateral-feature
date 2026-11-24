@@ -300,12 +300,12 @@ Không có bước chọn. Lần chạy này cho phần tuning của dashboard v
 
 | Bước | Việc | Trạng thái |
 |---|---|---|
-| 5.1 | `python3 -m eval.study PP-TS-031 --record --jobs 2 --part test [--group <biến thể>]`, cả 53 cấu hình; chia theo nhóm thuật toán | Chưa |
-| 5.2 | Phiên đo thời gian: 1 job, S1f và S1c vòng kín, seed 3–4, lặp 3 lần, thứ tự build xen kẽ; 19 cấu hình (mặc định của mỗi lưới, mỗi mức số vòng). p99 của mọi cấu hình vẫn có từ 5.1, ghi là đo ở 2 job | Xong code (`eval/timing_session.py`); chưa chạy |
-| 5.3 | Dữ liệu dashboard không xếp hạng: cờ (mục 2.2), hiệu ghép cặp có nhãn từng ô, giả thuyết cho từng cấu hình của lưới, chi phí, độ tin, chẩn đoán; gộp nhiều lần chạy; ghi `dashboard/techniques.json`. Phần báo cáo có xếp hạng của `eval/techniques.py --study` bỏ; phần so kỹ thuật theo thư mục giữ cho SQTS 9.1 chung | Xong code (`eval/campaign.py`, test trong `tests/eval/test_generator_campaign.py`) |
-| 5.4 | `research/generators/dashboard/build.py` sinh `research/generators/dashboard/index.html` từ `techniques.json` (các khía cạnh dưới) | Xong code, thử trên dữ liệu giả; chưa sinh từ lần chạy thật |
-| 5.5 | Viết Kết quả của PP-TS-031 (mô tả, không đề xuất chọn); phát hiện ngoài phạm vi mở PP-PR | Chưa |
-| 5.6 | Đóng PP-TS-031: run ID, link dashboard. Chọn generator và đưa vào planner là việc riêng của người dùng, ngoài lab. **Xong bước này thì xóa file kế hoạch** | Chưa |
+| 5.1 | `python3 -m eval.study PP-TS-031 --record --jobs 2 --part test [--group <biến thể>]`, cả 53 cấu hình; chia theo nhóm thuật toán | Xong: `research/runs/20261125-0007-study-PP-TS-031-074a928` |
+| 5.2 | Phiên đo thời gian: 1 job, S1f và S1c vòng kín, seed 3–4, lặp 3 lần, thứ tự build xen kẽ; 19 cấu hình (mặc định của mỗi lưới, mỗi mức số vòng). p99 của mọi cấu hình vẫn có từ 5.1, ghi là đo ở 2 job | Xong: `research/runs/20261125-0208-timing-PP-TS-031-06cbbe3` |
+| 5.3 | Dữ liệu dashboard không xếp hạng: cờ (mục 2.2), hiệu ghép cặp có nhãn từng ô, giả thuyết cho từng cấu hình của lưới, chi phí, độ tin, chẩn đoán; gộp nhiều lần chạy; ghi `dashboard/techniques.json`. Phần báo cáo có xếp hạng của `eval/techniques.py --study` bỏ; phần so kỹ thuật theo thư mục giữ cho SQTS 9.1 chung | Xong; `techniques.json` sinh từ ba run chính thức |
+| 5.4 | `research/generators/dashboard/build.py` sinh `research/generators/dashboard/index.html` từ `techniques.json` (các khía cạnh dưới) | Xong; `index.html` sinh từ ba run chính thức |
+| 5.5 | Viết Kết quả của PP-TS-031 (mô tả, không đề xuất chọn); phát hiện ngoài phạm vi mở PP-PR | Xong: PP-TS-031 mục 5; PP-PR-085, 086 |
+| 5.6 | Đóng PP-TS-031: run ID, link dashboard. Chọn generator và đưa vào planner là việc riêng của người dùng, ngoài lab. **Xong bước này thì xóa file kế hoạch** | Xong trừ bước xóa file: plan.yaml đã khóa và mã eval còn trỏ tới mục 2.2, 2.3 của file này; chờ người dùng quyết |
 
 Dashboard (`index.html`):
 

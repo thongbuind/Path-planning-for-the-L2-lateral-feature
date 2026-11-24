@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở |
+| Trạng thái | Đóng |
 | Mở ngày | 2026-11-23 |
-| Khóa ngày | — |
-| Đóng ngày | — |
+| Khóa ngày | 2026-11-24 |
+| Đóng ngày | 2026-11-25 |
 | Liên quan | PP-TS-003, PP-TS-013, PP-TS-024, PP-TS-025; PP-SWR-001, 003, 004, 006, 016, 050, 051, 068, 069, 070, 100 đến 102; PP-ADR-013; SQTS 9.1, 9.2 |
 
 ## 1. Câu hỏi
@@ -82,11 +82,66 @@ Báo kèm, không so với mốc:
 
 | Run ID | Phương án | Ghi chú |
 |---|---|---|
+| [20261124-2203-study-PP-TS-031-ebfca18](../../runs/20261124-2203-study-PP-TS-031-ebfca18/summary.md) | 53 cấu hình và nghiệm tham chiếu, tuning | 28 lượt mỗi cấu hình; không lượt trượt |
+| [20261125-0007-study-PP-TS-031-074a928](../../runs/20261125-0007-study-PP-TS-031-074a928/summary.md) | 53 cấu hình và nghiệm tham chiếu, test | 64 lượt mỗi cấu hình |
+| [20261125-0208-timing-PP-TS-031-06cbbe3](../../runs/20261125-0208-timing-PP-TS-031-06cbbe3/manifest.json) | 19 cấu hình mặc định, 1 job | S1f, S1c vòng kín, seed 3, 4, lặp 3 lần |
 
 ## 5. Kết quả
 
+Số liệu đầy đủ ở dashboard. Mục này chỉ tóm tắt, không xếp hạng.
+
+### 5.1 Giả thuyết
+
+| Giả thuyết | Tuning | Test | Ghi chú |
+|---|---|---|---|
+| H1: `quintic_tangent_point`, `quintic_ay_sampling` giảm 068 ở cua ngắn | Không áp dụng (nhóm ca chỉ có ở test) | Không đạt, 0/18 cấu hình | Hiệu 068, 069, 070 dưới 0,002 ở mọi cấu hình. Hai generator gần như không đổi path ở S1f, S14e, S1b f |
+| H2: k nhỏ nhất có lệch lớn nhất ≤ 0,005 m | k = 50 (lệch 2,2 mm) | Không có k nào | Ở test, lệch lớn nhất đến từ S14e vòng hở: 0,23 m ở 150 vòng, 0,40 m ở 50 vòng (PP-PR-086). Các lượt vòng hở khác dưới 2,5 mm ở 150 vòng |
+| H3: warm start dịch thời gian ≥ 0,005 m tốt hơn QP cùng k | 0/4 | 3/4 (k = 10, 50, 75) | Kết quả test do S14e quyết định |
+| H4a: MLP warm start tốt hơn QP và bản dịch thời gian cùng k | 0/8 | 6/8 | Như H3. Ở tuning, MLP warm start lệch nhiều nhất trong ba bản ở mọi k |
+| H4b: MLP warm start có k mà lệch ≤ `qp_jerk_admm` và p99 ≤ 0,90 lần | 0/4 | 3/4 (k = 10, 25, 50) | Tỉ số p99 0,67 đến 0,88. Ở test, `qp_jerk_admm` cũng lệch 0,23 m ở S14e nên mốc lệch rộng |
+| H5: `qp_jerk_admm_mlp_weights` có ô tốt hơn, không ô nào xấu hơn | 2/3 | 1/3 (l2 1e-4: 2 ô tốt hơn) | Mức giữa: test không ô nào khác có ý nghĩa; mức 1e-2: tuning 1 ô xấu hơn |
+| H6: `mlp_jerk_direct` (đối chứng) | — | Cờ bật | 24 lượt trượt mới (PP-SWR-051, 052, 055, 056, 058, 173); 54 lượt LCC lái ít hơn mốc |
+
+- Các giả thuyết H2 đến H4 dùng lệch lớn nhất trên mọi lượt vòng hở. Ở test, một dòng (S14e, a_y cần vượt aysmax) quyết định kết quả, nên tuning và test cho chiều ngược nhau.
+- Tiêu chí, nhóm ca và dung sai không đổi sau khi thấy kết quả.
+
+### 5.2 Trượt requirement ở test
+
+| Cấu hình | Lượt trượt | Requirement và ca |
+|---|---|---|
+| `quintic_duration` (mốc) | 10 | 006 ở S14e (6); 100 ở S1b b, c, f (4, PP-PR-085) |
+| `qp_jerk_admm` và các bản QP | 6 đến 7 | 006 ở S14e (6); 100 ở S1b b (1) |
+| `qp_jerk_admm_it1000_ref` | 2 | 006 ở S14e vòng hở |
+| `mlp_jerk_direct` | 24 | Xem H6 |
+
+- 006 ở S14e đã có ở PP-PR-004.
+- Không generator nào ngoài `mlp_jerk_direct` có lượt trượt mới so với mốc.
+
+### 5.3 Thời gian tính (1 job)
+
+| Cấu hình | p99 trung vị [ms] | p99 lớn nhất [ms] |
+|---|---|---|
+| `mlp_jerk_direct` | 0,69 | 1,47 |
+| `quintic_duration` | 0,78 | 2,28 |
+| `quintic_tangent_point`, `quintic_ay_sampling` | 0,78 | 1,24 |
+| `qp_jerk_admm_it010` | 0,85 | 1,87 |
+| `qp_jerk_admm_mlp_warmstart_it010` | 0,91 | 2,32 |
+| `qp_jerk_admm_shift_warmstart_it010` | 0,98 | 2,06 |
+| `qp_jerk_admm_mlp_weights` | 1,36 | 2,08 |
+| `qp_jerk_admm` (150 vòng) | 1,41 | 3,00 |
+
+p99 lớn nhất của mọi cấu hình là 3,2 ms (12,9 % chu kỳ 25 ms). Thời gian trên PC, không khẳng định cho ECU (SQTS 9.1).
+
+### 5.4 Phát hiện trong lúc làm
+
+- `quintic_ay_sampling` không áp được hiệu chỉnh trên cả hai cua ngắn của tuning: S24 a dài 4,25 s, quá tầm nhìn 3 s; S24 b bị giới hạn jerk chặn.
+- `quintic_tangent_point`: khi chặn hiệu chỉnh theo DLC phía trong của path quintic thì không còn giảm 070, và lợi về a_y cũng mất.
+- Ước lượng a_y cần trong `research/generators/common/` cao hơn thật 15 đến 20 % trên cua ngắn (chỉ dùng trong lab).
+- `mlp_jerk_direct` trượt `test_lcc_step` (unit test của planner), như dự kiến của đối chứng.
+
 ## 6. Đóng
 
-- Study chỉ mô tả, không đề xuất chọn.
-- Ngày đóng:
-- Dashboard: `research/generators/dashboard/index.html`, sinh từ các run ID ở mục 4
+- Study chỉ mô tả, không đề xuất chọn. Chọn generator và đưa vào planner là việc riêng của người dùng.
+- Ngày đóng: 2026-11-25.
+- Dashboard: [`research/generators/dashboard/index.html`](../../generators/dashboard/index.html), sinh từ ba run ID ở mục 4 (`python3 -m eval.campaign`, rồi `python3 research/generators/dashboard/build.py`).
+- Problem report mở từ study: PP-PR-085, PP-PR-086.

@@ -61,7 +61,7 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-TS-028 | Bộ nhớ của planner trôi theo bias yaw của EgoMotionQuery: V0 đến V3 | Mở 2026-11-23 | — | [study](studies/PP-TS-028-memory-heading-drift/study.md) |
 | PP-TS-029 | Calibration chỉnh được khi tune trên xe: V0 đến V3 | Mở 2026-11-23; đề xuất V3 | — | [study](studies/PP-TS-029-runtime-calibration/study.md) |
 | PP-TS-030 | Đường về tâm của ELK vì xe làn bên: V0 đến V3 (về hai tốc độ) | Đóng; hồi quy 20261123-1435-suite-regression-9f2f367 | V2 | [study](studies/PP-TS-030-elk-object-return/study.md) |
-| PP-TS-031 | Chiến dịch generator T7 của LCC: quintic, QP theo số vòng, warm start dịch thời gian, driver model, MLP quanh QP; một plan, một dashboard so sánh cho mentor, không chọn generator | Mở 2026-11-23; plan nháp, khung lab đã có (research/generators/), generator chưa cài | — | [study](studies/PP-TS-031-t7-generator-campaign/study.md) |
+| PP-TS-031 | Chiến dịch generator T7 của LCC: quintic, QP theo số vòng, warm start dịch thời gian, driver model, MLP quanh QP; một plan, một dashboard so sánh cho mentor, không chọn generator | Đóng 2026-11-25; 20261124-2203, 20261125-0007, 20261125-0208 | Không chọn (lab chỉ mô tả); kết quả ở mục 5 và dashboard | [study](studies/PP-TS-031-t7-generator-campaign/study.md) |
 
 ## Problem reports
 
@@ -151,3 +151,5 @@ Mốc đối chiếu: [hồi quy bb08d77](runs/20261119-0948-suite-regression-bb
 | PP-PR-082 | 6 requirement trong phạm vi chấm nhưng chưa có criterion; PP-SWR-132 chưa lần nào áp dụng được | Mở; phía đánh giá | PP-SWR-045, 046, 132, 141, 144, 151, 152 | [report](problems/PP-PR-082-requirements-without-criterion.md) |
 | PP-PR-083 | ACC chạy thử bỏ mục tiêu khi cảm biến sót một khung; LeadTarget `valid = false`, PP-SWR-172, 176 trượt 64 lượt | Đóng; xác nhận ở 20261123-1435-suite-regression-9f2f367 (PP-SWR-172, 176 không còn trượt) | PP-SWR-172, 176 | [report](problems/PP-PR-083-acc-target-drop-on-missed-detection.md) |
 | PP-PR-084 | S12 d: PP-SWR-094 sau LKA trong mưa (6 lượt); S7 a VP-0: PP-SWR-088 = 0,287 m | Mở | PP-SWR-094, 088 | [report](problems/PP-PR-084-s12d-reversal-s7a-gap.md) |
+| PP-PR-085 | S1b b, c, f với ACC bỏ qua LateralLimits: PP-SWR-100 trượt ở `quintic_duration` (4 lượt) và `qp_jerk_admm` (1) | Mở | PP-SWR-100 | [report](problems/PP-PR-085-s1b-continuity-ignore-limits.md) |
+| PP-PR-086 | S14 e: QP ADMM 150 vòng lệch 0,23 m so với 1000 vòng (vòng hở, a_y cần vượt aysmax) | Mở | PP-TS-031 H2 đến H4; PP-PR-004 | [report](problems/PP-PR-086-s14e-qp-not-converged.md) |
