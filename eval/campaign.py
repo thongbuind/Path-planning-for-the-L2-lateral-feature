@@ -9,6 +9,7 @@ ghi research/generators/dashboard/techniques.json cho dashboard/build.py.
 """
 
 import argparse
+import datetime
 import json
 import math
 import re
@@ -503,6 +504,13 @@ def _sha(path: Path) -> str:
     return provenance.sha256(path)
 
 
+def _jsonable(value):
+    """`locked` của plan.yaml là ngày (YAML đọc thành date)."""
+    if isinstance(value, datetime.date):
+        return value.isoformat()
+    return report.jsonable(value)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Dashboard data of a generator campaign (PP-TS-031); no ranking")
     parser.add_argument("study", nargs="?", default="PP-TS-031")
@@ -517,7 +525,7 @@ def main() -> None:
         raise SystemExit(f"{args.study}: no eval.study results found")
     data = build(args.study, plan_path, folders)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(data, indent=1, ensure_ascii=False, default=report.jsonable) + "\n",
+    args.out.write_text(json.dumps(data, indent=1, ensure_ascii=False, default=_jsonable) + "\n",
                         encoding="utf-8")
     print(f"{args.out} ({'draft' if data['draft'] else 'official'}; {len(folders)} result folders)")
 
