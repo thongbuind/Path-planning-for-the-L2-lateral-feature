@@ -3,7 +3,7 @@
  * cua trong cửa sổ nhìn trước, cộng một hiệu chỉnh smoothstep bậc 7 (common/driver_shape) về phía trong,
  * đỉnh tại thời điểm tới tiếp điểm, về 0 ở cuối tầm nhìn. Đỉnh của path cách d_target đúng biên độ.
  * Chỉ bắt đầu khi tiếp điểm nằm trong cửa sổ; giữ khi tiếp điểm còn ở trước cuối cửa sổ (xe đã vào cua).
- * Biên độ tăng dần theo ref_rate. Thả khi tiếp điểm mất (gần hết cua) hoặc một điều kiện fallback bật:
+ * Biên độ tăng dần theo qtp_amplitude_rate. Thả khi tiếp điểm mất (gần hết cua) hoặc một điều kiện fallback bật:
  * path quintic_duration đưa xe về d_target trong T_hwa. */
 
 #include <math.h>
@@ -176,16 +176,16 @@ static uint32_t correct(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7
     }
 
     /* Biên độ đích: đỉnh của path cách d_target về phía trong, chặn theo hành lang như offset (PP-SWR-051).
-     * Biên độ hiện tại (ws->amp, có dấu) tăng dần theo ref_rate (PP-SWR-120), để path không đổi đột ngột
+     * Biên độ hiện tại (ws->amp, có dấu) tăng dần theo qtp_amplitude_rate, để path không đổi đột ngột
      * giữa các chu kỳ lúc bắt đầu. Đang hiệu chỉnh thì giữ phía cũ. */
     const double corridor = (0.5 * (ref->width - (double)in->vehicle->vehicle_width)) - (double)cal->dlc_offset_min;
     const double amplitude = fmin((double)cal->qtp_amplitude_m, corridor);
     const bool engaged = (ws->amp != 0.0);
     const double side = engaged ? copysign(1.0, ws->amp) : near_side;
-    /* Bắt đầu: tiếp điểm trong cửa sổ. Giữ: tiếp điểm còn ở trước cuối cửa sổ, cùng phía. */
+    /* Bắt đầu và giữ khi có tiếp điểm trước cuối cửa sổ, cùng phía (đang hiệu chỉnh thì giữ phía cũ). Lane
+     * model thường chỉ thấy cua khi tiếp điểm đã gần hơn cuối cửa sổ, nên không đòi tiếp điểm qua cả cửa sổ. */
     const double tangent = ((side != 0.0) && (!engaged || (side == near_side)))
-                           ? lab_qtp_tangent_time(points, lateral, samples, side, 0.5 * ref->width,
-                                                  engaged ? 0.0 : lo, hi, last)
+                           ? lab_qtp_tangent_time(points, lateral, samples, side, 0.5 * ref->width, 0.0, hi, last)
                            : 0.0;
     const bool aim = (tangent > 0.0) && (amplitude >= (double)cal->qtp_amplitude_min_m);
     if (!aim) {
@@ -194,7 +194,7 @@ static uint32_t correct(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7
     /* Đỉnh ở tiếp điểm, không gần hơn đầu cửa sổ (vẫn đủ thời lượng cho jerk). */
     const double peak = fmax(tangent, lo);
     /* Thời gian giữa hai chu kỳ lấy từ path cũ; không có path cũ thì không tăng biên độ. */
-    const double step = (double)cal->ref_rate
+    const double step = (double)cal->qtp_amplitude_rate
                         * ((in->old->valid && isfinite(in->old->shift_s)) ? pp_clamp(in->old->shift_s, 0.0, 0.1) : 0.0);
     const double amp = ws->amp + pp_clamp((side * amplitude) - ws->amp, -step, step);
     if (amp == 0.0) {
@@ -215,7 +215,12 @@ static uint32_t correct(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7
         return QTP_FB_OBJECTS;
     }
 
-    /* Thử phần cộng thêm đủ rồi một nửa (pilot PP-TS-024); giữ trong aysmax và jerk_target_hwa. */
+    /* Thử phần cộng thêm đủ rồi một nửa (pilot PP-TS-024); giữ trong aysmax và jerk_target_hwa. Khi path
+     * quintic đã vượt một trong hai (cua gắt, tìm thời lượng tới T_max) thì không được vượt hơn path đó. */
+    pp_path_check_t base_check;
+    pp_feasibility_check(points, samples, &base_check);
+    const double ay_ok = fmax(PP_AYSMAX, base_check.ay_max);
+    const double jerk_ok = fmax((double)cal->jerk_target_hwa, base_check.jerk_max);
     uint32_t code = QTP_FB_CHECK;
     for (uint32_t i = 0U; (i < 2U) && (code != QTP_APPLIED); i++) {
         const double offset = rel * ((i == 0U) ? 1.0 : 0.5);
@@ -226,7 +231,7 @@ static uint32_t correct(pp_t7_ws_t *ws, const pp_calibration_t *cal, const pp_t7
             if (pp_output_points(ref, &bumped, in->speed, (double)in->vehicle->wheelbase, candidate, NULL)) {
                 pp_path_check_t check;
                 pp_feasibility_check(candidate, samples, &check);
-                if ((check.ay_max <= PP_AYSMAX) && (check.jerk_max <= (double)cal->jerk_target_hwa)) {
+                if ((check.ay_max <= ay_ok) && (check.jerk_max <= jerk_ok)) {
                     (void)memcpy(points, candidate, sizeof(candidate));
                     ws->amp = amp;
                     code = QTP_APPLIED;

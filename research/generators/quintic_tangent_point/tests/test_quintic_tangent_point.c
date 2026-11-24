@@ -17,7 +17,7 @@ static pp_t7_ws_t ws;
 /* Cua với tiếp điểm ở khoảng 1,5 s: sqrt(2·R·h) = 30 m với h = 1,75 m, nên R ≈ 257 m. */
 #define KAPPA_TP15 (1.0 / 257.0)
 #define CYCLE_S (0.025)
-/* Đủ chu kỳ để biên độ tăng theo ref_rate tới 0,2 m (2 s). */
+/* Đủ chu kỳ để biên độ tăng theo qtp_amplitude_rate tới 0,2 m. */
 #define RAMP_CYCLES (100U)
 
 typedef struct {
@@ -216,14 +216,14 @@ static void test_fallbacks_give_base_path(void)
     PP_CHECK(ws.amp == 0.0);
 }
 
-/* Biên độ tăng theo ref_rate tới biên độ đích; giữ khi tiếp điểm còn trước cuối cửa sổ; tiếp điểm mất thì
+/* Biên độ tăng theo qtp_amplitude_rate tới biên độ đích; giữ khi tiếp điểm còn trước cuối cửa sổ; tiếp điểm mất thì
  * thả về path gốc. Không có path cũ thì không tăng. Một điều kiện fallback thả ngay. */
 static void test_ramp_hold_and_release(void)
 {
     fixture_t fx;
     pp_trajectory_point_t pts[PP_TRAJECTORY_POINTS];
     pp_ref_samples_t samples;
-    const double step = (double)pp_calibration.ref_rate * CYCLE_S;
+    const double step = (double)pp_calibration.qtp_amplitude_rate * CYCLE_S;
     setup(&fx, KAPPA_TP15);
     pp_t7_reset(&ws);
     PP_CHECK(pp_t7_generate(&ws, &pp_calibration, &fx.in, pts, &samples));
@@ -234,7 +234,7 @@ static void test_ramp_hold_and_release(void)
     }
     PP_CHECK_NEAR(ws.amp, (double)pp_calibration.qtp_amplitude_m, 1e-9);
 
-    /* Đang giữ: cửa sổ [1,6; 1,75] không chứa tiếp điểm 1,5 s nhưng vẫn giữ vì tiếp điểm ở trước cuối cửa sổ. */
+    /* Cửa sổ [1,6; 1,75]: tiếp điểm 1,5 s gần hơn đầu cửa sổ vẫn bắt đầu và giữ, đỉnh đặt ở đầu cửa sổ. */
     pp_calibration_t cal = pp_calibration;
     cal.qtp_center_s = 1.675F;
     cal.qtp_window_half_s = 0.075F;
@@ -242,7 +242,7 @@ static void test_ramp_hold_and_release(void)
     PP_CHECK(ws.fallback == 0U);
     pp_t7_reset(&ws);
     PP_CHECK(pp_t7_generate(&ws, &cal, &fx.in, pts, &samples));
-    PP_CHECK(ws.fallback == 10U);
+    PP_CHECK(ws.fallback == 0U);
 
     /* Cuối cửa sổ ở 1,0 s: tiếp điểm 1,5 s mất, thả ngay về path gốc. */
     pp_t7_reset(&ws);

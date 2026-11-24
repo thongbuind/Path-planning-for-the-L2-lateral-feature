@@ -23,9 +23,10 @@ telemetry:
 # Hai tham số đầu được quét (lưới của plan.yaml PP-TS-031); các tham số còn lại giữ cố định.
 calibration_prefix: qtp
 calibration:
-  qtp_center_s:        {value: 1.5, unit: s, min: 1.0, max: 2.0, source: "PP-TS-024 2.2, 3 (Land và Lee 1994: nhìn trước 1–2 s); tâm lưới PP-TS-031"}
+  qtp_center_s:        {value: 1.75, unit: s, min: 1.0, max: 2.0, source: "PP-TS-024 2.2, 3 (Land và Lee 1994: nhìn trước 1–2 s); tâm lưới PP-TS-031"}
   qtp_amplitude_m:     {value: 0.20, unit: m, min: 0, max: 0.5, source: "PP-TS-024 3 (lưới 0,10/0,20/0,30 m); max theo dlc_offset_min và làn 2,5 m chưa trừ xe; tâm lưới PP-TS-031"}
   qtp_window_half_s:   {value: 0.25, unit: s, min: 0, max: 0.5, source: "PP-TS-024 3 (cửa sổ ±0,25 s quanh tâm)"}
   qtp_ay_need_min:     {value: 0.4, unit: m/s^2, min: 0, max: 2.5, source: "PP-TS-024 pilot_driver.inc; dưới mức này coi như không có cua"}
   qtp_ay_need_margin:  {value: 0.1, unit: m/s^2, min: 0, max: 2.5, source: "PP-TS-024 pilot_driver.inc; giữ cua sát aysmax cho sàn trợ giúp PP-SWR-006"}
+  qtp_amplitude_rate:  {value: 0.1, unit: m/s, gt: 0, max: 1.0, source: "bằng ref_rate (PP-SWR-120, tốc độ đổi offset mục tiêu); chặn path đổi đột ngột giữa các chu kỳ"}
   qtp_amplitude_min_m: {value: 0.01, unit: m, min: 0, max: 0.1, source: "nhóm tự thống nhất; 2 lần dung sai 0,005 m của PP-SWR-050 (IMPLEMENTATION-PLAN 2.3)"}
