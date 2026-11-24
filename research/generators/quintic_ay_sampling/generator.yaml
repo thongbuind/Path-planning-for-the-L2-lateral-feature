@@ -1,0 +1,38 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md. Thiết kế: notes.md.
+name: quintic_ay_sampling
+base: quintic_duration          # Generator gốc; cũng là nghiệm thay thế khi generator không áp dụng
+study: PP-TS-031
+telemetry:
+  work: số lần thử thời lượng của quintic_duration + số ứng viên hiệu chỉnh đã chấm
+  fallback:                      # Mã lý do giữ path quintic_duration; 0 = đã áp dụng hiệu chỉnh
+    1: FOLLOW (ref là đường ảo bám xe trước)
+    2: start_from_car (tài xế override, LKA/ELK REQUEST hoặc chu kỳ đầu sau đó)
+    3: đang đưa về giữa
+    4: có offset mục tiêu (|d_target| > qas_offset_max_m)
+    5: ước lượng làn không đủ điều kiện (coasting, inferred, line_rejected)
+    6: không có ObjectList dùng được hoặc có vật thể
+    7: tầm nhìn ngắn hơn qas_view_min_s
+    8: không còn hành lang (làn hẹp hoặc path gốc đã ra ngoài hành lang)
+    9: không có cua (a_y cần < qas_ay_need_min_mps2)
+    10: cua gần aysmax (a_y cần >= aysmax - qas_ay_need_margin_mps2), vùng sàn PP-SWR-006
+    11: không ứng viên nào giảm a_y đủ qas_ay_gain_min_mps2 trong dung sai jerk
+    12: ứng viên được chọn trượt lần kiểm T11 và feasibility thật
+    13: path quintic_duration không sinh được (input không hữu hạn hoặc không biểu diễn được)
+# Tham số calibration riêng: tên bắt đầu bằng calibration_prefix + "_", cùng định dạng với
+# planner/calibration/calibration.yaml (value, unit, min, max, source).
+calibration_prefix: qas
+calibration:
+  # Lưới của PP-TS-031 (plan.yaml): cặp đỉnh × biên độ; mặc định là tâm lưới.
+  # Đỉnh tính theo phần của thời lượng dùng được trong tầm nhìn (end, 2–3 s), như pilot V2.
+  qas_peak_early:        {value: 0.40, unit: "-", gt: 0, lt: 1, source: "PP-TS-024 mục 3 (lưới V2); pilot_driver.inc V2; phần của thời lượng trong tầm nhìn"}
+  qas_peak_late:         {value: 0.60, unit: "-", gt_param: qas_peak_early, lt: 1, source: "PP-TS-024 mục 3 (lưới V2); pilot_driver.inc V2; phần của thời lượng trong tầm nhìn"}
+  qas_amplitude_m:       {value: 0.20, unit: m, min: 0, max: 0.5, source: "PP-TS-024 mục 3 (biên độ tối đa 0,10/0,20/0,30 m); hành lang PP-SWR-051 thu nhỏ lúc chạy"}
+  # Cố định, không quét.
+  qas_amplitude_step_m:  {value: 0.025, unit: m, gt: 0, max: 0.1, source: "pilot_driver.inc V3 (thang biên độ); PP-TS-024 mục 3 (hành lang và jerk làm biên độ thực thấp hơn); chia hết 0,10/0,20/0,30 m nên tập ứng viên của lưới lồng nhau"}
+  qas_corridor_margin_m: {value: 0.30, unit: m, min: 0, source: "PP-SWR-051; pilot_driver.inc; cùng giá trị qp_corridor_margin"}
+  qas_view_min_s:        {value: 2.0, unit: s, gt: 0, max: 3.0, source: "pilot_driver.inc; PP-TS-024 mục 2 ý 1 (không đủ chiều dài thì dùng V0)"}
+  qas_offset_max_m:      {value: 0.025, unit: m, min: 0, source: "pilot_driver.inc; PP-TS-024 mục 2.4 (dời tâm, offset thì dùng V0)"}
+  qas_ay_need_min_mps2:  {value: 0.4, unit: m/s^2, min: 0, source: "pilot_driver.inc (không có cua)"}
+  qas_ay_need_margin_mps2: {value: 0.1, unit: m/s^2, min: 0, max: 2.5, source: "pilot_driver.inc; nhường vùng sàn PP-SWR-006"}
+  qas_ay_gain_min_mps2:  {value: 0.05, unit: m/s^2, min: 0, source: "PP-TS-024 mục 2 ý 3 (giảm đỉnh ít nhất 0,05 m/s², không thì V0)"}
+  qas_jerk_tol_mps3:     {value: 0.10, unit: m/s^3, min: 0, source: "PP-TS-024 mục 2 ý 3 (jerk trong dung sai); dung sai PP-SWR-069 của H1, PP-TS-031"}
