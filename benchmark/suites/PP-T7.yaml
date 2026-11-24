@@ -31,7 +31,9 @@ tuning:
     - [S14, c, {acc: 'on'}]
     - [S22, a]
     # Added for PP-TS-031 before GD 4: tuning had no short curve (S1 f, S14 e are test only).
+    # b is also short in time (2.5 s); a is short in metres only (4.25 s at 110 km/h).
     - [S24, a]
+    - [S24, b]
     - [S1, d, {loop: open}]
     - [S1, g, F01, a, {loop: open}]
     - [S1b, a, {acc: ignore_limits, loop: open}]

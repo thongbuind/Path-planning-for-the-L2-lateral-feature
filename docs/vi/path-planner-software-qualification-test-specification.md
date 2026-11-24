@@ -3,7 +3,7 @@
 | Mục | Nội dung |
 |---|---|
 | Mã tài liệu | `PP-SQTS` |
-| Phiên bản | 1.53 |
+| Phiên bản | 1.54 |
 | Trạng thái | BL1 |
 | Tác giả | thongbui |
 | Người review | thongbui |
@@ -247,7 +247,7 @@ Khối dọc trong simulator, thuộc bên test và cố định cho mọi phiê
 | S21 | Trôi khi làn bên có xe | 72 km/h. a) xe con ngang hàng ở làn bên phía trôi, đường thẳng, trôi 0,4 m/s; b) như a, cua R = 500 m, trôi ra ngoài; c) như b, trôi vào trong; d) xe con ở làn bên phía đối diện hướng trôi; e) xe con ở cả hai làn bên | PP-SWR-082, 085 (vòng kín), 088 (vòng kín), 094 (vòng kín), 111, 113, 115 |
 | S22 | LCC bám xe trước khi mất vạch | Xe trước đi cùng tốc độ 50 km/h, cách 25 m, làn 3,5 m, LCC bật. a) xe con, mất hai vạch trong 20 m rồi có lại; b) xe con, mất hai vạch trong 3,8 s để quan sát giới hạn 30 m và hết T_coast; c) như a, trong cua R = 200 m; d) xe tải, mất hai vạch 25 m; e) như a, xe trước dịch ngang 0,8 m/s | PP-SWR-170 (a, c, d, e), 172 (b, c, e), 173 (b), 174 (a), 175 (a, c, d, vòng kín), 177, 178 (a, c, d) |
 | S23 | Không được vào bám xe | Mất hai vạch, xe trước cách 25 m. a) xe máy; b) tốc độ 65 km/h; c) xe trước cách 60 m; d) xe trước lệch tâm làn gốc 1,5 m; e) xe trước không là mục tiêu ACC | PP-SWR-171 (a–e), 177 |
-| S24 | LCC cua ngắn, chỉ dùng để chỉnh | 110 km/h. a) clothoid 50 m vào cung R = 450 m dài 30 m, clothoid 50 m ra (2,07 m/s², 83 % aysmax). Chỉ ở phần chỉnh của bộ so sánh kỹ thuật (mục 9.1); không vào bộ smoke, hồi quy, đầy đủ |  |
+| S24 | LCC cua ngắn, chỉ dùng để chỉnh | a) 110 km/h, clothoid 50 m vào cung R = 450 m dài 30 m, clothoid 50 m ra (2,07 m/s², 83 % aysmax); b) 72 km/h, clothoid 20 m vào cung R = 180 m dài 10 m, clothoid 20 m ra (2,22 m/s², 89 % aysmax, cả cua 2,5 s). Chỉ ở phần chỉnh của bộ so sánh kỹ thuật (mục 9.1); không vào bộ smoke, hồi quy, đầy đủ |  |
 
 ### 5.1 Bài thử theo văn bản {#benchmark-regulatory}
 
@@ -755,3 +755,4 @@ Hai đầu dải của input ở C2. Header giữ hợp lệ để planner dùng
 | 1.51 | 2026-11-23 | Mục 5: cột Yêu cầu sinh lại theo SRS 1.26 (PP-SWR-094 ở S4b, S7, S8, S8b, S12, S13, S16, S21). Bên chấm PP-SWR-001 dùng ngưỡng aysmax + 0,3 m/s². Lý do: PP-PR-077, PP-TS-020. Mục 8.2: thời gian tính đo bằng thời gian CPU của luồng gọi planner (PP-PR-061). Lớp nhận SIL không còn tự bỏ message `valid = false` (PP-PR-036). Mục 6: F16 (b) chấm theo PP-SWR-142 thay PP-SWR-130 (SRS 1.27). Mục 4.8: thêm điều kiện vào LCC của khối Chức năng ADAS chạy thử (PP-PR-003). Mục 5: thêm S19 (f), làn hẹp dần trong lúc LCC lái |
 | 1.52 | 2026-11-23 | Mục 5: cột Yêu cầu sinh lại theo SRS 1.28. Mục 8.2: thêm a_y, jerk ngang và DLC của xe (PP-SWR-068, 069, 070); cách đo trên xe theo R79 Annex 8, 2.4 dùng cho 068, 069. Mục 9.1: bước 1 so tương đối với kỹ thuật đang giao và thêm cửa thời gian LCC lái; nhóm an toàn dùng DLC của xe thay cho lệch ngang, lệch ngang chuyển sang nhóm bám làn và cảm nhận người lái; bước 5 so chi phí phần cứng, báo kèm thời gian lớn nhất, kích thước state và thư viện. Mục 9.2: thắng cần thêm dung sai thực tế; ít hơn bốn đơn vị chung thì hòa. Lý do: PP-TS-031; lệch khỏi tâm làn chỉ là đại lượng thay thế cho an toàn, xếp nó ở bước 2 quyết định trước kết quả của kỹ thuật lệch vào trong cua; kỹ thuật ngừng lái trông êm hơn; simulator gần như tất định nên khoảng tin cậy rất hẹp. Ảnh hưởng: `eval/compare.py`, `eval/techniques.py`, `eval/metrics.py`; xếp hạng của mọi lần so sánh sau bản này |
 | 1.53 | 2026-11-24 | Mục 5: S24 cua ngắn chỉ dùng để chỉnh, vì phần chỉnh của bộ so sánh kỹ thuật chưa có cua ngắn (S1 f, S14 e chỉ ở phần kiểm). Lý do: PP-TS-031 |
+| 1.54 | 2026-11-24 | Mục 5: S24 b, cua ngắn cả theo thời gian (2,5 s ở 72 km/h); S24 a ngắn theo mét nhưng dài 4,25 s. Lý do: PP-TS-031 |
