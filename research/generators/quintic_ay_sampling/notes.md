@@ -42,7 +42,7 @@ Tối ưu CPU:
 
 ## Lần dò bằng quick bench
 
-Đã dùng 13/20 lượt (`--runs tuning` tính 2). Hai lần hỏng trước khi chạy (lỗi CMake, sai cú pháp shell) không tính.
+Đã dùng 13/20 lượt ở đợt đầu, thêm 4/10 lượt ở đợt S24 a (`--runs tuning` tính 2). Hai lần hỏng trước khi chạy (lỗi CMake, sai cú pháp shell) không tính.
 
 | Ngày | Nhãn | Thay đổi | Nhận xét |
 |---|---|---|---|
@@ -54,12 +54,23 @@ Tối ưu CPU:
 | 2026-11-24 | `quintic_ay_sampling-tm-4e7d4317` (quick, (0,35; 0,55) × 0,30) | Góc lưới | Fallback 100 %, giống mặc định |
 | 2026-11-24 | `quintic_ay_sampling-tm-bccf722d` (quick, (0,45; 0,65) × 0,30) | Góc lưới | Fallback 100 %, giống mặc định |
 | 2026-11-24 | `quintic_ay_sampling` (tuning, không telemetry, `--against quintic_duration-ad15c8ac`) | Đo lại sau khi sửa CMake, build sạch không đi vòng | Mọi chỉ số +0,000 trên 24 lượt, 0 trượt, lệch output 0. Trung vị p99 0,59 ms (max 1,42) so với 0,61 ms (max 1,96); tỉ số ghép cặp trung vị 1,04 |
+| 2026-11-24 | `quintic_duration-ad15c8ac` (quick, có S24 a) | Mốc quick mới (10 lượt); ghi đè bản tuning cùng nhãn | S24 a: 070 0,606; 068 2,175; 069 1,647 |
+| 2026-11-24 | `quintic_ay_sampling-tm` (quick) | Mặc định, có S24 a | S24 a fallback 100 %: mã 9 592, 11 119, 10 83 chu kỳ; work max 14 (có chấm ứng viên). Mọi chỉ số +0,000 |
+| 2026-11-24 | `quintic_ay_sampling-tm-3d975608` | Chẩn đoán: `qas_ay_gain_min_mps2` 0,005 | S24 a áp dụng 2 chu kỳ (fallback 99,7 %): 068 −0,000, 069 −0,028, 070 +0,017, 050 −0,017 |
+| 2026-11-24 | `quintic_ay_sampling-tm-8d24fb21` | Chẩn đoán: thêm `qas_jerk_tol_mps3` 2,0 | S24 a áp dụng 15 chu kỳ (98,1 %): 068 −0,027, 069 −0,190, 070 −0,015, 050 +0,016; S1g_F01a vòng hở lệch output 0,05 m. Không đổi mặc định |
 
 Dò trên cua tổng hợp (chỉ trong L0, không phải benchmark): cua ngắn 1–1,75 s, a_y 1–2 m/s², 20–30 m/s, có ứng viên giảm đỉnh a_y 0,1–0,45 m/s² mà jerk tăng ≤ 0,1 m/s³ ở phần lớn vị trí cua trong tầm nhìn; cua ≥ 3 s gần như không có.
 
+### S24 a (cua ngắn của tuning, 110 km/h)
+
+- Dò tổng hợp cùng hình học (clothoid 50 m, R 450 m, cung 30 m, clothoid 50 m, 30,6 m/s), quét vị trí cua trong tầm nhìn: giảm đỉnh a_y dự báo lớn nhất ≤ 0,018 m/s² với cả ba cặp đỉnh, biên độ tới 0,30 m, kể cả khi bỏ ràng buộc jerk; trong dung sai jerk ≤ 0,012. Ngưỡng 0,05 không bao giờ đạt. Thử hình dạng một bướu sin⁴ (độ cong giảm cả ở đỉnh) cũng chỉ ≤ 0,012.
+- Nguyên nhân chung: hiệu chỉnh nằm trong tầm nhìn (end ≤ 3 s) và phải bằng 0 ở t = 0 và t = end. Nó chỉ hạ được một bướu a_y ngắn hơn khoảng 1–1,5 s, nằm trong tầm nhìn và có a_y thấp hai bên. Bướu a_y của S24 a dài 4,25 s (130 m ở 30,6 m/s), dài hơn cả tầm nhìn, nên đỉnh a_y trong tầm nhìn luôn nằm trên đoạn cung, ở t = 0 hoặc gần end. "Ngắn" phải tính theo thời gian, không theo mét. Đây là giới hạn hình học của phương án, không chỉnh được bằng calibration.
+- Mã 10 ở 83 chu kỳ: a_y cần ước lượng vượt 2,4 m/s² dù a_y danh định 2,07 (ước lượng độ cong vòng kín lệch lên khoảng 15 %). Dù không chặn, lợi dự báo vẫn ≤ 0,02.
+- Đề xuất plan.yaml: giữ nguyên mặc định và các mức lưới. Trên tuning (kể cả S24 a), mọi mức lưới cho cùng kết quả vì không ứng viên nào đạt.
+
 ## Vấn đề còn mở
 
-- Phần tuning không có cua ngắn, nên trên tuning generator trùng quintic_duration ở mọi chu kỳ; không dò được mặc định hay lưới. Hiệu quả chỉ thấy ở phần test (S1f, S14e, S1b f).
+- Phần tuning không có cua có bướu a_y ngắn theo thời gian (S24 a dài 4,25 s), nên trên tuning generator trùng quintic_duration ở mọi chu kỳ; không dò được mặc định hay lưới. Hiệu quả chỉ có thể thấy ở phần test (S1f, S14e, S1b f).
 - Hiệu chỉnh gắn với t = 0 và trượt theo tầm nhìn mỗi chu kỳ (như pilot): xe chỉ thấy nó qua preview của controller và blend T4, không phải một đường cắt cua cố định trên đường. Chưa đo được vòng kín.
 - Chọn ứng viên có thể đổi giữa các chu kỳ (đỉnh sớm/muộn, bật/tắt); T4 blend giữ PP-SWR-100 đến 102 nhưng có thể làm hiệu chỉnh yếu đi. Chưa thêm hysteresis (cần ws giữ lựa chọn trước) vì không có dữ liệu tuning để dò.
 - Lỗi CMake khi `PP_T7_LAB_DIR` rỗng (`planner/CMakeLists.txt` dòng 40) đã được session contract sửa ngày 2026-11-24; các lần đo cuối build sạch bằng lệnh thường.
