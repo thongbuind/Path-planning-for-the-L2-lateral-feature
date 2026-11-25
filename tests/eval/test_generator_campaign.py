@@ -247,6 +247,7 @@ def test_dashboard_page_is_self_contained_and_marks_drafts():
     data = {"study": "PP-TS-T", "baseline": "quintic_duration", "draft": True, "parts": {}, "grid_warnings": [],
             "note": "</script><b>"}
     html = build.page(data)
-    assert "NHÁP" in html and "<\\/script>" in html
+    assert "NHÁP" in html and 'class="page' in html
+    assert "<script" not in html and "<button" not in html and "<select" not in html
     assert "http://" not in html.replace("http://www.w3.org", "") and "https://" not in html
     assert "NHÁP" not in build.page({**data, "draft": False})
