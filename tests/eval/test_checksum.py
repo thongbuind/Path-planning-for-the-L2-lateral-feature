@@ -1,8 +1,3 @@
-"""Behaviour checksum (eval.checksum; SIM-REQ-040): same run, same checksum; any bit, other one.
-
-Shortened S1-like run as in test_slice_s1. Needs build/planner/libpp_lcc and libpp_lkaelk; skipped otherwise.
-"""
-
 import math
 from dataclasses import replace
 

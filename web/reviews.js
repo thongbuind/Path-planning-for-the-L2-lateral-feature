@@ -43,7 +43,7 @@
     if (first < 0) return -1;
     if (anchor.multiple === false && quote.length >= 16 && text.indexOf(quote, first + 1) < 0) return first;
 
-    // Đoạn ngắn hoặc từng lặp lại cần khớp thêm ngữ cảnh trước khi gắn thẻ.
+    // Đoạn ngắn hoặc trùng phải khớp thêm ngữ cảnh để chọn đúng neo nhận xét.
     let best = -1;
     let bestScore = Math.min(MIN_MATCHING_CONTEXT, prefix.length + suffix.length) - 1;
     for (let offset = first; offset >= 0; offset = text.indexOf(quote, offset + 1)) {
@@ -102,7 +102,6 @@
     const saveButton = document.getElementById("review-save");
     const cancelEdit = document.getElementById("review-cancel-edit");
     const severityInput = document.getElementById("review-severity");
-    // Mức độ của nhận xét: Lớn, Nhỏ, Câu hỏi. Nhận xét cũ chưa có mức độ thì không hiện nhãn.
     const SEVERITY_LABELS = { major: "Lớn", minor: "Nhỏ", question: "Câu hỏi" };
     const severityText = item => SEVERITY_LABELS[item.severity] ? " · " + tr(SEVERITY_LABELS[item.severity]) : "";
     const status = document.getElementById("review-status");
@@ -127,7 +126,6 @@
     let selecting = false;
     let showDone = false;
 
-    // Nhận xét đã xong bị ẩn khỏi trang và danh sách, trừ khi người đọc bật xem lại.
     const isDone = item => item.resolved === true;
     const openReviews = () => reviews.filter(item => !isDone(item));
     const visibleReviews = () => showDone ? reviews : openReviews();
@@ -156,7 +154,7 @@
       } catch {
         return data;
       }
-      // Giữ ID để các lần đọc và lưu sau nhận ra nháp đã được gộp.
+      // Giữ ID nháp để lần đọc hoặc lưu sau nhận ra nhận xét đã được gộp.
       const ids = new Set(data.reviews.map(item => item.id));
       for (const item of merged.reviews) {
         if (!item?.id || !item.anchor || ids.has(item.id)) continue;

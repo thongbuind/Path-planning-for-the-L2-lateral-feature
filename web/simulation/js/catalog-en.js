@@ -1,4 +1,4 @@
-// Descriptions keyed by benchmark scenario and variant; identifiers remain language-independent.
+// Nhãn theo ID kịch bản và biến thể. ID dùng chung cho cả hai ngôn ngữ.
 window.PP_SCENARIOS_EN = {
  S1:['90 km/h, clothoid into R = 1000 m curve (curve a_y 0.6 m/s²)','90 km/h, clothoid into R = 500 m curve (curve a_y 1.25 m/s²)','90 km/h, clothoid into R = 250 m curve (curve a_y 2.5 m/s², at aysmax)','90 km/h, S-bend, R = 500 m','130 km/h, clothoid into R = 1000 m curve (curve a_y 1.3 m/s²)','R171 Annex 4 4.2.4.1: S-bend 787 m / 374 m','90 km/h, R = 300 m, 83% of aysmax'],
  S1b:['90 km/h, R = 200 m (curve a_y 3.1 m/s²)','90 km/h, R = 150 m (curve a_y 4.2 m/s²)','110 km/h, R = 300 m (curve a_y 3.1 m/s²)','90 km/h, R = 200 m just beyond a crest, camera view 40 m','90 km/h, R = 200 m, 60 m clothoid','90 km/h, R = 230 m, a_y = 2.72 m/s²'],
@@ -494,7 +494,6 @@ Object.assign(window.PP_METRICS_EN, {
 'Chu kỳ output khác ca tham chiếu cùng seed':'Cycles with output different from the reference case with the same seed'
 });
 
-// Mô tả song ngữ về hành vi mong đợi của từng biến thể, theo ID từ api/catalog.
 window.PP_SCENARIO_DESCRIPTIONS = {
   'S1/a': {
     vi: 'Vào cua R = 1.000 m qua đoạn chuyển tiếp. HWA cần giữ xe gần tâm làn và tăng gia tốc ngang từ từ.',

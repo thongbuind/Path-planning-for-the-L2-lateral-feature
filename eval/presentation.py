@@ -1,20 +1,3 @@
-"""Result presentation of Software Qualification Test Specification 8.3 and 10.
-
-Suite level (records of eval.suite or eval.matrix):
-- flexibility(records): profile x indicator table, worst profile marked (8.3, B7)
-- compute(records, out): histogram of planner compute time with p95, p99 (PP-SWR-016, B8)
-- dtle_by_v_lat(records, cases, out): smallest DTLE by lateral speed for S4 to S8
-- sweep(records, out): indicators by swept simulator value, one line per run (6.1, Q1 to Q4)
-
-Run level:
-- run_figure(log, result, path): d(t) of path and car with the lane boundaries, a_y, jerk,
-  function driving, function changes and fault windows; continuity between consecutive paths
-  with the threshold.
-
-Each function returns markdown lines; figures are PNG files next to the report. Values are
-read from the results only (black box, CLAUDE.md "Planner và đánh giá phát triển độc lập").
-"""
-
 from collections import defaultdict
 import json
 import math
@@ -24,9 +7,7 @@ import numpy as np
 
 from eval.metrics import COMPUTE_BINS_MS
 
-# Indicators of the flexibility table: safety and comfort targets of 9.1 steps 2 and 3, and
-# the requirement pass rate (8.3 point 1).
-LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-087"}  # 8.2 "Tốt hơn khi"
+LARGER_IS_BETTER = {"PP-SWR-057", "PP-SWR-064", "PP-SWR-070", "PP-SWR-087"}
 FLEX_TARGETS = ("PP-SWR-050", "PP-SWR-057", "PP-SWR-087", "PP-SWR-002", "PP-SWR-004", "PP-SWR-053",
                 "PP-SWR-059", "PP-SWR-081", "PP-SWR-082")
 
@@ -45,21 +26,20 @@ def _fmt(v, digits=3):
 
 
 def _label(key: str) -> str:
-    """'id|metric' as a table cell (a raw '|' would split the column)."""
+    """Escape dấu | trong nhãn để kết quả không tách thêm ô Markdown."""
     return key.replace("|", " ")
 
 
 def _targets(record) -> dict[str, float]:
-    """'id|metric' -> value of one run record."""
     result = record.get("result") or {}
     return {f"{t['id']}|{t['metric']}": t["value"] for t in result.get("targets", [])
             if t.get("value") is not None and math.isfinite(t["value"])}
 
 
 def _unit_key(record, cases) -> str:
-    """A concrete case without its profile, and the seed: the unit of 8.3."""
+    """Đơn vị ghép của SQTS 8.3 gồm ca bỏ danh tính profile và seed."""
     case = cases.get(record.get("case"))
-    if case is None:  # eval.matrix record
+    if case is None:
         return json.dumps([record.get("run"), record.get("acc"), record.get("sim"), record.get("seed")],
                           sort_keys=True, default=str)
     params = {k: v for k, v in case.get("parameters", {}).items() if k != "profile"}
@@ -67,11 +47,7 @@ def _unit_key(record, cases) -> str:
                        case.get("inject"), record.get("seed")], sort_keys=True, default=str)
 
 
-# ---- 8.3 Flexibility -----------------------------------------------------------------------
-
 def requirement_coverage(run, *, failures=None) -> tuple[set[str], set[str]]:
-    """(requirements judged in the run's scope, those failed in scope): criteria and case
-    issues with a level (performance targets have none)."""
     from eval import conclusion
     if failures is None:
         failures, _, _ = conclusion.run_failures(run)
@@ -83,7 +59,6 @@ def requirement_coverage(run, *, failures=None) -> tuple[set[str], set[str]]:
 
 
 def requirements_by_profile(runs):
-    """Unique judged and failed requirements per profile in the supplied runs."""
     profiles = defaultdict(lambda: (set(), set()))
     for run in runs:
         profile = run.get("profile")
@@ -101,7 +76,6 @@ def requirements_by_profile(runs):
 
 def flexibility(records, cases) -> list[str]:
     runs = [r for r in records if "result" in r and r.get("profile")]
-    # 8.3: the runs of B7 when the records carry aspects (eval.suite); every run otherwise.
     if any("aspects" in r for r in runs):
         runs = [r for r in runs if "B7" in r.get("aspects", [])]
     profiles = sorted({r["profile"] for r in runs})
@@ -109,9 +83,8 @@ def flexibility(records, cases) -> list[str]:
         return ["", "## Flexibility", "", "Chỉ một profile: không có bảng flexibility (mục 8.3)."]
     requirements = requirements_by_profile(runs)
     per_profile = defaultdict(lambda: {"runs": 0, "values": defaultdict(list)})
-    units = defaultdict(lambda: defaultdict(dict))  # unit -> indicator -> profile -> value
-    # Worst value per profile only over units run on every profile: samples, fault and event
-    # cases on fewer profiles would compare different case sets (5.2).
+    units = defaultdict(lambda: defaultdict(dict))
+    # Chỉ so các cấu hình được chạy trên đầy đủ profile để mọi cột dùng cùng tập ca (SQTS 5.2).
     unit_profiles = defaultdict(set)
     for r in runs:
         unit_profiles[_unit_key(r, cases)].add(r["profile"])
@@ -168,8 +141,6 @@ def flexibility(records, cases) -> list[str]:
     return lines
 
 
-# ---- PP-SWR-016 compute time -----------------------------------------------------------------
-
 def _percentile(counts, edges, q):
     total = counts.sum()
     if total == 0:
@@ -213,10 +184,8 @@ def compute(records, out: Path | None) -> list[str]:
     return lines
 
 
-# ---- DTLE by v_lat (Euro NCAP style) ---------------------------------------------------------
-
 def dtle_by_v_lat(records, cases, out: Path | None) -> list[str]:
-    points = defaultdict(list)  # family -> [(v_lat, dtle)]
+    points = defaultdict(list)
     for r in records:
         case = cases.get(r.get("case"), {})
         v_lat = case.get("parameters", {}).get("departure_v_lat_mps")
@@ -255,13 +224,10 @@ def dtle_by_v_lat(records, cases, out: Path | None) -> list[str]:
     return lines
 
 
-# ---- 6.1 sweeps ---------------------------------------------------------------------------
-
 SWEEP_INDICATORS = (("criteria", "PP-SWR-051"), ("criteria", "PP-SWR-100"), ("info", "vehicle_offset_max_m"))
 
 
 def sweep(records, out: Path | None) -> list[str]:
-    """Indicators by swept simulator value; one line per run without the swept value."""
     swept = sorted({k for r in records for k in (r.get("sim") or {})})
     lines = []
     for key in swept:
@@ -299,10 +265,7 @@ def sweep(records, out: Path | None) -> list[str]:
     return lines
 
 
-# ---- run figure -----------------------------------------------------------------------------
-
 def run_figure(log, result, path: Path) -> Path:
-    """Time plots of one run (section 10, "Theo thời gian", "Liên tục")."""
     from eval import metrics
     plt = _plt()
     truth = metrics._Truth(log)
@@ -328,7 +291,6 @@ def run_figure(log, result, path: Path) -> Path:
             proj = log.road.project(wx, wy, hint)
             hint = proj.s
             d_path.append(proj.d)
-            # Only two paths of the same function (a change is exempt, PP-SWR-038).
             same = prev is not None and prev.path_status.active_function == status.active_function
             cont.append(metrics._continuity(prev, c, truth)[0] if same else np.nan)
             prev = c
@@ -362,7 +324,6 @@ def run_figure(log, result, path: Path) -> Path:
     axes[4].legend(fontsize=7)
     axes[4].set_ylabel("Lệch ngang hai path / ngưỡng")
     axes[4].set_xlabel("t [s]")
-    # Function changes and fault windows on every panel.
     changes = [t_c[i] for i in range(1, len(func)) if func[i] != func[i - 1]]
     windows = []
     for group in ("lane_faults", "channel_faults", "sensor_faults", "ego_motion_faults"):

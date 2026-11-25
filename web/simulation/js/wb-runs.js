@@ -1,5 +1,3 @@
-/* Màn Run: danh sách, chi tiết run, Điều tra (mở lại, phát lại, lần trượt đầu), Run con.
-   Mọi số lấy từ /api/runs và bundle của run; giao diện không tự tính kết luận. */
 (() => {
   'use strict';
   const WB = window.WB;
@@ -11,7 +9,6 @@
   const jsonPost = (body) => ({ method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random() }, body: JSON.stringify(body || {}) });
   const libLine = (libs) => (libs || []).map((l) => l.pp_version).filter(Boolean).join(' | ') || null;
 
-  /** Trạng thái thực thi, tách khỏi kết luận đánh giá (hai cột riêng). */
   function stInfo(r) {
     const s = r.state;
     if (s === 'QUEUED') return { key: 'run', text: 'Đang chờ', icon: 'i-dot', cls: 'good' };
@@ -25,7 +22,6 @@
   const rowLabel = (r) => WB.prettyLabel(r.label || r.target || '') || r.run_id;
   const duration = (r) => (r.ended && r.created ? r.ended - r.created : null);
 
-  // ---------- Danh sách run (B2) ----------
   async function runList() {
     WB.title('Run');
     const st = { q: '', f: 'all' };
@@ -83,13 +79,12 @@
     paint();
     const t = setInterval(async () => {
       if (document.hidden) return;
-      try { data = await WB.runs(); paint(); } catch (e) { /* giữ bảng cũ */ }
+      try { data = await WB.runs(); paint(); } catch (e) {   }
     }, data.runs.some((r) => ACTIVE.includes(r.state)) ? 2000 : 6000);
     WB.onLeave(() => clearInterval(t));
     return root;
   }
 
-  // ---------- Dùng chung cho trang một run ----------
   const cfgOf = (d) => (d.request && d.request.config) || null;
   function cfgLabel(c) {
     if (!c || !c.scenario) return null;
@@ -158,7 +153,7 @@
   async function runDetail(id, tab) {
     WB.title('Run ' + id.slice(-6));
     const [d, all] = await Promise.all([WB.api('runs/' + id), WB.runs()]);
-    if (d.execution) { d.state = d.execution.state; d.failure = d.execution.failure; }   // bundle đã xong: trạng thái nằm trong execution.json
+    if (d.execution) { d.state = d.execution.state; d.failure = d.execution.failure; }
     const kids = all.runs.filter((r) => r.parent_run_id === id);
     const head = runHeader(d, id, tab, kids);
     if (ACTIVE.includes(d.state)) {
@@ -173,7 +168,6 @@
     return page(...head, check, await overview(d, id));
   }
 
-  /** Kết quả của lần mở lại: behavior checksum khớp bản gốc hay không, và vì sao. */
   function rerunCard(d) {
     const r = d.rerun;
     if (!r) return null;
@@ -188,7 +182,6 @@
 
   const fmtSize = (n) => (n >= 1e6 ? PP.f(n / 1e6, 1) + ' MB' : n >= 1e3 ? PP.f(n / 1e3, 1) + ' KB' : n + ' B');
 
-  // ---------- Tổng quan (B3) ----------
   async function overview(d, id) {
     const m = d.manifest || {}, ex = d.execution || {}, ev = d.evaluation, bun = m.bundle || {}, libs = m.libraries || [], git = m.git || {};
     const [files, gold] = await Promise.all([WB.api('runs/' + id + '/bundle').catch(() => null), WB.api('golden').catch(() => null)]);
@@ -206,7 +199,6 @@
       kv('Recipe', mono(recipe || '—', { style: 'font-size:12px' })),
       kv('Schema', mono([bun.schema, bun.resolved_case_schema, bun.evaluation_schema].filter(Boolean).join(' · ') || '—', { style: 'font-size:12px' })));
 
-    // Tiêu chí: ca trượt lên đầu; mặc định chỉ tiêu chí áp dụng.
     let all = false;
     const critBox = h('div', null);
     const toggle = h('button', { type: 'button', class: 'wb-btn', style: 'align-self:flex-start;margin-top:10px', 'aria-expanded': 'false' });
@@ -276,7 +268,6 @@
     return h('div', { class: 'wb-cols' }, h('div', { class: 'a' }, ident, evalCard), h('div', { class: 'b' }, scope, execCard, libCard, bundleCard));
   }
 
-  // ---------- Điều tra ----------
   const FAULT_LISTS = [['lane_faults', 'Lane model'], ['channel_faults', 'Kênh'], ['sensor_faults', 'Cảm biến'], ['ego_motion_faults', 'Ego-motion']];
   function investigate(d, id) {
     const ev = d.evaluation, canPlay = !!d.request;
@@ -309,7 +300,6 @@
     return h('div', { class: 'wb-cols' }, h('div', { class: 'a' }, fails, judged), h('div', { class: 'b' }, faults, legend));
   }
 
-  // ---------- Run con và giả thuyết (B9) ----------
   const jsonLine = (v) => JSON.stringify(v == null ? null : v);
   function diffLines(a, b) {
     const keys = ['scenario', 'faults', 'trigger', 'vehicle', 'seed', 'sim', 'acc'];
@@ -337,7 +327,7 @@
       c.rate = 0;
       if (st.kind === 'nofault') {
         c.faults = faults.filter((_, i) => i !== Number(st.fault));
-        if (!c.faults.length) c.trigger = null;   // trigger cần có lỗi (eval.case); không còn lỗi thì bỏ luôn trigger
+        if (!c.faults.length) c.trigger = null;   // Trigger chỉ có hiệu lực khi cấu hình còn lỗi để kích hoạt.
       }
       if (st.kind === 'trigger') c.trigger = st.trigger || null;
       if (st.kind === 'level') c.faults = faults.map((f, i) => (i === Number(st.fault) ? [f[0], st.level] : f));
@@ -382,7 +372,6 @@
     });
     sync();
 
-    // Danh sách run con và so với run cha
     const cmpBox = h('div', null);
     const kidsCard = card('', lbl('Run con'));
     if (!kids.length) kidsCard.appendChild(h('p', { class: 'wb-small' }, 'Chưa có run con. Tạo ở khung bên trên.'));

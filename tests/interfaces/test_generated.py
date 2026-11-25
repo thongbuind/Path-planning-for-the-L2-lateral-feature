@@ -1,5 +1,3 @@
-"""Generated interface code is up to date and checks only structure."""
-
 import subprocess
 import sys
 from pathlib import Path
@@ -63,7 +61,7 @@ def test_enum_value_is_checked_and_coerced():
 
 
 def test_value_ranges_are_left_to_the_receiver():
-    """A too wide vehicle is representable, so tests can check that the planner rejects it."""
+    """Dataclass nhận xe quá rộng để test có thể kiểm planner từ chối giá trị đó."""
     config = I.VehicleConfig(2.9, 1.45, 3.0, 15.0, 0.61, 6.0, 0.05)
     assert config.vehicle_width > I.MAX_VEHICLE_WIDTH_M
 
@@ -71,4 +69,4 @@ def test_value_ranges_are_left_to_the_receiver():
 def test_planner_inputs_default_to_not_received():
     inputs = I.LccInputs(t0_us=25_000)
     assert inputs.lane_model is None and inputs.longitudinal_plan is None and inputs.lead_target is None
-    assert not hasattr(I.LkaElkInputs(t0_us=25_000), "object_list")   # no ObjectList, no LeadTarget there
+    assert not hasattr(I.LkaElkInputs(t0_us=25_000), "object_list")

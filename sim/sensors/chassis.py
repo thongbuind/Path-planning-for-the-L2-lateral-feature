@@ -1,23 +1,14 @@
-"""Chassis signals (Software Qualification Test Specification 4.5).
-
-Clean signals from the vehicle model, in SI units as after the CAN receive layer
-(Interface Control Document 5.3). The virtual CAN bus of 4.3 (DBC, factor rounding,
-counter, CRC) is not in the loop yet. The header is stamped with the receive time
-when the channel delivers the frame (`restamp`).
-"""
-
 from dataclasses import replace
 
 from interfaces import BasicHeader, Direction, ImuSignals, SpeedSignals, SteeringSignals
 
-# Signal list (mentor), Interface Control Document 5.3.
 IMU_PERIOD_US = 10_000
 STEERING_PERIOD_US = 10_000
 SPEED_PERIOD_US = 20_000
 
 
 def restamp(message, rx_us: int):
-    """CAN frames carry the receive time as stamp (Interface Control Document 4)."""
+    """ChassisSignals mang stamp lúc nhận theo ICD 4."""
     return replace(message, header=replace(message.header, stamp_us=rx_us))
 
 

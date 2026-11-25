@@ -1,11 +1,3 @@
-"""Provenance of a benchmark run (research/README.md): what produced a result.
-
-Every run writes a manifest.json next to its results in build/. An official run
-(--record) also needs a clean working tree and planner libraries built from the current
-commit (read back with pp_version()); its manifest and results are then copied to
-research/runs/<run-id>/ and listed in research/runs/INDEX.md.
-"""
-
 import hashlib
 import json
 import platform
@@ -14,6 +6,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy
 
@@ -24,7 +17,6 @@ RUNS_DIR = ROOT / "research" / "runs"
 INDEX = RUNS_DIR / "INDEX.md"
 CALIBRATION = ROOT / "planner" / "calibration" / "calibration.yaml"
 BENCHMARK = ROOT / "benchmark"
-# Severity is derived from its Type column (Software Qualification Test Specification 8.4).
 SRS = ROOT / "docs" / "vi" / "path-planner-software-requirements-specification.md"
 
 
@@ -37,8 +29,7 @@ def _git(*args: str) -> str | None:
 
 
 def git_state() -> dict:
-    """Commit and uncommitted changes. research/ holds records and is written by official
-    runs, so changes there do not make a run unofficial (a study plan is hashed instead)."""
+    """Bản ghi trong research/ không làm run mất tính chính thức; kế hoạch study được hash riêng."""
     commit = _git("rev-parse", "HEAD")
     lines = [line for line in (_git("status", "--porcelain") or "").splitlines() if line]
     changed = [line for line in lines if not line[3:].strip('"').startswith("research/")]
@@ -61,7 +52,6 @@ def _rel(path: Path) -> str:
 
 
 def parse_version(text: str | None) -> dict:
-    """'pp_lcc 0.3.0 commit <sha>[-dirty] calibration <id>' -> fields."""
     if not text:
         return {}
     words = text.split()
@@ -75,15 +65,19 @@ def parse_version(text: str | None) -> dict:
 
 
 def library_info(path: Path, external: bool = False, family=None) -> dict:
-    """external: chosen with --planner; may come from outside this repository."""
-    from adapters.sil.sil_planner import LCC, library_version  # loads the library
-    text = library_version(Path(path), family or LCC)
+    from adapters.sil.sil_planner import LCC, load_library
+    family = family or LCC
+    lib = load_library(Path(path), family)
+    version = getattr(lib, f"{family.prefix}_version", None)
+    text = version().decode("ascii", errors="replace") if version is not None else None
+    # Kích thước state và tệp thư viện: ngữ cảnh chi phí phần cứng, SQTS 9.1 bước 5 (không xếp hạng).
     return {"path": _rel(path), "sha256": sha256(path), "pp_version": text,
-            "build": parse_version(text), "external": external}
+            "build": parse_version(text), "external": external,
+            "family": family.name, "state_size_bytes": int(getattr(lib, f"{family.prefix}_state_size")()),
+            "file_size_bytes": Path(path).stat().st_size}
 
 
 def library_infos(planner, external: bool = False) -> list[dict]:
-    """One entry per planner library: the LCC planner and the LKA/ELK planner (PP-ADR-016)."""
     return [library_info(path, external, family) for path, family in planner.paths()]
 
 
@@ -92,7 +86,6 @@ def _known_commit(commit: str | None) -> bool:
 
 
 def input_files() -> dict:
-    """sha256 of the benchmark definitions and the start calibration."""
     files = sorted(p for p in BENCHMARK.rglob("*")
                    if p.is_file() and p.suffix in {".yaml", ".json", ".xosc", ".xodr", ".xsd"}) + [CALIBRATION, SRS]
     return {_rel(p): sha256(p) for p in files}
@@ -103,7 +96,6 @@ def now() -> str:
 
 
 def make(kind: str, target: str, extra: dict | None = None) -> dict:
-    """Manifest at the start of a run; libraries and results are added by the caller."""
     git = git_state()
     stamp = datetime.now().strftime("%Y%m%d-%H%M")
     run_id = f"{stamp}-{kind}-{target}-{git['short'] or 'nogit'}" + ("-dirty" if git["dirty"] else "")
@@ -117,7 +109,6 @@ def make(kind: str, target: str, extra: dict | None = None) -> dict:
 
 
 def official_problems(manifest: dict) -> list[str]:
-    """Why a run cannot be official; empty when it can."""
     git = manifest["git"]
     problems = []
     if not git["commit"]:
@@ -129,7 +120,7 @@ def official_problems(manifest: dict) -> list[str]:
         if not build:
             problems.append(f"{lib['path']}: no pp_version(); rebuild the planner library")
         elif lib.get("external") and not _known_commit(build["commit"]):
-            continue  # another source tree: identified by sha256 and pp_version only
+            continue  # Build ngoài repo được nhận diện bằng SHA-256 và pp_version khi không có commit tương ứng ở local.
         elif build["dirty"]:
             problems.append(f"{lib['path']}: built from uncommitted planner sources; rebuild after commit")
         elif git["commit"] and not git["commit"].startswith(build["commit"] or "-"):
@@ -138,7 +129,6 @@ def official_problems(manifest: dict) -> list[str]:
 
 
 def preflight(manifest: dict) -> None:
-    """Stops an official run before it starts, so no time is spent on a run that cannot count."""
     problems = official_problems(manifest)
     if problems:
         raise SystemExit("Not an official run:\n  - " + "\n  - ".join(problems))
@@ -153,13 +143,18 @@ def write(manifest: dict, out_dir: Path, name: str = "manifest.json") -> Path:
 
 
 def record(manifest: dict, files: dict[str, Path], result: str) -> Path:
-    """Copies an official run to research/runs/<run-id>/ and adds its line to INDEX.md."""
+    """Lưu hồ sơ của lần chạy chính thức và thêm một mục vào INDEX.md."""
     preflight(manifest)
     dest = RUNS_DIR / manifest["run_id"]
-    dest.mkdir(parents=True, exist_ok=False)
-    for name, src in files.items():
-        shutil.copyfile(src, dest / name)
-    write(manifest, dest)
+    if dest.exists():
+        raise FileExistsError(dest)
+    RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix=".record-", dir=RUNS_DIR) as staging:
+        tmp = Path(staging)
+        for name, src in files.items():
+            shutil.copyfile(src, tmp / name)
+        write(manifest, tmp)
+        tmp.rename(dest)
     libs = ", ".join(lib["build"].get("calibration", "?") for lib in manifest["libraries"]) or "—"
     row = (f"| {manifest['run_id']} | {manifest['kind']} | {manifest['target']} | "
            f"{manifest['git']['short']} | calibration {libs} | {result} | |\n")

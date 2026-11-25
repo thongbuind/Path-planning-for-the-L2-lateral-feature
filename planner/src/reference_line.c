@@ -1,18 +1,15 @@
-/* T2 Reference line (reference_line.h). PP-SWR-050, 063. */
-
 #include "reference_line.h"
 
 #include <math.h>
 #include <string.h>
 
-#define PP_WALK_STEP_M (0.25)         /* Arc-length integration step */
-#define PP_FOOT_ITERATIONS (3U)       /* Newton steps for the perpendicular foot */
-#define PP_FOOT_MAX_M (5.0)           /* Foot stays near the origin */
-#define PP_STRAIGHT_KAPPA (1.0e-9)    /* Below this the arc continuation is a line */
-#define PP_NODE_FOOT_ITERATIONS (4U)  /* Newton steps for the foot on a sampled line */
-#define PP_NODE_FOOT_MIN_SCALE (0.1)  /* 1 - kappa d below this: plain step along the tangent */
+#define PP_WALK_STEP_M (0.25)
+#define PP_FOOT_ITERATIONS (3U)
+#define PP_FOOT_MAX_M (5.0)
+#define PP_STRAIGHT_KAPPA (1.0e-9)
+#define PP_NODE_FOOT_ITERATIONS (4U)
+#define PP_NODE_FOOT_MIN_SCALE (0.1)  /* Khi 1 - kappa d quá nhỏ, chỉ tiến theo tiếp tuyến. */
 
-/* Software Requirements Specification 4, "Biên làn đủ tin". */
 static bool line_trusted(const pp_boundary_t *b, double confidence)
 {
     return b->present && (b->status == PP_LINE_STATUS_MEASURED)
@@ -39,7 +36,6 @@ static void update_width_memory(pp_reference_memory_t *mem, const pp_calibration
     }
 }
 
-/* Moves a remembered position to the new base_link; drops it when the motion is unknown. */
 static void move_track(pp_line_track_t *t, const pp_motion_t *motion)
 {
     if (t->valid) {
@@ -67,7 +63,6 @@ static void set_track(pp_line_track_t *t, const pp_boundary_t *b, double age_s)
     t->age_s = age_s;
 }
 
-/* Frame-to-frame test at x = 0 (Software Detailed Design 5, "Từng frame"). */
 static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
                        const pp_calibration_t *cal)
 {
@@ -76,8 +71,8 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
     if (!t->valid || !(jump <= limit * sqrt(b->variance[0] + t->variance[0]))) {
         return false;
     }
-    /* Shape check (PP-TS-001). Compare only points that both frames observe. Keep one
-     * sample in the interior and one farther ahead, away from the end of the cubic fit. */
+    /* So hình dạng trong phần hai frame cùng quan sát; tránh dùng đúng điểm tận cùng của cubic
+     * (PP-TS-001). */
     const double lo = fmax(0.0, fmax(b->view_start, t->view_start));
     const double hi = fmin(b->view_end, t->view_end);
     if (hi > lo) {
@@ -99,7 +94,6 @@ static bool consistent(const pp_boundary_t *b, const pp_line_track_t *t,
     return true;
 }
 
-/* Step 1: SRS 4 condition and the consistency check against the memory, with R1 and R2. */
 static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
                        const pp_calibration_t *cal, double confidence, double dt, bool *rejected)
 {
@@ -108,26 +102,23 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
     *rejected = false;
 
     if (m->previous.valid) {
-        /* The old position is kept while its observed range, moved by ego-motion, still
-         * reaches the car: until then it can be compared with a new frame. A fixed T_confirm
-         * ended it one cycle before the true line came back from a fault of 2 T_confirm
-         * (PP-PR-057). */
+        /* Giữ vị trí cũ để so khi vùng quan sát đã bù ego-motion còn tới xe; dùng timeout cố định
+         * có thể bỏ mất vạch đúng. */
         m->previous.age_s += dt;
         m->previous.valid = m->previous.view_end > 0.0;
     }
     if (!line_trusted(b, confidence)) {
         m->absent_s += dt;
         if (m->absent_s > confirm) {
-            m->accepted.valid = false;     /* too old to compare with */
+            m->accepted.valid = false;
             m->candidate.valid = false;
         }
     } else {
         m->absent_s = 0.0;
         if (!m->accepted.valid || consistent(b, &m->accepted, cal)) {
             if (m->candidate.valid && !m->previous.valid) {
-                /* PP-PR-048: while a change is pending, the memory is only moved by ego-motion
-                 * and the shape test weakens as the shared window shrinks. A frame it now takes
-                 * may be the change itself: keep the memory from before as a way back (R2). */
+                /* Vùng nhìn chung co lại khi chờ xác nhận, làm phép so hình dạng yếu đi. Giữ vị
+                 * trí trước đổi để R2 có thể nhận lại ngay (PP-PR-048). */
                 m->previous = m->accepted;
                 m->previous.age_s = 0.0;
             }
@@ -135,13 +126,12 @@ static bool check_line(pp_boundary_memory_t *m, const pp_boundary_t *b,
             m->candidate.valid = false;
             trusted = true;
         } else if (consistent(b, &m->previous, cal)) {
-            /* R2: back at the position before the last change. */
             set_track(&m->accepted, b, 0.0);
             m->previous.valid = false;
             m->candidate.valid = false;
             trusted = true;
         } else {
-            /* R1: time counts only while the new position stays consistent with itself. */
+            /* R1 chỉ cộng thời gian khi các frame mới còn nhất quán với candidate. */
             const double age = consistent(b, &m->candidate, cal) ? (m->candidate.age_s + dt) : dt;
             set_track(&m->candidate, b, age);
             if (age >= confirm) {
@@ -193,7 +183,6 @@ static void update_outer(pp_reference_memory_t *mem, const pp_lane_at_t0_t *lane
     }
 }
 
-/* Step 4: combine independently inferred centres using their inverse offset variances. */
 static void infer_centre(const pp_reference_memory_t *mem, const pp_lane_at_t0_t *lane,
                          const bool trusted[PP_OUTER_BOUNDARIES], pp_reference_line_t *out)
 {
@@ -234,7 +223,6 @@ static void infer_centre(const pp_reference_memory_t *mem, const pp_lane_at_t0_t
     }
 }
 
-/* Step 5: last reference line moved by ego-motion, for up to T_coast. */
 static void coast(pp_reference_memory_t *mem, const pp_motion_t *motion,
                   const pp_calibration_t *cal, double dt, pp_reference_line_t *out)
 {
@@ -261,11 +249,48 @@ static void coast(pp_reference_memory_t *mem, const pp_motion_t *motion,
         }
     }
     if (!ok) {
-        mem->ref_valid = false;            /* then path_valid = false (PP-SWR-124) */
+        mem->ref_valid = false;
     }
 }
 
-void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t *lane,
+/* Nếu cặp ego nằm cùng phía, chỉ phục hồi cặp nằm hai bên xe khi cả hai vạch khớp với hình học đo
+ * trước đó sau ego-motion. */
+static void recover_ego_pair(pp_lane_at_t0_t *lane, const pp_reference_memory_t *mem,
+                             const pp_calibration_t *cal)
+{
+    const pp_boundary_t *left = &lane->boundary[PP_LINE_L1];
+    const pp_boundary_t *right = &lane->boundary[PP_LINE_R1];
+    const double confidence = (double)cal->conf_ego;
+    if ((lane->lane_change != PP_SIDE_NONE) || !line_trusted(left, confidence)
+        || !line_trusted(right, confidence) || (left->poly.c[0] <= right->poly.c[0])) {
+        return;
+    }
+    const bool shifted_left = right->poly.c[0] > 0.0;
+    if (!shifted_left && (left->poly.c[0] >= 0.0)) {
+        return;
+    }
+    const size_t first = shifted_left ? PP_LINE_R1 : PP_LINE_L2;
+    const pp_boundary_t *pair = &lane->boundary[first];
+    if ((pair[0].poly.c[0] <= 0.0) || (pair[1].poly.c[0] >= 0.0)) {
+        return;
+    }
+    for (size_t i = 0U; i < 2U; i++) {
+        const pp_line_track_t *track = &mem->line[i].accepted;
+        const double start = fmax(0.0, fmax(track->view_start, pair[i].view_start));
+        const double end = fmin(track->view_end, pair[i].view_end);
+        if (!line_trusted(&pair[i], confidence) || (end <= start) || !consistent(&pair[i], track, cal)) {
+            return;
+        }
+    }
+    const size_t src = shifted_left ? PP_LINE_L1 : PP_LINE_L2;
+    const size_t dst = shifted_left ? PP_LINE_L2 : PP_LINE_L1;
+    const size_t missing = shifted_left ? PP_LINE_R2 : PP_LINE_L2;
+    (void)memmove(&lane->boundary[dst], &lane->boundary[src], (PP_LANE_LINES - 1U) * sizeof(*pair));
+    (void)memset(&lane->boundary[missing], 0, sizeof(*pair));
+    lane->boundary[missing].status = PP_LINE_STATUS_LOST;
+}
+
+void pp_reference_line_update(pp_reference_memory_t *mem, pp_lane_at_t0_t *lane,
                               const pp_motion_t *cycle_motion, const pp_calibration_t *cal,
                               double vehicle_width, double dt, pp_reference_line_t *out)
 {
@@ -275,16 +300,30 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
     (void)memset(out, 0, sizeof(*out));
     move_memory(&mem->line[0], cycle_motion);
     move_memory(&mem->line[1], cycle_motion);
+    recover_ego_pair(lane, mem, cal);
+    /* Qua vạch làm đổi slot, ví dụ R1 thành L1. Ghép vạch trước khi chuyển lịch sử để dùng lại
+     * cùng frame camera được. */
+    if ((lane->lane_change == PP_SIDE_LEFT) || (lane->lane_change == PP_SIDE_RIGHT)) {
+        const bool rightward = lane->lane_change == PP_SIDE_RIGHT;
+        const size_t crossed = rightward ? 1U : 0U;
+        const size_t shared = 1U - crossed;
+        const pp_boundary_t *marking = rightward ? left : right;
+        if (line_trusted(marking, (double)cal->conf_ego)
+            && consistent(marking, &mem->line[crossed].accepted, cal)
+            && !consistent(marking, &mem->line[shared].accepted, cal)) {
+            mem->line[shared] = mem->line[crossed];
+            mem->line[crossed] = mem->outer[crossed].track;
+            move_memory(&mem->line[crossed], cycle_motion);
+        }
+    }
     const bool left_ok = check_line(&mem->line[0], left, cal, (double)cal->conf_ego, dt,
                                     &out->line_rejected[0]);
     const bool right_ok = check_line(&mem->line[1], right, cal, (double)cal->conf_ego, dt,
                                      &out->line_rejected[1]);
     const pp_reference_line_t *measured_ref = NULL;
 
-    /* Both lines trusted but the width between them outside the lane widths of the ODD: one
-     * of them is not a line of this lane (misread line, widening lane; PP-SWR-060, 122). With
-     * a remembered width and reference line, keep the line that still gives the remembered
-     * centre and use it alone (step 3); the width memory is not updated (PP-PR-057). */
+    /* Khi bề rộng cặp vạch nằm ngoài ODD, giữ vạch cho tâm làn khớp bộ nhớ. Không cập nhật bề rộng
+     * (PP-PR-057). */
     bool use_left = left_ok;
     bool use_right = right_ok;
     if (left_ok && right_ok && mem->width_valid && mem->ref_valid) {
@@ -300,7 +339,6 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
     }
 
     if (use_left && use_right) {
-        /* Step 2: centre between L1 and R1; width measured across the lane at x = 0. */
         for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
             out->centre.c[k] = 0.5 * (left->poly.c[k] + right->poly.c[k]);
         }
@@ -317,7 +355,6 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
             measured_ref = out;
         }
     } else if ((use_left || use_right) && mem->width_valid) {
-        /* Step 3: one ego-lane line, centre half the remembered width inside it. */
         const pp_boundary_t *line = use_left ? left : right;
         const double half = 0.5 * mem->width;
         out->centre = line->poly;
@@ -332,8 +369,8 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
 
     bool outer_trusted[PP_OUTER_BOUNDARIES];
     update_outer(mem, lane, cycle_motion, cal, dt, measured_ref, outer_trusted);
-    /* An ego-lane line rejected by the consistency check is a suspected glitch, not a lost
-     * line: coast on the last direct reference line first, infer only after (PP-PR-052). */
+    /* Vạch bị loại vì không nhất quán có thể là nhiễu thoáng qua. COAST trên đường trực tiếp trước
+     * khi infer (PP-PR-052). */
     const bool suspected = out->line_rejected[0] || out->line_rejected[1];
     const bool may_infer = !left_ok && !right_ok && mem->width_valid;
     if (may_infer && !suspected) {
@@ -356,7 +393,6 @@ void pp_reference_line_update(pp_reference_memory_t *mem, const pp_lane_at_t0_t 
         mem->coast_s = 0.0;
     }
     if (out->valid) {
-        /* Step 6: free space each side (PP-SWR-063). */
         const double free_space = 0.5 * (out->width - vehicle_width);
         out->lane_too_narrow = free_space < (double)cal->free_space_min;
 #ifdef PP_REF_SAMPLED
@@ -378,7 +414,7 @@ static void point_on_cubic(const pp_cubic_t *p, double x, pp_ref_point_t *out)
     out->dkappa = ((d3 * g) - (3.0 * d1 * d2 * d2)) / (g * g * g);
 }
 
-/* x of the foot of the perpendicular from (px, py): (x - px) + (y(x) - py) y'(x) = 0. */
+/* Chân đường vuông góc thỏa (x - px) + (y(x) - py)y'(x) = 0. */
 static double foot_x(const pp_cubic_t *p, double px, double py)
 {
     double x = px;
@@ -396,7 +432,6 @@ static double foot_x(const pp_cubic_t *p, double px, double py)
 
 static void point_on_arc(const pp_ref_point_t *a, double length, pp_ref_point_t *out);
 
-/* ---- Sampled reference line (PP-TS-005, preparation step) ---- */
 
 static void set_node(pp_ref_nodes_t *nd, uint32_t i, double s, const pp_cubic_t *p, double x)
 {
@@ -410,8 +445,7 @@ static void set_node(pp_ref_nodes_t *nd, uint32_t i, double s, const pp_cubic_t 
     nd->dkappa[i] = point.dkappa;
 }
 
-/* x where the arc length from x reaches `length` (signed) inside one walk step: the slope
- * is taken at the middle of the part walked, not of the whole step. */
+/* Lấy độ dốc ở giữa phần thực đi trong bước, kể cả khi đoạn cuối ngắn hơn bước. */
 static double partial_step(const pp_cubic_t *p, double x, double length, double stretch)
 {
     double part = length / stretch;
@@ -433,7 +467,6 @@ void pp_ref_sample_cubic(pp_reference_line_t *ref)
     nd->origin = back;
     set_node(nd, back, 0.0, p, x0);
 
-    /* Behind s = 0, with the arc-length steps of the cubic walker. */
     {
         double x = x0;
         double s = 0.0;
@@ -453,7 +486,6 @@ void pp_ref_sample_cubic(pp_reference_line_t *ref)
         }
     }
 
-    /* Ahead, up to the end of the observed range; one node is kept for that end. */
     {
         double x = x0;
         double s = 0.0;
@@ -491,13 +523,12 @@ static void node_point(const pp_ref_nodes_t *nd, uint32_t i, pp_ref_point_t *out
     out->dkappa = nd->dkappa[i];
 }
 
-/* Point at an arc length: Hermite between two nodes (position from the headings, curvature
- * from its derivatives), circular arc outside the nodes. */
+/* Nội suy Hermite trong miền node; ngoài miền giữ tiếp tuyến và độ cong cuối để nối cung. */
 static void nodes_point_at(const pp_ref_nodes_t *nd, double s, pp_ref_point_t *out)
 {
     if (nd->n == 0U) {
         (void)memset(out, 0, sizeof(*out));
-        out->x = s;                                 /* no geometry: the x axis */
+        out->x = s;
     } else if ((nd->n == 1U) || (s >= nd->s[nd->n - 1U])) {
         pp_ref_point_t last;
         node_point(nd, nd->n - 1U, &last);
@@ -529,7 +560,6 @@ static void nodes_point_at(const pp_ref_nodes_t *nd, double s, pp_ref_point_t *o
         const double kj = nd->kappa[j];
         const double gi = h * nd->dkappa[i];
         const double gj = h * nd->dkappa[j];
-        /* Heading: integral of the Hermite curvature, closed onto the heading of node j. */
         const double turn = h * ((ki * ((0.5 * u4) - u3 + u))
                                  + (gi * ((0.25 * u4) - ((2.0 / 3.0) * u3) + (0.5 * u2)))
                                  + (kj * (u3 - (0.5 * u4)))
@@ -546,7 +576,6 @@ static void nodes_point_at(const pp_ref_nodes_t *nd, double s, pp_ref_point_t *o
     }
 }
 
-/* Arc length whose node x is px: start of the search for the foot. x grows with s. */
 static double nodes_s_at_x(const pp_ref_nodes_t *nd, double px)
 {
     double s = px;

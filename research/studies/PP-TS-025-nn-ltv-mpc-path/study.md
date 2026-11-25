@@ -45,6 +45,8 @@ Chỉ số p99 và các metric cuối path có trong dữ liệu ghép cặp c�
 
 ## 4. Lần chạy
 
+Từ 2026-11-23, study này giữ thiết kế biến thể; lần chạy chính thức, cách đánh giá và kết quả ở [PP-TS-031](../PP-TS-031-t7-generator-campaign/study.md). Tên ở đó theo thuật toán: V0, V1, V1r, V2, V3, V4 là `quintic_duration`, `qp_jerk_admm`, `qp_jerk_admm_it075`, `qp_jerk_admm_mlp_warmstart_it*`, `qp_jerk_admm_mlp_weights`, `mlp_jerk_direct`.
+
 Chạy dò các đối chứng trên tuning bằng `python3 -m eval.study PP-TS-025 --part tuning --variant V0 --variant V1 --variant V1r --jobs 1`. Lần dò V1r dùng 75 vòng từ plan nháp. So thêm 50, 100 và 150 vòng trên tuning trước khi chọn ngân sách để chấm V2.
 
 | Run ID | Phương án | Ghi chú |

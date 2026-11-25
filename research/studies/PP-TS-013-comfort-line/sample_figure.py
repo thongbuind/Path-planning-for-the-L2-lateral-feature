@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""PP-TS-013: one sample curve, top view of the two driven lines + key metrics.
-
-Runs B0 (lane centre = reference line) and R-cam (comfort line, camera view only) closed loop
-with prototype.py, then draws a PNG. Draft research figure. Default = Rf; options give other curves:
-    python3 sample_figure.py --radius 80 --deg 90 --kmh 50 --clothoid 30 --out sample-R80-90deg.png
-
-Run:  python3 research/studies/PP-TS-013-comfort-line/sample_figure.py
-"""
 
 from __future__ import annotations
 
@@ -46,7 +38,7 @@ _ap.add_argument("--title", default="Một mẫu điển hình")
 _ap.add_argument("--xodr", default=None, help="take the curve from an OpenDRIVE road (first straight = lead)")
 _ap.add_argument("--label", default=None, help="road description when --xodr is used")
 ARGS = _ap.parse_args()
-K_EXAG = ARGS.exag  # lateral exaggeration of the overview
+K_EXAG = ARGS.exag
 _ARC = (np.radians(ARGS.deg) - ARGS.clothoid / ARGS.radius) * ARGS.radius
 CURVE_END = ARGS.lead + 2 * ARGS.clothoid + _ARC
 S_FROM, S_TO = max(5.0, ARGS.lead - 150.0), CURVE_END + 150.0
@@ -78,7 +70,6 @@ def vn(x, nd=2):
     return f"{x:.{nd}f}".replace(".", ",").replace("-", "−")
 
 
-# ----------------------------------------------------------------------------- run
 def run():
     R, Lc = ARGS.radius, ARGS.clothoid
     if XSEGS is not None:
@@ -103,9 +94,7 @@ def run():
     return road, out
 
 
-# ----------------------------------------------------------------------------- geometry helpers
 def frame(road):
-    """Rotate so that the entry runs straight up."""
     rot = np.pi / 2
     c, s = np.cos(rot), np.sin(rot)
     x = c * road.x - s * road.y
@@ -125,7 +114,7 @@ def key_points(road, log):
     s, d = log["s"], log["dveh"]
     m = (s >= ARGS.lead - 40) & (s <= CURVE_END + 120)
     s, d = s[m], d[m]
-    if SBEND:  # apex of each curve and the change of direction between them
+    if SBEND:
         i1 = int(np.argmax(d))
         i2 = int(np.argmin(d))
         lo, hi = sorted((i1, i2))
@@ -137,11 +126,9 @@ def key_points(road, log):
     return {"Turn-in": s[i_in], "Apex": s[i_apex], "Exit": s[i_out]}
 
 
-# ----------------------------------------------------------------------------- left half
 def overview(ax, road, out, keys):
     X, Y, TH = frame(road)
     ss = np.arange(S_FROM, S_TO, 0.5)
-    # road surface: ego lane and part of the neighbour lanes
     for lo, hi, col in ((-1.75 - 1.4, -1.75, ASPHALT2), (1.75, 1.75 + 1.4, ASPHALT2), (-1.75, 1.75, ASPHALT)):
         xa, ya = pt(road, X, Y, TH, ss, lo)
         xb, yb = pt(road, X, Y, TH, ss[::-1], hi)
@@ -149,7 +136,6 @@ def overview(ax, road, out, keys):
     for dl in (-1.75, 1.75):
         xa, ya = pt(road, X, Y, TH, ss, dl)
         ax.plot(xa, ya, color=MARK, lw=2.2, ls=(0, (6, 5)), zorder=2)
-    # corridor of the new path (light)
     xa, ya = pt(road, X, Y, TH, ss, -P.CORRIDOR)
     xb, yb = pt(road, X, Y, TH, ss[::-1], P.CORRIDOR)
     ax.add_patch(Polygon(np.column_stack([np.r_[xa, xb], np.r_[ya, yb]]), color="#bcd5f3", alpha=0.55, lw=0, zorder=2))
@@ -160,7 +146,6 @@ def overview(ax, road, out, keys):
         m = (lg["s"] >= S_FROM) & (lg["s"] <= S_TO)
         x, y = pt(road, X, Y, TH, lg["s"][m], lg["dveh"][m])
         ax.plot(x, y, color=col, lw=lw, zorder=4, solid_capstyle="round")
-    # key points as lines across the road (like the racing-line sketch)
     for name, s0 in keys.items():
         xa, ya = pt(road, X, Y, TH, np.array([s0, s0]), np.array([-1.75 - 1.4, 1.75 + 1.4]))
         ax.plot(xa, ya, color=INK, lw=1.6, zorder=5)
@@ -232,7 +217,6 @@ def zoom(ax, road, out, name, s0, half=9.0, compact=False):
             transform=ax.transAxes, fontsize=8.8, color=C_NEW, va="top", fontweight="bold")
 
 
-# ----------------------------------------------------------------------------- right half
 ROWS = [
     ("a_y đỉnh", "m/s²", "ay_peak", 2),
     ("jerk ngang đỉnh", "m/s³", "jerk_peak", 2),
@@ -338,13 +322,13 @@ def main():
     gs = GridSpec(1, 2, figure=fig, left=0.015, right=0.985, top=0.845, bottom=0.085 if ARGS.deg < 45 else 0.125,
                   wspace=0.07,
                   width_ratios=[1.0, 1.0])
-    if ARGS.deg < 45:  # long thin overview: zooms in a column beside it
+    if ARGS.deg < 45:
         left = gs[0].subgridspec(3, 2, width_ratios=[0.95, 1.05], hspace=0.6, wspace=0.04)
         ax_ov = fig.add_subplot(left[:, 0])
         overview(ax_ov, road, out, keys)
         for r, (name, s0) in enumerate(keys.items()):
             zoom(fig.add_subplot(left[r, 1]), road, out, name, s0)
-    else:  # wide corner: big overview on top, zooms in a row below
+    else:
         left = gs[0].subgridspec(2, 3, height_ratios=[3.2, 1], hspace=0.28, wspace=0.12)
         ax_ov = fig.add_subplot(left[0, :])
         overview(ax_ov, road, out, keys)

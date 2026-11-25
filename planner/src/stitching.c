@@ -1,5 +1,3 @@
-/* T4 Stitching and continuity (stitching.h). PP-SWR-100 to 102. */
-
 #include "stitching.h"
 
 #include <math.h>
@@ -10,7 +8,7 @@
 
 #define PP_US_PER_S (1.0e6)
 #define PP_STRAIGHT_KAPPA (1.0e-9)
-#define PP_MIN_Q (0.1)                /* Smallest 1 - kappa_ref d, as in T11 */
+#define PP_MIN_Q (0.1)
 
 static double wrap_angle(double angle)
 {
@@ -50,7 +48,7 @@ void pp_stitch_move_old(const pp_previous_path_t *prev, uint64_t t0_us,
             const pp_trajectory_point_t *p = &prev->points[k];
             const double px = (double)p->pose.x - dx;
             const double py = (double)p->pose.y - dy;
-            out->x[k] = (c * px) + (s * py);              /* p_new = R(-dyaw) (p_old - d) */
+            out->x[k] = (c * px) + (s * py);
             out->y[k] = (-s * px) + (c * py);
             out->yaw[k] = wrap_angle((double)p->pose.yaw - dyaw);
             out->kappa[k] = (double)p->curvature;
@@ -64,7 +62,7 @@ void pp_stitch_move_old(const pp_previous_path_t *prev, uint64_t t0_us,
 
 bool pp_stitch_sample_old(const pp_old_path_t *old, double t, pp_path_sample_t *out)
 {
-    const double tau = t + old->shift_s;                  /* Time on the old path */
+    const double tau = t + old->shift_s;
     const double last = (double)(PP_TRAJECTORY_POINTS - 1U);
     const double index = tau / PP_GRID_STEP_S;
     const bool inside = index <= (last + 1.0e-9);
@@ -77,11 +75,8 @@ bool pp_stitch_sample_old(const pp_old_path_t *old, double t, pp_path_sample_t *
         }
         const uint32_t j = i + 1U;
         const double f = clamped - (double)i;
-        /*
-         * Cubic Hermite on position with the heading as tangent. A straight chord lies
-         * inside a curve (kappa L^2 f (1 - f) / 2, 0.6 mm at R = 1000 m) and would pull
-         * every stitched start inwards (Software Detailed Design 7, step 2).
-         */
+        /* Dùng cubic Hermite theo tiếp tuyến để dây cung không kéo điểm nối vào phía trong cua
+         * (SDD 7). */
         const double chord = hypot(old->x[j] - old->x[i], old->y[j] - old->y[i]);
         const double f2 = f * f;
         const double f3 = f2 * f;
@@ -99,7 +94,6 @@ bool pp_stitch_sample_old(const pp_old_path_t *old, double t, pp_path_sample_t *
         out->a = old->a[i] + (f * (old->a[j] - old->a[i]));
         out->d_dot = old->d_dot[i] + (f * (old->d_dot[j] - old->d_dot[i]));
     } else {
-        /* Beyond the old horizon: continue along the arc of the last point. */
         const uint32_t n = PP_TRAJECTORY_POINTS - 1U;
         const double length = old->v[n] * ((index - last) * PP_GRID_STEP_S);
         const double k = old->kappa[n];
@@ -134,17 +128,16 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
         (void)pp_stitch_sample_old(old, 0.0, &p);
         pp_ref_project(ref, p.x, p.y, &foot, &d);
 
-        /* Cartesian to Frenet (Werling et al. 2010). */
         const double dtheta = wrap_angle(p.yaw - foot.theta);
         const double q = fmax(1.0 - (foot.kappa * d), PP_MIN_Q);
         const double c = cos(dtheta);
         const double t = tan(dtheta);
-        const double d1 = q * t;                                         /* dd/ds */
+        const double d1 = q * t;
         const double d2 = (-((foot.dkappa * d) + (foot.kappa * d1)) * t)
-                          + ((q / (c * c)) * (((p.kappa * q) / c) - foot.kappa)); /* d2d/ds2 */
+                          + ((q / (c * c)) * (((p.kappa * q) / c) - foot.kappa));
         const double s_dot = (p.v * c) / q;
-        /* Soft reset (PP-TS-021): no on/off threshold, so the start cannot switch between the
-         * old path and the measured state from one cycle to the next. */
+        /* Soft reset chuyển dần từ trạng thái path cũ sang trạng thái đo để tránh bật qua lại ở
+         * sát ngưỡng (PP-TS-021). */
         const double w = pp_stitch_soft_weight(fabs(d - measured->d),
                                                (double)cal->stitch_soft_min,
                                                (double)cal->stitch_reset);
@@ -161,7 +154,7 @@ bool pp_stitch_start(const pp_old_path_t *old, const pp_reference_line_t *ref,
 double pp_stitch_soft_weight(double deviation, double soft_min, double reset)
 {
     if (reset <= soft_min) {
-        return (deviation > reset) ? 1.0 : 0.0;            /* no ramp: the hard reset */
+        return (deviation > reset) ? 1.0 : 0.0;
     }
     return pp_clamp((deviation - soft_min) / (reset - soft_min), 0.0, 1.0);
 }
@@ -179,8 +172,7 @@ static void blend_point(pp_trajectory_point_t *c, const pp_path_sample_t *o, dou
     c->front_wheel_angle_rad = (float)atan(wheelbase * kappa);
 }
 
-/* PP-TS-022 V1: limit of the time band of point k over the 0-1 s limit (SRS, PP-SWR-100 to
- * 102: 0-1 s, 1-2 s, after 2 s; a point at exactly 1 s or 2 s belongs to the earlier band). */
+/* Điểm đúng 1 s hoặc 2 s thuộc khoảng thời gian sớm hơn (PP-SWR-100–102). */
 static double band_factor(uint32_t k)
 {
     const uint32_t per_second = (uint32_t)lround(1.0 / PP_GRID_STEP_S);
@@ -194,7 +186,6 @@ double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, do
 
     if (old->valid) {
         pp_path_sample_t samples[PP_TRAJECTORY_POINTS];
-        /* Largest difference over the limit of its point, in units of the 0-1 s limit. */
         double lateral = 0.0;
         double heading = 0.0;
         double curvature = 0.0;
@@ -202,7 +193,6 @@ double pp_stitch_blend(const pp_old_path_t *old, const pp_calibration_t *cal, do
         for (uint32_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
             const pp_trajectory_point_t *c = &points[k];
             const bool common = pp_stitch_sample_old(old, (double)k * PP_GRID_STEP_S, &samples[k]);
-            /* PP-SWR-100 to 102 hold within the lane model view range (SRS 4). */
             if (common && ((double)c->pose.x <= x_limit)) {
                 const pp_path_sample_t *o = &samples[k];
                 const double yaw = (double)c->pose.yaw;

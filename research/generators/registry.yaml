@@ -1,0 +1,85 @@
+# Danh sách generator T7 của LCC (PP-TS-031). Một tên dùng chung cho thư mục, khóa CMake, biến thể trong
+# plan.yaml và dòng trên dashboard. Chỉ sửa ở session phụ trách contract; trạng thái thì session của
+# generator cập nhật.
+#
+# status: delivered (bản giao) | builtin (có trong planner/, chưa giao) | planned | developing |
+#         tuning | tested | rejected | chosen
+# kind: builtin (planner/src/generators) | config (chỉ khác calibration) | lab (research/generators/<tên>)
+#       | tool (generator lab chỉ để sinh dữ liệu, không so trên dashboard)
+
+generators:
+  quintic_duration:
+    kind: builtin
+    status: delivered
+    cmake: {PP_T7: quintic_duration}
+    study: PP-TS-031
+    session: contract
+  qp_jerk_admm:
+    kind: builtin
+    status: builtin
+    cmake: {PP_T7: qp_jerk_admm}
+    study: PP-TS-031
+    session: contract
+  qp_jerk_admm_itNNN:
+    kind: config
+    base: qp_jerk_admm
+    status: tuning
+    variants: [it010, it025, it050, it075, it100, it1000_ref]
+    calibration: qp_iters
+    study: PP-TS-031
+    session: A
+  qp_jerk_admm_shift_warmstart:
+    kind: lab
+    base: qp_jerk_admm
+    status: tuning
+    variants: [it010, it025, it050, it075]
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_shift_warmstart}
+    study: PP-TS-031
+    session: A
+  quintic_tangent_point:
+    kind: lab
+    base: quintic_duration
+    status: tuning
+    cmake: {PP_T7: lab, PP_T7_LAB: quintic_tangent_point}
+    study: PP-TS-031
+    session: B
+    pilot: pilots/pilot_driver.inc (PP_POTENTIAL_DRIVER 1)
+  quintic_ay_sampling:
+    kind: lab
+    base: quintic_duration
+    status: tuning
+    cmake: {PP_T7: lab, PP_T7_LAB: quintic_ay_sampling}
+    study: PP-TS-031
+    session: B
+    pilot: pilots/pilot_driver.inc (PP_POTENTIAL_DRIVER 2, 3)
+  qp_jerk_admm_mlp_warmstart:
+    kind: lab
+    base: qp_jerk_admm
+    status: tuning
+    variants: [it010, it025, it050, it075]
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_warmstart}
+    study: PP-TS-031
+    session: C
+    pilot: pilots/pilot_qp.inc
+  qp_jerk_admm_teacher:
+    kind: tool
+    base: qp_jerk_admm
+    status: tuning
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_teacher}
+    study: PP-TS-031
+    session: C
+    note: teacher của luồng C; ghi đặc trưng và nhãn 1000 vòng vào ws; pipeline ở mlp/
+  qp_jerk_admm_mlp_weights:
+    kind: lab
+    base: qp_jerk_admm
+    status: tuning
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_weights}
+    study: PP-TS-031
+    session: C
+  mlp_jerk_direct:
+    kind: lab
+    base: qp_jerk_admm
+    status: tuning
+    cmake: {PP_T7: lab, PP_T7_LAB: mlp_jerk_direct}
+    study: PP-TS-031
+    session: C

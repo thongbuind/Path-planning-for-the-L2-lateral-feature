@@ -1,5 +1,3 @@
-/* T9 Intervention selection (selection.h; Software Detailed Design 12). */
-
 #include "selection.h"
 
 #include <stddef.h>
@@ -17,13 +15,13 @@ void pp_selection_invalidate(pp_selection_memory_t *mem, pp_selection_t *out)
 {
     for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
         pp_intervention_request_t *state = &mem->intervention[i];
-        state->blocked = state->requested;                               /* PP-SWR-045 */
+        state->blocked = state->requested;
         if (state->phase == PP_INTERVENTION_PHASE_ACTIVE) {
             state->phase = PP_INTERVENTION_PHASE_NONE;
         }
         state->holding = false;
     }
-    out->active_function = PP_INTERVENTION_FUNCTION_NONE;                /* PP-SWR-043 */
+    out->active_function = PP_INTERVENTION_FUNCTION_NONE;
     out->starting = false;
     publish_phases(mem, out);
 }
@@ -40,7 +38,7 @@ static void check_completion(pp_intervention_request_t *state, bool settled,
         state->hold_since_us = t0_us;
     }
     if ((double)(t0_us - state->hold_since_us) >= hold_s * 1.0e6) {
-        state->phase = PP_INTERVENTION_PHASE_COMPLETED;                  /* PP-SWR-032, 090 */
+        state->phase = PP_INTERVENTION_PHASE_COMPLETED;
         state->holding = false;
     }
 }
@@ -55,8 +53,8 @@ void pp_select(pp_selection_memory_t *mem, const pp_selection_input_t *in, pp_se
         const pp_function_request_t *req = (in->requests == NULL) ? NULL : &in->requests->requests[i + 1U];
         const bool active = state->phase == PP_INTERVENTION_PHASE_ACTIVE;
         if ((req != NULL) && (req->state != PP_REQUEST_STATE_REQUEST)) {
-            out->cancelled |= active;                                    /* PP-SWR-036, 037 */
-            (void)memset(state, 0, sizeof(*state));                       /* PP-SWR-034, 041 */
+            out->cancelled |= active;
+            (void)memset(state, 0, sizeof(*state));
             continue;
         }
         if (req == NULL) {
@@ -77,10 +75,10 @@ void pp_select(pp_selection_memory_t *mem, const pp_selection_input_t *in, pp_se
             continue;
         }
 
-        /* No duration cut-off: an intervention ends by COMPLETED, by its REQUEST leaving
-         * or by the conditions to continue (PP-TS-016; R79 5.1.6.1.2.1 only warns). */
+        /* Kết thúc theo COMPLETED, khi REQUEST rời hoặc khi mất điều kiện duy trì. Không cắt theo
+         * thời lượng (PP-TS-016). */
         const bool late = (i == PP_FUNCTION_ELK - 1U) && new_request && in->elk_too_late;
-        state->blocked |= late;                                           /* PP-SWR-089 */
+        state->blocked |= late;
         allowed[i] = !state->blocked && !override && (active ? in->can_continue[i] : in->can_start[i]);
         out->cancelled |= active && !allowed[i];
     }
@@ -90,11 +88,10 @@ void pp_select(pp_selection_memory_t *mem, const pp_selection_input_t *in, pp_se
         return;
     }
     if (allowed[PP_FUNCTION_ELK - 1U]) {
-        out->active_function = PP_INTERVENTION_FUNCTION_ELK;              /* PP-SWR-030, 033 */
+        out->active_function = PP_INTERVENTION_FUNCTION_ELK;
     } else if (allowed[PP_FUNCTION_LKA - 1U]) {
         out->active_function = PP_INTERVENTION_FUNCTION_LKA;
     } else {
-        /* No candidate: NONE, and the Trajectory is sent with header.valid = false (PP-SWR-180). */
     }
 
     for (size_t i = 0U; i < PP_INTERVENTIONS; i++) {
@@ -106,7 +103,7 @@ void pp_select(pp_selection_memory_t *mem, const pp_selection_input_t *in, pp_se
             state->phase = PP_INTERVENTION_PHASE_NONE;
             state->holding = false;
         } else {
-            /* Preserve COMPLETED of a function while the other is active. */
+            /* Giữ COMPLETED của một chức năng trong khi chức năng khác ACTIVE. */
         }
     }
     publish_phases(mem, out);

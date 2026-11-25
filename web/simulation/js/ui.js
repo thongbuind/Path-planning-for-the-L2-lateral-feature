@@ -1,5 +1,3 @@
-/* Giao diện: menu chọn ca (đủ danh mục của benchmark), nhận luồng từng chu kỳ của planner đang chạy thật,
-   bảng thông số trực tiếp, điều khiển tạm dừng, tốc độ, dừng, và xem lại sau khi dừng hoặc chạy xong. */
 (() => {
   'use strict';
   const PP = window.PP;
@@ -25,29 +23,25 @@
   };
   const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
 
-  // ---------- Trạng thái ----------
-  // phase: idle, connecting, running, paused, finishing, done, stopped, error
   const S = {
     phase: 'idle', cat: null, d: null, rate: 1, review: null, ac: null, runId: 0, lastK: -1, dirty: true, err: '',
-    run: null, seq: 0, ended: false,   // lượt chạy trên server (run_id), seq của sự kiện cuối đã nhận
-    playback: null, playCfg: false,    // run đang phát lại từ bundle: không chạy planner
+    run: null, seq: 0, ended: false,   // Lưu run_id và seq cuối để trình duyệt có thể nối lại stream.
+    playback: null, playCfg: false,
     fnFilter: '', q: '',
     sel: { scen: 'S1/c', faults: { F01: 'c', F04: 'a' }, trigger: '', env: { mu: true, cam: true, noise: false }, veh: 'VP-0', seed: 1, acc: '' },
   };
-  const R = {};   // phần tử cập nhật theo khung
+  const R = {};
   const TRIG = { lka_active: 'LKA can thiệp', elk_active: 'ELK can thiệp', intervention_active: 'LKA hoặc ELK can thiệp', lcc_follow: 'LCC vào FOLLOW' };
   const curScen = () => (S.playback && !S.playCfg ? null : S.cat.scenarios.find((x) => x.id === S.sel.scen));
   const resText = (res) => (res.passed ? 'Đạt' : res.judged === false ? 'Không được chấm' : 'Không đạt');
 
-  // ---------- Gọi server ----------
-  // Lượt chạy thuộc về server, không thuộc về tab: đóng tab không dừng lượt chạy; mở lại thì nối tiếp.
   const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }).catch(() => null);
   const runApi = (tail) => 'api/runs/' + S.run + tail;
   const control = (body) => (S.run ? post(runApi('/control'), body) : null);
   const ACTIVE = ['QUEUED', 'RUNNING', 'PAUSED'];
   const RUN_KEY = 'pp-sim-run';
-  function remember() { try { localStorage.setItem(RUN_KEY, JSON.stringify({ run: S.run, sel: S.sel })); } catch (err) { /* không lưu được */ } }
-  function forget() { try { localStorage.removeItem(RUN_KEY); } catch (err) { /* không lưu được */ } }
+  function remember() { try { localStorage.setItem(RUN_KEY, JSON.stringify({ run: S.run, sel: S.sel })); } catch (err) {   } }
+  function forget() { try { localStorage.removeItem(RUN_KEY); } catch (err) {   } }
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function config() {
@@ -62,7 +56,6 @@
     };
   }
 
-  // ---------- Menu ----------
   const scenarioGroups = new Map();
   let openGroup = null;
   let hoverTimer;
@@ -160,7 +153,6 @@
       const group = { row, trigger, panel, options };
       scenarioGroups.set(sid, group);
 
-      // Khoảng chờ ngắn để con trỏ đi từ hàng sang bảng.
       const leave = () => {
         if (openGroup !== group) return;
         clearTimeout(hoverTimer);
@@ -211,7 +203,6 @@
   function buildMenu(cat) {
     buildScenarioMenu(cat.scenarios);
 
-    // lỗi
     const mf = $('m-faults');
     ['Perception', 'Timing', 'Integrity', 'Khác'].forEach((g) => {
       const fl = cat.faults.filter((f) => f.group === g);
@@ -248,14 +239,12 @@
     mc.appendChild(clr);
     $('trigger').addEventListener('change', (e) => { S.sel.trigger = e.target.value; });
 
-    // môi trường
     [['mu', 'Mặt đường ướt, μ = 0,5'], ['cam', 'Camera trễ 150 ms (mặc định 100)'], ['noise', 'Nhiễu cảm biến vật thể ×1,5 (mưa)']].forEach(([k, label]) => {
       const b = h('button', { type: 'button', class: 'tog', 'aria-pressed': 'false', 'data-k': k }, h('i', { class: 'sw' }), h('span', { text: label }));
       b.addEventListener('click', (e) => { S.sel.env[k] = !S.sel.env[k]; syncMenu(); if (e.detail) b.blur(); });
       $('m-env').appendChild(b);
     });
 
-    // xe, seed, ACC
     cat.vehicles.forEach((v) => {
       const b = h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-id': v.id, text: v.id,
         title: `${v.id}: trục cơ sở ${PP.f(v.wb, 2)} m, rộng ${PP.f(v.w, 2)} m, ${PP.f(v.mass, 0)} kg` });
@@ -334,7 +323,6 @@
     $('scenario-description-text').textContent = description;
   }
 
-  // ---------- Pha và nút ----------
   function setPhase(p, err) {
     S.phase = p;
     if (err !== undefined) S.err = err;
@@ -374,7 +362,6 @@
     if (el.lastChild.textContent !== txt) el.lastChild.textContent = txt;
   }
 
-  // ---------- Một lượt chạy ----------
   function newData(m) {
     return {
       name: m.name, desc: m.desc, dur: m.dur, dt: m.dt, seed: m.seed, pp: m.pp, veh: m.veh, road: m.road,
@@ -404,7 +391,7 @@
     for (const v of m.traj) d.traj.push(v);
     for (const v of m.tr) d.tr.pos.push(v);
     for (const v of m.fa) d.fa.push(v);
-    if (m.lm) d.lm.push(m.lm);          // chỉ có khi camera gửi frame mới; các chu kỳ sau dùng lại frame đó
+    if (m.lm) d.lm.push(m.lm);          // Dùng lại lane model của frame camera mới nhất khi planner chạy nhanh hơn camera.
     d.lmk.push(d.lm.length - 1);
     d.ch.push(m.ch ?? null); d.alt.push(m.alt ?? null); d.lcc.push(m.lcc ?? null); d.ka.push(m.ka ?? null);
     d.lead.push(m.lead ?? null); d.cl.push(m.cl ?? null); d.ck.push(m.ck ?? null);
@@ -450,7 +437,7 @@
     }
   }
 
-  // Trạng thái thực thi do server báo; kết luận đánh giá đến riêng trong 'done'.
+  // Trạng thái thực thi theo sự kiện của server. Kết luận chấm đến riêng trong done.
   function onState(m) {
     if (S.playback) { if (!ACTIVE.includes(m.state) && m.state !== 'PAUSED') S.ended = true; return; }
     if (m.state === 'PAUSED' && S.phase === 'running') setPhase('paused');
@@ -483,7 +470,7 @@
     }
     if (!res.ok) {
       let detail = '';
-      try { detail = (await res.json()).error || ''; } catch (err) { /* không phải JSON */ }
+      try { detail = (await res.json()).error || ''; } catch (err) {   }
       if (id === S.runId) setPhase('error', detail || 'Server từ chối yêu cầu (' + res.status + ')');
       return;
     }
@@ -493,7 +480,7 @@
     follow(id);
   }
 
-  // Đọc luồng sự kiện của lượt chạy từ seq đã nhận; mất kết nối thì nối lại, không chạy lại.
+  // Nối lại từ seq đã nhận, không khởi tạo run mới.
   async function follow(id) {
     for (let attempt = 0; attempt < 6 && id === S.runId && !S.ended; attempt++) {
       const ac = (S.ac = new AbortController());
@@ -517,13 +504,13 @@
           while ((i = buf.indexOf('\n')) >= 0) {
             const line = buf.slice(0, i);
             buf = buf.slice(i + 1);
-            if (!line) continue;          // giữ kết nối
+            if (!line) continue;
             const m = JSON.parse(line);
             if (m.seq) S.seq = m.seq;
             onMsg(m, id);
           }
         }
-        attempt = -1;                     // nhận được dữ liệu: đếm lại số lần thử
+        attempt = -1;
       } catch (e) {
         if (ac.signal.aborted) return;
       }
@@ -548,14 +535,12 @@
     else if (S.phase === 'paused') { S.review = null; control({ cmd: 'resume' }); setPhase('running'); }
   }
 
-  // Xem lại khung k: chỉ khi không chạy trực tiếp
   function seek(k) {
     if (!S.d || !S.d.n || !['paused', 'done', 'stopped'].includes(S.phase)) return;
     S.review = PP.clamp(k, 0, S.d.n - 1);
     S.dirty = true;
   }
   PP.charts.onSeek = seek;
-  // Tới khung gần thời điểm t nhất, lệch tối đa nửa chu kỳ planner.
   function seekTime(t) {
     const d = S.d;
     if (t == null || !isFinite(t) || !d || !d.n) return;
@@ -573,7 +558,7 @@
     syncMenu(true);
   }
 
-  // Phát lại run đã xong từ luồng khung hình trong bundle: không sinh worker, không gọi planner.
+  // Phát lại frame đã lưu trong bundle, không gọi worker hay planner.
   async function play(runId, t) {
     if (S.playback === runId && S.d && S.d.n && S.phase !== 'connecting') { seekTime(t); return; }
     if (S.ac) S.ac.abort();
@@ -607,7 +592,6 @@
     seekTime(t);
   }
 
-  // ---------- Đầu trang và bảng thông số ----------
   function header(d) {
     const sc = curScen();
     const crumb = $('crumb');
@@ -727,7 +711,6 @@
     R.resBody = body;
   }
 
-  // ---------- Cập nhật theo khung ----------
   const setT = (el, s) => { if (el && el.textContent !== s) el.textContent = s; };
   const flag = (ok, textOk, textNo) => h('span', { class: 'flag ' + (ok ? 'ok' : 'bad') }, use(ok ? 'i-check' : 'i-x'), ok ? textOk : textNo);
 
@@ -797,7 +780,6 @@
       R.sumT.textContent = 't = ' + PP.f(t, 1) + ' s';
     }
 
-    // HUD trên màn hình
     const chip = $('chip-fn');
     if (chip.dataset.fn !== PP.FN[fn]) chip.dataset.fn = PP.FN[fn];
     setT($('chip-fn-t'), PP.FN[fn]);
@@ -805,7 +787,7 @@
     setT($('chip-path-t'), d.pv[k] ? 'Path hợp lệ' : 'Path không hợp lệ');
     $('chip-path').classList.toggle('warn', !d.pv[k]);
     setT($('hud-v'), PP.f(d.v[k] * 3.6, 0));
-    // Mô hình lấy chiều trái là dương; SVG xoay theo chiều kim đồng hồ khi góc dương.
+    // Ở khung mô phỏng, chiều trái là dương; chiều xoay dương của SVG ngược quy ước đó.
     $('hud-steering-rotor').setAttribute('transform', `rotate(${-d.steeringAngle[k] * 180 / Math.PI} 24 24)`);
     const systemShare = d.steeringSystemShare[k];
     $('hud-steering').style.color = systemShare == null ? '' :
@@ -840,7 +822,7 @@
     setRunState();
   }
 
-  // Vẽ theo nhịp màn hình; nếu tab bị ẩn hoặc giảm nhịp (rAF đứng) thì một bộ định giờ dự phòng vẫn cập nhật.
+  // Bộ định giờ dự phòng cập nhật khi tab ẩn làm requestAnimationFrame ngừng chạy.
   let lastRaf = performance.now();
   function loop() {
     lastRaf = performance.now();
@@ -851,7 +833,6 @@
     if (S.dirty && performance.now() - lastRaf > 250) { S.dirty = false; frame(); }
   }, 100);
 
-  // ---------- Điều khiển ----------
   $('run').addEventListener('click', (e) => { start(); if (e.detail) e.currentTarget.blur(); });
   $('pause').addEventListener('click', (e) => { togglePause(); if (e.detail) e.currentTarget.blur(); });
   $('stop').addEventListener('click', (e) => { stop(); if (e.detail) e.currentTarget.blur(); });
@@ -894,7 +875,6 @@
 
   window.addEventListener('pagehide', () => { if (S.ac) S.ac.abort(); });
 
-  // ---------- Giao diện sáng tối ----------
   function themeIcon() {
     const dark = document.documentElement.dataset.theme === 'dark' ||
       (!document.documentElement.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -905,7 +885,7 @@
     const dark = themeIcon();
     const next = dark ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('pp-theme', next); } catch (err) { /* không lưu được */ }
+    try { localStorage.setItem('pp-theme', next); } catch (err) {   }
     themeIcon();
     PP.scene.readColors();
     PP.charts.resize();
@@ -914,7 +894,6 @@
   });
   if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { themeIcon(); PP.scene.readColors(); S.dirty = true; });
 
-  // ---------- Khởi động ----------
   async function boot() {
     themeIcon();
     resetPanels();
@@ -930,7 +909,7 @@
       const r = await fetch('api/catalog');
       if (!r.ok) {
         let detail = '';
-        try { detail = (await r.json()).error || ''; } catch (err) { /* bản tĩnh có thể trả HTML */ }
+        try { detail = (await r.json()).error || ''; } catch (err) {   }
         throw new Error(detail || 'HTTP ' + r.status);
       }
       S.cat = await r.json();
@@ -961,7 +940,7 @@
     }
     buildMenu(S.cat);
     let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); } catch (err) { /* không đọc được */ }
+    try { saved = JSON.parse(localStorage.getItem(RUN_KEY) || 'null'); } catch (err) {   }
     if (saved && saved.sel) S.sel = saved.sel;
     filterScen();
     syncMenu(true);
@@ -969,7 +948,6 @@
     if (saved && saved.run) resume(saved.run);
   }
 
-  // Tab mở lại khi lượt chạy cũ còn chạy trên server: nối tiếp từ đầu luồng sự kiện.
   async function resume(runId) {
     try {
       const r = await fetch('api/runs/' + runId);

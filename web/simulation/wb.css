@@ -1,6 +1,3 @@
-/* Workbench: sidebar theo không gian làm việc và các màn Run, Suite, Độ tin cậy, Nền tảng.
-   Dùng lại token của app.css (--ink, --grid, --inset, --fill...). Chỉ thêm token trạng thái chữ
-   và vùng cảnh báo. Mọi trạng thái đi kèm icon và chữ, không chỉ màu. */
 
 :root {
   --wb-nav: #F5F5F7;
@@ -57,7 +54,6 @@
 .wb-skip { position: absolute; left: -9999px; top: 0; z-index: 50; background: var(--fill); color: var(--on-fill); padding: 8px 12px; border-radius: 0 0 8px 0; }
 .wb-skip:focus { left: 0; }
 
-/* ---------- Khung ---------- */
 .wb { height: 100%; display: grid; grid-template-columns: 232px minmax(0, 1fr); background: var(--surface); }
 .wb-main { min-width: 0; min-height: 0; outline: none; }
 .view { height: 100%; min-height: 0; }
@@ -65,7 +61,6 @@
 .wb-page { overflow: auto; }
 .wb-mono { font-family: var(--font-mono); font-size: .92em; }
 
-/* ---------- Sidebar ---------- */
 .wb-nav {
   background: var(--wb-nav); border-right: 1px solid var(--grid);
   display: flex; flex-direction: column; gap: 22px; padding: 20px 12px 16px; overflow: auto; min-height: 0;
@@ -103,7 +98,6 @@
 .wb-legend span:nth-child(1) svg { color: var(--good); }
 .wb-legend span:nth-child(3) svg { color: var(--ink-3); }
 
-/* ---------- Trang ---------- */
 .wb-col { display: flex; flex-direction: column; gap: 20px; padding: 24px 28px 40px; min-width: 0; max-width: 1480px; }
 .wb-col.tight { gap: 16px; }
 .wb-crumb { font-size: 12.5px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 4px 6px; }
@@ -160,7 +154,6 @@
 .wb-note svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
 .wb-small { font-size: 12.5px; color: var(--ink-3); line-height: 1.5; }
 
-/* ---------- Bảng ---------- */
 .wb-table { border: 1px solid var(--grid); border-radius: 12px; overflow-x: auto; }
 .wb-table > div { min-width: 960px; }
 .wb-row {
@@ -192,13 +185,11 @@
 .ok-ico { color: var(--good); }
 .bad-ico { color: var(--crit); }
 
-/* ---------- Tab ---------- */
 .wb-tabs { display: flex; flex-wrap: wrap; gap: 4px 24px; border-bottom: 1px solid var(--grid); }
 .wb-tabs a { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); border-bottom: 2px solid transparent; text-decoration: none; }
 .wb a.wb-tabs-a, .wb-tabs a { color: var(--ink-2); }
 .wb-tabs a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--violet); }
 
-/* ---------- Kết luận ---------- */
 .wb-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .wb-pill { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 30px; padding: 4px 12px; border-radius: 8px; background: var(--inset); font-size: 12.5px; }
 .wb-pill.pass { background: var(--wb-ok-bg); color: var(--wb-ok-ink); }
@@ -219,7 +210,6 @@
 .wb-bar i b { display: block; height: 100%; background: var(--crit); border-radius: 5px; }
 .wb-bar em { font-style: normal; text-align: right; }
 
-/* ---------- Chờ giai đoạn sau ---------- */
 .wb-cho { border: 1.5px dashed var(--wash-line); border-radius: 14px; background: var(--wb-wait-bg); padding: 28px; display: flex; flex-direction: column; gap: 22px; }
 .wb-cho .hd { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .wb-cho .badge { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 14px; border: 1px dashed var(--ink-3); background: var(--surface); font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
@@ -234,7 +224,6 @@
 .wb-ghost { display: flex; flex-direction: column; gap: 10px; }
 .wb-ghost .g { background: var(--inset); border-radius: 8px; }
 
-/* ---------- Run con ---------- */
 .wb-opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--grid); font-size: 13px; line-height: 1.4; cursor: pointer; }
 .wb-opt input { margin: 2px 0 0; accent-color: var(--violet); }
 .wb-opt small { display: block; color: var(--ink-3); font-size: 12px; }
@@ -248,7 +237,6 @@
 .wb-cmp th { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
 .wb-cmp td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; line-height: 1.45; overflow-wrap: anywhere; }
 
-/* ---------- Nền tảng ---------- */
 .wb-band { border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--grid); }
 .wb-band.web { background: var(--inset); }
 .wb-band.core { background: var(--wb-sel-bg); border-color: var(--wb-sel-line); }
@@ -262,7 +250,6 @@
 .wb-loading, .wb-err { padding: 28px; color: var(--ink-3); font-size: 13.5px; }
 .wb-err { color: var(--wb-crit-ink); }
 
-/* ---------- Thu hẹp ---------- */
 @media (max-width: 1180px) {
   .wb { height: auto; min-height: 100%; }
   .view { height: auto; }

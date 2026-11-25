@@ -1,6 +1,3 @@
-"""What the live view shows (eval.live): real lane clearance, no invented steering share, lane
-model overlay at the capture time. Display only; nothing here is scored."""
-
 from types import SimpleNamespace
 
 import pytest
@@ -29,7 +26,7 @@ def test_clearance_follows_a_lane_that_widens():
         x, y, _ = road.pose_at(float(s))
         left, right = _view().clearance(road, x, y, float(s))
         largest = max(largest, abs(left - fixed), abs(right - fixed))
-    assert largest > 0.5  # a fixed half width would be wrong by this much on S6b d
+    assert largest > 0.5
 
 
 def test_clearance_of_a_constant_lane():
@@ -41,7 +38,7 @@ def test_clearance_of_a_constant_lane():
 
 
 @pytest.mark.parametrize("share, controlling, torque, expected", [
-    (1.0, True, 2.0, None),   # driver torque, no motor torque to compare with
+    (1.0, True, 2.0, None),
     (1.0, True, 0.0, 1.0),
     (0.0, False, 2.0, 0.0),
 ])
@@ -56,7 +53,7 @@ def test_lane_model_is_placed_at_the_global_capture_time():
         clocks={"camera": SimpleNamespace(to_global=lambda local_us: local_us - offset_us)},
         log=SimpleNamespace(t_us=[0, 10_000, 20_000, 30_000], rear=[(float(i), 0.0, 0.0) for i in range(4)]))
     line = SimpleNamespace(status=0, type=0, view_range_start=0.0, view_range_end=4.0, c0=0.0, c1=0.0, c2=0.0, c3=0.0)
-    camera_stamp = 20_000 + offset_us  # taken at global 20 ms, stamped by a camera clock 10 ms ahead
+    camera_stamp = 20_000 + offset_us  # Giờ toàn cục lúc chụp là 20 ms; đồng hồ camera đi trước 10 ms.
     msg = SimpleNamespace(header=SimpleNamespace(stamp_us=camera_stamp), lines=[line], road_edges=[])
     first_x = _view().lane_model_points(h, msg)["ls"][0]["pts"][0]
-    assert first_x == 2.0  # pose at 20 ms, not at 30 ms
+    assert first_x == 2.0

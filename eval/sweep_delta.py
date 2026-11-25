@@ -1,12 +1,4 @@
-"""Change of a target across the levels of a simulator sweep (Software Qualification Test
-Specification 6.1). PP-SWR-013 is the increase of PP-SWR-050 over the zero-latency run:
-
-    python3 -m eval.sweep_delta Q1 --key camera_latency_ms --base 0 --target PP-SWR-050
-
-Reads build/matrix/<suite>/runs.json (eval.matrix) and pairs every run with the run of the
-same scenario, ACC mode, profile, seed and other simulator values at the base level. Writes
-build/matrix/<suite>/delta.md and prints it.
-"""
+"""PP-SWR-013 đo phần PP-SWR-050 tăng so với lần chạy không có độ trễ."""
 
 import argparse
 import json
@@ -22,7 +14,6 @@ def _group(run: dict, key: str) -> tuple:
 
 
 def deltas(runs: list[dict], key: str, base: float, target: str, default: float) -> list[dict]:
-    """[{group, level, value, base_value, delta}] for every run that has a base partner."""
     level = lambda r: float((r.get("sim") or {}).get(key, default))  # noqa: E731
     bases = {_group(r, key): r for r in runs if level(r) == base}
     out = []
@@ -45,7 +36,12 @@ def table(rows: list[dict], key: str, target: str) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Change of a target across the levels of a simulator sweep (Software Qualification "
+            "Test"
+        ),
+    )
     parser.add_argument("suite")
     parser.add_argument("--key", required=True, help="Simulator value swept, e.g. camera_latency_ms")
     parser.add_argument("--base", type=float, required=True, help="Level the others are compared with")

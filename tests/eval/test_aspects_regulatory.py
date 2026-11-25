@@ -1,5 +1,3 @@
-"""B2 holds a case for every test of Software Qualification Test Specification 5.1 run in SIL (PP-PR-042)."""
-
 from eval import aspects
 from eval import report_html
 
@@ -18,18 +16,16 @@ def test_r79_esf_row_maps_to_anchor_cases():
     assert row in report_html.test_of({"family": "S7", "anchor": "a", "parameters": {}}, tests)
     assert row in report_html.test_of({"family": "S8", "anchor": "c", "parameters": {}}, tests)
     assert row not in report_html.test_of({"family": "S8", "anchor": "late", "parameters": {}}, tests)
-    # Euro NCAP grid cases stay with their own protocol rows.
     assert row not in report_html.test_of({"family": "S7", "anchor": None, "parameters": {"protocol": "Euro NCAP LSS"}}, tests)
 
 
 def test_every_sil_test_of_5_1_has_b2_cases():
-    """Each 5.1 row names scenarios whose anchors (or protocol grid) are in B2."""
     definitions = aspects.definitions()["B2"]
     families = set(definitions.get("families", []))
     anchored = definitions.get("anchors", {})
     for t in report_html.regulatory_tests():
         if t["docs"] == ["Euro NCAP LSS"]:
-            continue  # protocol grids, B2 by method
+            continue
         covered = any(f in families or (f in anchored and (a is None or a & set(anchored[f])))
                       for f, a in t["refs"])
         assert covered, t["source"]

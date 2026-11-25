@@ -1,16 +1,14 @@
-# Interface Control Document section 4, "Contract gọi hàm của planner": what pp_<planner>_step takes and gives.
 icd: "4"
 constants:
   PLANNER_PERIOD_US: {type: uint64, value: 25000}
 enums:
   InitResult:
-    doc: "Result of pp_<planner>_init"
     values: {OK: 0, BAD_ARGUMENT: 1, BAD_VEHICLE_CONFIG: 2, BAD_CALIBRATION: 3}
 structs:
   LccInputs:
-    doc: "LCC planner: newest message of each input with its receive time (rx_us), or not received yet"
+    doc: "Input LCC: message nhận mới nhất kèm rx_us, hoặc vắng nếu chưa nhận."
     fields:
-      - {name: t0_us, type: uint64, unit: us, doc: "Cycle tick"}
+      - {name: t0_us, type: uint64, unit: us}
       - {name: lane_model, type: LaneModel, received: true}
       - {name: object_list, type: ObjectList, received: true}
       - {name: lead_target, type: LeadTarget, received: true}
@@ -21,15 +19,15 @@ structs:
       - {name: function_requests, type: FunctionRequests, received: true}
       - {name: longitudinal_plan, type: LongitudinalPlan, received: true}
   LccOutputs:
-    doc: "Outputs of one LCC planner cycle; each with a flag whether it is sent"
+    doc: "Đầu ra của một chu kỳ LCC, kèm cờ phát riêng cho từng message."
     fields:
       - {name: trajectory, type: Trajectory, sent: true}
       - {name: lcc_status, type: LccStatus, sent: true}
       - {name: lateral_limits, type: LateralLimits, sent: true}
   LkaElkInputs:
-    doc: "LKA/ELK planner: newest message of each input with its receive time (rx_us), or not received yet"
+    doc: "Input LKA/ELK: message nhận mới nhất kèm rx_us, hoặc vắng nếu chưa nhận."
     fields:
-      - {name: t0_us, type: uint64, unit: us, doc: "Cycle tick"}
+      - {name: t0_us, type: uint64, unit: us}
       - {name: lane_model, type: LaneModel, received: true}
       - {name: imu, type: ImuSignals, received: true}
       - {name: steering, type: SteeringSignals, received: true}
@@ -38,7 +36,7 @@ structs:
       - {name: function_requests, type: FunctionRequests, received: true}
       - {name: longitudinal_plan, type: LongitudinalPlan, received: true}
   LkaElkOutputs:
-    doc: "Outputs of one LKA/ELK planner cycle; each with a flag whether it is sent"
+    doc: "Đầu ra của một chu kỳ LKA/ELK, kèm cờ phát riêng cho từng message."
     fields:
       - {name: trajectory, type: Trajectory, sent: true}
       - {name: intervention_status, type: InterventionStatus, sent: true}

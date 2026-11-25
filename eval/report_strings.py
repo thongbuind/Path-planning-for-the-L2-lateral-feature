@@ -1,5 +1,3 @@
-"""English copy for the HTML dashboard and its evidence page."""
-
 import re
 
 
@@ -44,7 +42,7 @@ _ENGLISH = {
     "Báo COMPLETED đúng lúc": "Report COMPLETED on time",
     "a_y path khi cua gắt hơn aysmax": "Path a_y in curves requiring more than aysmax",
     "DTLE ≥ −0,3 m khi LKA, ELK": "DTLE ≥ −0.3 m during LKA and ELK",
-    "a_y path ≤ aysmax khi HWA lái": "Path a_y ≤ aysmax under HWA control",
+    "a_y path ≤ aysmax + 0,3 khi HWA lái": "Path a_y ≤ aysmax + 0.3 under HWA control",
     "Báo cờ giới hạn trước khi đè vạch": "Set the limit flag before lane marking contact",
     "Khoảng cách tới xe làn bên ≥ 0,3 m": "Clearance to adjacent-lane vehicle ≥ 0.3 m",
     "Path không hợp lệ khi ego-motion hỏng": "Invalidate the path when ego-motion is invalid",
@@ -377,7 +375,7 @@ _ENGLISH = {
     "chu kỳ {period}": "cycle {period}",
     "{scenario}: p99 lớn nhất {p99} ms qua {count} lần chạy": "{scenario}: highest p99 was {p99} ms across {count} runs",
     "chu kỳ {period} ms": "{period} ms cycle",
-    "Đồng hồ thật của máy phát triển ({platform}), gồm adapter ctypes; không đại diện ECU trên xe.": "Wall-clock measurements on the development host ({platform}) include ctypes adapter overhead and do not represent ECU timings.",
+    "Thời gian CPU của luồng gọi planner trên máy phát triển ({platform}), gồm adapter ctypes; không đại diện ECU trên xe.": "Thread CPU time of the planner call on the development host ({platform}) includes ctypes adapter overhead and does not represent ECU timings.",
     "Chạy song song {workers} tiến trình ({start_method}); giá trị lớn hơn khi chạy một mình.": "Ran {workers} worker processes in parallel ({start_method}). Timings are higher than with one worker.",
     "Chu kỳ {period} ms là chu kỳ planner 40 Hz, chỉ để tham chiếu, không phải ngưỡng.": "The {period} ms period of the 40 Hz planner is shown for reference.",
     "{count} chu kỳ của mọi lần chạy": "{count} cycles across all runs",
@@ -424,8 +422,7 @@ def conformance_title(check_id, original):
     return _CHECK_TITLES.get(check_id, original)
 
 
-# Existing conformance.json files contain composed diagnostics in Vietnamese. Translate the
-# evaluator's phrases and retain field names, values, and external tool output verbatim.
+# Chỉ dịch phần chẩn đoán do B0 tạo. Giữ tên trường, giá trị và đầu ra công cụ ngoài.
 _DIAGNOSTIC_PHRASES = {
     "Không quan sát được từ file thư viện: pp_types.h không có mã phiên bản schema":
         "Cannot verify from the library binary because pp_types.h has no schema version marker",

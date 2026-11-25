@@ -1,0 +1,51 @@
+# Tuning and test runs of PP-TS-030 (research/studies/PP-TS-030-elk-object-return). ELK because
+# of a vehicle in the adjacent lane, where the return to the lane centre must not overshoot
+# (PP-SWR-094) and must keep 0.3 m to that vehicle (PP-SWR-088). Draft runs on regression cases
+# 20261123-1254-suite-regression-54307f1 were seen before this suite was written: the test set uses
+# other variants and seeds 3, 4. LKA and ELK cases without an object check that nothing else moves.
+id: PP-TS-030
+title: Đường về tâm của ELK vì xe làn bên
+
+scope:
+  always: [PP-SWR-010, PP-SWR-100, PP-SWR-101, PP-SWR-102]
+  S7: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S8: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-089, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S8b: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S21: [PP-SWR-082, PP-SWR-085, PP-SWR-088, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115]
+  S12: [PP-SWR-085, PP-SWR-088, PP-SWR-094]
+  S4: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-110, PP-SWR-112, PP-SWR-114, PP-SWR-081]
+  S5: [PP-SWR-032, PP-SWR-084, PP-SWR-085, PP-SWR-086, PP-SWR-090, PP-SWR-094, PP-SWR-111, PP-SWR-113, PP-SWR-115, PP-SWR-082]
+
+tuning:
+  seeds: [1, 2]
+  runs:
+    - [S7, a]
+    - [S7, b]
+    - [S8, a]
+    - [S8, b]
+    - [S8b, c]
+    - [S21, a]
+    - [S12, c]
+    - [S4, a]
+    - [S5, a]
+
+test:
+  seeds: [3, 4]
+  runs:
+    - [S7, c]
+    - [S7, d]
+    - [S7, e]
+    - [S8, c]
+    - [S8, d]
+    - [S8, e]
+    - [S8b, d]
+    - [S8b, e]
+    - [S21, b]
+    - [S21, c]
+    - [S21, e]
+    - [S12, d]
+    - [S8b, c, {profile: VP-5}]
+    - [S7, a, {profile: VP-5}]
+    - [S8, a, {profile: VP-4}]
+    - [S4, c]
+    - [S5, c]

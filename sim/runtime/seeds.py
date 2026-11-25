@@ -1,9 +1,4 @@
-"""Seeds (Software Qualification Test Specification 4.1, 4.2).
-
-One main seed per run, split with numpy.random.SeedSequence.spawn into one stream per
-named channel. The order of names is fixed, so a name keeps its stream when new
-names are appended.
-"""
+"""Mỗi luồng có seed riêng. Giữ thứ tự tên cũ để thêm luồng không làm đổi chuỗi đã có."""
 
 import numpy as np
 
@@ -16,5 +11,4 @@ def spawn_streams(seed: int) -> dict[str, np.random.Generator]:
 
 
 def random_phase_us(rng: np.random.Generator, period_us: int, step_us: int) -> int:
-    """Start phase of a block, a whole number of steps in [0, period) (4.2, "Độ lệch pha")."""
     return int(rng.integers(0, period_us // step_us)) * step_us

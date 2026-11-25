@@ -30,6 +30,12 @@ Bên chấm, không đổi planner:
 - F21(d) trên ca chủ: giữ độ cong của ca chủ; R = 500 m chỉ áp khi chạy F21(d) đơn lẻ.
 - Chạy lại F21 trên S1c sau khi sửa. Ghi kết quả cũ và mới vào đây; không chỉnh tiếp sau khi thấy kết quả.
 
+Thiết kế (2026-11-23, chưa cài):
+
+- Hai đường tạo ca đang sai theo hai kiểu: `eval/generate.py` thay cả hình học của ca chủ bằng đường của anchor; `eval/loader.with_fault` (chạy theo catalog) bỏ hẳn đường của anchor, nên F21 c trên ca chủ không có mép đường.
+- F21c.xodr chỉ khác S1a.xodr ở `roadMark` của biên ngoài bên phải (`grass` thay `solid`). Luật chung: trên ca chủ, hình học (planView) lấy của ca chủ, phần `lanes` (vạch, mép, bề rộng) lấy của anchor khi số làn khớp; không khớp thì báo lỗi lúc sinh ca.
+- Cần sửa cùng lúc: `eval/openx` (đọc đường), `eval/loader.with_fault`, `eval/generate.on_host`, `openx.concrete`. Làm sau nhóm sửa planner vì PR này không gây lượt trượt, chỉ làm giảm độ phủ của F21.
+
 ## 4. Xác nhận
 
 | Run ID | Kết quả |

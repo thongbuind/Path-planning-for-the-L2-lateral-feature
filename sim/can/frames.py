@@ -1,19 +1,5 @@
-"""Chassis CAN frames by the DBC of Interface Control Document 5.3, standard library only.
-
-Sender side (ESC, SAS, IMU ECUs): physical value -> integer by the factor (rounded, clamped
-to the field; F18), 4-bit counter, qualifier, CRC. Receiver side (CAN receive layer of the
-ADAS ECU platform, not the planner): CRC check and counter check, then SI units.
-
-| Frame | Bytes 0-5 | Data ID |
-|---|---|---|
-| IMU_Data 0x1A0 | YawRate int16 x 0.01 deg/s; AccelX, AccelY int16 x 0.001 m/s^2 | 0x10 |
-| SAS_Steering 0x1B0 | SteeringWheelAngle int16 x 0.1 deg; SteeringWheelSpeed int16 x 0.1 deg/s | 0x11 |
-| ESC_Speed 0x1C0 | VehicleSpeed uint16 x 0.01 km/h; byte 2 bits 0-1 Direction | 0x12 |
-
-Byte 6: bits 0-3 counter, bits 4-5 qualifier {VALID, INIT, DEGRADED, FAULT}. Byte 7: CRC-8
-SAE J1850 (polynomial 0x1D, start 0xFF, final XOR 0xFF) over the Data ID (low byte, then a
-zero high byte) and bytes 0-6, as in AUTOSAR E2E Profile 1. Intel byte order; signs follow
-base_link (yaw rate, a_y, steering angle positive to the left).
+"""Chassis CAN theo DBC của ICD 5.3. Bên phát lượng tử hóa tín hiệu và thêm counter, qualifier,
+CRC.
 """
 
 import struct
@@ -50,7 +36,7 @@ def _raw(value: float, factor: float, limits: tuple[int, int]) -> int:
 @dataclass(frozen=True, slots=True)
 class CanFrame:
     can_id: int
-    data: bytes  # 8 bytes
+    data: bytes
 
     @property
     def counter(self) -> int:
@@ -64,7 +50,6 @@ class CanFrame:
         return self.data[7] == _crc(self.can_id, self.data[:7])
 
     def with_byte6(self, counter: int, qualifier: int) -> "CanFrame":
-        """The sender changes counter or qualifier: CRC computed again."""
         head = self.data[:6] + bytes(((qualifier & 0x03) << 4 | (counter & 0x0F),))
         return replace(self, data=head + bytes((_crc(self.can_id, head),)))
 
@@ -78,8 +63,6 @@ def _frame(can_id: int, payload6: bytes, counter: int, qualifier: int) -> CanFra
 
 
 class CanSender:
-    """One sending ECU per frame: counter 0-15 per frame ID."""
-
     def __init__(self) -> None:
         self._counter = {IMU_ID: 0, STEERING_ID: 0, SPEED_ID: 0}
 
@@ -104,10 +87,9 @@ class CanSender:
 
 
 class CanReceiver:
-    """CAN receive layer (Interface Control Document 5.3, "Hợp lệ"): a frame with a wrong CRC
-    or a repeated counter is dropped (None); a counter jump is counted as lost frames.
-    `valid` = qualifier VALID. The message is stamped with the receive time and gets its own
-    8-bit counter, one per accepted frame (Interface Control Document 4)."""
+    """Receiver bỏ frame sai CRC hoặc lặp counter. Counter nhảy được tính là mất frame; stamp lấy
+    lúc nhận.
+    """
 
     def __init__(self) -> None:
         self._last: dict[int, int] = {}

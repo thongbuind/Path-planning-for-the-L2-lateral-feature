@@ -1,5 +1,3 @@
-/* T12 Bám xe trước (follow.h). */
-
 #include "follow.h"
 
 #include <math.h>
@@ -16,7 +14,7 @@ static bool lead_usable(const pp_lead_target_t *lead, const pp_calibration_t *ca
            && isfinite(lead->heading) && isfinite(lead->vx_rel) && isfinite(lead->vy_rel)
            && isfinite(lead->existence_probability)
            && (lead->existence_probability >= cal->exist_min)
-           && (lead->x > 0.0F);                                       /* PP-SWR-176 */
+           && (lead->x > 0.0F);
 }
 
 static bool lead_class_ok(const pp_lead_target_t *lead)
@@ -24,7 +22,7 @@ static bool lead_class_ok(const pp_lead_target_t *lead)
     return (lead->classification == PP_LEAD_CLASS_CAR) || (lead->classification == PP_LEAD_CLASS_TRUCK);
 }
 
-/* base_link at the previous cycle to base_link now: p_new = R(-dyaw) (p_old - [dx, dy]). */
+/* Đổi base_link của chu kỳ trước sang chu kỳ này: p_new = R(-dyaw) (p_old - [dx, dy]). */
 static void move_point(const pp_motion_t *m, double *x, double *y)
 {
     const double px = *x - m->dx;
@@ -35,7 +33,6 @@ static void move_point(const pp_motion_t *m, double *x, double *y)
     *y = (-s * px) + (c * py);
 }
 
-/* Original lane centre at x, extended along its end curvature outside the observed range. */
 static void origin_at(const pp_follow_state_t *st, double x, double *y, double *slope)
 {
     const double xc = pp_clamp(x, st->origin_start, st->origin_end);
@@ -45,7 +42,6 @@ static void origin_at(const pp_follow_state_t *st, double x, double *y, double *
     *slope = pp_cubic_slope(&st->origin, xc) + (pp_cubic_bend(&st->origin, xc) * dx);
 }
 
-/* Lateral offset of a point from the original lane centre, left positive. */
 static double origin_offset(const pp_follow_state_t *st, double px, double py)
 {
     double yc = 0.0;
@@ -54,7 +50,6 @@ static double origin_offset(const pp_follow_state_t *st, double px, double py)
     return (py - yc) / hypot(1.0, slope);
 }
 
-/* Speed of the lead across the original lane centre at the lead (ground speed in base_link). */
 static double lead_normal_speed(const pp_follow_state_t *st, const pp_follow_input_t *in,
                                 const pp_lead_target_t *lead, double xl)
 {
@@ -70,7 +65,7 @@ static double lead_normal_speed(const pp_follow_state_t *st, const pp_follow_inp
 void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
                        const pp_calibration_t *cal)
 {
-    /* Original lane centre: moved by ego-motion, refreshed while the lane lines are trusted. */
+    /* Giữ tâm làn gốc bằng ego-motion và cập nhật khi vạch hiện tại đủ tin. */
     if (st->origin_valid) {
         pp_cubic_t moved;
         double lo = 0.0;
@@ -81,7 +76,7 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
             st->origin_start = lo;
             st->origin_end = hi;
         } else {
-            st->origin_valid = false;                              /* Cannot be moved: dropped */
+            st->origin_valid = false;
         }
     }
     if (in->lane_trusted && (in->lane_ref != NULL)) {
@@ -92,18 +87,17 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
         st->origin_valid = true;
     }
 
-    /* Trail of the lead centre. */
     const uint32_t capacity = (cal->trail_n < (float)PP_FOLLOW_TRAIL_MAX)
                               ? (uint32_t)cal->trail_n : PP_FOLLOW_TRAIL_MAX;
     if (!in->moved) {
-        st->n = 0U;                                                /* Cannot be moved: dropped */
+        st->n = 0U;
     } else {
         uint32_t kept = 0U;
         for (uint32_t i = 0U; i < st->n; i++) {
             double x = st->x[i];
             double y = st->y[i];
             move_point(&in->since_last, &x, &y);
-            if (x >= 0.0) {                                        /* Behind the car: dropped */
+            if (x >= 0.0) {
                 st->x[kept] = x;
                 st->y[kept] = y;
                 kept++;
@@ -111,8 +105,7 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
         }
         st->n = kept;
     }
-    /* The trail belongs to one vehicle. A frame that is lost, or that reports something else than
-     * the ACC target (a wrong id or class for a moment), adds nothing and does not erase it. */
+    /* Trail thuộc một xe. Frame sai ID, sai loại hoặc bị mất không thêm điểm và không xóa trail. */
     if (!lead_usable(in->lead, cal) || !lead_class_ok(in->lead)) {
         return;
     }
@@ -133,7 +126,7 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
             double x = (double)in->lead->x;
             double y = (double)in->lead->y;
             move_point(&in->lead_motion, &x, &y);
-            if (st->origin_valid) {      /* V4 on a low-pass: one vy_rel carries 0.2 m/s of noise against 0.6 */
+            if (st->origin_valid) {  /* Lọc vy_rel cho V4 vì nhiễu của một mẫu khoảng 0,2 m/s, trong khi ngưỡng là 0,6 m/s. */
                 const double vn = lead_normal_speed(st, in, in->lead, x);
                 st->vn_filt = (st->vn_count == 0U) ? vn : (st->vn_filt + (PP_FOLLOW_VN_ALPHA * (vn - st->vn_filt)));
                 st->vn_count++;
@@ -142,7 +135,7 @@ void pp_follow_observe(pp_follow_state_t *st, const pp_follow_input_t *in,
                                 || (hypot(x - st->x[st->n - 1U], y - st->y[st->n - 1U])
                                     >= (double)cal->trail_spacing);
             if (spaced && (x >= 0.0)) {
-                if (st->n >= capacity) {                           /* Full: oldest dropped */
+                if (st->n >= capacity) {
                     (void)memmove(&st->x[0], &st->x[1], (size_t)(capacity - 1U) * sizeof(double));
                     (void)memmove(&st->y[0], &st->y[1], (size_t)(capacity - 1U) * sizeof(double));
                     st->n = capacity - 1U;
@@ -164,7 +157,6 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
         || (in->steering == NULL) || (in->plan == NULL) || (st->n < 4U)) {
         return false;
     }
-    /* M3, M4, M5, M6 (and V1). */
     if ((in->v >= PP_FOLLOW_SPEED_MAX_MPS)
         || (fabs((double)in->steering->steering_wheel_angle_rad) >= PP_FOLLOW_WHEEL_ANGLE_MAX_RAD)
         || (st->active && ((lead->id != st->id) || (st->distance_m >= PP_FOLLOW_DISTANCE_MAX_M)))) {
@@ -174,9 +166,7 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
     double yl = (double)lead->y;
     move_point(&in->lead_motion, &xl, &yl);
     if (!st->active) {
-        /* V2, V5; V3, V4 measured on the original lane centre (PP-ASM-025). */
-        /* V3 on the mean over the lead and its latest trail points: a single position of the lead
-         * carries 0.25 m of noise at 30 m, against a threshold of 1 m. */
+        /* V3 lấy trung bình vị trí lead và các điểm mới của trail để giảm ảnh hưởng nhiễu. */
         double d_sum = origin_offset(st, xl, yl);
         uint32_t d_count = 1U;
         for (uint32_t k = 0U; (k < PP_FOLLOW_V3_POINTS) && (k < st->n); k++) {
@@ -194,7 +184,6 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
         }
     }
 
-    /* Step 4: cubic through the trail and the lead, anchored at the car and along the lead. */
     pp_cubic_fit_t fit;
     const double heading = (double)lead->heading;
     const double x_end = xl + (2.0 * cos(heading));
@@ -209,17 +198,15 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
         pp_cubic_fit_add(&fit, st->x[i], st->y[i]);
     }
     pp_cubic_fit_add(&fit, xl, yl);
-    /* The line continues beyond the lead along its heading (SDD 5.1 step 4): anchors with a weight
-     * comparable to the trail, so the noise of the trail does not turn into the heading at the lead. */
+    /* Các điểm neo hướng sau lead có trọng số cùng bậc với trail để nhiễu vị trí không biến thành
+     * sai số hướng. */
     const uint32_t end_weight = (st->n / 2U) + 5U;
     for (uint32_t k = 1U; k <= 3U; k++) {
         for (uint32_t w = 0U; w < end_weight; w++) {
             pp_cubic_fit_add(&fit, xl + ((double)k * cos(heading)), yl + ((double)k * sin(heading)));
         }
     }
-    /* The trail is a short, nearly straight stretch: the u^3 term would only amplify noise into the
-     * curvature at the lead, which the path then follows (the line continues as an arc from there).
-     * Forcing that coefficient to zero makes the fit a parabola. */
+    /* Trail ngắn và gần thẳng; bỏ bậc ba để nhiễu không bị khuếch đại thành độ cong tại lead. */
     for (uint32_t k = 0U; k < PP_CUBIC_TERMS; k++) {
         fit.ata.m[PP_CUBIC_TERMS - 1U][k] = 0.0;
         fit.ata.m[k][PP_CUBIC_TERMS - 1U] = 0.0;
@@ -230,14 +217,13 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
     if (!pp_cubic_fit_solve(&fit, &centre)) {
         return false;
     }
-    /* M2: root-mean-square residual over the trail and the lead. The largest residual would trip on
-     * one noisy sample of a good trail (position noise of a lead vehicle at 30 m is about 0.25 m). */
+    /* M2 dùng RMS để một mẫu vị trí lead nhiễu không làm loại cả trail. */
     double squares = pow(pp_cubic_value(&centre, xl) - yl, 2.0);
     for (uint32_t i = 0U; i < st->n; i++) {
         squares += pow(pp_cubic_value(&centre, st->x[i]) - st->y[i], 2.0);
     }
     if (sqrt(squares / (double)(st->n + 1U)) > (double)cal->trail_fit_max) {
-        return false;                                              /* M2 */
+        return false;
     }
     (void)memset(ref, 0, sizeof(*ref));
     ref->valid = true;
@@ -245,7 +231,7 @@ bool pp_follow_candidate(const pp_follow_state_t *st, const pp_follow_input_t *i
     ref->width = (st->origin_width > (double)vehicle->vehicle_width) ? st->origin_width
                  : ((double)vehicle->vehicle_width + 0.2);
     ref->view_start = 0.0;
-    ref->view_end = xl;                                            /* observed_horizon_s: to the lead */
+    ref->view_end = xl;
 #ifdef PP_REF_SAMPLED
     pp_ref_sample_cubic(ref);
 #endif
@@ -259,7 +245,7 @@ bool pp_follow_path_within(const pp_follow_state_t *st, const pp_trajectory_poin
     const double limit = fmin(PP_FOLLOW_PATH_DEV_M, free_space - (double)cal->dlc_offset_min);
     bool ok = st->origin_valid && (limit > 0.0);
     for (uint32_t k = 0U; ok && (k < PP_TRAJECTORY_POINTS); k++) {
-        ok = fabs(origin_offset(st, (double)points[k].pose.x, (double)points[k].pose.y)) < limit;  /* M1 */
+        ok = fabs(origin_offset(st, (double)points[k].pose.x, (double)points[k].pose.y)) < limit;
     }
     return ok;
 }
@@ -270,7 +256,7 @@ void pp_follow_commit(pp_follow_state_t *st, bool active, const pp_lead_target_t
         st->id = (lead != NULL) ? lead->id : 0U;
         st->distance_m = 0.0;
     } else if (active) {
-        st->distance_m += ds;                                      /* M5 */
+        st->distance_m += ds;
     } else {
         st->distance_m = 0.0;
     }

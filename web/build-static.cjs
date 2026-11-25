@@ -1,4 +1,3 @@
-// Xuất bản đọc tĩnh từ các báo cáo và bản dịch hiện có.
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
@@ -24,7 +23,7 @@ try {
   for (const file of ["app.js", "cards.js", "docmd.js", "diagrams.js", "style.css", "reviews.js", "reviews.css", "en/strings.js"]) {
     fs.copyFileSync(path.join(site, file), path.join(staging, file));
   }
-  // The workbench needs the local server; the public site only says how to start it.
+  // Bản tĩnh thay Workbench bằng trang hướng dẫn vì Workbench cần server cục bộ.
   fs.cpSync(path.join(site, "simulation-static"), path.join(staging, "simulation"), { recursive: true });
   fs.copyFileSync(path.join(docs, "en", "versions.json"), path.join(staging, "en", "versions.json"));
   for (const file of ["index.html", "report.html", "home/index.html", "technical-documents/index.html", "benchmark/index.html", "path-planner/index.html"]) {

@@ -1,5 +1,3 @@
-/* T7 intervention geometry, quintic time origin and end condition. */
-
 #include "intervention.h"
 #include "output.h"
 #include "pp_calibration.h"
@@ -27,7 +25,7 @@ static void test_measured_edge_needs_association_with_ego_lane(void)
     pp_reference_line_t edges[PP_ROAD_EDGES];
     lane.boundary[PP_EDGE_RIGHT] = boundary(-5.25);
     pp_road_edge_references(&mem, &lane, &camera, &motion, &VP0, &pp_calibration, edges);
-    PP_CHECK(!edges[1].valid);   /* F21(c) */
+    PP_CHECK(!edges[1].valid);
     lane.boundary[PP_EDGE_RIGHT] = boundary(-1.75);
     lane.boundary[PP_LINE_L1] = boundary(1.75);
     pp_road_edge_references(&mem, &lane, &camera, &motion, &VP0, &pp_calibration, edges);
@@ -36,7 +34,7 @@ static void test_measured_edge_needs_association_with_ego_lane(void)
     PP_CHECK_NEAR(edges[1].centre.c[0], 0.0, 1.0e-6);
     lane.boundary[PP_LINE_L1].present = false;
     pp_road_edge_references(&mem, &lane, &camera, &motion, &VP0, &pp_calibration, edges);
-    PP_CHECK(edges[1].valid);    /* width remembered, edge still measured */
+    PP_CHECK(edges[1].valid);
     lane.boundary[PP_EDGE_RIGHT].confidence = (double)pp_calibration.conf_edge - 0.01;
     pp_road_edge_references(&mem, &lane, &camera, &motion, &VP0, &pp_calibration, edges);
     PP_CHECK(!edges[1].valid);
@@ -46,7 +44,7 @@ static void test_profile_advances_from_original_start_time(void)
 {
     const pp_reference_line_t ref = {.valid = true, .width = 3.5, .view_end = 100.0};
     const pp_lateral_state_t start = {.d = 0.65, .d_dot = 0.2};
-    const pp_function_limits_t limits = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA};
+    const pp_function_limits_t limits = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA, 0.0};
     const pp_intervention_request_t request = {.received_us = 1000000U, .side = PP_SIDE_LEFT};
     pp_speed_profile_t speed;
     pp_speed_profile(NULL, request.received_us, 20.0, &speed);
@@ -60,16 +58,16 @@ static void test_profile_advances_from_original_start_time(void)
     const double d_at_one_second = lateral.d[10];
     pp_intervention_sample(&path, request.received_us + 1000000U, &lateral);
     PP_CHECK_NEAR(lateral.d[0], d_at_one_second, 1.0e-8);
-    pp_intervention_sample(&path, request.received_us + 10000000U, &lateral);  /* after the quintic */
-    PP_CHECK_NEAR(lateral.d[0], 0.0, 1.0e-6);     /* The target is the lane centre (PP-SWR-084) */
+    pp_intervention_sample(&path, request.received_us + 10000000U, &lateral);
+    PP_CHECK_NEAR(lateral.d[0], 0.0, 1.0e-6);
     PP_CHECK_NEAR(lateral.d_dot[0], 0.0, 1.0e-8);
 }
 
-/* PP-PR-041: the chosen candidate passes T10 step 2 uncut, so it ends parallel to the lane. */
+/* PP-PR-041: candidate phải qua T10 nguyên dạng để vẫn kết thúc song song làn. */
 static void test_chosen_candidate_is_not_cut_by_t10(void)
 {
     const pp_reference_line_t ref = {.valid = true, .width = 3.85, .view_end = 100.0};
-    const pp_function_limits_t limits = {PP_AY_MAX_ELK, PP_JERK_MAX_ELK, PP_AY_ADD_MAX_ELK};
+    const pp_function_limits_t limits = {PP_AY_MAX_ELK, PP_JERK_MAX_ELK, PP_AY_ADD_MAX_ELK, 0.0};
     const pp_intervention_request_t request = {.received_us = 1000000U, .side = PP_SIDE_LEFT};
     const double v_lat[] = {0.2, 0.4, 0.6};
     for (uint32_t i = 0U; i < (sizeof(v_lat) / sizeof(v_lat[0])); i++) {
@@ -105,7 +103,6 @@ static void test_aligns_vehicle_state_with_completion_tick(void)
 }
 
 
-/* PP-SWR-032, 090, PP-ASM-028: DLC >= 0 both sides, |d| <= d_end, |v_lat| <= v_lat_end, heading, a_y add. */
 static void test_end_condition_needs_the_car_near_the_centre(void)
 {
     pp_reference_line_t ref = {.valid = true, .width = 3.5, .view_end = 100.0};
@@ -117,7 +114,7 @@ static void test_end_condition_needs_the_car_near_the_centre(void)
     }
     pp_ref_sample_cubic(&ref);
     PP_CHECK(pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
-    ego.d = (double)pp_calibration.d_end + 0.02;           /* DLC is fine, but not near the centre */
+    ego.d = (double)pp_calibration.d_end + 0.02;
     PP_CHECK(!pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
     ego.d = (double)pp_calibration.d_end - 0.02;
     PP_CHECK(pp_intervention_settled(&ref, &ego, &old, 20.0, 0.0, 0.0, &VP0, &pp_calibration));
@@ -134,49 +131,48 @@ static pp_reference_line_t lane_of(double centre_y, double width)
     return ref;
 }
 
-/* PP-SWR-093, 094, PP-ADR-019: a hazard-side edge that jumps away waits T_confirm and then
- * slides at ref_rate; one that stays nearer the car for corridor_toward is followed quickly. */
+/* Mép nguy hiểm nhảy xa hơn phải chờ T_confirm rồi chỉ trượt theo ref_rate (PP-SWR-093, 094). */
 static void test_corridor_holds_a_jump_away_and_takes_one_toward_the_car(void)
 {
     const double dt = 0.025;
     pp_corridor_t c;
     pp_corridor_reset(&c);
     const pp_motion_t still = {0.0, 0.0, 0.0};
-    pp_reference_line_t live = lane_of(0.0, 3.5);                     /* hazard side: left, edge at +1.75 */
+    pp_reference_line_t live = lane_of(0.0, 3.5);
     const pp_reference_line_t *ref = pp_corridor_update(&c, &live, NULL, true, PP_SIDE_LEFT, 2.9,
                                                          &pp_calibration, dt);
     PP_CHECK_NEAR(ref->width, 3.5, 1e-9);
 
-    live = lane_of(0.25, 4.0);                                        /* left edge jumped out to +2.25 */
+    live = lane_of(0.25, 4.0);
     unsigned held = 0U;
-    for (unsigned k = 0U; k < 20U; k++) {                             /* 0.5 s: below T_confirm = 1 s */
+    for (unsigned k = 0U; k < 20U; k++) {
         ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
         held += c.pending ? 1U : 0U;
-        PP_CHECK_NEAR(ref->width, 3.5, 1e-9);                         /* corridor edge did not move */
+        PP_CHECK_NEAR(ref->width, 3.5, 1e-9);
     }
     PP_CHECK(held == 20U);
-    for (unsigned k = 0U; k < 30U; k++) {                             /* past T_confirm: slides slowly */
+    for (unsigned k = 0U; k < 30U; k++) {
         ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
     }
     PP_CHECK(ref->width > 3.5);
-    PP_CHECK(ref->width < 3.5 + (double)pp_calibration.ref_rate * 1.5);  /* at most ref_rate per second */
+    PP_CHECK(ref->width < 3.5 + (double)pp_calibration.ref_rate * 1.5);
 
-    live = lane_of(-0.2, 3.1);                                        /* left edge moved to +1.35: toward the car */
+    live = lane_of(-0.2, 3.1);
     ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
-    PP_CHECK(ref->width > 3.1 + 0.01);                                /* one frame may be noise */
-    for (unsigned k = 0U; k < 80U; k++) {                             /* confirmed, then followed */
+    PP_CHECK(ref->width > 3.1 + 0.01);
+    for (unsigned k = 0U; k < 80U; k++) {
         ref = pp_corridor_update(&c, &live, &still, false, PP_SIDE_LEFT, 2.9, &pp_calibration, dt);
     }
     PP_CHECK_NEAR(ref->width, 3.1, 0.01);
     PP_CHECK(!c.pending);
 }
 
-/* PP-TS-026: an outward start is arrested first, then the car returns slowly to the centre. */
+/* PP-TS-026: hãm chuyển động ra ngoài trước, sau đó mới đưa xe chậm về tâm. */
 static void test_outward_start_is_arrested_then_returns_slowly(void)
 {
     const pp_reference_line_t ref = {.valid = true, .width = 3.5, .view_end = 100.0};
     const pp_lateral_state_t start = {.d = 0.3, .d_dot = 0.5};
-    const pp_function_limits_t limits = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA};
+    const pp_function_limits_t limits = {PP_AY_MAX_LKA, PP_JERK_MAX_LKA, PP_AY_ADD_MAX_LKA, 0.0};
     const pp_intervention_request_t request = {.received_us = 1000000U, .side = PP_SIDE_LEFT};
     pp_speed_profile_t speed;
     pp_speed_profile(NULL, request.received_us, 20.0, &speed);
@@ -196,7 +192,7 @@ static void test_outward_start_is_arrested_then_returns_slowly(void)
         pp_intervention_sample(&path, request.received_us + (uint64_t)((arrest + (double)k) * 1.0e6), &lateral);
         smallest = (lateral.d[0] < smallest) ? lateral.d[0] : smallest;
     }
-    PP_CHECK(smallest >= -1.0e-6);                                    /* no overshoot of the centre */
+    PP_CHECK(smallest >= -1.0e-6);
 }
 
 int main(void)

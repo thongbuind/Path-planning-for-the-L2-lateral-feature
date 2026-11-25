@@ -1,13 +1,4 @@
-"""Run bundle v1: one folder per execution, written to a temporary name, renamed when final.
-
-    <root>/.tmp-<run_id>/   while the run writes (never read as a result)
-    <root>/<run_id>/        final; never modified afterwards (SIM-REQ-021, 024)
-
-Files: manifest.json, resolved-case.json, execution.json, evaluation.json (required for a
-complete run), trace.mcap, frames.ndjson.gz, worker.log, request.json (optional), SHA256SUMS
-(last). execution.json says the state, the failure class and whether the bundle is complete;
-an incomplete bundle lists the required files it misses (SIM-REQ-022).
-"""
+"""Bundle v1 được ghi dưới .tmp-<run_id> và đổi tên khi hoàn tất (SIM-REQ-021, 024)."""
 
 import gzip
 import hashlib
@@ -25,7 +16,7 @@ TMP_PREFIX = ".tmp-"
 
 
 def new_run_id() -> str:
-    """Unique and sortable: time of creation plus 24 random bits; never reused."""
+    """ID gồm thời điểm tạo và 24 bit ngẫu nhiên."""
     return time.strftime("%Y%m%d-%H%M%S") + "-" + secrets.token_hex(3)
 
 
@@ -38,7 +29,6 @@ def _sha256(path: Path) -> str:
 
 
 def _default(value):
-    """Numpy scalars as their Python value (duck typed); anything else as text."""
     if hasattr(value, "item"):
         return value.item()
     return str(value)
@@ -73,7 +63,6 @@ class Bundle:
         return write_json(self.path(name), obj)
 
     def compress(self, name: str) -> None:
-        """name -> name.gz, in place (event log at the end of a run)."""
         source = self.path(name)
         if source.is_file():
             with source.open("rb") as raw, gzip.open(self.path(name + ".gz"), "wb") as packed:
@@ -81,7 +70,6 @@ class Bundle:
             source.unlink()
 
     def finalize(self, execution: dict) -> Path:
-        """Writes execution.json and SHA256SUMS, then renames the folder. Returns the final path."""
         for part in self.tmp.glob("*.part"):
             part.unlink()
         present = {p.name for p in self.tmp.iterdir()}
@@ -98,7 +86,7 @@ class Bundle:
 
 
 def read(folder: Path) -> dict:
-    """The JSON files of a final bundle that exist: {"manifest": ..., "execution": ..., ...}."""
+    """Đọc các tệp JSON cấp cao đã có trong bundle; bỏ qua tệp tùy chọn bị thiếu."""
     folder = Path(folder)
     out = {}
     for name in ("manifest", "resolved-case", "execution", "evaluation", "request"):
@@ -109,7 +97,6 @@ def read(folder: Path) -> dict:
 
 
 def verify(folder: Path) -> list[str]:
-    """Files whose sha256 differs from SHA256SUMS, or that appeared or went missing."""
     folder = Path(folder)
     sums = folder / SUMS
     if not sums.is_file():
@@ -126,7 +113,6 @@ def verify(folder: Path) -> list[str]:
 
 
 def listing(root: Path) -> list[Path]:
-    """Final bundles under root, newest first."""
     root = Path(root)
     if not root.is_dir():
         return []

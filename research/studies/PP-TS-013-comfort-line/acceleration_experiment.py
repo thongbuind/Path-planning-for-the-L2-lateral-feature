@@ -1,5 +1,3 @@
-"""PP-TS-013 joint acceleration and continuity experiment on the 1 m grid."""
-
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -30,7 +28,7 @@ CASES = (
 
 
 class DelayedPreview:
-    """A 20 Hz capture with an exact-geometry control or a cubic fit in the capture frame."""
+    """Mô phỏng capture 20 Hz, so hình học chính xác với cubic trong khung lúc chụp."""
 
     def __init__(self, road, source):
         self.road = road
@@ -51,7 +49,6 @@ class DelayedPreview:
             self.end = self.start + VIEW_M
             if self.source != "delayed-exact":
                 self.fit_cubic(frame)
-        # Points beyond the last observed station are extrapolated by the prototype.
         count = min(self.samples, int(np.floor((self.end - now_s) / P.H)) + 1)
         if self.source == "delayed-exact":
             return road.kn[index:index + count]
@@ -87,7 +84,6 @@ def acceleration_bands(k, v):
 
 
 def bounded_path(k, observed, v, target, old, half_width, *, fixed_head=True):
-    """Return the path, minimum relaxation and the correction outcome."""
     need, _, lo_ay, hi_ay = acceleration_bands(k[:observed], v)
     K = P.curvature_matrix(k[:observed])
     A = v**2 * K
@@ -108,7 +104,7 @@ def bounded_path(k, observed, v, target, old, half_width, *, fixed_head=True):
         geometry = np.vstack((D / LIMITS[1], K / LIMITS[2]))
         C = np.vstack((geometry, -geometry))
         c = 1.0 + C @ old[:observed]
-    # The replanned path starts with the already executed position, slope and curvature.
+    # Giữ vị trí, độ dốc và độ cong đã chạy ở đầu path mới.
     if fixed_head:
         lo[:3] = target[:3]
         hi[:3] = target[:3]

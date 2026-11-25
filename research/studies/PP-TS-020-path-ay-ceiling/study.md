@@ -2,10 +2,10 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Chờ quyết định |
+| Trạng thái | Đã quyết |
 | Mở ngày | 2026-11-16 |
 | Khóa ngày | 2026-11-16 |
-| Quyết định ngày | — |
+| Quyết định ngày | 2026-11-23 |
 | Liên quan | PP-SWR-001, 005, 006, 007, 051, 136, 151; SG-01; PP-PR-049, 054; PP-TS-002; R79 5.6.2.1.1, Annex 8 3.2.1, 3.2.2; R171 5.3.7.1 |
 
 ## 1. Câu hỏi
@@ -169,6 +169,8 @@ Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0
 
 ## 6. Đề xuất
 
+2026-11-23: [PP-TS-027](../PP-TS-027-system-lateral-command-limit/study.md) khảo sát tổng lệnh lái ở Lateral Controller với trần path và phép chấm hiện hành. Kết quả sẽ bổ sung bằng chứng cho phần a_y xe trong PP-PR-056 trước khi chọn trần path.
+
 2026-11-18, sau lần chạy 20261118-2127-study-PP-TS-020-ac82bb3, chờ người dùng:
 
 - Đề xuất V1a (`ay_margin_hwa` = 0,1 m/s²): nhỏ nhất trong các phương án có lợi, và không thêm lượt trượt nào so với V0.
@@ -196,8 +198,13 @@ Bản build nháp ở PP-PR-049 (không dùng để quyết định): trần + 0
 
 ## 7. Quyết định
 
-- Người quyết, ngày:
-- Chọn:
+- Người quyết, ngày: người phụ trách, 2026-11-23.
+- Chọn: V1a, `ay_margin_hwa` = 0,1 m/s².
 - Lý do:
-- Đưa vào: SRS (PP-SWR-001, mục 7), Software Architectural Design mục 9, 11, Software Detailed Design mục 13, HARA (SG-01), `calibration.yaml`
-- Hồi quy: run ID
+  - Lượt trượt của V1a là tập con của V0 ở lần chạy 20261118-2127: gỡ F08 a, F06 e, một lượt F08 b, không thêm lượt trượt mới.
+  - R79 5.6.2.1.1 cho a_y của xe vượt aysmax tới 0,3 m/s² liên tục. Giới hạn này áp lên xe, nên trần của path phải chừa phần cho controller. V1a chừa 0,2 m/s²; V1b, V1c làm a_y xe vượt R79 ở S1b a, c.
+  - Hệ thống ngoài làm cùng kiểu: openpilot cắt lệnh lái ở tầng xe theo ISO 11270 (3,0 m/s², `opendbc/car/lateral.py`), Autoware giảm tốc trong cua theo `max_lateral_accel`. Path lên trong một giới hạn, tầng sau cắt tổng lệnh.
+- Đưa vào: SRS 1.26 (PP-SWR-001, mục 7, PP-ASM-029), Software Architectural Design 1.14 mục 6.2, 9, 11, Software Detailed Design 1.29 T10, `calibration.yaml`, bên chấm PP-SWR-001 (`eval/metrics.py`, ngưỡng aysmax + 0,3). HARA không đổi: bảng safety mechanism chỉ trỏ ID PP-SWR-001.
+- Còn lại của bước 8: xóa V2 (`PP_AY_MARGIN_GATE`) khỏi code giao, cùng lần build của hồi quy.
+- Mở lại khi PP-TS-027 xong: chạy lại V1a và V1b trên controller đã cắt tổng lệnh lái. V1b không còn trượt R79 thì đổi sang V1b, vì giữ làn tốt hơn ở F08 b.
+- Hồi quy: chưa chạy.

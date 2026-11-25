@@ -1,22 +1,5 @@
 #!/usr/bin/env python3
-"""Truy vết giữa yêu cầu của planner và kịch bản, lỗi bơm vào của benchmark.
-
-Nguồn duy nhất của truy vết là cột Kiểm chứng trong docs/vi/path-planner-software-requirements-specification.md.
-Cột Yêu cầu trong ba bảng của docs/vi/path-planner-software-qualification-test-specification.md (danh mục kịch bản,
-danh mục lỗi, quét độ trễ) được sinh từ cột đó. Mã không truy về yêu cầu nào của
-planner thì ghi ở bảng "Mã | Lý do" (Test Specification mục 6.3) để không bị báo mồ côi.
-Ngoài ra kiểm: ID giả định, quyết định không trùng và nơi nhắc tới phải có thật; không còn
-tham chiếu việc mở OI; calibration parameter mà SRS giới hạn phải có trong bảng calibration;
-bảng đầu tài liệu khớp Revision history.
-
-Chạy từ thư mục G1:
-    python3 tools/trace.py            kiểm tra, in ma trận và các mục mồ côi
-    python3 tools/trace.py --write    ghi lại cột Yêu cầu của benchmark
-    python3 tools/trace.py --quiet    chỉ in lỗi và cảnh báo
-
-Mã thoát 1 khi có lỗi, hoặc khi cột Yêu cầu của benchmark chưa khớp mà không có --write.
-Chỉ dùng thư viện chuẩn.
-"""
+"""Nguồn truy vết là cột Kiểm chứng trong SRS. Từ đó sinh cột Yêu cầu của benchmark trong SQTS."""
 
 import argparse
 import re
@@ -36,7 +19,6 @@ REQ_ROW_ID = re.compile(r"PP-SWR-(\d{3})")
 REF = re.compile(r"PP-SWR-(\d{3})((?:(?:, | và | đến )\d{3}(?!\d))*)")
 
 BENCH_TABLES = {
-    # tên bảng: (ô đầu của dòng tiêu đề, cột chứa mã)
     "kịch bản": ("#", 0),
     "lỗi": ("Mã", 0),
     "quét độ trễ": ("Mã", 0),
@@ -48,7 +30,6 @@ def split_cells(line):
 
 
 def tables(lines):
-    """Trả về các bảng markdown: (chỉ số dòng tiêu đề, tiêu đề, [(chỉ số dòng, ô)])."""
     out, i = [], 0
     while i < len(lines):
         if lines[i].startswith("|") and i + 1 < len(lines) and lines[i + 1].startswith("|---"):
@@ -65,7 +46,6 @@ def tables(lines):
 
 
 def split_top(text):
-    """Tách theo dấu phẩy ở ngoài ngoặc."""
     parts, depth, cur = [], 0, ""
     for ch in text:
         if ch == "(":
@@ -82,7 +62,7 @@ def split_top(text):
 
 
 def parse_verification(cell):
-    """Đọc một ô Kiểm chứng. Trả về (phương pháp, [(mã, chi tiết, vòng)], từ khoá, lỗi)."""
+    """Trả về phương pháp, danh sách (mã, chi tiết, vòng), từ khóa và lỗi của ô Kiểm chứng."""
     methods, refs, flags, errors = set(), [], set(), []
     for seg in (s.strip() for s in cell.split(";")):
         head, sep, body = seg.partition(":")
@@ -113,7 +93,6 @@ def parse_verification(cell):
 
 
 def expand_refs(text):
-    """Mọi ID PP-SWR được nhắc trong một văn bản, mở rộng 'a đến b'."""
     found = set()
     for m in REF.finditer(text):
         nums = [m.group(1)] + re.findall(r"\d{3}", m.group(2))
@@ -146,7 +125,6 @@ def load_requirements(errors):
 
 
 def load_bench_codes(lines):
-    """Mã của ba bảng benchmark: {tên bảng: (chỉ số dòng tiêu đề, tiêu đề, dòng)}."""
     found = {}
     for idx, header, rows in tables(lines):
         if header[0] == "#" and "Kịch bản" in header and "kịch bản" not in found:
@@ -167,10 +145,6 @@ CAL_NAME = re.compile(r"`([a-zA-Z_][a-zA-Z0-9_]*)`")
 
 
 def check_registers(errors):
-    """Giả định (PP-ASM) và quyết định (PP-ADR): ID duy nhất, nơi nhắc tới phải có thật.
-
-    Bộ tài liệu kỹ thuật không còn việc mở: mọi tham chiếu OI-nnn là lỗi. Trả về số đếm để in tóm tắt.
-    """
     defined = {"PP-ASM": {}, "PP-ADR": {}}
     docs = sorted(DOCS.glob("*.md"))
     for doc in docs:
@@ -188,7 +162,6 @@ def check_registers(errors):
                 if m.group(1) in defined["PP-ASM"]:
                     errors.append(f"PP-ASM-{m.group(1)} bị trùng")
                 defined["PP-ASM"][m.group(1)] = doc.name
-        # Quyết định thiết kế: mỗi quyết định là một tiêu đề "### PP-ADR-nnn …".
         for line in lines:
             m = re.match(r"#{2,4} PP-ADR-(\d{3})\b", line)
             if m:
@@ -208,11 +181,6 @@ def check_registers(errors):
 
 
 def check_calibration(errors, warnings):
-    """Calibration parameter: SRS ghi giới hạn; tài liệu thiết kế ghi giá trị khởi đầu và dải quét.
-
-    Mỗi tham số SRS giới hạn phải có một dòng trong một bảng calibration; mỗi dòng bảng calibration
-    phải có giá trị khởi đầu. Trả về số tham số trong các bảng calibration.
-    """
     listed, limited = set(), set()
     for doc in sorted(DOCS.glob("*.md")):
         for _, header, rows in tables(doc.read_text(encoding="utf-8").split("\n")):
@@ -234,7 +202,6 @@ def check_calibration(errors, warnings):
 
 
 def check_doc_control(warnings):
-    """Mỗi tài liệu có bảng đầu (phiên bản, ngày cập nhật) khớp với dòng cuối của Lịch sử thay đổi."""
     for doc in sorted(DOCS.glob("*.md")):
         lines = doc.read_text(encoding="utf-8").split("\n")
         found = tables(lines)
@@ -256,7 +223,7 @@ def check_doc_control(warnings):
 
 
 def fmt_ids(entries):
-    """[(id, chi tiết)] → 'PP-SWR-001, 003 (a, b), 050'."""
+    """Nén các ID chung tiền tố để ghi vào cột Yêu cầu."""
     merged = defaultdict(list)
     for rid, detail in entries:
         if detail and detail not in merged[rid]:
@@ -270,7 +237,9 @@ def fmt_ids(entries):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(
+        description="Truy vết giữa yêu cầu của planner và kịch bản, lỗi bơm vào của benchmark.",
+    )
     ap.add_argument("--write", action="store_true", help="ghi lại cột Yêu cầu của benchmark")
     ap.add_argument("--quiet", action="store_true", help="chỉ in lỗi và cảnh báo")
     args = ap.parse_args()
@@ -290,8 +259,7 @@ def main():
         if c not in all_codes:
             errors.append(f"bảng miễn (benchmark mục 4.3) có mã không tồn tại: {c}")
 
-    # Đọc cột Kiểm chứng.
-    by_code = defaultdict(list)       # mã → [(id, chi tiết)]
+    by_code = defaultdict(list)
     no_scenario, test_without_ref = [], []
     for rid, r in sorted(reqs.items()):
         if r["status"] == "obsolete":
@@ -310,7 +278,6 @@ def main():
         elif "Test" in methods and not refs and not flags & {"all_scenarios", "all_faults"}:
             test_without_ref.append(rid)
 
-    # ID được nhắc ở các tài liệu khác phải có thật.
     for doc in sorted(DOCS.glob("*.md")):
         missing = sorted(expand_refs(doc.read_text(encoding="utf-8")) - set(reqs))
         if missing:
@@ -336,7 +303,6 @@ def main():
     counts["calibration parameter"] = check_calibration(errors, warnings)
     check_doc_control(warnings)
 
-    # Sinh cột Yêu cầu của benchmark.
     stale = []
     new_lines = list(bench_lines)
     for name, (idx, header, rows) in bench.items():

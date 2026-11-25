@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Mở: S1b b vẫn trượt R79 ở mọi phương án của PP-TS-020 sau PP-TS-021; S1b a, c đạt ở V0, V1a |
+| Trạng thái | Mở, khảo sát giới hạn tổng lệnh lái qua [PP-TS-027](../studies/PP-TS-027-system-lateral-command-limit/study.md) |
 | Mở ngày | 2026-11-16 |
 | Requirement bị ảnh hưởng | R79 5.6.2.1.1, Annex 8 3.2.2 (chưa có PP-SWR; tiêu chí `PP-TS-020/R79-5.6.2.1.1`); PP-SWR-001; SQTS 5.1 (S1b) |
 | Tái hiện | [20261116-1548-study-PP-TS-020-04ae8c5](../runs/20261116-1548-study-PP-TS-020-04ae8c5/summary.md): S1b b, ACC `ignore_limits`, VP-0, seed 3, 4. Chẩn đoán 2026-11-16 (nháp, thư viện của lần chạy đó): seed 3, V0, V1a, V1b |
@@ -44,6 +44,7 @@ Hai phần, chưa tách hết:
 
 ## 3. Cách sửa
 
+- 2026-11-23: người dùng chọn mở [PP-TS-027](../studies/PP-TS-027-system-lateral-command-limit/study.md) để so các cách giới hạn tổng lệnh lái cấp hệ thống với chuẩn chấm hiện hành.
 - Không sửa kịch bản sau khi thấy kết quả mà không ghi lý do (SQTS 3). Đề xuất: kéo dài cung của S1b đủ để đo trọn 2 s sau khi a_y xe vượt aysmax + 0,3, ghi lý do ở SQTS, rồi chạy lại mọi phương án của PP-TS-020.
 - ~~Phân tích log: lệch ngang xe so với path, lệnh của controller, giới hạn góc lái ở 10–13 s.~~ Đã làm 2026-11-16 (mục 2).
 - Phía planner, có nhiều cách nên cần trade study: (A) giảm `stitch_reset` trong dải quét; (B) khi path đã chạm trần a_y, bắt đầu từ trạng thái đo; (C) T4 bước 4 không kéo điểm đầu về path cũ (gần V4 của PP-TS-019); (D) tìm và sửa nguồn trôi của điểm đầu nối từ path cũ.
@@ -56,3 +57,4 @@ Hai phần, chưa tách hết:
 |---|---|
 | [20261116-1607-study-PP-TS-020-d1d50de](../runs/20261116-1607-study-PP-TS-020-d1d50de/summary.md) | S1b a, b chạy 17 s (SQTS 1.45): tiêu chí R79 trượt ở mọi phương án, kể cả V0 (path ở aysmax). Phần kịch bản đã sửa; bản hiện tại trượt bài R79 Annex 8, 3.2.2. Phần bám path còn mở |
 | [20261118-2127-study-PP-TS-020-ac82bb3](../runs/20261118-2127-study-PP-TS-020-ac82bb3/summary.md) | S1b b trượt R79 ở cả năm phương án. S1b a, c đạt ở V0, V1a, V2; trượt ở V1b, V1c |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | S1b b VP-0 seed 1, ACC off. PP-SWR-001 đạt với đỉnh path 2,50 m/s². `results.jsonl` ghi đỉnh a_y xe đã lọc 4,09 m/s² và 4,84 s trên 2,8 m/s² |

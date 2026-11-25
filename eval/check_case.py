@@ -1,21 +1,3 @@
-"""Quick check of one new or changed scenario, fault or combination before it enters a suite.
-
-    python3 -m eval.check_case S11                # scenario: every anchor
-    python3 -m eval.check_case F05 --host S4 a --at lka_active+0.2
-    python3 -m eval.check_case G01
-    python3 -m eval.check_case S11 --run          # also one SIL run per anchor, seed 1
-
-Checks, in order (benchmark/AUTHORING.md):
-  1  files: <id>.xosc, <id>.anchors.xosc, <id>.ranges.xosc pass the ASAM XSD; roads they use exist
-  2  every anchor loads into the simulator subset (eval.openx) and is concrete in an ODD
-  3  every anchor has an expected outcome (5.3), a difficulty label and scenario_id = the code
-  4  traceability: the code is named in the Kiểm chứng column of the Software Requirements
-     Specification, or exempt in Software Qualification Test Specification 6.3
-  5  with --run: one closed-loop run per anchor, seed 1, with the delivered planner; prints the
-     conclusion and failures only (it never changes the case to make it pass)
-Exit status 1 on any check failing. Light: no suite, at most one run per anchor.
-"""
-
 import argparse
 from pathlib import Path
 import sys
@@ -26,7 +8,7 @@ from eval import labels, loader, openx, severity
 
 ROOT = Path(__file__).resolve().parents[1]
 BENCHMARK = ROOT / "benchmark"
-EXEMPT = {"S10", "F09"}  # Software Qualification Test Specification 6.3
+EXEMPT = {"S10", "F09"}
 
 
 def _files(code: str) -> list[Path]:
@@ -42,12 +24,11 @@ def check_files(code: str, problems: list[str]) -> None:
             continue
         try:
             openx.validate(path)
-        except Exception as exc:  # xmlschema error text is long: first line only
+        except Exception as exc:  # Giữ dòng đầu vì lỗi chi tiết của xmlschema có thể rất dài.
             problems.append(f"{path.name} không qua XSD: {str(exc).splitlines()[0]}")
 
 
 def check_anchors(code: str, host, trigger, offset, problems: list[str]) -> list:
-    """[(name, scenario)] for every anchor; problems appended."""
     out = []
     if code.startswith("G"):
         from eval.generate import load_combination
@@ -108,7 +89,12 @@ def run_one(name, scenario) -> list[str]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Quick check of one new or changed scenario, fault or combination before it enters a "
+            "suite."
+        ),
+    )
     parser.add_argument("code", help="S.., F.. or G..")
     parser.add_argument("--host", nargs=2, metavar=("SCENARIO", "VARIANT"), help="Host of a fault (default S1 a)")
     parser.add_argument("--at", metavar="EVENT[+OFFSET]", help="Fault moment, as eval.runner --at")

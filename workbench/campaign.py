@@ -1,22 +1,4 @@
-"""Campaigns: a frozen list of runs, started together, followed together, repeatable on a new build.
-
-A campaign is a file `<store>/<id>.json` ("campaign/1") with its name and its items, one configuration each
-(the same body as POST /api/runs). The runs are ordinary workbench runs: they go through the one
-supervisor, so no more than N_max run at a time and the rest wait in QUEUED; each has its own bundle.
-The campaign only remembers which runs are its own. The state of a campaign is read from the runs, never
-stored. Its runs are pinned, so retention does not remove them while the campaign exists.
-
-Coverage, from the designed list down to what could be judged:
-  designed    items in the frozen list
-  scheduled   items handed to the supervisor
-  ran         runs that ended COMPLETED (the others failed, timed out or were cancelled)
-  judged      completed runs with at least one applicable criterion and no case not-judged issue
-The fifth level of the plan, the condition really happening (a fault really injected), is not in the
-evaluation of a run yet; the answer says so and does not guess it.
-
-Imports no SUT package. A scenario, fault or vehicle that does not exist makes its run fail with a reason
-(the worker resolves the case), which the campaign shows; the server checks only the shape.
-"""
+"""Campaign lưu cấu hình cố định để chạy lại. Trạng thái được đọc từ từng run đã ghim."""
 
 import itertools
 import json
@@ -27,7 +9,7 @@ from pathlib import Path
 from execution import bundle as B
 from workbench import evidence
 
-MAX_RUNS = 40               # below N_keep (50): the pinned runs of a campaign are never pruned
+MAX_RUNS = 40
 MAX_NAME = 80
 ID = re.compile(r"^[0-9]{8}-[0-9]{6}-[0-9a-f]{6}$")
 SID = re.compile(r"^S\d+[a-z]?$")
@@ -40,7 +22,7 @@ SCHEMA = "campaign/1"
 
 
 class CampaignError(ValueError):
-    """The request cannot make a campaign (HTTP 400)."""
+    """Lỗi dữ liệu khi tạo campaign. API trả HTTP 400."""
 
 
 def _list(value, what: str) -> list:
@@ -50,7 +32,6 @@ def _list(value, what: str) -> list:
 
 
 def expand(spec: dict) -> list[dict]:
-    """The configurations of a campaign: `items` as given, or the product of a `matrix`."""
     if "items" in spec:
         items = _list(spec["items"], "items")
         if not all(isinstance(c, dict) for c in items):
@@ -111,7 +92,6 @@ def read(store: Path, cid: str) -> dict:
 
 
 def create(store: Path, supervisor, spec: dict, parent: str | None = None, label_of=None) -> dict:
-    """Freeze the list, write the file, hand every run to the supervisor, pin them."""
     name = str(spec.get("name") or "").strip()[:MAX_NAME]
     if not name:
         raise CampaignError("campaign cần một tên")
@@ -122,17 +102,15 @@ def create(store: Path, supervisor, spec: dict, parent: str | None = None, label
     items = [{"config": c, "label": (label_of or _label)(c), "run_id": None} for c in configs]
     doc = {"schema": SCHEMA, "id": cid, "name": name, "created": time.time(), "parent_campaign": parent,
            "items": items}
-    B.write_json(_path(store, cid), doc)                 # frozen before any run starts
+    B.write_json(_path(store, cid), doc)                 # Lưu cấu hình trước khi khởi động run đầu tiên để có thể chạy lại nguyên danh sách.
     try:
         for i, item in enumerate(items):
             item["run_id"] = supervisor.submit({"config": item["config"]}, label=item["label"])
             supervisor.pin(item["run_id"], True)
     finally:
-        B.write_json(_path(store, cid), doc)             # the run ids, also after a failure half way
+        B.write_json(_path(store, cid), doc)             # Lưu ID các run đã khởi động kể cả khi lần tạo campaign lỗi giữa chừng.
     return doc
 
-
-# ---- state -------------------------------------------------------------------------------
 
 def _item_state(supervisor, item: dict) -> dict:
     out = {"index": None, "label": item["label"], "run_id": item.get("run_id"), "state": "NOT_STARTED",
@@ -198,7 +176,6 @@ def listing(store: Path, supervisor) -> list[dict]:
 
 
 def cancel(store: Path, supervisor, cid: str) -> dict:
-    """Cancel the runs of this campaign that have not ended; no other run is touched."""
     doc = read(store, cid)
     cancelled = 0
     for item in doc["items"]:
@@ -215,14 +192,13 @@ def cancel(store: Path, supervisor, cid: str) -> dict:
 
 
 def repeat(store: Path, supervisor, cid: str, label_of=None) -> dict:
-    """The same frozen list again (a new build, a new calibration): a new campaign with new runs."""
     doc = read(store, cid)
     spec = {"name": f"{doc['name']} (lặp lại)"[:MAX_NAME], "items": [i["config"] for i in doc["items"]]}
     return create(store, supervisor, spec, parent=cid, label_of=label_of)
 
 
 def delete(store: Path, supervisor, cid: str) -> None:
-    """Remove the campaign and unpin its runs (retention may then remove them). Not while a run is active."""
+    """Chỉ xóa campaign đã kết thúc; bỏ ghim các run tương ứng."""
     doc = read(store, cid)
     if any(_item_state(supervisor, i)["state"] in ACTIVE for i in doc["items"]):
         raise CampaignError("campaign còn run đang chạy hoặc đang chờ: hủy trước")

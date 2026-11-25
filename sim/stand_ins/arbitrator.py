@@ -1,15 +1,3 @@
-"""Arbitrator stand-in (PP-ASM-022): picks the Trajectory of one of the two planners.
-
-The arbitrator belongs to the system, not to the path planner (Software Requirements
-Specification PP-ASM-022). The rule is fixed for every planner under test: the LKA/ELK
-planner's Trajectory when its `active_function` is not NONE and `Trajectory.header.valid`
-is true, otherwise the LCC planner's. Lateral Controller drives along the chosen Trajectory
-only while the function that owns it is driving (LCC with `lcc_mode` not NONE, LKA, ELK).
-
-`SystemStatus` is what an observer of the vehicle sees: the chosen path and the function that
-drives it. It is not a planner output and has no interface of the planner behind it.
-"""
-
 from dataclasses import dataclass
 from enum import IntEnum
 
@@ -26,7 +14,7 @@ from interfaces import (
 
 
 class ActiveFunction(IntEnum):
-    """The function that drives the car; values match FunctionRequests.requests[] + 1."""
+    """Giá trị enum bằng chỉ số trong FunctionRequests.requests cộng một."""
 
     NONE = 0
     LCC = 1
@@ -37,17 +25,17 @@ class ActiveFunction(IntEnum):
 @dataclass(frozen=True, slots=True)
 class SystemStatus:
     header: BasicHeader
-    path_valid: bool  # The chosen path is usable
+    path_valid: bool
     active_function: ActiveFunction
     lka_phase: InterventionPhase
     elk_phase: InterventionPhase
     lateral_limit_reached: bool
     lane_too_narrow: bool
     lcc_mode: LccMode = LccMode.NONE
-    chosen: PlannerId = PlannerId.LCC  # Planner whose Trajectory was chosen
+    chosen: PlannerId = PlannerId.LCC
 
 
-PATH_STATUS_TIMEOUT_US = 75_000  # As LccStatus and InterventionStatus (Interface Control Document 6.2, 6.3)
+PATH_STATUS_TIMEOUT_US = 75_000
 
 _INTERVENTION = {InterventionFunction.LKA: ActiveFunction.LKA, InterventionFunction.ELK: ActiveFunction.ELK}
 

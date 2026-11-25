@@ -1,6 +1,3 @@
-"""eval/ plugs in any planner library built against interfaces/c/pp_planner.h
-(Software Qualification Test Specification 11), not only build/planner."""
-
 import pickle
 import sys
 
@@ -9,7 +6,7 @@ import pytest
 import interfaces as I
 from eval import planner_choice, provenance
 
-VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)  # Software Qualification Test Specification 4.4
+VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)
 SUFFIX = ".dylib" if sys.platform == "darwin" else ".so"
 
 
@@ -64,6 +61,5 @@ def test_external_library_is_identified_by_hash_not_by_this_repository(stub):
     external = provenance.library_info(stub, external=True)
     assert external["sha256"] and external["pp_version"].startswith("stub_planner ")
     assert provenance.official_problems(_manifest(external)) == []
-    # The same library as the default in-repo build must come from HEAD.
     in_repo = provenance.library_info(stub)
     assert provenance.official_problems(_manifest(in_repo))

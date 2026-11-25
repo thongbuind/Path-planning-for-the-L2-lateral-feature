@@ -1,5 +1,3 @@
-/* Màn Đánh giá và Bằng chứng: Suite và regression, Độ tin cậy, Nền tảng
-   (So sánh và campaign ở wb-compare.js). Dữ liệu từ /api/suites và /api/golden; "Mở lại" tạo một run mới. */
 (() => {
   'use strict';
   const WB = window.WB;
@@ -9,7 +7,6 @@
   const head = (title, sub, extra) => h('header', { class: 'wb-head' }, h('div', null, h('h1', null, title), h('p', { class: 'wb-sub' }, sub)), extra || null);
   const when = (iso) => (iso ? iso.replace('T', ' ').slice(0, 16) : '');
 
-  // ---------- Suite và regression (B5) ----------
   async function suiteView(rest) {
     WB.title('Suite và regression');
     const list = (await WB.api('suites')).suites;
@@ -68,7 +65,6 @@
       h('p', { class: 'wb-small' }, 'Kết thúc ', when(s.finished), '. Đọc từ ', mono('GET /api/suites/' + id), '.'));
   }
 
-  // ---------- Độ tin cậy (B7) ----------
   async function trustView() {
     WB.title('Độ tin cậy');
     const g = await WB.api('golden').catch(() => ({ recorded: false }));
@@ -105,7 +101,6 @@
       golden, h('div', { class: 'wb-cols' }, h('div', { class: 'a', style: 'flex:1 1 360px' }, checks), h('div', { class: 'b', style: 'flex:1 1 360px' }, verif)), hb);
   }
 
-  // ---------- Nền tảng (B8) ----------
   function platformView() {
     WB.title('Nền tảng');
     const mod = (n, t) => h('div', { class: 'wb-mod' }, h('b', null, n), h('span', null, t));

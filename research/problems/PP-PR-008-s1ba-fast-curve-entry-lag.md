@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 |---|---|
-| Trạng thái | Còn mở; xe rời làn ở 130 km/h kéo theo mất path |
+| Trạng thái | Còn mở. VP-0 seed 1 đạt ở 20261122-0758-suite-regression-591e3de, cần xác nhận đủ profile và seed |
 | Mở ngày | 2026-11-11 |
 | Requirement bị ảnh hưởng | PP-SWR-006 |
 | Tái hiện | 20261111-1443-suite-regression-ef8bf4b, `S1b-a-VP-*` (speed 36,1 m/s, ACC off), seed 1, 2 |
@@ -33,3 +33,4 @@ Quan sát thêm ở [20261113-1803-suite-regression-3c31309](../runs/20261113-18
 | Run ID | Kết quả |
 |---|---|
 | 20261118-2030-suite-regression-e3158a5 | S1b a VP-0 còn trượt PP-SWR-005, 006, 007, 030 |
+| [20261122-0758-suite-regression-591e3de](../runs/20261122-0758-suite-regression-591e3de/report.md) | S1b a 130 km/h, VP-0 seed 1 đạt PP-SWR-005, 006, 007 và 030. Phần dư của PP-SWR-006 là 0,10 m/s² |

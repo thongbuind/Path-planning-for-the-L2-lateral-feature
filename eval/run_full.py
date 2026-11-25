@@ -1,19 +1,5 @@
-"""Run a whole benchmark for one planner, keep the log, write the HTML dashboard.
-
-    python3 -m eval.run_full                        # full suite, 4 workers, MCAP for failed runs
-    python3 -m eval.run_full --planner build/other --jobs 4
-    python3 -m eval.run_full --suite smoke --max-runs 6   # quick check of the pipeline
-
-Steps, all into build/benchmark/<time>-<suite>-<planner commit>/:
-  1  eval.generate <suite>      -> concrete/   (cases and manifest)
-  2  eval.suite --continue-after-b0 -> suite/  (B0, then every run; nothing stops on a failure)
-  3  eval.report_html           -> report.html (slides: overview, B0, B1..B8)
-run.log keeps the output of every step with the time. A failing aspect suite, B0 failing or a
-crash of the suite step never stops the next steps: the dashboard shows what was run.
-Heavy: full is 3.916 runs, about 1.5-2 hours on 4 workers (MCAP and figures of failed runs extra).
-"""
-
 import argparse
+import json
 from datetime import datetime
 from pathlib import Path
 import subprocess
@@ -57,7 +43,9 @@ def planner_commit(planner: Path | None) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Run a whole benchmark for one planner, keep the log, write the HTML dashboard.",
+    )
     parser.add_argument("--suite", choices=("smoke", "regression", "full"), default="full")
     parser.add_argument("--planner", type=Path, help="Planners under test: directory with libpp_lcc and libpp_lkaelk, or one library with both (default: as eval.suite)")
     parser.add_argument("--jobs", type=int, default=4, help="Worker processes; each holds one SIL log (8 GB: 4)")
@@ -65,10 +53,13 @@ def main() -> None:
                         help="MCAP logs: failed runs (default), every run (about 15 GB for full), none")
     parser.add_argument("--max-runs", type=int, help="Exploratory prefix only, to check the pipeline")
     parser.add_argument("--record", action="store_true", help="Official run (clean tree, research/register)")
+    parser.add_argument("--artifact-dir", type=Path, help="Shared directory for official suite artifacts")
     parser.add_argument("--out", type=Path, help="Run folder (default build/benchmark/<time>-<suite>-<commit>)")
     args = parser.parse_args()
     if args.record and args.max_runs:
         parser.error("--record needs every run")
+    if args.record and not args.artifact_dir:
+        parser.error("--record requires --artifact-dir")
 
     out = args.out or ROOT / "build" / "benchmark" / f"{datetime.now():%Y%m%d-%H%M}-{args.suite}-{planner_commit(args.planner)}"
     out.mkdir(parents=True, exist_ok=False)
@@ -89,9 +80,9 @@ def main() -> None:
     if args.max_runs:
         command += ["--max-runs", str(args.max_runs)]
     if args.record:
-        command.append("--record")
+        command += ["--record", "--artifact-dir", str(args.artifact_dir.resolve())]
     code = step(log, "2/3 chạy bộ", command)
-    if code not in (0, 1):  # 1 = some run failed, which is a result, not a crash
+    if code not in (0, 1):  # Exit code 1 còn dùng khi suite chấm xong nhưng có ca trượt.
         log("Bước chạy bộ dừng bất thường; vẫn lập dashboard từ các lần chạy đã có.")
 
     log("== 3/3 lập dashboard")
@@ -101,12 +92,17 @@ def main() -> None:
         log(f"Dashboard: {report}")
         report_en = report_html.write(suite, out / "report-en.html", generation=concrete / "manifest.json", lang="en")
         log(f"Dashboard EN: {report_en}")
-    except Exception as exc:  # the log and results stay; the dashboard can be rebuilt later
+    except Exception as exc:
         log(f"Không lập được dashboard: {exc!r}. Lập lại: python3 -m eval.report_html {suite}")
         raise SystemExit(3)
     summary = suite / "summary.json"
     if summary.is_file():
         log(f"Tóm tắt: {summary.read_text(encoding='utf-8').strip()}")
+    if args.record:
+        manifest = suite / "manifest.json"
+        if not manifest.is_file() or not json.loads(manifest.read_bytes()).get("artifact"):
+            log("Lần chạy chưa được ghi chính thức. Xem lỗi ở bước chạy bộ.")
+            raise SystemExit(2)
 
 
 if __name__ == "__main__":

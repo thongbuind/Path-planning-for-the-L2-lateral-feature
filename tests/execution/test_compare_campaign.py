@@ -1,6 +1,3 @@
-"""Comparison of two suite runs or campaigns, and campaigns of the workbench, over a fake worker
-(no planner): SIM-REQ-091 to 096."""
-
 import http.client
 import json
 import sys
@@ -50,8 +47,6 @@ def wait_campaign(call, cid, timeout=20.0):
     raise AssertionError("campaign not finished")
 
 
-# ---- campaigns ---------------------------------------------------------------------------
-
 def test_a_matrix_expands_to_its_product_and_is_bounded():
     spec = {"matrix": {"scenarios": [{"sid": "S1", "v": "a"}, {"sid": "S4", "v": "b"}],
                        "fault_sets": [[], [["F04", "a"]]], "vehicles": ["VP-0", "VP-1"], "seeds": [1, 2]}}
@@ -84,7 +79,7 @@ def test_a_campaign_runs_through_the_one_supervisor_and_reports_each_run(api):
     while time.time() < end:
         _, body = api("GET", f"/api/campaigns/{made['id']}")
         c = body["counts"]
-        assert c["running"] <= 2                                      # N_max
+        assert c["running"] <= 2
         assert c["queued"] + c["running"] + c["completed"] + c["failed"] + c["cancelled"] + c["missing"] == 5
         seen.add(body["state"])
         if body["state"] == "done":
@@ -125,7 +120,7 @@ def test_repeat_makes_a_new_campaign_with_the_same_list_and_delete_unpins(api):
     assert second["parent_campaign"] == made["id"] and second["name"] == "a (lặp lại)"
     assert {i["run_id"] for i in first["items"]}.isdisjoint({i["run_id"] for i in second["items"]})
     pinned = json.loads((api.root / "runs" / ".pinned.json").read_text())
-    assert {i["run_id"] for i in first["items"]} <= set(pinned)       # retention keeps a campaign's runs
+    assert {i["run_id"] for i in first["items"]} <= set(pinned)
     assert api("POST", f"/api/campaigns/{made['id']}/delete", {})[0] == 200
     pinned = json.loads((api.root / "runs" / ".pinned.json").read_text())
     assert not {i["run_id"] for i in first["items"]} & set(pinned)
@@ -141,13 +136,11 @@ def test_delete_is_refused_while_a_run_is_active(api):
 
 
 def test_campaign_requests_are_checked(api):
-    assert api("POST", "/api/campaigns", {"items": [{"mode": "ok"}]})[0] == 400          # no name
+    assert api("POST", "/api/campaigns", {"items": [{"mode": "ok"}]})[0] == 400
     assert api("POST", "/api/campaigns", {"name": "x", "matrix": {"scenarios": [{"sid": "bad", "v": "a"}]}})[0] == 400
     assert api("GET", "/api/campaigns/20990101-000000-abcdef")[0] == 404
     assert api("POST", "/api/campaigns/20990101-000000-abcdef/cancel", {})[0] == 404
 
-
-# ---- comparison --------------------------------------------------------------------------
 
 def _suite(root: Path, name: str, records: list[dict], libs=("aaaa", "bbbb"), python="3.13.1", commit="c1", verdict="Không đạt"):
     suite = root / "build" / "benchmark" / name / "suite"
@@ -174,16 +167,16 @@ def suites(tmp_path, monkeypatch):
     monkeypatch.setattr(evidence, "ROOT", tmp_path)
     monkeypatch.setattr(evidence, "BENCH", tmp_path / "build" / "benchmark")
     evidence._cache.clear()
-    base = [_rec("S1-a-VP-0-aa", ["PP-SWR-051"], values={"PP-SWR-051": (-0.2, ">= 0")}),                # fixed
-            _rec("S1-b-VP-0-bb"),                                                                       # new in cand
-            _rec("S4-a-VP-0-cc", ["PP-SWR-094"], values={"PP-SWR-094": (0.15, "<= 0.1")}),              # still, worse
+    base = [_rec("S1-a-VP-0-aa", ["PP-SWR-051"], values={"PP-SWR-051": (-0.2, ">= 0")}),
+            _rec("S1-b-VP-0-bb"),
+            _rec("S4-a-VP-0-cc", ["PP-SWR-094"], values={"PP-SWR-094": (0.15, "<= 0.1")}),
             _rec("S5-a-VP-0-dd", ["PP-SWR-086"], case_hash="old", values={"PP-SWR-086": (-0.5, ">= -0.3")}),
-            _rec("S6-a-VP-0-ee", ["PP-SWR-001"], values={"PP-SWR-001": (3.0, "<= 2.5")})]               # only in base
+            _rec("S6-a-VP-0-ee", ["PP-SWR-001"], values={"PP-SWR-001": (3.0, "<= 2.5")})]
     cand = [_rec("S1-a-VP-0-aa", checksum="y"),
             _rec("S1-b-VP-0-bb", ["PP-SWR-030"], checksum="y", values={"PP-SWR-030": (4.0, "= 0")}),
             _rec("S4-a-VP-0-cc", ["PP-SWR-094"], checksum="y", values={"PP-SWR-094": (0.25, "<= 0.1")}),
             _rec("S5-a-VP-0-dd", ["PP-SWR-086"], case_hash="new", values={"PP-SWR-086": (-0.1, ">= -0.3")}),
-            _rec("S7-a-VP-0-ff")]                                                                        # only in cand
+            _rec("S7-a-VP-0-ff")]
     _suite(tmp_path, "base", base)
     _suite(tmp_path, "cand", cand, libs=("aaaa", "cccc"), python="3.13.2", commit="c2")
     return tmp_path
@@ -199,7 +192,7 @@ def test_a_suite_comparison_classifies_every_requirement(suites):
     assert kinds == {"PP-SWR-030": "new", "PP-SWR-094": "still", "PP-SWR-051": "fixed"}
     still = next(r for r in out["changes"] if r["kind"] == "still")
     assert still["base_margin"] == pytest.approx(-0.05) and still["cand_margin"] == pytest.approx(-0.15)
-    assert still["delta_margin"] == pytest.approx(-0.10)                  # worse by 10 cm
+    assert still["delta_margin"] == pytest.approx(-0.10)
     assert any("case_hash" in w for w in out["warnings"]) and any("chỉ có ở" in w for w in out["warnings"])
     assert out["case_changed_examples"] == ["S5-a-VP-0-dd seed 1"]
     by_req = {r["id"]: r for r in out["by_requirement"]}
@@ -228,7 +221,6 @@ def test_the_compare_api_is_read_only_and_checks_its_input(api, suites):
 
 
 def _campaign_runs(root: Path, name: str, rows: list[tuple[dict, list, str]]):
-    """A campaign document and its finished bundles: rows of (config, failed criteria ids, behavior checksum)."""
     runs = root / "runs"
     items = []
     for i, (config, failed, checksum) in enumerate(rows):
@@ -251,7 +243,7 @@ def test_two_campaigns_compare_by_configuration(tmp_path):
     cand = _campaign_runs(tmp_path, "three", [({**c1, "rate": 5}, [], "y"), (c2, ["PP-SWR-094"], "x")])
     out = compare.compare(compare.load_campaign(base, tmp_path / "runs"), compare.load_campaign(cand, tmp_path / "runs"))
     assert out["counts"]["matched"] == 2 and out["counts"]["fixed"] == 1 and out["counts"]["new"] == 1
-    assert out["counts"]["behavior_changed"] == 1 and out["counts"]["behavior_same"] == 1       # the pacing is not the identity
+    assert out["counts"]["behavior_changed"] == 1 and out["counts"]["behavior_same"] == 1
     assert out["differences"][0]["key"] == "libraries"
 
 

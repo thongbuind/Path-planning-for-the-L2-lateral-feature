@@ -1,6 +1,4 @@
-// Bản dịch giao diện, thẻ bản đồ và nhãn sơ đồ. Nội dung tài liệu nằm trong docs/en/.
 window.SPEC_EN = {
-  // Giao diện
   "Bản đồ yêu cầu": "Requirements Map",
   "Trang chủ": "Home",
   "Tài liệu kỹ thuật": "Technical Documents",
@@ -99,7 +97,6 @@ window.SPEC_EN = {
   "Xem bảng chi tiết trong tài liệu": "View the detailed table in the document",
   "Không vẽ được sơ đồ: {reason}": "Could not draw the diagram. {reason}",
 
-  // Thẻ và đường nối
   "Mentor Report tuần 2": "Week 2 Mentor Report",
   "Tổng quan dự án từ tài liệu kỹ thuật đến framework, SIL, path planner, kết quả benchmark và các hướng nghiên cứu đang mở.": "Project overview covering the technical documents, framework, SIL, path planner, benchmark results, and open research questions.",
   "Requirement, performance target, ODD, giả định và giới hạn calibration parameter; căn cứ để chấm planner.": "Requirements, performance targets, ODD, assumptions, and calibration parameter limits; the basis for evaluating the planner.",
@@ -164,7 +161,6 @@ window.SPEC_EN = {
   "R79 Annex 6, 3.2; R171 5.3.7.1.3. Vẽ từ bảng trong tài liệu; bấm sơ đồ để xem bảng": "R79 Annex 6, 3.2 and R171 5.3.7.1.3. Select a diagram to open the document table it was generated from.",
   "R79 Annex 6, 3.2.3 và 3.4.3": "R79 Annex 6, 3.2.3 and 3.4.3",
 
-  // Sơ đồ và các cột trong bảng nguồn
   "Chức năng · ADAS Function Specification, mục 9.1": "Functions · ADAS Function Specification, Section 9.1",
   "Trạng thái của từng chức năng": "Function States",
   "OFF, STANDBY, REQUEST và điều kiện chuyển, theo off, standby, active mode của R79.": "OFF, STANDBY, REQUEST, and the transition conditions for R79 off, standby, and active modes.",

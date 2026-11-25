@@ -1,24 +1,4 @@
-"""Wires the test environment around any planner that meets interfaces.Planner.
-
-Deterministic single-process mode (Software Qualification Test Specification 4.1),
-closed loop: Trajectory -> stand-in Lateral Controller -> stand-in EPS -> vehicle model.
-
-Blocks and rates (4.1, 4.2):
-
-| Block | Period | Output |
-|---|---|---|
-| Lane camera | 50 ms | LaneModel, delivered after 100 ms |
-| IMU, steering, speed | 10, 10, 20 ms | Chassis signals, stamped at receive |
-| State estimator | 20 ms | VehicleStateEstimate |
-| ADAS function stand-in or scripted inputs | 25 ms | FunctionRequests |
-| Longitudinal block: scripted, or stand-in ACC (4.7) | 25 ms | LongitudinalPlan |
-| LCC planner, LKA/ELK planner | 25 ms | Trajectory, LccStatus, LateralLimits; Trajectory, InterventionStatus |
-| Arbitrator stand-in (PP-ASM-022) | 25 ms | chosen Trajectory, SystemStatus |
-| Lateral Controller | 10 ms | SteeringRequest |
-
-Each block starts at a random phase from the seed. The planners are given from outside;
-only eval/ knows which planners they are.
-"""
+"""Harness ghép vòng SIL qua giao diện planner và hỗ trợ closed loop lẫn open loop (SQTS 4.1)."""
 
 import time
 from bisect import bisect_left
@@ -57,6 +37,7 @@ from interfaces import (
     PlannerId,
     Received,
     Trajectory,
+    VehicleConfig,
 )
 from interfaces.inputs.chassis_signals import IMU_TIMEOUT_US, SPEED_TIMEOUT_US, STEERING_TIMEOUT_US, Direction
 from interfaces.inputs.lane_model import LANE_MODEL_MAX_AGE_US, LANE_MODEL_TIMEOUT_US
@@ -94,6 +75,7 @@ from sim.stand_ins.adas_function import AdasFunction, AdasInputs, PathFeedback
 from sim.stand_ins.adas_observation import VehicleMotion
 from sim.stand_ins.arbitrator import PATH_STATUS_TIMEOUT_US, ActiveFunction, Arbitrator, SystemStatus
 from sim.stand_ins.eps import Eps
+from sim.stand_ins.hwa_entry_gate import HwaEntryGate
 from sim.stand_ins.hwa_view_gate import HwaViewGate
 from sim.stand_ins.lateral_controller import CONTROLLER_PERIOD_US, EgoState, LateralController
 from sim.stand_ins.acc import EGO_LENGTH_M, Acc, LeadSelector, LongitudinalActuator
@@ -102,51 +84,45 @@ from sim.vehicle.bicycle import Bicycle, BicycleState, steady_cornering
 from sim.vehicle.profiles import PROFILES
 from sim.world.road import Road
 
-TRUTH_PERIOD_US = 1_000  # Ground truth logged every step
-DRIVER_TORQUE_PERIOD_US = 20_000  # ADAS Function Specification 12
+TRUTH_PERIOD_US = 1_000
+DRIVER_TORQUE_PERIOD_US = 20_000
 
-# Fixed block priority within one step (4.2): producers before consumers.
+# Trong cùng bước, khối phát chạy trước khối nhận (SQTS 4.2).
 PRIORITY = {"function_requests": 0, "longitudinal": 1, "planner": 2, "controller": 3}
 
 
 @dataclass
 class PlannerCycle:
     t0_us: int
-    trajectory: Trajectory | None  # Chosen by the arbitrator stand-in (PP-ASM-022)
-    path_status: SystemStatus | None  # What the chosen path and its function look like from outside
-    lateral_limits: LateralLimits | None  # LCC planner
-    compute_ns: int  # Wall clock of the slower planner.step, adapter included (each has its own budget)
-    # Lane model given to the planner: capture stamp and the range end of the boundaries the camera
-    # really observed [m], before faults (Software Requirements Specification 4)
+    trajectory: Trajectory | None
+    path_status: SystemStatus | None
+    lateral_limits: LateralLimits | None
+    compute_ns: int  # Đo theo đồng hồ thật của lần gọi planner.step chậm hơn, tính cả adapter; mỗi planner có ngân sách riêng.
+    # Stamp lúc camera chụp và tầm nhìn thật trước khi tiêm lỗi [m].
     lane_view: tuple[int, float] | None = None
     function_requests: Received[FunctionRequests] | None = None
-    lane_view_reported: float | None = None  # Range end of the reported boundaries [m]
-    # Whether each input given to the planner was usable at t0 by the receiving checks of the
-    # Interface Control Document 4 (received, valid, within timeout and maximum age); the lane
-    # model also needs one line or road edge not LOST. For the scoring of PP-SWR-030.
+    lane_view_reported: float | None = None
+    # Cờ usable theo điều kiện nhận, valid và tuổi của ICD 4. Lane model còn cần ít nhất một biên
+    # chưa LOST.
     inputs_ok: dict[str, bool] | None = None
-    t0_local_us: int | None = None  # t0 on the ADAS ECU clock, as the planner got it
-    # (stamp_us, rx_us, valid) of each input as the planner got it, ADAS ECU clock
+    t0_local_us: int | None = None
+    # Từng bộ (stamp_us, rx_us, valid) được ghi theo đồng hồ ECU ADAS mà planner nhận.
     input_times: dict[str, tuple[int, int, bool]] | None = None
-    # (status, confidence) of lines L2, L1, R1, R2 and the left and right road edges given to the
-    # planner, for "biên làn đủ tin" (Software Requirements Specification 4); None: no lane model
     lane_boundaries: tuple[tuple[LineStatus, float], ...] | None = None
-    longitudinal_plan: Received[LongitudinalPlan] | None = None  # As the planner got it (PP-SWR-153, 154)
-    # Outputs of each planner as sent (PP-SWR-019, 180, 181)
+    longitudinal_plan: Received[LongitudinalPlan] | None = None
     lcc_trajectory: Trajectory | None = None
     lcc_status: LccStatus | None = None
     ka_trajectory: Trajectory | None = None
     intervention_status: InterventionStatus | None = None
     compute_lcc_ns: int = 0
     compute_ka_ns: int = 0
-    lead_target: Received[LeadTarget] | None = None  # As the LCC planner got it
+    lead_target: Received[LeadTarget] | None = None
 
 
-FUTURE_STAMP_TOLERANCE_US = 10_000  # PP-SWR-132: a stamp up to 10 ms ahead stays usable
+FUTURE_STAMP_TOLERANCE_US = 10_000
 
 
 def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int | None = None):
-    """As _fresh, but a stamp up to FUTURE_STAMP_TOLERANCE_US in the future is accepted."""
     if rx is None or not 0 <= now_us - rx.rx_us <= timeout_us or not rx.message.header.valid:
         return None
     age = now_us - rx.message.header.stamp_us
@@ -155,14 +131,8 @@ def _usable(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int |
     return rx.message
 
 
-def _receive_valid(message, _rx_us):
-    """An invalid input frame has the same effect on the receive buffer as a lost frame."""
-    return message if message.header.valid else None
-
-
 def plan_in_range(plan: LongitudinalPlan) -> bool:
-    """Every v and a within the ranges of Interface Control Document 5.7 (PP-SWR-156), compared
-    in float32 as the planner receives them."""
+    """So v và a ở độ chính xác float32 của ICD 5.7 (PP-SWR-156)."""
     with np.errstate(over="ignore", invalid="ignore"):
         v = np.array([p.v for p in plan.points], dtype=np.float32)
         a = np.array([p.a for p in plan.points], dtype=np.float32)
@@ -176,7 +146,7 @@ def inputs_usable(inputs: LccInputs) -> dict[str, bool]:
     lane = _fresh(inputs.lane_model, now, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
     plan = _fresh(inputs.longitudinal_plan, now, LONGITUDINAL_PLAN_TIMEOUT_US, LONGITUDINAL_PLAN_MAX_AGE_US)
     return {
-        "lane_model": lane is not None,  # received, valid, in time; boundaries judged by eval
+        "lane_model": lane is not None,
         "object_list": _fresh(inputs.object_list, now, OBJECT_LIST_TIMEOUT_US, OBJECT_LIST_MAX_AGE_US) is not None,
         "lead_target": _fresh(inputs.lead_target, now, LEAD_TARGET_TIMEOUT_US, LEAD_TARGET_MAX_AGE_US) is not None,
         "imu": _fresh(inputs.imu, now, IMU_TIMEOUT_US) is not None,
@@ -186,23 +156,21 @@ def inputs_usable(inputs: LccInputs) -> dict[str, bool]:
                                 VEHICLE_STATE_MAX_AGE_US) is not None,
         "function_requests": _fresh(inputs.function_requests, now, FUNCTION_REQUESTS_TIMEOUT_US,
                                     FUNCTION_REQUESTS_MAX_AGE_US) is not None,
-        "longitudinal_plan": plan is not None and plan_in_range(plan),  # PP-SWR-156
+        "longitudinal_plan": plan is not None and plan_in_range(plan),
     }
 
 
 @dataclass(frozen=True, slots=True)
 class AdasComparison:
     t_us: int
-    measured_requests: FunctionRequests  # Mode A
-    ideal_requests: FunctionRequests  # Mode B
-    measured_tlc_s: tuple[float, ...]  # L1, R1, left edge, right edge
+    measured_requests: FunctionRequests
+    ideal_requests: FunctionRequests
+    measured_tlc_s: tuple[float, ...]
     ideal_tlc_s: tuple[float, ...]
 
 
 @dataclass
 class RunLog:
-    """Everything eval/ needs; ground truth is the simulator's, never the planner's."""
-
     scenario: Scenario
     seed: int
     road: Road
@@ -212,12 +180,11 @@ class RunLog:
     max_steering_wheel_rate: float
     steering_ratio: float
     init_result: int
-    # Ground truth per step: time, base_link pose, front axle pose, v_x, a_y, wheel angle
     t_us: list[int] = field(default_factory=list)
     rear: list[tuple[float, float, float]] = field(default_factory=list)
     front: list[tuple[float, float, float]] = field(default_factory=list)
     a_y: list[float] = field(default_factory=list)
-    speed: list[float] = field(default_factory=list)  # [m/s] longitudinal
+    speed: list[float] = field(default_factory=list)
     wheel_angle: list[float] = field(default_factory=list)
     eps_controlling: list[bool] = field(default_factory=list)
     cycles: list[PlannerCycle] = field(default_factory=list)
@@ -225,16 +192,13 @@ class RunLog:
     yaw_rate: list[float] = field(default_factory=list)
     adas: list[AdasComparison] = field(default_factory=list)
     actuator_delay_s: float = 0.0
-    # Per channel fault of the scenario, in its order: indices of the messages it made unusable
+    # Thứ tự như cấu hình lỗi kênh. Mỗi mục là các chỉ số message mà lỗi đã làm mất khả dụng.
     fault_hits: list[list[int]] = field(default_factory=list)
-    can_stats: dict | None = None  # frames dropped and lost per frame ID, CAN receive layer
-    # Faults started by a planner-output event (sim.faults.trigger): event -> planner t0 [us]
-    # of the first cycle that showed it, None when it never happened (fault not injected)
+    can_stats: dict | None = None
+    # Mỗi trigger lưu t0 [us] của lần đầu xuất hiện; None nghĩa là lỗi chưa được tiêm.
     fault_events: dict[str, int | None] = field(default_factory=dict)
-    # Lane of base_link as the camera indexes it, at each change: (capture stamp, lanes to the
-    # left of the reference lane). Ground truth for lane-change cases (S17).
+    # Mỗi lần đổi làn lưu stamp chụp và chỉ số làn lệch sang trái so với làn tham chiếu (S17).
     lane_index_changes: list[tuple[int, int]] = field(default_factory=list)
-    # Every occurrence of the planner-output events of sim.faults.trigger: event -> t0 [us]
     events: dict[str, list[int]] = field(default_factory=dict)
     planner_only: str | None = None
     fault_frames: dict[str, list[int]] = field(default_factory=dict)
@@ -259,9 +223,9 @@ def _fresh(rx: Received | None, now_us: int, timeout_us: int, max_age_us: int | 
 
 class Harness:
     def __init__(self, scenario: Scenario, planner_factory: PlannerFactory, seed: int,
-                 observer: Callable[["Harness", int], None] | None = None) -> None:
-        """`observer(harness, now_us)` is called after every planner cycle has been logged: it
-        reads, never writes, and adds nothing to the measured compute time."""
+                 observer: Callable[["Harness", int], None] | None = None, *,
+                 controller_factory: Callable[[VehicleConfig, float], LateralController] = LateralController) -> None:
+        """Observer nhận snapshot sau khi ghi chu kỳ và nằm ngoài thời gian đo planner."""
         self.scenario = scenario
         self.seed = seed
         self.observer = observer
@@ -269,22 +233,20 @@ class Harness:
         self.road = Road(list(scenario.segments), scenario.lane_width, scenario.road_layout)
         self.profile = PROFILES[scenario.profile]
         self.vehicle_config = self.profile.vehicle_config()
-        self.planners = planner_factory(self.vehicle_config)  # LCC planner and LKA/ELK planner (PP-ADR-016)
+        self.planners = planner_factory(self.vehicle_config)
         if self.planners.lcc is None and self.planners.lka_elk is None:
             raise ValueError("at least one planner is required")
         self.arbitrator = Arbitrator()
-        self._lcc_following = False  # lcc_mode of the last cycle was FOLLOW (ADAS Function Specification 7)
+        self._lcc_following = False
 
-        # Car on the road, rear axle at start_s, aligned with the lane plus the given offset.
-        # In a curve the fake driver is already steering it: steady-state cornering.
+        # Đặt trục sau tại start_s. Trong cua, khởi tạo theo trạng thái quay vòng ổn định.
         x, y, heading = self.road.pose_at(scenario.start_s, scenario.start_offset_m)
         lr = self.profile.lr
         kappa0 = self._nominal_curvature(self.road.project(x, y, scenario.start_s))
         v_y0, r0, delta0 = steady_cornering(self.profile, scenario.speed_mps, kappa0)
         psi = heading + scenario.start_heading_rad
         if scenario.driver is not None:
-            # Start the rear axle's velocity along the prescribed test path.
-            # Body heading differs by the slip angle in a steady turn.
+            # Hướng thân xe khác hướng vận tốc của trục sau bởi góc trượt.
             psi -= atan2(v_y0 - lr * r0, scenario.speed_mps)
         self.vehicle = Bicycle(self.profile, BicycleState(x + lr * cos(psi), y + lr * sin(psi),
                                                           psi, v_y0, r0), mu=scenario.road_mu)
@@ -294,12 +256,11 @@ class Harness:
 
         self.eps = Eps(self.vehicle_config, scenario.eps_delay_s, moving_driver_target=scenario.driver is not None)
         self.eps.hold_driver_angle(delta0 * self.vehicle_config.steering_ratio)
-        # S2: the car keeps the start offset and heading until HWA starts driving.
         self._holding = scenario.hold_until_hwa
         self._hold_s = scenario.start_s
         if self._holding:
             self._place_held()
-        self.controller = LateralController(self.vehicle_config, self.profile.understeer_gradient)
+        self.controller = controller_factory(self.vehicle_config, self.profile.understeer_gradient)
         self.camera = LaneCamera(self.road, view_end_m=scenario.camera_view_m,
                                  view_start_m=scenario.camera_view_start_m)
         drift = scenario.driver.drift_curvature if scenario.driver is not None else None
@@ -313,8 +274,7 @@ class Harness:
         self.chassis = ChassisSensors()
         self.estimator = StateEstimator()
         self.ego_motion = EgoMotion()
-        # Faults beyond the lane model (Software Qualification Test Specification 6). Every
-        # stream is drawn in a fixed order whatever the faults, so adding one changes no other draw.
+        # Giữ thứ tự lấy mẫu RNG để thêm lỗi không làm đổi các chuỗi ngẫu nhiên khác.
         base = self.rngs["faults"]
         self._channel_rng = np.random.default_rng(int(base.integers(0, 2**63)))
         nominal_rng = np.random.default_rng(int(base.integers(0, 2**63)))
@@ -333,13 +293,14 @@ class Harness:
         self._open_counter = 0
         hwa_request_us = None if scenario.hwa_request_s is None else round(scenario.hwa_request_s * 1e6)
         self.function_requests = ScriptedFunctionRequests(hwa_request_us, scenario.request_events)
-        # ADAS Function Specification 7: HWA leaves REQUEST when the preview stays too short.
         self._hwa_view_gate = HwaViewGate() if scenario.hwa_view_gate else None
+        self._hwa_entry_gate = HwaEntryGate(self.vehicle_config)
+        self._held_after_refusal = False
         self._driver = DriverSignals()
         self._driver_torque = 0.0
         self._adas_modes: tuple[AdasFunction, AdasFunction] | None = None
         self._ideal_lane: LaneModel | None = None
-        self._observed_view: dict[int, float | None] = {}  # capture stamp -> observed L1, R1 end
+        self._observed_view: dict[int, float | None] = {}
         self._ideal_objects: ObjectList | None = None
         if scenario.adas_mode != "scripted":
             self._adas_modes = (AdasFunction(self.vehicle_config, lka_enabled=scenario.lka_enabled,
@@ -349,21 +310,19 @@ class Harness:
             self._ideal_camera = LaneCamera(self.road, view_end_m=scenario.camera_view_m,
                                             view_start_m=scenario.camera_view_start_m, ideal=True)
             self._ideal_object_sensor = ObjectSensor(self.rngs["perception"], ideal=True)
-        # Longitudinal side: scenario speed held ('off'), or the stand-in ACC that ignores
-        # ('ignore_limits', R79 Annex 8 3.2.2 and the S14 second run) or reads LateralLimits.
+        # off giữ tốc độ kịch bản. ignore_limits chạy ACC nhưng bỏ qua LateralLimits (R79 Phụ lục
+        # 8, 3.2.2).
         self.longitudinal = ScriptedLongitudinal(scenario.speed_mps)
         self.acc = (Acc(scenario.speed_mps, read_limits=scenario.acc == "on")
                     if scenario.acc != "off" else None)
         self.long_act = LongitudinalActuator(scenario.speed_mps)
         self._lead = LeadSelector(self.vehicle_config.vehicle_width, self.vehicle_config.wheelbase)
 
-        camera_us = round(scenario.camera_latency_ms * 1000)  # Software Qualification Test Specification 4.5, Q1
+        camera_us = round(scenario.camera_latency_ms * 1000)
         jitter_us = round(scenario.camera_jitter_ms * 1000)
-        receive = self._can_rx.decode if self.can else restamp
-
-        def receive_chassis(frame, rx_us):
-            message = receive(frame, rx_us)
-            return _receive_valid(message, rx_us) if message is not None else None
+        # Interface Control Document 5.3: lớp nhận chỉ bỏ khung CRC sai hoặc counter lặp. Khung và
+        # message có `valid = false` tới planner; planner xử lý như mất message (PP-SWR-130, PP-PR-036).
+        receive_chassis = self._can_rx.decode if self.can else restamp
 
         self._injectors: dict[str, ChannelFaultInjector] = {}
 
@@ -376,19 +335,17 @@ class Harness:
 
         self.ch = {
             "lane_model": Channel("lane_model", latency_us=camera_us, jitter_us=jitter_us,
-                                  rng=self.rngs["latency"], on_deliver=_receive_valid, faults=faults("lane_model")),
+                                  rng=self.rngs["latency"], faults=faults("lane_model")),
             "object_list": Channel("object_list", latency_us=camera_us, jitter_us=jitter_us,
                                    rng=self.rngs["latency"], faults=faults("object_list")),
             "lead_target": Channel("lead_target", latency_us=camera_us, jitter_us=jitter_us,
-                                   rng=self.rngs["latency"], on_deliver=_receive_valid,   # valid = false: as lost (ICD 4)
-                                   faults=faults("lead_target")),
+                                   rng=self.rngs["latency"], faults=faults("lead_target")),
             "imu": Channel("imu", on_deliver=receive_chassis, faults=faults("imu")),
             "steering": Channel("steering", on_deliver=receive_chassis, faults=faults("steering")),
             "speed": Channel("speed", on_deliver=receive_chassis, faults=faults("speed")),
             "vehicle_state": Channel("vehicle_state", faults=faults("vehicle_state")),
             "function_requests": Channel("function_requests",
                                          latency_us=round(scenario.function_requests_latency_ms * 1000),
-                                         on_deliver=_receive_valid,
                                          faults=faults("function_requests")),
             "longitudinal_plan": Channel("longitudinal_plan", faults=faults("longitudinal_plan")),
             "open_trajectory": Channel("open_trajectory"),
@@ -399,14 +356,12 @@ class Harness:
             "intervention_status": Channel("intervention_status"),
             "steering_request": Channel("steering_request"),
         }
-        # Ego-motion integrates the valid chassis signals and v_y as received (4.5).
         self.ch["imu"].subscribers.append(
             lambda m, rx: m.header.valid and self.ego_motion.on_yaw_rate(m.yaw_rate_rps, rx))
         self.ch["speed"].subscribers.append(
             lambda m, rx: m.header.valid and self.ego_motion.on_speed(m.speed_mps, rx))
         self.ch["vehicle_state"].subscribers.append(
             lambda m, rx: m.header.valid and self.ego_motion.on_lateral_velocity(m.lateral_velocity, rx))
-        # Open loop (4.1): the controller follows a predefined path, not the planner's.
         path_ch, status_ch = ("open_trajectory", "open_status") if scenario.loop == "open" else (
             "trajectory", "path_status")
         self.ch[path_ch].subscribers.append(self.controller.on_trajectory)
@@ -415,11 +370,10 @@ class Harness:
         if self.acc is not None:
             self.ch["lateral_limits"].subscribers.append(self.acc.on_lateral_limits)
         self.ch["path_status"].subscribers.append(self._release_on_lcc)
-        # Faults that wait for an event of the planner output: inactive until it happens.
         self._pending: list[tuple[object, int, object]] = []
         self._fault_events: dict[str, int | None] = {}
         self._events = fault_trigger.EventCounter()
-        # Driver repeats that wait for an event (S16): inactive until the k-th occurrence.
+        # Lần lặp thứ k của tài xế đợi sự kiện thứ k trước khi bắt đầu (S16).
         self._driver_spec = scenario.driver
         self._driver_waiting: list[tuple[float, float]] = []
         if scenario.driver is not None and scenario.driver.repeat_trigger is not None:
@@ -449,7 +403,6 @@ class Harness:
         )
         self.scheduler = self._build_scheduler()
 
-    # ---- wiring -------------------------------------------------------------------------
 
     def _build_scheduler(self) -> Scheduler:
         sched = Scheduler(STEP_US)
@@ -488,11 +441,9 @@ class Harness:
                         phase(CONTROLLER_PERIOD_US))
         return sched
 
-    # ---- physics and sensors ------------------------------------------------------------
 
     def _place_held(self) -> None:
-        """Car at the start offset and heading at _hold_s, sliding along the lane: body v_y
-        cancels the heading so sensors and ego-motion see motion parallel to the lane."""
+        """Giữ offset và hướng đã đặt; v_y bù góc thân xe để trục sau di chuyển song song với làn."""
         sc, p = self.scenario, self.profile
         x, y, heading = self.road.pose_at(self._hold_s, sc.start_offset_m)
         psi = heading + sc.start_heading_rad
@@ -579,7 +530,7 @@ class Harness:
         yaw_rate = self.vehicle.state.r
         delay_us = round(self.scenario.yaw_filter_delay_ms * 1000)
         if delay_us > 0 and self.log.t_us:
-            # Filter delay the planner is not told about (Q2): the value of delay_us ago, stamped now.
+            # Độ trễ lọc Q2 lấy giá trị cũ nhưng gắn stamp hiện tại.
             i = bisect_left(self.log.t_us, now_us - delay_us)
             yaw_rate = self.log.yaw_rate[min(i, len(self.log.yaw_rate) - 1)] if self.log.yaw_rate else yaw_rate
         err = self.sensor_errors.apply
@@ -607,25 +558,23 @@ class Harness:
         self.ch["vehicle_state"].publish(msg, now_us)
 
     def _camera_stamp(self, message):
-        """Capture time on the camera ECU clock (4.2)."""
         if self._ideal_clocks:
             return message
         stamp = self.clocks["camera"].local(message.header.stamp_us)
         return replace(message, header=replace(message.header, stamp_us=stamp))
 
     def _planner_view(self, name: str, rx: Received | None) -> Received | None:
-        """An input as the planner gets it: rx_us, and stamps set on the ADAS ECU, on its clock."""
+        """Quy stamp và rx_us của đầu vào về đồng hồ ECU ADAS trước khi cấp planner."""
         if rx is None or self._ideal_clocks:
             return rx
         adas = self.clocks["adas"]
         message = rx.message
-        if name not in ("lane_model", "object_list", "lead_target"):  # stamped on the ADAS ECU (or at receive, CAN)
+        if name not in ("lane_model", "object_list", "lead_target"):
             message = replace(message, header=replace(message.header, stamp_us=adas.local(message.header.stamp_us)))
         return Received(message, adas.local(rx.rx_us))
 
     def _open_loop_path(self, now_us: int) -> None:
-        """Predefined path of the open loop (4.1): the true lane centre ahead, or nothing when a
-        scripted driver steers the car (S4 to S8)."""
+        """Open loop dùng tâm làn thật, hoặc không cấp path khi tài xế kịch bản đang lái."""
         if self.scenario.driver is not None:
             return
         x, y, yaw = self.vehicle.rear_axle()
@@ -651,7 +600,6 @@ class Harness:
     def _sample_driver_torque(self, _now_us: int) -> None:
         self._driver_torque = self._driver.torque_nm
 
-    # ---- blocks -------------------------------------------------------------------------
 
     def _function_requests(self, now_us: int) -> None:
         if self._adas_modes is None:
@@ -664,10 +612,19 @@ class Harness:
         self.ch["function_requests"].publish(message, now_us)
 
     def _gated_hwa(self, hwa: FunctionRequest, now_us: int) -> FunctionRequest:
+        lane = _fresh(self.ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
+        hwa = self._hwa_entry_gate.apply(hwa, now_us, lane, self._driver.indicator)
+        if (self._hwa_entry_gate.state == "refused" and self.scenario.driver is None
+                and not self._holding and not self._held_after_refusal):
+            # LCC bị từ chối và kịch bản không có mô hình tài xế: tài xế tự lái bám làn như lúc
+            # giữ xe trước khi LCC vào (hold_until_hwa), thay vì để xe không ai lái (PP-PR-003).
+            self._held_after_refusal = True
+            self._holding = True
+            self._hold_s = self._s_hint
+            self._place_held()
         if self._hwa_view_gate is None:
             return hwa
         speed = _fresh(self.ch["speed"].latest, now_us, SPEED_TIMEOUT_US)
-        lane = _fresh(self.ch["lane_model"].latest, now_us, LANE_MODEL_TIMEOUT_US, LANE_MODEL_MAX_AGE_US)
         return self._hwa_view_gate.apply(hwa, now_us, lane,
                                          speed.speed_mps if speed is not None else self.vehicle.v_x,
                                          following=self._lcc_following)
@@ -755,17 +712,18 @@ class Harness:
         adas = self.clocks["adas"]
 
         def ego_motion(request: EgoMotionRequest) -> EgoMotionResponse:
-            if ego_invalid:  # F20 (PP-SWR-143)
+            if ego_invalid:
                 return EgoMotionResponse(False, 0.0, 0.0, 0.0)
             if not self._ideal_clocks:
                 request = EgoMotionRequest(adas.to_global(request.t1_us), adas.to_global(request.t2_us))
             return self.ego_motion.query(request)
 
-        start = time.perf_counter_ns()
+        # Thời gian CPU của luồng gọi planner, không tính lúc hệ điều hành ngắt tiến trình (PP-PR-061).
+        start = time.thread_time_ns()
         lcc_out = self.planners.lcc.step(inputs, ego_motion) if self.planners.lcc is not None else LccOutputs()
-        middle = time.perf_counter_ns()
+        middle = time.thread_time_ns()
         ka_out = self.planners.lka_elk.step(ka_inputs, ego_motion) if self.planners.lka_elk is not None else LkaElkOutputs()
-        compute_lcc_ns, compute_ka_ns = middle - start, time.perf_counter_ns() - middle
+        compute_lcc_ns, compute_ka_ns = middle - start, time.thread_time_ns() - middle
         if self.planners.lcc is None:
             compute_lcc_ns = 0
         if self.planners.lka_elk is None:
@@ -812,8 +770,8 @@ class Harness:
         if self.scenario.loop == "open":
             self._open_loop_path(now_us)
         if self.observer is not None:
-            # Read-only view after the cycle, outside the timed planner call; may block (live
-            # pacing) without changing simulation time.
+            # Canh nhịp live có thể chặn observer nhưng không ảnh hưởng thời gian mô phỏng hay
+            # thời gian tính planner.
             self.observer(self, now_us)
 
     def _driver_event(self, event: str, now_us: int) -> None:
@@ -845,13 +803,14 @@ class Harness:
         state = self.ch["vehicle_state"].latest
         if speed is None or imu is None:
             return
+        requests = _fresh(self.ch["function_requests"].latest, now_us, FUNCTION_REQUESTS_TIMEOUT_US,
+                          FUNCTION_REQUESTS_MAX_AGE_US)
         ego = EgoState(speed.message.speed_mps,
                        state.message.lateral_velocity if state is not None else 0.0,
-                       imu.message.yaw_rate_rps)
+                       imu.message.yaw_rate_rps, requests is not None and requests.driver_override)
         request: SteeringRequest = self.controller.step(now_us, ego, self.ego_motion.query)
         self.ch["steering_request"].publish(request, now_us)
 
-    # ---- run ----------------------------------------------------------------------------
 
     def run(self) -> RunLog:
         self.scheduler.run_until(round(self.scenario.duration_s * 1e6))
@@ -866,7 +825,7 @@ class Harness:
         if lead_faults is not None and (stamps := lead_faults.lead_fault_stamps()):
             self.log.fault_frames["lead_target"] = stamps
         if self._fault_events:
-            # Faults as injected: a triggered fault carries its real start (NEVER_S if not injected).
+            # Lỗi có trigger mang mốc bắt đầu thực tế. NEVER_S nghĩa là chưa tiêm.
             channel = list(self.scenario.channel_faults)
             position = {name: 0 for name in self._injectors}
             for k, fault in enumerate(channel):

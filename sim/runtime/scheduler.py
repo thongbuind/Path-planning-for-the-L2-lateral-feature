@@ -1,14 +1,5 @@
-"""Deterministic single-process scheduler (Software Qualification Test Specification 4.1, 4.2).
-
-One step is 1 ms. Order within a step, as in 4.2:
-
-1. integrate the vehicle model (physics),
-2. sensors sample,
-3. deliver messages that are due,
-4. run the blocks whose turn it is, by fixed priority.
-
-One common ideal clock for every ECU in this version; per-ECU drift and gPTP sync
-come later.
+"""Trong mỗi bước: tích phân xe, lấy mẫu cảm biến, giao message đến hạn rồi chạy các khối theo ưu
+tiên (SQTS 4.2).
 """
 
 from collections.abc import Callable
@@ -43,7 +34,6 @@ class Scheduler:
         self._channels: list = []
 
     def add_physics(self, run: Callable[[int, float], None]) -> None:
-        """Called every step with (now_us, dt_s), in the order added."""
         self._physics.append(run)
 
     def add_sensor(self, name: str, period_us: int, run: Callable[[int], None],

@@ -1,10 +1,5 @@
-/* Path Planner SIL replay.
-   Bố cục: menu bên trái chọn ca, màn hình mô phỏng ở giữa (chase camera), biểu đồ dùng chung trục thời gian
-   bên dưới, thông số trực tiếp bên phải. Tối giản: một mặt phẳng, đường kẻ mảnh, màu chỉ dùng cho
-   danh tính chức năng (HWA / LKA / ELK) và trạng thái đạt / không đạt. */
 
 :root {
-  /* Token lấy từ hệ SAI: nền trắng, chữ xám Apple, tím làm điểm nhấn, đường kẻ mảnh */
   --bg: #FFFFFF;
   --surface: #FFFFFF;
   --inset: #F5F5F7;
@@ -23,13 +18,11 @@
   --brand: linear-gradient(100deg, #C2410C 0%, #BE185D 33%, #7C3AED 67%, #2563EB 100%);
   --glow: -14px 10px 28px -12px #C2410C8C, 0 14px 32px -12px #7C3AED8C, 14px 10px 28px -12px #2563EB8C;
   --shadow-2: 0 4px 12px #0000000F, 0 24px 64px #00000024;
-  /* Danh tính chức năng: xanh, cam, tím của dải sáng thương hiệu */
   --none: #8E8E93;
   --hwa: #2563EB;
   --lka: #C2410C;
   --elk: #7C3AED;
   --on-fn: #FFFFFF;
-  /* Trạng thái (dành riêng, luôn kèm icon và chữ) */
   --good: #1E7B34;
   --good-ink: #1E7B34;
   --crit: #D70015;
@@ -38,12 +31,12 @@
   --focus: #5B3DF5;
   color-scheme: light;
 
-  /* Màn hình mô phỏng luôn tối, như một màn hình thiết bị, ở cả hai giao diện */
+  /* Màn hình mô phỏng giữ nền tối cả khi giao diện được chuyển sang chế độ sáng. */
   --scr-sky: #0e1116;
   --scr-ground: #11141a;
   --scr-road: #252a35;
-  --scr-paint: #8a93a1;   /* vạch thật: xám, là nền thực tế */
-  --scr-lm: #f4f6f9;      /* vạch lane model: trắng sáng, là thứ planner nhìn thấy */
+  --scr-paint: #8a93a1;
+  --scr-lm: #f4f6f9;
   --scr-edge: #8a93a3;
   --scr-text: #e9eaee;
   --scr-text-2: #9ea4b0;
@@ -138,7 +131,6 @@ button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-radius: 4px; }
 .num { font-variant-numeric: tabular-nums; }
 
-/* ---------- Khung ---------- */
 .app {
   height: 100%;
   min-height: 600px;
@@ -183,7 +175,6 @@ button { font: inherit; color: inherit; }
 .icon-btn:disabled:hover { background: transparent; color: var(--ink-2); }
 .icon-btn svg { width: 16px; height: 16px; }
 
-/* ---------- Menu ---------- */
 .menu {
   border-right: 1px solid var(--grid);
   overflow: auto;
@@ -328,7 +319,6 @@ button { font: inherit; color: inherit; }
   font-size: 11px; line-height: 1.5; color: var(--ink-3);
 }
 
-/* ---------- Sân khấu ---------- */
 .stage {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto auto;
@@ -389,7 +379,6 @@ button { font: inherit; color: inherit; }
 .fault-flag svg { width: 12px; height: 12px; }
 .screen-msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--scr-text-2); pointer-events: none; }
 
-/* ---------- Điều khiển phát ---------- */
 .transport { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .transport .icon-btn { width: 32px; height: 32px; box-shadow: inset 0 0 0 1px var(--ring); }
 .transport .icon-btn.primary { background: var(--fill); color: var(--on-fill); box-shadow: none; }
@@ -412,7 +401,6 @@ button { font: inherit; color: inherit; }
 .view-toggle button:hover { background: var(--hover); }
 .view-toggle button[aria-checked="true"] { background: var(--surface); box-shadow: 0 0 0 1px var(--ring); color: var(--ink); font-weight: 600; }
 
-/* ---------- Biểu đồ ---------- */
 .charts { position: relative; min-width: 0; height: clamp(236px, 36vh, 360px); display: flex; flex-direction: column; }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; height: 18px; font-size: 11px; color: var(--ink-2); margin-bottom: 2px; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -464,7 +452,6 @@ button { font: inherit; color: inherit; }
 .tablebox td:nth-child(2) { text-align: left; }
 .tablebox th:nth-child(2) { text-align: left; }
 
-/* ---------- Bảng thông số ---------- */
 .panel { border-left: 1px solid var(--grid); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .scenario-description { flex: none; padding: 10px 14px; border-bottom: 1px solid var(--grid); }
 .scenario-description h2 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; font-size: 11.5px; font-weight: 600; }
@@ -544,7 +531,6 @@ button { font: inherit; color: inherit; }
 .crit .d { display: block; color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
 .crit li.bad .m { color: var(--crit); font-weight: 600; }
 
-/* ---------- Thu hẹp ---------- */
 @media (max-width: 1180px) {
   body { overflow: auto; }
   .app { height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto; }

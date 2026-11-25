@@ -1,0 +1,149 @@
+# Draft for review (study.md section 3). Lab variants need GĐ 1 to 3 of
+# research/generators/IMPLEMENTATION-PLAN.md before they build.
+# Research comparison for a dashboard: no generator or calibration set is chosen, no overall rank.
+# Tolerances and win rule: SQTS 9.2 (eval.compare.TOLERANCES), not repeated here.
+id: PP-TS-031
+locked: 2026-11-24
+suite: PP-T7
+parts: [tuning, test]
+baseline: quintic_duration
+# Warning flags only, they never remove a variant (eval.campaign).
+flags:
+  relative_failures: true      # failure the baseline passes on the same case, profile, seed
+  lcc_cycles_lost_max: 1       # LCC driving cycles lost against the baseline, per run
+report: research/generators/dashboard/index.html   # data: dashboard/techniques.json (eval.campaign)
+
+# Case patterns (eval.techniques.matches): [S1, f] = family and variant without fault; [S12] = whole family;
+# [F01] = every run with that fault. Simulator keys (profile, acc, loop) are not matched.
+# Case groups of the dashboard (IMPLEMENTATION-PLAN.md, GĐ 5.4).
+case_groups:
+  cua ngắn: [[S1, f], [S14, e]]
+  cua gắt: [[S1, c], [S1b]]
+  nhiễu: [[F01], [S12]]
+  chức năng: [[S2], [S3], [S17], [S22]]
+
+# Read by eval.campaign, per configuration of the grid ("held in x/n"). kinds:
+#   paired   variant against `against` on `cases`: primary improves by at least the bound with a
+#            95 % interval excluding 0; every guard worsens by at most its bound; no new failure.
+#   smallest first variant in order whose open-loop output difference to `reference` stays within
+#            `at_most` [m] on 0-1 s, with no new failure.
+#   beats    in every pair, the first variant's output difference to `reference` is smaller than
+#            the second's by at least `better_by` [m].
+#   cheaper  some variant has output difference <= that of `against` and median paired p99 ratio
+#            to `against` <= `p99_ratio_max`.
+#   cells    at least one cell of groups 2, 3 significantly better than `against`, none significantly worse.
+#   report   result only.
+hypotheses:
+  - id: H1
+    kind: paired
+    variants: [quintic_tangent_point, quintic_ay_sampling]
+    against: quintic_duration
+    cases: [[S1, f], [S14, e], [S1b, f]]
+    primary: {target: PP-SWR-068, improve_at_least: 0.10}
+    guards:
+      - {target: PP-SWR-069, worsen_at_most: 0.10}
+      - {target: PP-SWR-070, worsen_at_most: 0.01}
+  - id: H2
+    kind: smallest
+    variants: [qp_jerk_admm_it010, qp_jerk_admm_it025, qp_jerk_admm_it050, qp_jerk_admm_it075,
+               qp_jerk_admm_it100, qp_jerk_admm]
+    reference: qp_jerk_admm_it1000_ref
+    at_most: 0.005
+  - id: H3
+    kind: beats
+    reference: qp_jerk_admm_it1000_ref
+    better_by: 0.005
+    pairs:
+      - [qp_jerk_admm_shift_warmstart_it010, qp_jerk_admm_it010]
+      - [qp_jerk_admm_shift_warmstart_it025, qp_jerk_admm_it025]
+      - [qp_jerk_admm_shift_warmstart_it050, qp_jerk_admm_it050]
+      - [qp_jerk_admm_shift_warmstart_it075, qp_jerk_admm_it075]
+  - id: H4a
+    kind: beats
+    reference: qp_jerk_admm_it1000_ref
+    better_by: 0.005
+    pairs:
+      - [qp_jerk_admm_mlp_warmstart_it010, qp_jerk_admm_it010]
+      - [qp_jerk_admm_mlp_warmstart_it025, qp_jerk_admm_it025]
+      - [qp_jerk_admm_mlp_warmstart_it050, qp_jerk_admm_it050]
+      - [qp_jerk_admm_mlp_warmstart_it075, qp_jerk_admm_it075]
+      - [qp_jerk_admm_mlp_warmstart_it010, qp_jerk_admm_shift_warmstart_it010]
+      - [qp_jerk_admm_mlp_warmstart_it025, qp_jerk_admm_shift_warmstart_it025]
+      - [qp_jerk_admm_mlp_warmstart_it050, qp_jerk_admm_shift_warmstart_it050]
+      - [qp_jerk_admm_mlp_warmstart_it075, qp_jerk_admm_shift_warmstart_it075]
+  - id: H4b
+    kind: cheaper
+    variants: [qp_jerk_admm_mlp_warmstart_it010, qp_jerk_admm_mlp_warmstart_it025,
+               qp_jerk_admm_mlp_warmstart_it050, qp_jerk_admm_mlp_warmstart_it075]
+    against: qp_jerk_admm
+    reference: qp_jerk_admm_it1000_ref
+    p99_ratio_max: 0.90
+  - id: H5
+    kind: cells
+    variants: [qp_jerk_admm_mlp_weights]
+    against: qp_jerk_admm
+  - id: H6
+    kind: report
+    variants: [mlp_jerk_direct]
+
+# Calibration grids (study.md section 2). Every set runs on tuning and test; none is chosen.
+# The centre of each grid is the default set (the row shown on the dashboard overview).
+tuning_grid:
+  quintic_duration: {T_hwa: [2.5, 3.0, 3.5], T_recenter: [3.0, 3.5, 4.0]}
+  qp_jerk_admm: {qp_w_dev: [0.15, 0.30, 0.60], qp_w_comfort: [2.5, 5.0, 10.0]}
+  # A key "a+b" lists levels of two parameters that move together.
+  quintic_tangent_point: {qtp_center_s: [1.5, 1.75, 2.0], qtp_dlc_margin_m: [0.0, 0.01, 0.02]}
+  quintic_ay_sampling: {qas_peak_early+qas_peak_late: [[0.35, 0.55], [0.40, 0.60], [0.45, 0.65]],
+                        qas_amplitude_m: [0.10, 0.20, 0.30]}
+  qp_jerk_admm_mlp_weights: {mlpw_regularisation: [1.0e-4, 1.0e-3, 1.0e-2]}   # L2 of training, centre 1e-3 (stream C2)
+
+variants:
+  quintic_duration:
+    description: Quintic theo thời lượng, bản đang giao (mốc)
+    calibration: {}
+    cmake: {PP_T7: quintic_duration}            # GĐ 1 renames quintic
+  qp_jerk_admm:
+    description: QP jerk, ADMM 150 vòng
+    calibration: {qp_iters: 150}
+    cmake: {PP_T7: qp_jerk_admm}                # GĐ 1 renames qp
+  qp_jerk_admm_it010: {description: "QP jerk, ADMM 10 vòng", calibration: {qp_iters: 10}, cmake: {PP_T7: qp_jerk_admm}}
+  qp_jerk_admm_it025: {description: "QP jerk, ADMM 25 vòng", calibration: {qp_iters: 25}, cmake: {PP_T7: qp_jerk_admm}}
+  qp_jerk_admm_it050: {description: "QP jerk, ADMM 50 vòng", calibration: {qp_iters: 50}, cmake: {PP_T7: qp_jerk_admm}}
+  qp_jerk_admm_it075: {description: "QP jerk, ADMM 75 vòng", calibration: {qp_iters: 75}, cmake: {PP_T7: qp_jerk_admm}}
+  qp_jerk_admm_it100: {description: "QP jerk, ADMM 100 vòng", calibration: {qp_iters: 100}, cmake: {PP_T7: qp_jerk_admm}}
+  qp_jerk_admm_it1000_ref:
+    description: QP jerk, ADMM 1000 vòng, nghiệm tham chiếu; chỉ vòng hở, không xếp hạng
+    calibration: {qp_iters: 1000}
+    cmake: {PP_T7: qp_jerk_admm}
+    loops: [open]
+    ranked: false
+  qp_jerk_admm_shift_warmstart_it010: &shift
+    description: QP jerk, warm start dịch thời gian, 10 vòng
+    calibration: {qp_iters: 10}
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_shift_warmstart}
+  qp_jerk_admm_shift_warmstart_it025: {<<: *shift, description: "QP jerk, warm start dịch thời gian, 25 vòng", calibration: {qp_iters: 25}}
+  qp_jerk_admm_shift_warmstart_it050: {<<: *shift, description: "QP jerk, warm start dịch thời gian, 50 vòng", calibration: {qp_iters: 50}}
+  qp_jerk_admm_shift_warmstart_it075: {<<: *shift, description: "QP jerk, warm start dịch thời gian, 75 vòng", calibration: {qp_iters: 75}}
+  quintic_tangent_point:
+    description: Quintic cộng hiệu chỉnh ngang theo tangent point
+    calibration: {}
+    cmake: {PP_T7: lab, PP_T7_LAB: quintic_tangent_point}
+  quintic_ay_sampling:
+    description: Quintic cộng hiệu chỉnh ngang chọn theo a_y và jerk dự báo
+    calibration: {}
+    cmake: {PP_T7: lab, PP_T7_LAB: quintic_ay_sampling}
+  qp_jerk_admm_mlp_warmstart_it010: &mlpws
+    description: QP jerk, MLP warm start, 10 vòng
+    calibration: {qp_iters: 10}
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_warmstart}
+  qp_jerk_admm_mlp_warmstart_it025: {<<: *mlpws, description: "QP jerk, MLP warm start, 25 vòng", calibration: {qp_iters: 25}}
+  qp_jerk_admm_mlp_warmstart_it050: {<<: *mlpws, description: "QP jerk, MLP warm start, 50 vòng", calibration: {qp_iters: 50}}
+  qp_jerk_admm_mlp_warmstart_it075: {<<: *mlpws, description: "QP jerk, MLP warm start, 75 vòng", calibration: {qp_iters: 75}}
+  qp_jerk_admm_mlp_weights:
+    description: QP jerk, MLP chọn trọng số, 150 vòng
+    calibration: {qp_iters: 150}
+    cmake: {PP_T7: lab, PP_T7_LAB: qp_jerk_admm_mlp_weights}
+  mlp_jerk_direct:
+    description: MLP xuất chuỗi jerk, không có QP (đối chứng)
+    calibration: {}
+    cmake: {PP_T7: lab, PP_T7_LAB: mlp_jerk_direct}

@@ -1,5 +1,3 @@
-/* T11 Output (output.h). PP-SWR-011, 012. */
-
 #include "output.h"
 
 #include <float.h>
@@ -9,9 +7,9 @@
 #include "pp_math.h"
 
 #define PP_US_PER_S (1.0e6)
-/* Below this speed d' = d_dot / s_dot is taken at this speed, to stay finite. */
+/* Dùng s_dot tối thiểu để phép chia d' = d_dot/s_dot vẫn hữu hạn khi xe chậm. */
 #define PP_FRENET_MIN_SPEED_MPS (1.0)
-/* Smallest 1 - kappa_ref * d: the path must stay on the inner side of the centre of curvature. */
+/* Giữ 1 - kappa_ref × d dương để path không vượt qua tâm độ cong. */
 #define PP_FRENET_MIN_Q (0.1)
 
 void pp_speed_profile(const pp_longitudinal_plan_t *plan, uint64_t t0_us, double speed,
@@ -24,7 +22,6 @@ void pp_speed_profile(const pp_longitudinal_plan_t *plan, uint64_t t0_us, double
         double v = speed;
         double a = 0.0;
         if (plan != NULL) {
-            /* Plan time of this Trajectory point. */
             const double shift = (t0_us >= plan->header.stamp_us)
                 ? ((double)(t0_us - plan->header.stamp_us) / PP_US_PER_S)
                 : (-(double)(plan->header.stamp_us - t0_us) / PP_US_PER_S);
@@ -69,8 +66,8 @@ bool pp_output_points(const pp_reference_line_t *ref, const pp_lateral_path_t *p
 
         const double d = path->d[k];
         const double s_dot = fmax(speed->v[k], PP_FRENET_MIN_SPEED_MPS);
-        const double d1 = path->d_dot[k] / s_dot;                                  /* dd/ds */
-        const double d2 = (path->d_ddot[k] - (d1 * speed->a[k])) / (s_dot * s_dot); /* d2d/ds2 */
+        const double d1 = path->d_dot[k] / s_dot;
+        const double d2 = (path->d_ddot[k] - (d1 * speed->a[k])) / (s_dot * s_dot);
         const double q = fmax(1.0 - (r.kappa * d), PP_FRENET_MIN_Q);
         const double dtheta = atan(d1 / q);
         const double c = cos(dtheta);
@@ -94,7 +91,7 @@ bool pp_output_points(const pp_reference_line_t *ref, const pp_lateral_path_t *p
         pt->pose.y = (float)y;
         pt->pose.yaw = (float)yaw;
         pt->longitudinal_velocity_mps = (float)speed->v[k];
-        pt->lateral_velocity_mps = (float)path->d_dot[k];                 /* d_dot (ICD 6.1) */
+        pt->lateral_velocity_mps = (float)path->d_dot[k];
         pt->acceleration_mps2 = (float)speed->a[k];
         pt->heading_rate_rps = (float)heading_rate;
         pt->curvature = (float)kappa;

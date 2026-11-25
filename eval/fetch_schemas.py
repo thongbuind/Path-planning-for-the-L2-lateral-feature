@@ -1,12 +1,5 @@
-"""Download the ASAM XSD files the benchmark validates against, from ASAM, and check them.
-
-    python3 -m eval.fetch_schemas            # missing files only
-    python3 -m eval.fetch_schemas --check    # hashes of the files present, no download
-
-The XSD files are ASAM standards (ASAM license terms 1(1)(a), www.asam.net/license.html):
-redistributing them is not clearly allowed for this project, so a public copy of the
-repository should not contain them. Each machine fetches the official archives listed in
-benchmark/schema/sources.json and every file is checked against its SHA-256 there.
+"""Tải XSD từ ASAM và kiểm SHA-256. Repo không phân phối lại các XSD theo điều khoản giấy phép
+ASAM.
 """
 
 import argparse
@@ -40,14 +33,13 @@ def check() -> list[str]:
 
 
 def _download(url: str, attempts: int = 3) -> bytes:
-    """The official ASAM URL; a few tries, a named client, and the reason in the error text."""
     last = None
     for attempt in range(attempts):
         try:
             request = urllib.request.Request(url, headers={"User-Agent": "path-planning-schema-fetch/1"})
             with urllib.request.urlopen(request, timeout=60) as response:
                 return response.read()
-        except OSError as error:   # URLError, HTTPError and timeouts are all OSError
+        except OSError as error:
             last = error
             time.sleep(2 * (attempt + 1))
     raise SystemExit(f"{url}: {type(last).__name__}: {last}")
@@ -64,8 +56,7 @@ def fetch() -> None:
         folder.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             for name, digest in source["files"].items():
-                # An archive can hold one file under several folders (the ASAM OpenDRIVE one has
-                # xsd_schema/ and xsd_schema/local_schema/): take the copy whose hash is recorded.
+                # Archive OpenDRIVE có thể chứa nhiều bản trùng tên. Chọn bản khớp SHA-256 đã ghi.
                 copies = [archive.read(m) for m in archive.namelist() if Path(m).name == name]
                 content = next((c for c in copies if _sha(c) == digest), None)
                 if content is None:
@@ -75,7 +66,12 @@ def fetch() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Download the ASAM XSD files the benchmark validates against, from ASAM, and check "
+            "them."
+        ),
+    )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     if not args.check:

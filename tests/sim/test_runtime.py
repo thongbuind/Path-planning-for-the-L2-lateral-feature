@@ -1,5 +1,3 @@
-"""Scheduler, channel, seeds (Software Qualification Test Specification 4.2) and the stand-in EPS (4.6)."""
-
 from math import isclose
 
 from sim.messages import SteeringRequest
@@ -47,14 +45,14 @@ def test_eps_delay_lag_and_handover():
     eps.on_request(SteeringRequest(0, 0.15, True), 0)
     for t in range(1_000, 50_000, 1_000):
         eps.step(t, 1e-3)
-    assert eps.angle == 0.0                                  # pure delay 50 ms
+    assert eps.angle == 0.0
     for t in range(50_000, 1_050_000, 1_000):
         eps.step(t, 1e-3)
-    assert isclose(eps.angle, 0.15, rel_tol=1e-3)            # tau 0.1 s, settled after 1 s
+    assert isclose(eps.angle, 0.15, rel_tol=1e-3)
     eps.on_request(SteeringRequest(1_050_000, 0.15, False), 1_050_000)
     for t in range(1_051_000, 3_200_000, 1_000):
         delta = eps.step(t, 1e-3)
-    assert isclose(eps.angle, 0.0, abs_tol=1e-3)             # back to the driver (0) within 1 s
+    assert isclose(eps.angle, 0.0, abs_tol=1e-3)
     assert isclose(delta, eps.angle / cfg.steering_ratio)
 
 

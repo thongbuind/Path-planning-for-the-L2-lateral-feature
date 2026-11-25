@@ -1,4 +1,3 @@
-"""ASAM migration, portable generation, sampling coverage and input integrity."""
 from itertools import combinations, product
 import json
 from pathlib import Path
@@ -14,7 +13,7 @@ BENCHMARK = openx.ROOT / 'benchmark'
 
 
 def test_all_old_scenario_values_preserved():
-    duration_changes = {'S1ba': 17, 'S1bb': 17, 'S1bc': 15}  # PP-TS-020 lengthened these anchors
+    duration_changes = {'S1ba': 17, 'S1bb': 17, 'S1bc': 15}
     for name, old in json.loads((FIXTURES / 'legacy_scenarios.json').read_text()).items():
         p = old['parameters']
         s = loader.load(p['scenario_id'], p['variant'])
@@ -182,13 +181,12 @@ def test_suites_have_required_profiles_seeds_anchors_and_methods():
         assert profiles == ({'VP-0'} if name == 'smoke' else {f'VP-{i}' for i in range(6)})
         for c in p['cases']:
             seeds = {r['seed'] for r in p['runs'] if r['case'] == c['id']}
-            own = c['parameters']  # a scenario may hold its own camera noise (S10 e, S12)
+            own = c['parameters']
             noisy = (c['family'] == 'F01' or any(f['source'].endswith('F01.xosc')
                                                  for f in c.get('inject', {}).get('faults', []))
                      or (own.get('fault_kind') == 'noise'
                          and (own.get('fault_sigma_c0', 0) > 0 or own.get('fault_sigma_c1', 0) > 0)))
             expected = {1} if name == 'smoke' or not noisy else {1, 2} if name == 'regression' else set(range(1, 11))
-            # Full: noisy samples and event cases take the reduced seed set (4.1, 5.2).
             fixed = {'anchor', 'protocol'} & set(c['methods']) and not c.get('inject', {}).get('trigger')
             if name == 'full' and noisy and not fixed:
                 expected = {1, 2}
@@ -278,19 +276,16 @@ def test_full_profile_reduction_keeps_profile_coverage():
     p = generate.plan('full')
     d = p['definition']
     plain = [c for c in p['cases'] if 'inject' not in c]
-    # Scenario anchors and protocol rows on every profile; fault anchors on the bracketing set.
     for c in plain:
         if c['anchor'] or 'protocol' in c['methods']:
             allowed = d['fault_profiles'] if c['host'] else d['profiles']
             assert c['family'] in generate.OWN_PROFILE or c['parameters']['profile'] in allowed
-    # Profile as a sampling factor: every (level, profile) pair of every scenario parameter.
     for sid in d['scenarios']:
         if sid in generate.OWN_PROFILE:
             continue
         space = {k: v for k, v in generate.domains(BENCHMARK / 'scenarios' / f'{sid}.xosc').items() if k != 'profile'}
         seen = {(k, c['parameters'][k], c['parameters']['profile']) for c in plain if c['family'] == sid for k in space}
         assert {(k, level, prof) for k, dom in space.items() for level in dom.levels() for prof in d['profiles']} <= seen
-    # Event cases rotate the profiles: each event fault still meets every profile.
     events = [c for c in p['cases'] if c.get('inject', {}).get('trigger')]
     for fid in d['event_faults']:
         assert {c['parameters']['profile'] for c in events if c['family'] == fid} == set(d['profiles'])
@@ -305,7 +300,6 @@ def test_regression_profiles_and_suite_depth_order():
     events = [c for c in p['cases'] if c.get('inject', {}).get('trigger')]
     for fid in d['event_faults']:
         assert {c['parameters']['profile'] for c in events if c['family'] == fid} == set(d['profiles'])
-    # Depth order of 5.2: smoke, then regression, then full.
     sizes = [len(generate.plan(name)['runs']) for name in ('smoke', 'regression', 'full')]
     assert sizes == sorted(sizes) and len(set(sizes)) == 3
 
@@ -322,7 +316,7 @@ def test_lane_faults_run_on_every_host_anchor():
         p = generate.plan(name)
         hosts = {f'{sid}{v}' for sid, v in p['definition']['fault_hosts']}
         assert hosts == {'S1a', 'S1c'}
-        overrides = p['definition'].get('fault_host_overrides', {})   # a fault with its own host (F25 on S22a)
+        overrides = p['definition'].get('fault_host_overrides', {})
         for fid in p['definition']['faults']:
             anchors = openx.anchors(BENCHMARK / 'faults' / f'{fid}.xosc')
             selected = p['definition'].get('fault_anchors', {}).get(fid, anchors)
@@ -364,7 +358,7 @@ def test_f21_preserves_geometry_needed_by_its_fault_anchors():
 
 
 def test_suite_runs_keep_order_and_isolate_errors(monkeypatch):
-    monkeypatch.syspath_prepend(str(Path(__file__).parent))  # child processes inherit sys.path
+    monkeypatch.syspath_prepend(str(Path(__file__).parent))
     import _fake_runs
     tasks = [({'id': i}, Path('.'), {'case': i, 'seed': 1}, None) for i in ('a', 'bad', 'crash', 'hang', 'c')]
     out = list(suite.results(tasks, 2, fn=_fake_runs.fake, timeout_s=5))

@@ -1,35 +1,26 @@
-"""Vehicle profiles VP-0 to VP-5 (Software Qualification Test Specification 4.4).
-
-Published data per profile plus the derived parameters of the "Tham số" table of 4.4.
-The planner only sees VehicleConfig; mass, tyre stiffness and inertia stay in the
-simulator.
-"""
-
 from dataclasses import dataclass
 
 from interfaces import VehicleConfig
 
-# Same for every profile (4.4, nhóm tự thống nhất).
 STEERING_RATIO = 15.0
-MAX_STEERING_WHEEL_RATE = 6.0  # [rad/s]
+MAX_STEERING_WHEEL_RATE = 6.0
 ACTUATOR_DELAY_S = 0.05
-# Tyre stiffness per 2000 kg (4.4): keeps K about 0.0029 rad/(m/s^2) for every profile.
-C_FRONT_PER_2000KG = 100_000.0  # [N/rad]
+# Chuẩn hóa độ cứng lốp theo khối lượng để K gần 0,0029 rad/(m/s²) giữa các profile (SQTS 4.4).
+C_FRONT_PER_2000KG = 100_000.0
 C_REAR_PER_2000KG = 140_000.0
-YAW_INERTIA_FACTOR = 0.83  # I_z = 0.83 m l_f l_r
+YAW_INERTIA_FACTOR = 0.83  # Mô-men quán tính I_z lấy theo 0,83 × m × l_f × l_r.
 
 
 @dataclass(frozen=True, slots=True)
 class VehicleProfile:
     name: str
-    wheelbase: float  # [m]
-    width_with_mirrors: float  # [m]
-    mass: float  # [kg]
-    max_wheel_angle: float  # [rad]
+    wheelbase: float
+    width_with_mirrors: float
+    mass: float
+    max_wheel_angle: float
 
     @property
     def lf(self) -> float:
-        """CG to front axle; l_f = l_r = wheelbase / 2 (4.4)."""
         return 0.5 * self.wheelbase
 
     @property
@@ -50,7 +41,6 @@ class VehicleProfile:
 
     @property
     def understeer_gradient(self) -> float:
-        """K [rad/(m/s^2)] of the linear bicycle model."""
         return self.mass / self.wheelbase * (self.lr / self.c_front - self.lf / self.c_rear)
 
     def vehicle_config(self) -> VehicleConfig:

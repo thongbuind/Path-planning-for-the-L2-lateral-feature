@@ -1,23 +1,5 @@
-"""Lane camera and Lane Model (Software Qualification Test Specification 4.5).
-
-Takes the lane geometry within the view range, moves it into base_link at capture
-time and fits a cubic to each visible marking and road edge. Lane faults are applied
-after capture. The ideal ADAS input uses the same geometry with zero reported variance.
-
-Numbers of this model, all on the test side:
-
-| Value | Source |
-|---|---|
-| 20 Hz | Interface Control Document 5.1 |
-| Latency capture -> send 100 ms | Nominal; worst case 120 ms is PP-ASM-001 |
-| View range 0-80 m | nhóm tự thống nhất, no source yet (test specification 4.5); start and end set per scenario |
-| Reported sigma c0 0.03 m, c1 0.002 | F01 a (daytime) of the test specification |
-
-Lane change (S17): the lines are indexed around the lane base_link is in. When base_link
-passes more than half a lane width from the centre of the current lane, the camera re-indexes
-L2, L1, R1, R2 to the new lane and sets `lane_change` to that side in that frame only
-(Interface Control Document 5.1). A line beyond the road layout is LOST. On the lane of the
-road's reference line the layout is used as it is.
+"""Camera fit vạch và mép đường trong base_link tại lúc chụp. Đầu vào lý tưởng của ADAS dùng cùng
+hình học.
 """
 
 from dataclasses import dataclass
@@ -45,7 +27,7 @@ VIEW_START_M = 0.0
 VIEW_END_M = 80.0
 SIGMA_C0_M = 0.03
 SIGMA_C1 = 0.002
-CONFIDENCE = 1.0  # Ideal camera
+CONFIDENCE = 1.0
 _ZERO_VARIANCE = (0.0,) * 4
 _LOST_LINE = LaneLine(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
                       LineType.UNKNOWN, False, LineStatus.LOST, 0.0)
@@ -55,12 +37,10 @@ _LOST_EDGE = RoadEdge(0.0, 0.0, 0.0, 0.0, _ZERO_VARIANCE, 0.0, 0.0, 0.0,
 
 @dataclass(frozen=True, slots=True)
 class CameraPose:
-    """base_link pose in the world at capture time."""
-
     x: float
     y: float
     yaw: float
-    s_hint: float  # Arc length of the car on the road, to cut the road around it
+    s_hint: float  # Chiều dài cung của xe để giới hạn phần đường dùng cho phép fit.
 
 
 class LaneCamera:
@@ -73,10 +53,9 @@ class LaneCamera:
         self.view_end_m = view_end_m
         self.variance = _ZERO_VARIANCE if ideal else (SIGMA_C0_M ** 2, SIGMA_C1 ** 2, 0.0, 0.0)
         self._counter = 0
-        self.lane_index = 0  # lanes to the left of the reference lane (negative: right)
+        self.lane_index = 0
 
     def _markings(self) -> tuple[Marking | None, ...]:
-        """L2, L1, R1, R2 around the current lane."""
         layout = self.road.layout.markings
         if self.lane_index == 0:
             return layout
@@ -165,7 +144,6 @@ class LaneCamera:
 
     def capture(self, now_us: int, pose: CameraPose,
                 view_limits: tuple[float | None, ...] | None = None) -> LaneModel:
-        """view_limits: largest view end per line (L2, L1, R1, R2), from view faults."""
         limits = view_limits if view_limits is not None else (None,) * len(self.road.layout.markings)
         if self.road.layout.geometry is None:
             change = self._lane_change(pose)

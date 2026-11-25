@@ -1,4 +1,3 @@
-"""Read ASAM benchmark files into simulator values; sim never reads benchmark data."""
 from dataclasses import replace
 from pathlib import Path
 
@@ -33,7 +32,6 @@ def _fault_root(fault_id: str, level: str, directory: Path):
 
 
 def load_fault(fault_id: str, level: str, directory: Path = FAULT_DIR) -> LaneFault:
-    """The lane fault of a lane-model fault definition (exactly one command)."""
     commands = fault_commands(fault_id, level, directory)
     if len(commands) != 1 or commands[0][0] != 'lane_faults':
         raise ValueError('a lane fault definition must contain exactly one lane fault command')
@@ -43,23 +41,17 @@ def load_fault(fault_id: str, level: str, directory: Path = FAULT_DIR) -> LaneFa
 def fault_commands(fault_id: str, level: str, directory: Path = FAULT_DIR) -> list[tuple[str, object]]:
     root = _fault_root(fault_id, level, directory)
     commands = root.findall('./Storyboard/Init/Actions/UserDefinedAction/CustomCommandAction')
-    # No command: a condition that always holds, set by properties (F13 camera rate, F18 CAN).
+    # F13 và F18 khai báo lỗi bằng cấu hình, không cần lệnh tiêm.
     return [openx.fault_of_command(c) for c in commands if openx.enabled(c)]
 
 
 def with_fault(scenario: Scenario, fault_id: str, level: str, trigger: str | None = None,
                offset_s: float = 0.0) -> Scenario:
-    """Host scenario plus the faults of a definition; it may also turn on the HWA view gate
-    (F22), the virtual CAN (F15 to F17 on chassis signals) or the open loop.
-
-    `trigger` (sim.faults.trigger): every timed fault of the definition starts `offset_s`
-    after that event of the planner output instead of at its own start_s (Software
-    Qualification Test Specification 6, moments of injection). Clock faults keep their time."""
+    """Thêm lỗi vào ca host. Với trigger, mốc offset tính từ sự kiện kích hoạt."""
     root = _fault_root(fault_id, level, FAULT_DIR)
     properties = {p.get('name'): p.get('value') for p in
                   root.findall('./Entities/ScenarioObject/Vehicle/Properties/Property')}
     gate = scenario.hwa_view_gate or properties.get('pp:hwa_view_gate') == 'true'
-    # Expected outcome: the stricter of host and fault (Software Qualification Test Specification 5.3).
     notes = dict(scenario.notes)
     outcome = labels.stricter(notes.get('expected_outcome'), properties.get('pp:expected_outcome') or None)
     if outcome:

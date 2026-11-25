@@ -1,7 +1,5 @@
-"""LKA and ELK request stand-in, independent of the planner (PP-ADR-014).
-
-The harness supplies measured inputs for mode A and ideal inputs for mode B.
-This block uses the same decision logic in both modes (ADAS-FS 5–9, SQTS 4.1).
+"""Stand-in áp cùng luật quyết định cho mode A (đo) và mode B (lý tưởng), độc lập với planner
+(PP-ADR-014).
 """
 
 from dataclasses import dataclass, field, replace
@@ -19,26 +17,24 @@ from sim.stand_ins.adas_observation import (
 )
 
 _US_PER_S = 1_000_000
-_SPEED_ENTRY = 70 / 3.6  # [m/s], ADAS-FS 7
+_SPEED_ENTRY = 70 / 3.6
 _SPEED_EXIT = 65 / 3.6
 _SPEED_MAX = 130 / 3.6
-_PASSIVE_RATE = radians(15)  # ADAS-FS 8
+_PASSIVE_RATE = radians(15)
 _PASSIVE_HOLD_US = 500_000
 _INTENT_RATE = radians(30)
 _INTENT_HOLD_US = 200_000
 _OVERRIDE_HOLD_US = 100_000
-_LANE_CHANGE_WAIT_US = 1_000_000  # ADAS-FS 11
+_LANE_CHANGE_WAIT_US = 1_000_000
 _JUMP_WAIT_US = 500_000
-_LKA_SPEED_MIN = 0.1  # [m/s] outward speed, ADAS-FS 9
+_LKA_SPEED_MIN = 0.1
 _LKA_SPEED_MAX = 1.0
-_LATE_LINE_M = 0.3  # ADAS-FS 11, PP-SWR-089
-_LANE_WIDTH_MIN, _LANE_WIDTH_MAX = 2.5, 5.5  # PP-ASM-015
+_LATE_LINE_M = 0.3
+_LANE_WIDTH_MIN, _LANE_WIDTH_MAX = 2.5, 5.5
 
 
 @dataclass(frozen=True, slots=True)
 class AdasCalibration:
-    """Stand-in defaults from ADAS Function Specification 13."""
-
     tlc_lka: float = 1.0
     dlc_lka: float = 0.1
     tlc_elk_line: float = 0.6
@@ -48,7 +44,7 @@ class AdasCalibration:
     n_confirm: int = 2
     conf_ego: float = 0.6
     conf_edge: float = 0.7
-    t_view_min: float = 1.0  # [s] observed range / speed (PP-ASM-021)
+    t_view_min: float = 1.0
     exist_min: float = 0.7
     n_track: int = 3
     t_conflict: float = 3.0
@@ -68,8 +64,6 @@ class AdasCalibration:
 
 @dataclass(frozen=True, slots=True)
 class PathFeedback:
-    """InterventionStatus values needed by the stand-in, with separate phase ownership."""
-
     path_valid: bool = False
     lka_phase: InterventionPhase = InterventionPhase.NONE
     elk_phase: InterventionPhase = InterventionPhase.NONE
@@ -100,7 +94,7 @@ class _BoundaryHistory:
 @dataclass(slots=True)
 class _RequestState:
     request: FunctionRequest | None = None
-    # Side -> (expiry, completed against a road edge).
+    # Mỗi phía lưu thời điểm hết hiệu lực và cờ hoàn tất theo mép đường.
     rearm: dict[Side, tuple[int, bool]] = field(default_factory=dict)
 
     def finish(self, now_us: int, rearm_s: float) -> Side:
@@ -143,7 +137,7 @@ class AdasFunction:
         self._override_start: tuple[Side, int] | None = None
         self._override_side = Side.NONE
         self._reactivate_at: dict[Side, int] = {}
-        self.tlc_s = (inf, inf, inf, inf)  # L1, R1, left edge, right edge, for diagnostics
+        self.tlc_s = (inf, inf, inf, inf)
 
     def _stable_boundary(self, boundary: LaneLine | RoadEdge, side: Side, edge: bool,
                          stamp: int, now_us: int, frame: EgoMotionResponse, motion: VehicleMotion,
@@ -198,7 +192,7 @@ class AdasFunction:
             self._passive_since = None
         elif self._passive_since is None:
             self._passive_since = now_us
-        # While LKA or ELK steers, the steering wheel rate is the system's own (ADAS-FS 8).
+        # Khi LKA hoặc ELK lái, tốc độ vô lăng là do chính hệ thống tạo ra (ADAS-FS 8).
         intervening = InterventionPhase.ACTIVE in (inputs.feedback.lka_phase, inputs.feedback.elk_phase)
         deliberate = set()
         for side in SIDES:
@@ -276,8 +270,8 @@ class AdasFunction:
                                                  and not (at_edge and req.side in edges)):
             cancel = CancelReason.LANE_QUALITY
         else:
-            # Below 65 km/h, lost v_y or no remaining trusted boundary: keep
-            # REQUEST for the intervention already underway (ADAS-FS 9).
+            # Giữ REQUEST của lần can thiệp đang diễn ra khi tốc độ xuống dưới 65 km/h hoặc mất
+            # đầu vào tin cậy (ADAS-FS 9).
             c = (edges if at_edge else markings).get(req.side)
             return req if c is None or suspect else replace(req, tlc=c.tlc)
         state.request = None
@@ -333,7 +327,6 @@ class AdasFunction:
                             estimates[side] = estimate
         self.tlc_s = tuple(group[side].tlc if side in group else inf
                            for group in (markings, edges) for side in SIDES)
-        # Learn width only from a credible pair of boundaries of the ego lane.
         bounds = [markings.get(side) or edges.get(side) for side in SIDES]
         if all(bound is not None for bound in bounds):
             width = self.vehicle.vehicle_width + sum(bound.dlc for bound in bounds)

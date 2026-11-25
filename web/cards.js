@@ -1,4 +1,3 @@
-// Bản đồ chỉ giữ vị trí, mô tả ngắn và đường dẫn đến tài liệu kỹ thuật.
 
 window.SPEC_CARDS = [
   {
@@ -150,7 +149,6 @@ window.SPEC_CARDS = [
       "section": "adas-warnings"
     }
   },
-  // Thẻ tài liệu xếp theo thứ tự trong danh mục.
   {
     "id": "mentor-report",
     "kind": "doc",
@@ -240,6 +238,22 @@ window.SPEC_CARDS = [
       "doc": "moi-truong-gia-lap",
       "section": "simulation-design"
     }
+  },
+  {
+    "id": "path-planner-unit-test-specification",
+    "kind": "doc",
+    "doc": "path-planner-unit-test-specification",
+    "eyebrow": "Unit Test · Path Planner",
+    "title": "Unit Test Specification",
+    "summary": "Ca kiểm unit và tích hợp unit của T1 đến T12, truy về Software Detailed Design."
+  },
+  {
+    "id": "path-planner-software-release-note",
+    "kind": "doc",
+    "doc": "path-planner-software-release-note",
+    "eyebrow": "Release · Path Planner",
+    "title": "Software Release Note",
+    "summary": "Nội dung bản giao, bằng chứng kiểm chứng, giới hạn đã biết và tiêu chí vào HIL."
   },
   {
     "id": "sim-vehicle",

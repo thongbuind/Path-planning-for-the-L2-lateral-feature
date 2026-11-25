@@ -1,5 +1,3 @@
-/* Unit tests of T4 Stitching and continuity (planner/src/stitching.c). */
-
 #include <math.h>
 #include <string.h>
 
@@ -10,7 +8,6 @@
 #define T_OLD (10000000ULL)
 #define SPEED (25.0)
 
-/* Moves 25 m/s straight ahead; invalid when the context says so. */
 static void straight_motion(void *context, const pp_ego_motion_request_t *request,
                             pp_ego_motion_response_t *response)
 {
@@ -60,16 +57,16 @@ static void test_move_old(void)
     PP_CHECK_NEAR(old.y[4], 0.5, 1e-6);
 
     pp_path_sample_t p;
-    PP_CHECK(pp_stitch_sample_old(&old, 0.0, &p));        /* old point at 25 ms is the car now */
+    PP_CHECK(pp_stitch_sample_old(&old, 0.0, &p));
     PP_CHECK_NEAR(p.x, 0.0, 1e-5);
-    PP_CHECK(!pp_stitch_sample_old(&old, 3.0, &p));       /* beyond the old horizon */
-    PP_CHECK_NEAR(p.x, (SPEED * 3.025) - 0.625, 1e-4);    /* continued along the last point */
+    PP_CHECK(!pp_stitch_sample_old(&old, 3.0, &p));
+    PP_CHECK_NEAR(p.x, (SPEED * 3.025) - 0.625, 1e-4);
     PP_CHECK_NEAR(p.y, 0.5, 1e-6);
 }
 
 static void test_sample_on_curve_stays_on_the_arc(void)
 {
-    /* Old path exactly on a left circle R = 1000 m; a chord would be 0.6 mm inside. */
+    /* Nếu nối dây cung, điểm kiểm ở phía trong cua khoảng 0,6 mm dù path cũ chính xác. */
     const double radius = 1000.0;
     pp_previous_path_t prev = straight_path(0.0, 1.0 / radius);
     for (unsigned k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
@@ -82,7 +79,6 @@ static void test_sample_on_curve_stays_on_the_arc(void)
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     pp_path_sample_t p;
     (void)pp_stitch_sample_old(&old, 0.0, &p);
-    /* Exact point at 25 ms on the circle, moved by the straight ego-motion of 0.625 m. */
     const double a = SPEED * 0.025 / radius;
     PP_CHECK_NEAR(p.x, (radius * sin(a)) - 0.625, 2e-5);
     PP_CHECK_NEAR(p.y, radius * (1.0 - cos(a)), 2e-5);
@@ -93,10 +89,10 @@ static void test_old_path_not_usable(void)
     pp_old_path_t old;
     pp_previous_path_t prev = straight_path(0.0, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_TRAJECTORY_TIMEOUT_US + 1U, straight_motion, NULL, &old);
-    PP_CHECK(!old.valid);                                 /* older than the Trajectory timeout */
+    PP_CHECK(!old.valid);
     bool no = false;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, &no, &old);
-    PP_CHECK(!old.valid);                                 /* ego-motion not valid */
+    PP_CHECK(!old.valid);
     prev.valid = false;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(!old.valid);
@@ -110,7 +106,6 @@ static void test_start_from_old_path_or_reset(void)
     pp_lateral_state_t start;
     pp_old_path_t old;
 
-    /* Close to the old path: the old path alone. */
     pp_previous_path_t prev = straight_path(0.01, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
@@ -118,7 +113,6 @@ static void test_start_from_old_path_or_reset(void)
     PP_CHECK_NEAR(start.d_dot, 0.0, 1e-9);
     PP_CHECK_NEAR(start.d_ddot, 0.0, 1e-9);
 
-    /* Between stitch_soft_min and stitch_reset: part of the way to the measured state. */
     prev = straight_path(0.05, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
@@ -132,12 +126,11 @@ static void test_start_from_old_path_or_reset(void)
     prev = straight_path(0.1 + (double)pp_calibration.stitch_reset, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(!pp_stitch_start(&old, &ref, &measured, &pp_calibration, &start));
-    PP_CHECK_NEAR(start.d, 0.0, 0.0);                      /* reset to the measured state */
+    PP_CHECK_NEAR(start.d, 0.0, 0.0);
 }
 
 static void test_start_curvature_gives_lateral_acceleration(void)
 {
-    /* Old path bends 0.002 1/m on a straight reference: d_ddot = v^2 kappa. */
     const pp_reference_line_t ref = straight_ref();
     const pp_lateral_state_t measured = {0.0, 0.0, 0.0, 0.0};
     pp_lateral_state_t start;
@@ -154,7 +147,6 @@ static void test_blend_limits_the_jump(void)
     pp_old_path_t old;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
 
-    /* Candidate 0.5 m left of the old path. */
     pp_previous_path_t cand = straight_path(0.5, 0.0);
     const double margin = (double)pp_calibration.cont_margin;
     const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
@@ -162,31 +154,25 @@ static void test_blend_limits_the_jump(void)
     PP_CHECK_NEAR(cand.points[10].pose.y, margin * PP_CONT_LATERAL_M, 1e-6);
     PP_CHECK(cand.points[30].pose.y <= PP_CONT_LATERAL_M);
 
-    /* Candidate equal to the old path: unchanged. */
     pp_previous_path_t same = straight_path(0.0, 0.0);
     PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, same.points), 1.0, 1e-9);
 }
 
-/* PP-TS-022 V1: a candidate that leaves the old path only far ahead. Every point counts
- * against the limit of its own time band; the path sent is still one lambda. */
 static void test_blend_limit_of_a_far_change(void)
 {
     pp_previous_path_t prev = straight_path(0.0, 0.0);
     pp_old_path_t old;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
 
-    /* 0 m up to 1 s, then linear to 1.0 m at 3 s (0.5 m at 2 s). */
     pp_previous_path_t cand = straight_path(0.0, 0.0);
     for (unsigned k = 11U; k < PP_TRAJECTORY_POINTS; k++) {
         cand.points[k].pose.y = (float)(0.05 * (double)(k - 10U));
     }
     const double margin = (double)pp_calibration.cont_margin;
     const double lambda = pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, cand.points);
-    /* The old path, one cycle older, ends before the point at 3 s: the last point both
-     * paths describe is 2.9 s, 0.95 m. */
-    /* Binding point: 2 s, 0.5 m against 0.1 m (2.9 s: 0.95 m against 0.2 m is looser). */
+    /* Path cũ kết thúc sớm một chu kỳ nên 2,9 s là điểm chung cuối. */
+    /* Điểm 2 s ràng buộc hơn vì 0,5/0,1 > 0,95/0,2. */
     PP_CHECK_NEAR(lambda, margin * PP_CONT_BAND_1_2_S * PP_CONT_LATERAL_M / 0.5, 1e-6);
-    /* One lambda: the sent path is old + lambda (candidate - old) at every point. */
     PP_CHECK_NEAR(cand.points[20].pose.y, lambda * 0.5, 1e-5);
     PP_CHECK_NEAR(cand.points[30].pose.y, lambda * 1.0, 1e-5);
     PP_CHECK(cand.points[10].pose.y <= PP_CONT_LATERAL_M);
@@ -194,15 +180,14 @@ static void test_blend_limit_of_a_far_change(void)
     PP_CHECK(cand.points[30].pose.y <= PP_CONT_BAND_AFTER_2_S * PP_CONT_LATERAL_M);
 }
 
-/* PP-SWR-100 within the view range: a change beyond x_limit does not hold the path back. */
 static void test_blend_ignores_change_beyond_view(void)
 {
     pp_previous_path_t prev = straight_path(0.0, 0.0);
     pp_old_path_t old;
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
-    pp_previous_path_t cand = straight_path(0.02, 0.0);           /* near: within the limit */
+    pp_previous_path_t cand = straight_path(0.02, 0.0);
     for (unsigned k = 20U; k < PP_TRAJECTORY_POINTS; k++) {
-        cand.points[k].pose.y = 0.5F;                             /* x >= 50 m */
+        cand.points[k].pose.y = 0.5F;
     }
     pp_previous_path_t whole = cand;
     PP_CHECK_NEAR(pp_stitch_blend(&old, &pp_calibration, 2.9, 40.0, cand.points), 1.0, 0.0);
@@ -210,8 +195,6 @@ static void test_blend_ignores_change_beyond_view(void)
     PP_CHECK(pp_stitch_blend(&old, &pp_calibration, 2.9, INFINITY, whole.points) < 1.0);
 }
 
-/* PP-TS-021 soft reset weight: 0 up to soft_min, 1 from reset, linear between; no ramp when
- * reset <= soft_min (the hard reset, also used for stitch_reset = 0). */
 static void test_soft_weight(void)
 {
     PP_CHECK_NEAR(pp_stitch_soft_weight(0.01, 0.02, 0.1), 0.0, 0.0);
@@ -220,9 +203,8 @@ static void test_soft_weight(void)
     PP_CHECK_NEAR(pp_stitch_soft_weight(0.1, 0.02, 0.1), 1.0, 1e-12);
     PP_CHECK_NEAR(pp_stitch_soft_weight(0.3, 0.02, 0.1), 1.0, 0.0);
     PP_CHECK_NEAR(pp_stitch_soft_weight(0.05, 0.0, 0.1), 0.5, 1e-12);
-    PP_CHECK_NEAR(pp_stitch_soft_weight(0.001, 0.02, 0.0), 1.0, 0.0);   /* reset 0: always measured */
+    PP_CHECK_NEAR(pp_stitch_soft_weight(0.001, 0.02, 0.0), 1.0, 0.0);
     PP_CHECK_NEAR(pp_stitch_soft_weight(0.0, 0.02, 0.0), 0.0, 0.0);
-    /* Continuous: a small change of the deviation gives a small change of the weight. */
     for (int i = 0; i < 100; i++) {
         const double a = 0.001 * (double)i;
         PP_CHECK(fabs(pp_stitch_soft_weight(a + 0.001, 0.02, 0.1) - pp_stitch_soft_weight(a, 0.02, 0.1))
@@ -233,13 +215,13 @@ static void test_soft_weight(void)
 static void test_soft_start_blends_every_component(void)
 {
     const pp_reference_line_t ref = straight_ref();
-    const pp_lateral_state_t measured = {0.0, 0.2, 0.4, 0.01};    /* d, d_dot, d_ddot, heading */
+    const pp_lateral_state_t measured = {0.0, 0.2, 0.4, 0.01};
     pp_lateral_state_t start;
     pp_old_path_t old;
     pp_calibration_t cal = pp_calibration;
     cal.stitch_soft_min = 0.0F;
     cal.stitch_reset = 0.2F;
-    pp_previous_path_t prev = straight_path(0.1, 0.0);              /* deviation 0.1: w = 0.5 */
+    pp_previous_path_t prev = straight_path(0.1, 0.0);
     pp_stitch_move_old(&prev, T_OLD + PP_PLANNER_PERIOD_US, straight_motion, NULL, &old);
     PP_CHECK(pp_stitch_start(&old, &ref, &measured, &cal, &start));
     PP_CHECK_NEAR(start.d, 0.05, 1e-6);

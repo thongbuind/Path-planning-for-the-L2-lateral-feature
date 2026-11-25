@@ -1,29 +1,6 @@
 #!/usr/bin/env python3
-"""PP-TS-013 prototype: comfort line inside a safety corridor (racing-line idea).
-
-Research only. Does not use the C planner. Draft results, not citable as official runs.
-
-Path model (spatial, along the lane centre s):
-    d(s)      lateral offset of the path from the lane centre, left positive
-    kappa_p   ~ kappa_r + d'' + kappa_r^2 d          (first order in d)
-    a_y       = v^2 kappa_p                          (constant speed)
-    j_y       = v^3 dkappa_p/ds
-Cost per node:  (a_y/A0)^2 + W_J (j_y/J0)^2 + W_D (d/D0)^2
-                + W_PK (excess of |a_y| over the largest centre-line need within +-80 m)^2
-Constraints:    -c <= d <= c  (safety corridor), d, d', d'' continuous with the executed path.
-Solved exactly by a primal active-set box QP (box_qp) inside a semismooth loop for the cap.
-
-Variants:
-    B0     lane centre (d = 0): the normal path, no corner cutting
-    R-cam  receding horizon, sees only the camera view range (80 m), replans every 1 m;
-           beyond the view assumes the last seen curvature for 80 m, back on centre there
-    R-glob whole road known in advance (upper bound, needs a map; not available on this L2 system)
-
-Each path is then driven closed loop on the simulator's dynamic bicycle model (VP-0), with
-the same feedforward + feedback controller, steering delay and steering-rate limit.
-
-Run:  python3 research/studies/PP-TS-013-comfort-line/prototype.py
-Writes results.json next to this file; dashboard.py draws the figure.
+"""Prototype PP-TS-013 so path trong hành lang an toàn; kết quả thuộc nghiên cứu hình học, không
+phải lượt benchmark của planner C.
 """
 
 from __future__ import annotations
@@ -52,41 +29,38 @@ from sim.vehicle.profiles import (  # noqa: E402
     STEERING_RATIO,
 )
 
-# ----------------------------------------------------------------------------- settings
 PROFILE = PROFILES["VP-0"]
-LANE_W = 3.5  # [m] SQTS anchors
-VIEW_M = 80.0  # [m] camera view range (SQTS, D-decisions 2026-11-10)
-H = 1.0  # [m] node spacing of the optimiser
-OFFSET_MAX = 0.3  # [m] existing calibration offset_max (PP-SWR-055); reused as corridor cap
-FREE_SIDE = (LANE_W - PROFILE.width_with_mirrors) / 2  # [m] SRS "Khoảng trống mỗi bên"
-MARGIN = 0.3  # [m] existing calibration dlc_offset_min; body must keep this to the line
-CORRIDOR = min(OFFSET_MAX, FREE_SIDE - MARGIN)  # 0.3 m for VP-0 on a 3.5 m lane
+LANE_W = 3.5
+VIEW_M = 80.0
+H = 1.0
+OFFSET_MAX = 0.3
+FREE_SIDE = (LANE_W - PROFILE.width_with_mirrors) / 2
+MARGIN = 0.3
+CORRIDOR = min(OFFSET_MAX, FREE_SIDE - MARGIN)
 
-# Cost scales (research choice, see study.md section 2)
-A0, J0, D0 = 1.0, 1.0, 1.0  # m/s^2, m/s^3, m
+A0, J0, D0 = 1.0, 1.0, 1.0
 W_J = 4.0
 W_D = 1.0
-W_PK = 1e3  # soft cap: a_y of the path above the centre-line need in view
+W_PK = 1e3
 W_TERM = 1e4
-CAP_SPAN = 80.0  # [m] cap window: max centre-line need within +-80 m (seen or remembered)
-EXTRAP_M = 80.0  # [m] beyond the view: last seen curvature, back on centre at the end  # soft terminal: path parallel to the lane at the end of the view
+CAP_SPAN = 80.0
+EXTRAP_M = 80.0  # Sau tầm nhìn, ngoại suy độ cong cuối và đưa path về tâm làn ở cuối cửa sổ mở rộng.
 
-CTRL_DT = 0.01  # [s] controller period
-SIM_DT = 0.002  # [s] bicycle integration step
-REVERSAL_GAP_DEG = 0.5  # steering wheel reversal gap (research choice)
+CTRL_DT = 0.01
+SIM_DT = 0.002
+REVERSAL_GAP_DEG = 0.5
 
 
-# ----------------------------------------------------------------------------- road
 @dataclass
 class Road:
     name: str
     label: str
     v: float
-    segs: list  # (length, k0, k1)
-    focus: tuple  # s range used for metrics
+    segs: list
+    focus: tuple
 
     def build(self, pad: float = VIEW_M + 120.0):
-        k_end = self.segs[-1][2]  # pad continues the last curvature (no artificial step)
+        k_end = self.segs[-1][2]
         segs = list(self.segs) + [(pad, k_end, k_end)]
         ds = 0.05
         L = sum(s[0] for s in segs)
@@ -101,7 +75,7 @@ class Road:
         x = np.concatenate([[0.0], np.cumsum(0.5 * (np.cos(th[1:]) + np.cos(th[:-1])) * ds)])
         y = np.concatenate([[0.0], np.cumsum(0.5 * (np.sin(th[1:]) + np.sin(th[:-1])) * ds)])
         self.s, self.k, self.th, self.x, self.y = s, k, th, x, y
-        self.length = L - pad  # metrics stop here
+        self.length = L - pad  # Các chỉ số chỉ tính đến mốc cuối phần đường thử.
         self.sn = np.arange(0.0, L - 1e-9, H)
         self.kn = np.interp(self.sn, s, k)
         return self
@@ -120,7 +94,7 @@ def road_from_xodr(path: Path, name, label, v, focus, trim=None) -> Road:
             segs.append((L, c, c))
         elif child.tag == "spiral":
             segs.append((L, float(child.get("curvStart")), float(child.get("curvEnd"))))
-    if trim is not None:  # shorten the first straight (saves sim time, not the curve)
+    if trim is not None:
         segs[0] = (segs[0][0] - trim, 0.0, 0.0)
     return Road(name, label, v, segs, focus)
 
@@ -128,9 +102,8 @@ def road_from_xodr(path: Path, name, label, v, focus, trim=None) -> Road:
 def research_roads() -> list[Road]:
     rd = ROOT / "benchmark" / "roads"
     roads = []
-    # Rf: research-only finite curve (not a benchmark scenario): R 250 m, 20 deg total, clothoids 60 m
     R, Lc, defl = 250.0, 60.0, np.radians(20.0)
-    arc = (defl - Lc / R) * R  # each clothoid turns Lc/(2R)
+    arc = (defl - Lc / R) * R
     roads.append(Road("Rf", "Rf (nghiên cứu): cua hữu hạn R 250 m, đổi hướng 20°, 90 km/h", 25.0,
                       [(150.0, 0, 0), (Lc, 0, 1 / R), (arc, 1 / R, 1 / R), (Lc, 1 / R, 0), (250.0, 0, 0)],
                       (100.0, 150 + 2 * Lc + arc + 150)))
@@ -141,7 +114,6 @@ def research_roads() -> list[Road]:
     roads.append(road_from_xodr(rd / "S1be.xodr", "S1be", "S1be: vào R 200 m, clothoid 60 m, 90 km/h", 25.0, (50.0, 360.0), trim=50))
     for r in roads:
         segs = r.segs
-        # Cut long trailing arcs to 250 m so runs stay short; the curve entry is what matters.
         if segs[-1][1] == segs[-1][2] and segs[-1][1] != 0 and segs[-1][0] > 250:
             segs[-1] = (250.0, segs[-1][1], segs[-1][2])
         r.focus = (r.focus[0], min(r.focus[1], sum(s[0] for s in segs)))
@@ -149,9 +121,7 @@ def research_roads() -> list[Road]:
     return roads
 
 
-# ----------------------------------------------------------------------------- optimiser
 def ls_rows(kr: np.ndarray, v: float):
-    """Least-squares rows (A, b) so that ||A d - b||^2 is the cost over a window."""
     n = len(kr)
     m = n - 2
     K = np.zeros((m, n))
@@ -171,7 +141,6 @@ def ls_rows(kr: np.ndarray, v: float):
 
 
 def curvature_matrix(kr):
-    """kappa_p at interior nodes = K d + kr[1:-1]."""
     n = len(kr)
     K = np.zeros((n - 2, n))
     for i in range(n - 2):
@@ -182,9 +151,9 @@ def curvature_matrix(kr):
 
 
 def box_qp(Hm, g, lo, hi, x0=None, max_iter=500):
-    """min 1/2 x'Hm x + g'x  s.t. lo <= x <= hi  (Hm positive definite). Primal active set.
-
-    Exact up to round-off; warm start x0 keeps the iteration count small in receding horizon."""
+    """QP hộp có Hessian xác định dương; dùng active set trên biến gốc và điểm khởi đầu từ chu kỳ
+    trước.
+    """
     n = len(g)
     x = np.clip(np.zeros(n) if x0 is None else x0, lo, hi)
     tol = 1e-12
@@ -211,7 +180,7 @@ def box_qp(Hm, g, lo, hi, x0=None, max_iter=500):
         grad = Hm @ x + g
         at_lo = W & (x <= lo + tol)
         at_hi = W & (x >= hi - tol)
-        viol = np.where(at_lo, -grad, 0.0) + np.where(at_hi, grad, 0.0)  # >0: wants to leave
+        viol = np.where(at_lo, -grad, 0.0) + np.where(at_hi, grad, 0.0)
         k = int(np.argmax(viol))
         if viol[k] <= 1e-10:
             return x
@@ -221,22 +190,19 @@ def box_qp(Hm, g, lo, hi, x0=None, max_iter=500):
 
 def solve_window(kr, v, fixed_head, corridor, tail_parallel=True, fixed_tail=None, klim=None,
                  tail_centre=False, x0=None):
-    """Least squares in d with corridor bounds; optional soft cap |kappa_p| <= klim per node.
-
-    The corridor is a symmetric half-width or a signed (right, left) pair.
-
-    The cap is a one-sided quadratic penalty (weight W_PK) on the excess, solved by a
-    semismooth Newton loop over the set of nodes that exceed it."""
+    """Fit offset theo hành lang đối xứng hoặc cặp biên (phải, trái). Phạt vượt ngưỡng độ cong nếu
+    có.
+    """
     n = len(kr)
     A, b = ls_rows(kr, v)
     rows_A, rows_b = [A], [b]
-    if tail_parallel:  # soft: d'(end) = 0, d''(end) = 0
+    if tail_parallel:
         t = np.zeros((2, n))
         t[0, -1], t[0, -2] = 1 / H, -1 / H
         t[1, -1], t[1, -2], t[1, -3] = 1 / H**2, -2 / H**2, 1 / H**2
         rows_A.append(np.sqrt(W_TERM) * t * v**2)
         rows_b.append(np.zeros(2))
-    if tail_centre:  # soft: back on the lane centre at the end of the (extended) window
+    if tail_centre:
         t = np.zeros((1, n))
         t[0, -1] = 1.0
         rows_A.append(np.sqrt(W_TERM) * t / D0)
@@ -291,7 +257,6 @@ def solve_window(kr, v, fixed_head, corridor, tail_parallel=True, fixed_tail=Non
 
 
 def peak_limit(kr_known: np.ndarray, i: int, j: int) -> np.ndarray:
-    """Per-node cap: max |kappa centre| within +-CAP_SPAN of the node, over what is known."""
     span = int(round(CAP_SPAN / H))
     a = np.abs(kr_known)
     out = np.empty(j - i)
@@ -301,7 +266,7 @@ def peak_limit(kr_known: np.ndarray, i: int, j: int) -> np.ndarray:
 
 
 def plan_global(road: Road, corridor: float, cap: bool = True) -> np.ndarray:
-    """Whole road known (needs a map): blocks of 150 m with 250 m look-ahead."""
+    """Đối chứng biết toàn bộ đường, chia khối 150 m với tầm nhìn trước 250 m."""
     kr = road.kn
     n = len(kr)
     d = np.zeros(n)
@@ -319,7 +284,6 @@ def plan_global(road: Road, corridor: float, cap: bool = True) -> np.ndarray:
 
 
 def continuity_change(new: np.ndarray, old: np.ndarray, curvature: np.ndarray) -> np.ndarray:
-    """Approximate lateral, heading and curvature changes on one shared Frenet reference."""
     delta = new - old
     heading = np.diff(delta) / H
     bend = np.diff(delta, n=2) / H**2 + curvature[1:-1]**2 * delta[1:-1]
@@ -333,10 +297,7 @@ def plan_receding(road: Road, corridor: float | tuple[float, float], view: float
                   preview: Callable[[int], np.ndarray] | None = None,
                   adjust_plan: Callable[[int, np.ndarray, int, np.ndarray, np.ndarray | None],
                                         np.ndarray] | None = None) -> np.ndarray:
-    """Camera only: sees [s, s + view]; beyond it assumes the last seen curvature for `extrap`
-    metres and asks to be back on the centre there. Replans every H metres.
-    Optional continuity limits apply on the observed part of the common 3 s horizon.
-    The entire Frenet curve is blended with one weight before deriving its geometry."""
+    """Chỉ quan sát [s, s + view]. Ngoài vùng đó giữ độ cong cuối và yêu cầu quay về tâm làn."""
     kr = road.kn
     n = len(kr)
     nv = int(round(view / H)) + 1
@@ -385,7 +346,6 @@ def plan_receding(road: Road, corridor: float | tuple[float, float], view: float
     return d
 
 
-# ----------------------------------------------------------------------------- path metrics
 def path_signals(road: Road, d: np.ndarray):
     kr = road.kn
     dpp = np.zeros_like(d)
@@ -397,15 +357,10 @@ def path_signals(road: Road, d: np.ndarray):
     return kp, ay, jy
 
 
-# ----------------------------------------------------------------------------- closed loop
-# Control law of the stand-in Lateral Controller (sim/stand_ins/lateral_controller.py, SQTS 4.6):
-#   delta = L kappa_ff + K v^2 kappa_ff + k_y e_y + k_psi e_psi
-# kappa_ff at now + actuator delay; e_y, e_psi at a 0.5 s preview against the predicted ego pose;
-# path = base_link (rear axle). Same gains as the stand-in.
 from sim.stand_ins.lateral_controller import HEADING_GAIN, LATERAL_GAIN_RAD_PER_M, PREVIEW_S  # noqa: E402
 
-FRONT_CORNER = 0.9  # [m] front overhang beyond the front axle (research choice)
-REAR_CORNER = 1.0  # [m] rear overhang behind base_link
+FRONT_CORNER = 0.9
+REAR_CORNER = 1.0
 
 
 def closed_loop(road: Road, d: np.ndarray):
@@ -440,7 +395,6 @@ def closed_loop(road: Road, d: np.ndarray):
         j = lo + int(np.argmin((px[lo:hi] - xr) ** 2 + (py[lo:hi] - yr) ** 2))
         idx = j
         ey_now = -(xr - px[j]) * sin(pth[j]) + (yr - py[j]) * cos(pth[j])
-        # predicted base_link pose after PREVIEW_S (constant v, v_y at base_link, r)
         vyb = st.v_y - p.lr * st.r
         r = st.r
         T = PREVIEW_S
@@ -463,7 +417,7 @@ def closed_loop(road: Road, d: np.ndarray):
         delta = p.wheelbase * kff + K * v * v * kff + LATERAL_GAIN_RAD_PER_M * e_y + HEADING_GAIN * (e_yaw - slip)
         delta = float(np.clip(delta, -p.max_wheel_angle, p.max_wheel_angle))
         sw = delta * STEERING_RATIO
-        step = MAX_STEERING_WHEEL_RATE * CTRL_DT  # stand-in EPS rate limit
+        step = MAX_STEERING_WHEEL_RATE * CTRL_DT
         sw = float(np.clip(sw, sw_prev - step, sw_prev + step))
         sw_prev = sw
         queue.append(sw / STEERING_RATIO)
@@ -485,7 +439,6 @@ def closed_loop(road: Road, d: np.ndarray):
 
 
 def reversals(sw_deg: np.ndarray, gap: float) -> int:
-    """Steering wheel reversals: direction changes larger than gap (deg)."""
     count, ext, direction = 0, sw_deg[0], 0
     for a in sw_deg[1:]:
         if direction >= 0:
@@ -507,7 +460,6 @@ def reversals(sw_deg: np.ndarray, gap: float) -> int:
 def cl_metrics(road: Road, log):
     m = (log["s"] >= road.focus[0]) & (log["s"] <= road.focus[1])
     ay = log["ay"][m]
-    # lateral jerk of the vehicle: derivative of a_y, 0.1 s moving average (noise-free model)
     jy = np.gradient(log["ay"], CTRL_DT)
     k = 10
     jy = np.convolve(jy, np.ones(k) / k, mode="same")[m]
@@ -544,7 +496,6 @@ def path_metrics(road: Road, d):
     }
 
 
-# ----------------------------------------------------------------------------- main
 def main():
     t0 = time.time()
     roads = research_roads()
@@ -579,9 +530,8 @@ def main():
                 "log": {k: log[k][dec].tolist() for k in ("t", "s", "ay", "sw", "ey", "dveh")},
             }
         out["roads"][road.name] = rec
-        # corridor sensitivity, path level, camera-view planner
         sw = {}
-        for c in (0.0, 0.1, 0.2, 0.3, 0.45, 0.6):  # 0.45, 0.6 exceed offset_max: sensitivity only
+        for c in (0.0, 0.1, 0.2, 0.3, 0.45, 0.6):  # 0,45 m và 0,6 m vượt offset_max, chỉ dùng để đo độ nhạy.
             d = plan_receding(road, c) if c > 0 else np.zeros_like(road.kn)
             sw[str(c)] = path_metrics(road, d)
         out["sweep"][road.name] = sw

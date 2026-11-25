@@ -1,24 +1,24 @@
-# Interface Control Document 5.9 (#lead-target). Perception -> LCC planner, 20 Hz.
+# Perception phát LeadTarget cho LCC ở 20 Hz (ICD 5.9).
 icd: "5.9"
 constants:
   LEAD_TARGET_TIMEOUT_US: {type: uint64, value: 150000}
-  LEAD_TARGET_MAX_DELTA_COUNTER: {type: uint, value: 3, doc: "Largest accepted counter step (ICD 4, E2E): floor((150 + 25) / 50 ms)"}
+  LEAD_TARGET_MAX_DELTA_COUNTER: {type: uint, value: 3, doc: "Bước counter lớn nhất theo ICD 4: floor((150 + 25) / 50), với thời gian tính bằng ms."}
   LEAD_TARGET_MAX_AGE_US: {type: uint64, value: 250000}
 enums:
   LeadClass:
-    doc: "Class of the lead vehicle; only CAR and TRUCK are followed (PP-SWR-170, 176)"
+    doc: "Chỉ dùng CAR và TRUCK cho FOLLOW (PP-SWR-170, 176)."
     values: {UNKNOWN: 0, CAR: 1, TRUCK: 2, MOTORCYCLE: 3, OTHER: 4}
 structs:
   LeadTarget:
-    doc: "The vehicle that is the ACC target, centre in base_link at measurement time; header.valid = false when there is none"
+    doc: "Tâm xe mục tiêu của ACC, trong base_link lúc đo. header.valid = false khi không có xe mục tiêu."
     fields:
       - {name: header, type: Header}
-      - {name: id, type: uint32, doc: "Stable across frames; compared with LongitudinalPlan.target_id"}
+      - {name: id, type: uint32, doc: "Ổn định giữa các frame; dùng để so với LongitudinalPlan.target_id."}
       - {name: classification, type: LeadClass}
-      - {name: x, type: float32, unit: m, doc: "Centre of the lead vehicle"}
+      - {name: x, type: float32, unit: m}
       - {name: y, type: float32, unit: m}
-      - {name: gap, type: float32, unit: m, doc: "Front bumper of the ego vehicle to rear bumper of the lead vehicle"}
-      - {name: heading, type: float32, unit: rad, doc: "Heading of the lead vehicle against the x axis of base_link"}
-      - {name: vx_rel, type: float32, unit: m/s, doc: "Lead velocity minus ego velocity, projected on base_link; x longitudinal"}
-      - {name: vy_rel, type: float32, unit: m/s, doc: "y lateral"}
+      - {name: gap, type: float32, unit: m, doc: "Từ cản trước xe ego tới cản sau xe mục tiêu."}
+      - {name: heading, type: float32, unit: rad, doc: "Hướng xe mục tiêu so với trục x của base_link."}
+      - {name: vx_rel, type: float32, unit: m/s, doc: "Vận tốc xe mục tiêu trừ vận tốc ego, chiếu lên trục dọc base_link."}
+      - {name: vy_rel, type: float32, unit: m/s, doc: "Thành phần ngang của vận tốc tương đối trong base_link."}
       - {name: existence_probability, type: float32, unit: "0..1"}

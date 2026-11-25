@@ -1,9 +1,5 @@
-"""Dynamic bicycle model (Software Qualification Test Specification 4.4).
-
-States x, y, psi, v_y, r at the centre of gravity; RK4 with 1 ms steps. Linear tyres
-F = C alpha, each axle limited to mu F_z. Below 5 m/s the model blends into a
-kinematic bicycle, fully kinematic at 3 m/s. Longitudinal speed is an input
-(scripted or from the stand-in ACC).
+"""Bicycle model đặt tại trọng tâm và dùng RK4. Ở tốc độ thấp mô hình chuyển dần sang động học
+(SQTS 4.4).
 """
 
 from dataclasses import dataclass
@@ -11,15 +7,14 @@ from math import atan2, cos, sin, tan
 
 from sim.vehicle.profiles import VehicleProfile
 
-G = 9.81  # [m/s^2]
-MU_DRY = 1.0  # 4.4
-KINEMATIC_BELOW_MPS = 3.0  # 4.4: blend between 3 and 5 m/s
+G = 9.81
+MU_DRY = 1.0
+KINEMATIC_BELOW_MPS = 3.0
 DYNAMIC_ABOVE_MPS = 5.0
 
 
 def steady_cornering(p: VehicleProfile, v: float, kappa: float) -> tuple[float, float, float]:
-    """(v_y at the CG, yaw rate, front wheel angle) of the linear model turning steadily on
-    curvature kappa at speed v: r = v kappa, both axles in lateral force balance."""
+    """Trả v_y tại trọng tâm, yaw rate và góc bánh trước khi hai trục cân bằng lực ngang trên cua."""
     r = v * kappa
     if v <= 0.0 or kappa == 0.0:
         return 0.0, r, p.wheelbase * kappa
@@ -32,11 +27,11 @@ def steady_cornering(p: VehicleProfile, v: float, kappa: float) -> tuple[float, 
 
 @dataclass(slots=True)
 class BicycleState:
-    x: float  # [m] CG, world
+    x: float
     y: float
-    psi: float  # [rad] heading, world
-    v_y: float  # [m/s] lateral velocity at the CG, body frame
-    r: float  # [rad/s] yaw rate
+    psi: float
+    v_y: float  # [m/s] Vận tốc ngang tại trọng tâm, trong khung thân xe.
+    r: float
 
 
 class Bicycle:
@@ -45,9 +40,8 @@ class Bicycle:
         self.state = state
         self.mu = mu
         self.v_x = 0.0
-        self.a_y = 0.0  # [m/s^2] lateral acceleration at the CG, body frame
-        self.external_force_y = 0.0  # [N] bank or crosswind, body frame
-        # Profile values used every substep, evaluated once with the same expressions.
+        self.a_y = 0.0
+        self.external_force_y = 0.0
         p = profile
         self._lf, self._lr, self._mass = p.lf, p.lr, p.mass
         self._c_front, self._c_rear, self._yaw_inertia = p.c_front, p.c_rear, p.yaw_inertia
@@ -74,7 +68,6 @@ class Bicycle:
         return dx, dy, r, dv_y, dr
 
     def step(self, dt: float, delta: float, v_x: float) -> None:
-        """Advance by dt with front wheel angle delta [rad] and speed v_x [m/s]."""
         self.v_x = v_x
         st = self.state
         s0 = (st.x, st.y, st.psi, st.v_y, st.r)
@@ -89,7 +82,6 @@ class Bicycle:
         s1 = tuple(s0[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) for i in range(5))
         x, y, psi, v_y, r = s1
 
-        # Low-speed blend towards the kinematic model (4.4).
         w = min(1.0, max(0.0, (v_x - KINEMATIC_BELOW_MPS) / (DYNAMIC_ABOVE_MPS - KINEMATIC_BELOW_MPS)))
         if w < 1.0:
             r_kin = v_x * tan(delta) / self.p.wheelbase
@@ -101,7 +93,6 @@ class Bicycle:
         self.a_y = (fy_f * cos(delta) + fy_r + self.external_force_y) / self.p.mass
         self.state = BicycleState(x, y, psi, v_y, r)
 
-    # Views at base_link (rear axle centre) and the front axle.
     def rear_axle(self) -> tuple[float, float, float]:
         st = self.state
         return st.x - self.p.lr * cos(st.psi), st.y - self.p.lr * sin(st.psi), st.psi
@@ -111,7 +102,6 @@ class Bicycle:
         return st.x + self.p.lf * cos(st.psi), st.y + self.p.lf * sin(st.psi), st.psi
 
     def rear_axle_lateral_velocity(self) -> float:
-        """v_y at base_link (Interface Control Document 5.4)."""
         return self.state.v_y - self.p.lr * self.state.r
 
     def slip_angle(self) -> float:

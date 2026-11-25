@@ -1,33 +1,20 @@
-"""ECU clocks (Software Qualification Test Specification 4.2, "Đồng hồ ECU"; 6: F14).
-
-local(t) = t + offset(t). A gPTP-like synchronisation every SYNC_PERIOD_US sets the offset
-to a residual error uniform in +/- SYNC_RESIDUAL_US; between two of them the offset grows
-with the drift. Before the first one the offset is the start offset. Inside a window of lost
-synchronisation (F14 c) no reset happens, so the drift accumulates.
-
-local() is a pure function of the global time (the residual of synchronisation k is drawn
-from a generator seeded with k), so any time can be converted in any order.
-
-The simulator keeps one global time. Only what the planner sees is converted: the camera
-ECU stamps lane model and ObjectList; the ADAS ECU gives t0, rx_us, the other stamps and
-the EgoMotionQuery times. Stand-ins of the test bench keep the global time. Ideal clocks are
-the default until the nominal realism batch switches them on.
+"""Đồng hồ ECU có offset và drift. Đồng bộ định kỳ đặt lại offset với sai số dư ngẫu nhiên (SQTS
+4.2, F14).
 """
 
 from dataclasses import dataclass
 
 import numpy as np
 
-SYNC_PERIOD_US = 125_000  # gPTP-like (4.2)
-SYNC_RESIDUAL_US = 50.0  # +/- after a synchronisation (4.2)
-DRIFT_PPM_MAX = 100.0  # +/- (4.2)
-START_OFFSET_US_MAX = 10_000.0  # +/- before the first synchronisation (4.2; PP-ASM-012)
+SYNC_PERIOD_US = 125_000
+SYNC_RESIDUAL_US = 50.0
+DRIFT_PPM_MAX = 100.0
+START_OFFSET_US_MAX = 10_000.0
 ECUS = ("camera", "adas")
 
 
 @dataclass(frozen=True, slots=True)
 class ClockFault:
-    """F14: drift of one ECU in ppm (`drift`), or a window without synchronisation (`sync_loss`)."""
     kind: str
     ecu: str
     value: float = 0.0
@@ -64,7 +51,7 @@ class EcuClock:
     def local(self, t_us: int) -> int:
         if self.ideal:
             return int(t_us)
-        k = (int(t_us) - self.phase) // SYNC_PERIOD_US  # last synchronisation slot at or before t
+        k = (int(t_us) - self.phase) // SYNC_PERIOD_US
         while k >= 0 and not self._synced(self.phase + k * SYNC_PERIOD_US):
             k -= 1
         if k < 0:
@@ -75,7 +62,7 @@ class EcuClock:
         return int(round(t_us + offset))
 
     def to_global(self, local_us: int) -> int:
-        """Global time whose local time is local_us (offsets are small: two fixed-point steps)."""
+        """Đổi giờ ECU về giờ toàn cục bằng hai bước lặp điểm bất động; offset đủ nhỏ."""
         t = int(local_us)
         for _ in range(2):
             t = int(local_us) - (self.local(t) - t)
@@ -83,8 +70,6 @@ class EcuClock:
 
 
 def clocks(seed: int, realism: bool, faults: tuple[ClockFault, ...]) -> dict[str, EcuClock]:
-    """Clock of each ECU for one run: ideal, or with drift, start offset and residual drawn
-    from the seed (realism), then F14 faults (drift value, windows without synchronisation)."""
     rng = np.random.default_rng([seed, 4242])
     out = {}
     for i, ecu in enumerate(ECUS):

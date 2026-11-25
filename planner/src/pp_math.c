@@ -1,11 +1,8 @@
-/* Numeric helpers (pp_math.h). */
-
 #include "pp_math.h"
 
 #include <math.h>
 #include <string.h>
 
-/* Relative pivot below which a 4x4 system counts as singular. */
 #define PP_PIVOT_EPS (1.0e-12)
 
 double pp_cubic_value(const pp_cubic_t *p, double x)
@@ -56,14 +53,13 @@ bool pp_cubic_fit_solve(const pp_cubic_fit_t *fit, pp_cubic_t *out)
     double a[PP_CUBIC_TERMS];
     bool ok = (fit->count >= PP_CUBIC_TERMS) && pp_solve4(&fit->ata, fit->aty, a);
     if (ok) {
-        /* y = sum a_k u^k with u = (x - m) / h  ->  y = sum b_k q^k with q = x - m. */
+        /* Chuyển hệ số khỏi biến chuẩn hóa u = (x - m)/h trước khi khai triển về biến x. */
         const double h = fit->half_width;
         const double m = fit->centre;
         const double b0 = a[0];
         const double b1 = a[1] / h;
         const double b2 = a[2] / (h * h);
         const double b3 = a[3] / (h * h * h);
-        /* Expand (x - m)^k. */
         out->c[0] = b0 - (b1 * m) + (b2 * m * m) - (b3 * m * m * m);
         out->c[1] = b1 - (2.0 * b2 * m) + (3.0 * b3 * m * m);
         out->c[2] = b2 - (3.0 * b3 * m);

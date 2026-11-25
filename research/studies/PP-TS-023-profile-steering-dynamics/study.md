@@ -33,4 +33,15 @@ Chưa khóa. Cần nguồn cho dải trước.
 
 ## 6. Đề xuất
 
+2026-11-23, người phụ trách duyệt hướng; plan khóa khi cài xong ở simulator, chạy sau nhóm sửa planner:
+
+| Đại lượng | Nguồn tìm được | Dải đề xuất |
+|---|---|---|
+| Understeer gradient K | Bộ số liệu SAE của xe những năm 1980, trích lại qua tài liệu giảng dạy: trung bình 2,6 deg/g (châu Âu), 4,4 deg/g (Mỹ). Chưa đọc được bản gốc | Quét 1, 2,5, 4,5 deg/g (0,0018 đến 0,0080 rad/(m/s²)); bản hiện tại 0,00286 rad/(m/s²) ≈ 1,6 deg/g |
+| Steering ratio | Chỉ có tài liệu tra cứu chung: 12:1 đến 20:1 | Lấy số hãng công bố của từng xe trong profile khi có; không có thì quét 12, 15, 18 |
+| Actuator delay | Không có số đo công bố | Quét 0,05, 0,10, 0,15 s, như S13 |
+
+- Theo quy tắc của dự án, đại lượng không có nguồn uy tín thì quét nhiều mức; kết luận flexibility ghi rõ dải đã quét.
+- Cài ở phía simulator (`sim/vehicle/profiles.py`), planner vẫn chỉ nhận VehicleConfig. Chạy trên bộ flexibility sau khi nhóm sửa planner xong, để không chỉnh planner theo dải này.
+
 ## 7. Quyết định

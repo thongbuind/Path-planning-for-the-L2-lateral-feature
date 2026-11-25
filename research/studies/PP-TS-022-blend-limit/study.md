@@ -130,4 +130,4 @@ Cái giá của V1, trên các lượt có chỉ số của cả hai phương á
 - Chọn: V1. T4 bước 4 so mỗi điểm với ngưỡng của đoạn thời gian chứa nó (0–1 s, 1–2 s, sau 2 s), vẫn một λ cho cả path.
 - Lý do: theo đề xuất ở mục 6, lần chạy 20261117-1315-study-PP-TS-022-d2e7d27: ít lượt trượt hơn ở cả bộ chỉnh và bộ kiểm, không trượt thêm; sửa F06 d. Cái giá (lệch tâm và tốc độ quay vô lăng ở ca nhiễu) được chấp nhận, theo dõi ở hồi quy.
 - Đưa vào: Software Detailed Design 1.25 (T4 bước 4); code giao (`stitching.c`, `stitching.h`); bỏ tuỳ chọn build `PP_T4_BLEND` và nhánh `single` (git giữ lại ở d2e7d27).
-- Hồi quy: chờ.
+- Hồi quy sau khi tích hợp V1 (`8e5c4eb`): [20261119-0948-suite-regression-bb08d77](../../runs/20261119-0948-suite-regression-bb08d77/report.md). PP-SWR-051 còn trượt ở F06(d) trên S1a và S1c với VP-5, DLC lần lượt −0,273 m và −0,280 m. F03(c) và S14(e) vẫn còn trượt. Lần chạy này xác nhận hành vi của baseline có V1. Việc quy mức thay đổi riêng cho V1 cần so hai bản build cùng mốc.

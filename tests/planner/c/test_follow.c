@@ -1,5 +1,3 @@
-/* Unit tests of T12 Bám xe trước (follow.c): entry V1 to V6, keep M1 to M6 (PP-SWR-170 to 177). */
-
 #include <math.h>
 #include <string.h>
 
@@ -19,7 +17,6 @@ typedef struct {
     uint64_t t_us;
 } rig_t;
 
-/* Straight lane, car at the centre, a car 25 m ahead at the same speed, 0.2 m to the left. */
 static void rig_init(rig_t *r)
 {
     (void)memset(r, 0, sizeof(*r));
@@ -38,7 +35,6 @@ static void rig_init(rig_t *r)
     r->v = 12.0;
 }
 
-/* One cycle of 25 ms; the car drives 0.3 m, the lead keeps its place in front of it. */
 static pp_follow_input_t cycle(rig_t *r, bool lane_trusted)
 {
     r->t_us += 25000U;
@@ -51,7 +47,6 @@ static pp_follow_input_t cycle(rig_t *r, bool lane_trusted)
     return in;
 }
 
-/* Lane trusted for a few cycles, then lost; the trail fills while the lines are still there. */
 static pp_follow_input_t run(rig_t *r, unsigned trusted, unsigned lost)
 {
     pp_follow_input_t in = cycle(r, true);
@@ -75,7 +70,7 @@ static void test_all_conditions_met_follows_the_lead(void)
     pp_reference_line_t ref;
     PP_CHECK(candidate(&r, &in, &ref));
     PP_CHECK(ref.valid && !ref.inferred && !ref.coasting);
-    PP_CHECK_NEAR(ref.view_end, 25.0, 1e-9);                  /* observed_horizon_s: to the lead */
+    PP_CHECK_NEAR(ref.view_end, 25.0, 1e-9);
     PP_CHECK_NEAR(pp_cubic_value(&ref.centre, 25.0), 0.2, 0.05);
     PP_CHECK_NEAR(pp_cubic_value(&ref.centre, 0.0), 0.0, 0.1);
 }
@@ -88,27 +83,27 @@ static void test_each_entry_condition_blocks(void)
     pp_follow_input_t in = run(&r, 5U, 40U);
     PP_CHECK(candidate(&r, &in, &ref));
 
-    r.lead.classification = PP_LEAD_CLASS_MOTORCYCLE;  PP_CHECK(!candidate(&r, &in, &ref));   /* V1 */
+    r.lead.classification = PP_LEAD_CLASS_MOTORCYCLE;  PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.classification = PP_LEAD_CLASS_TRUCK;       PP_CHECK(candidate(&r, &in, &ref));
-    r.lead.gap = 1.9F;                                  PP_CHECK(!candidate(&r, &in, &ref));   /* V2 */
+    r.lead.gap = 1.9F;                                  PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.gap = 50.1F;                                 PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.gap = 50.0F;                                 PP_CHECK(candidate(&r, &in, &ref));
-    r.lead.y = 1.5F;                                    PP_CHECK(!candidate(&r, &in, &ref));   /* V3 */
+    r.lead.y = 1.5F;                                    PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.y = 0.2F;
-    r.lead.vy_rel = 0.7F;                               /* V4 is on a low-pass: a few frames of it */
+    r.lead.vy_rel = 0.7F;
     for (unsigned k = 0U; k < 12U; k++) {
         in = cycle(&r, false);
         pp_follow_observe(&r.st, &in, &pp_calibration);
     }
-    PP_CHECK(!candidate(&r, &in, &ref));                                                  /* V4 */
+    PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.vy_rel = 0.0F;
     for (unsigned k = 0U; k < 30U; k++) {
         in = cycle(&r, false);
         pp_follow_observe(&r.st, &in, &pp_calibration);
     }
-    r.plan.target_id = 8U;                              PP_CHECK(!candidate(&r, &in, &ref));   /* V5 */
+    r.plan.target_id = 8U;                              PP_CHECK(!candidate(&r, &in, &ref));
     r.plan.target_id = 7U;                              PP_CHECK(candidate(&r, &in, &ref));
-    r.lead.existence_probability = 0.2F;                PP_CHECK(!candidate(&r, &in, &ref));   /* PP-SWR-176 */
+    r.lead.existence_probability = 0.2F;                PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.existence_probability = 0.95F;
     r.lead.x = NAN;                                     PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.x = 25.0F;
@@ -116,9 +111,9 @@ static void test_each_entry_condition_blocks(void)
     in.lead = &r.lead;
     in.plan = NULL;                                     PP_CHECK(!candidate(&r, &in, &ref));
     in.plan = &r.plan;
-    in.v = 60.0 / 3.6;                                  PP_CHECK(!candidate(&r, &in, &ref));   /* M3 */
+    in.v = 60.0 / 3.6;                                  PP_CHECK(!candidate(&r, &in, &ref));
     in.v = 12.0;
-    r.steering.steering_wheel_angle_rad = 0.35F;        PP_CHECK(!candidate(&r, &in, &ref));   /* M4, 20 deg */
+    r.steering.steering_wheel_angle_rad = 0.35F;        PP_CHECK(!candidate(&r, &in, &ref));
     r.steering.steering_wheel_angle_rad = -0.30F;       PP_CHECK(candidate(&r, &in, &ref));
 }
 
@@ -127,10 +122,10 @@ static void test_no_follow_without_original_centre_or_trail(void)
     pp_reference_line_t ref;
     rig_t r;
     rig_init(&r);
-    pp_follow_input_t in = run(&r, 0U, 40U);         /* the lines were never seen */
+    pp_follow_input_t in = run(&r, 0U, 40U);
     PP_CHECK(!candidate(&r, &in, &ref));
     rig_init(&r);
-    in = run(&r, 5U, 1U);                             /* trail too short */
+    in = run(&r, 5U, 1U);
     PP_CHECK(!candidate(&r, &in, &ref));
 }
 
@@ -142,7 +137,7 @@ static void test_keep_conditions_while_following(void)
     pp_follow_input_t in = run(&r, 5U, 40U);
     PP_CHECK(candidate(&r, &in, &ref));
     pp_follow_commit(&r.st, true, &r.lead, 0.0);
-    /* V2 to V5 are entry conditions only: a gap outside 2 to 50 m does not end it by itself. */
+    /* V2–V5 chỉ áp dụng khi vào FOLLOW. Khoảng cách ra ngoài ngưỡng vào không tự kết thúc FOLLOW. */
     r.lead.gap = 60.0F;
     in = cycle(&r, false);
     pp_follow_observe(&r.st, &in, &pp_calibration);
@@ -151,10 +146,10 @@ static void test_keep_conditions_while_following(void)
     PP_CHECK(candidate(&r, &in, &ref));
     r.plan.target_id = 7U;
     r.lead.gap = 20.0F;
-    r.lead.id = 9U;                                                    /* M6: another vehicle */
+    r.lead.id = 9U;
     PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.id = 7U;
-    for (unsigned k = 0U; k < 101U; k++) {                             /* M5: 30 m driven */
+    for (unsigned k = 0U; k < 101U; k++) {
         pp_follow_commit(&r.st, true, &r.lead, 0.3);
     }
     PP_CHECK(r.st.distance_m > PP_FOLLOW_DISTANCE_MAX_M);
@@ -171,18 +166,18 @@ static void test_trail_survives_bad_frames_and_follows_the_acc_target(void)
     pp_follow_input_t in = run(&r, 5U, 40U);
     const uint32_t kept = r.st.n;
     PP_CHECK(kept > 4U);
-    r.lead.header.valid = false;                      /* PP-SWR-176: no following on a lost frame */
+    r.lead.header.valid = false;
     in.lead = NULL;
     pp_follow_observe(&r.st, &in, &pp_calibration);
-    PP_CHECK(r.st.n == kept);                         /* ... but the trail is still that vehicle's */
+    PP_CHECK(r.st.n == kept);  /* Một frame mất không xóa trail của xe đang được bám. */
     PP_CHECK(!candidate(&r, &in, &ref));
     r.lead.header.valid = true;
     in.lead = &r.lead;
-    r.lead.id = 9U;                                   /* One frame names another vehicle */
+    r.lead.id = 9U;
     r.lead.header.stamp_us += 50000U;
     pp_follow_observe(&r.st, &in, &pp_calibration);
     PP_CHECK(r.st.n == kept);
-    r.plan.target_id = 9U;                            /* The ACC target really changed */
+    r.plan.target_id = 9U;
     r.lead.header.stamp_us += 50000U;
     pp_follow_observe(&r.st, &in, &pp_calibration);
     PP_CHECK(r.st.n <= 1U);
@@ -199,10 +194,10 @@ static void test_path_within_the_limit_of_the_original_centre(void)
         points[k].pose.x = (float)(k * 2U);
         points[k].pose.y = 0.3F;
     }
-    /* limit = min(0.8, (3.5 - 1.9) / 2 - dlc_offset_min) = 0.5 m for this lane. */
+    /* Giới hạn lệch là min(0,8 m, (3,5 - 1,9)/2 - dlc_offset_min) = 0,5 m. */
     PP_CHECK(pp_follow_path_within(&r.st, points, &pp_calibration, &VP0));
     points[20].pose.y = 0.6F;
-    PP_CHECK(!pp_follow_path_within(&r.st, points, &pp_calibration, &VP0));          /* M1 */
+    PP_CHECK(!pp_follow_path_within(&r.st, points, &pp_calibration, &VP0));
 }
 
 int main(void)

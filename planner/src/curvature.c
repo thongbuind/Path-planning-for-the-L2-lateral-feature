@@ -1,12 +1,10 @@
-/* T5 Curvature fusion (curvature.h). PP-SWR-125. */
-
 #include "curvature.h"
 
 #include <math.h>
 #include <string.h>
 
-#define PP_YAW_MIN_SPEED_MPS (5.0)     /* Software Detailed Design 8 */
-#define PP_OUTLIER_WEIGHT (0.1)        /* "giảm trọng số đi 10 lần" */
+#define PP_YAW_MIN_SPEED_MPS (5.0)
+#define PP_OUTLIER_WEIGHT (0.1)
 
 void pp_curvature_reset(pp_curvature_t *c)
 {
@@ -20,7 +18,7 @@ void pp_curvature_predict(pp_curvature_t *c, double ds, const pp_calibration_t *
     const double q = (double)cal->q_kappa * fabs(ds);
 
     for (uint32_t i = 0U; i < PP_KAPPA_POINTS; i++) {
-        const double src = (double)i + shift;      /* Point i now was at src before */
+        const double src = (double)i + shift;
         c->valid[i] = false;
         if ((src >= 0.0) && (src <= (double)(PP_KAPPA_POINTS - 1U))) {
             const uint32_t j = (uint32_t)floor(src);
@@ -48,7 +46,7 @@ static void update_point(pp_curvature_t *c, uint32_t i, double z, double r,
         const double limit = (double)cal->k_jump;
         double gain = c->var[i] / total;
         if ((innovation * innovation) > (limit * limit * total)) {
-            gain *= PP_OUTLIER_WEIGHT;              /* still follows a real curve, slowly */
+            gain *= PP_OUTLIER_WEIGHT;
         }
         c->kappa[i] += gain * innovation;
         c->var[i] *= (1.0 - gain);

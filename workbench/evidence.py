@@ -1,8 +1,4 @@
-"""Read-only views for the workbench UI: suite conclusions, golden baseline, per-run verdicts.
-
-Reads files other tools wrote (build/benchmark/*/suite, build/golden/baseline.json, run bundles).
-Imports no SUT package; knows only the file layout. Nothing here writes or runs anything.
-"""
+"""Đọc kết quả suite, golden và bundle theo định dạng tệp để phục vụ UI."""
 
 import json
 import re
@@ -24,7 +20,6 @@ def _read_json(path: Path):
 
 
 def _cached(path: Path, build):
-    """build(path) cached by (path, mtime, size): the files are large and change rarely."""
     st = path.stat()
     key = (str(path), st.st_mtime_ns, st.st_size)
     with _lock:
@@ -32,8 +27,6 @@ def _cached(path: Path, build):
             _cache[key] = build(path)
         return _cache[key]
 
-
-# ---- suites ------------------------------------------------------------------------------
 
 def _suite_dirs() -> list[Path]:
     if not BENCH.is_dir():
@@ -108,10 +101,7 @@ def suite_report(suite_id: str) -> bytes:
     return (BENCH / suite_id / "report.html").read_bytes()
 
 
-# ---- golden ------------------------------------------------------------------------------
-
 def _purposes() -> dict:
-    """{case id: purpose} from golden.yaml, read line by line (the file has a fixed, flat shape)."""
     out, cur = {}, None
     if not GOLDEN_SET.is_file():
         return out
@@ -149,10 +139,7 @@ def golden() -> dict:
             "n_results": len(data.get("results", []))}
 
 
-# ---- runs --------------------------------------------------------------------------------
-
 def run_summary(folder: Path) -> dict:
-    """What the run list needs beyond execution.json: source, evaluation verdict, duration."""
     def build(_):
         out = {"source": None, "target": None, "verdict": None, "applicable": None, "passed": None, "first_fail": None}
         try:
@@ -175,10 +162,7 @@ def run_summary(folder: Path) -> dict:
     return _cached(marker, build)
 
 
-# ---- rerun -------------------------------------------------------------------------------
-
 def _identity(manifest: dict) -> dict:
-    """What a rerun must reproduce, from the manifest of a run."""
     bundle = manifest.get("bundle") or {}
     return {"case_hash": bundle.get("case_hash"), "behavior_checksum": bundle.get("behavior_checksum"),
             "checksum_version": bundle.get("checksum_version"), "libraries": _libraries(manifest),
@@ -186,7 +170,7 @@ def _identity(manifest: dict) -> dict:
 
 
 def rerun_request(folder: Path) -> dict:
-    """Request of a run that repeats a finished run; KeyError when the run left no identity."""
+    """Dựng yêu cầu chạy lại từ bundle. Thiếu định danh gốc thì báo KeyError."""
     manifest = _read_json(folder / "manifest.json") if (folder / "manifest.json").is_file() else {}
     bundle = manifest.get("bundle") or {}
     if not bundle.get("recipe") or not bundle.get("behavior_checksum"):
@@ -212,7 +196,7 @@ def _suite_record(suite_dir: Path, case: str, seed: int) -> dict:
 
 
 def suite_rerun_request(suite_id: str, case: str, seed: int) -> dict:
-    """Request of a run that repeats one run of a suite from its frozen case file."""
+    """Chạy lại đúng ca đã đóng băng trong thư mục concrete của suite."""
     if not SUITE_ID.match(suite_id):
         raise KeyError(suite_id)
     folder = BENCH / suite_id
@@ -232,7 +216,6 @@ def suite_rerun_request(suite_id: str, case: str, seed: int) -> dict:
 
 
 def rerun_check(folder: Path) -> dict | None:
-    """Result of a rerun against what it had to reproduce; None for any other run."""
     request = _read_json(folder / "request.json") if (folder / "request.json").is_file() else {}
     expected = request.get("expect")
     if not expected:
@@ -257,7 +240,6 @@ def rerun_check(folder: Path) -> dict | None:
 
 
 def bundle_files(folder: Path, verify) -> dict:
-    """Files of a finished bundle with sizes, and the SHA256SUMS check (verify: execution.bundle.verify)."""
     files = [{"name": p.relative_to(folder).as_posix(), "size": p.stat().st_size}
              for p in sorted(folder.rglob("*")) if p.is_file()]
     return {"files": files, "problems": verify(folder)}

@@ -1,36 +1,5 @@
-"""Workbench server: static UI of web/simulation and the run API (replaces web/simulation/server.py).
-
-    python3 -m workbench.server [--port 8793] [--runs build/runs] [--max-running 2]
-    then open http://127.0.0.1:8793/
-
-Runs belong to the server, not to the browser tab (PP-PR-064): closing the tab does not stop a
-run; reconnecting resumes the event stream after the last seq received. Only 127.0.0.1;
-requests that change state must come from this origin (or have no Origin header).
-
-API
-    GET  /api/catalog                         catalog of the SUT package (worker "catalog")
-    POST /api/runs                            {"config": {...}} -> {"run_id"}; header Idempotency-Key
-    GET  /api/runs                            runs, newest first
-    GET  /api/runs/<id>                       state; for a finished run its bundle (manifest, execution, ...)
-    GET  /api/runs/<id>/events?from=<seq>     NDJSON events with seq > from, live until the run ends
-    POST /api/runs/<id>/control               {"cmd": "pause" | "resume"} or {"cmd": "rate", "value": 2}
-    POST /api/runs/<id>/cancel                cancel this run only
-    GET  /api/runs/<id>/files/<name>          one file of a finished bundle
-    GET  /api/runs/<id>/bundle                files of a finished bundle with sizes and the SHA256SUMS check
-    POST /api/runs/<id>/pin                   {"on": true | false}: a pinned run is never pruned
-    POST /api/runs/<id>/rerun                 new run from the recipe of <id>, checksum compared at the end
-    GET  /api/suites                          suite runs found under build/benchmark (read-only)
-    GET  /api/suites/<id>                     conclusion digest of one suite run
-    GET  /api/suites/<id>/report              the HTML report of that suite run
-    POST /api/suites/<id>/reopen              {"case": ..., "seed": n}: rerun of one run of that suite
-    GET  /api/golden                          golden baseline, by case and path (read-only)
-    GET  /api/compare?base=&cand=             two suite runs (suite:<id>) or two campaigns (campaign:<id>), read-only
-    GET  /api/campaigns                       campaigns with their counts and coverage
-    POST /api/campaigns                       {"name", "matrix" or "items"} -> {"id", "runs"}: frozen list, runs started
-    GET  /api/campaigns/<id>                  every run of the campaign with its state, and the coverage
-    POST /api/campaigns/<id>/cancel           cancel the runs of this campaign that have not ended
-    POST /api/campaigns/<id>/repeat           the same list again as a new campaign
-    POST /api/campaigns/<id>/delete           remove the campaign and unpin its runs (not while one is active)
+"""Server phục vụ UI và API run. Đóng tab không dừng run; khi nối lại, stream tiếp tục từ seq đã
+nhận (PP-PR-064).
 """
 
 import argparse
@@ -55,7 +24,6 @@ ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "web" / "simulation"
 RUNS = ROOT / "build" / "runs"
 PORT = int(os.environ.get("PP_PORT", "8793"))
-# The path planner package; another SUT plugs in here.
 WORKER = [sys.executable, "-u", "-m", "eval.live", "run"]
 CATALOG = [sys.executable, "-m", "eval.live", "catalog"]
 STATIC_FILES = {"index.html", "app.css", "js/i18n.js", "js/catalog-en.js", "js/core.js", "js/scene.js",
@@ -70,15 +38,13 @@ MAX_BODY = 65536
 
 
 class App:
-    """State shared by the request handlers."""
-
     def __init__(self, runs: Path, max_running: int, worker: list[str] | None = None,
                  catalog: list[str] | None = None) -> None:
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
         self.supervisor = Supervisor(Settings(root=runs, command=worker or WORKER, cwd=ROOT, env=env,
                                               max_running=max_running))
         self.catalog_command = catalog or CATALOG
-        self.campaigns = Path(runs).parent / "campaigns"   # beside the runs, never under web/ (nothing here is published)
+        self.campaigns = Path(runs).parent / "campaigns"
         self.env = env
         self._catalog: bytes | None = None
         self._lock = threading.Lock()
@@ -98,7 +64,7 @@ class App:
 
 
 def _finite(obj):
-    """Browsers reject Infinity and NaN in JSON: sent as null (the bundle files keep them)."""
+    """Gửi null cho trình duyệt vì JSON không có Infinity hoặc NaN. Bundle giữ dữ liệu gốc."""
     if isinstance(obj, float):
         return obj if math.isfinite(obj) else None
     if isinstance(obj, dict):
@@ -147,7 +113,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             raise ValueError("body must be a JSON object")
         return data
 
-    # ---- GET ----
 
     def do_GET(self):
         url = urlsplit(self.path)
@@ -194,7 +159,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             run_id, tail = m.group(1), m.group(2) or ""
             try:
                 if not tail:
-                    status = self.app.supervisor.status(run_id)  # first: the bundle may be finishing
+                    status = self.app.supervisor.status(run_id)
                     folder = self.app.supervisor.s.root / run_id
                     rerun = evidence.rerun_check(folder) if (folder / "execution.json").is_file() else None
                     return self._json(200, {**status, "rerun": rerun,
@@ -226,7 +191,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return compare.load_campaign(campaign.read(self.app.campaigns, ident), self.app.supervisor.s.root)
 
     def _compare(self, query: dict) -> None:
-        """GET /api/compare?base=suite:<id>&cand=suite:<id> (or campaign:<id> on both): read-only."""
         try:
             base = self._side((query.get("base") or [""])[0])
             cand = self._side((query.get("cand") or [""])[0])
@@ -237,7 +201,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._json(400, {"error": str(error)})
 
     def _runs(self) -> list[dict]:
-        """GET /api/runs: the supervisor's list plus pinned flag, source, verdict, duration of finished runs."""
         sup = self.app.supervisor
         pinned = set(sup.pinned())
         out = []
@@ -251,7 +214,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def _events(self, run_id: str, after: int) -> None:
         stream = self.app.supervisor.events(run_id, after)
-        first = next(stream, None)  # KeyError for an unknown run before any header is sent
+        first = next(stream, None)  # Kiểm tra run tồn tại trước khi gửi HTTP header của stream.
         self.send_response(200)
         self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
         self.send_header("X-Accel-Buffering", "no")
@@ -260,10 +223,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             for line in ([first] if first is not None else []):
                 self.wfile.write(line or b"\n")
             for line in stream:
-                self.wfile.write(line or b"\n")  # b"": keep-alive, notices a closed tab
+                self.wfile.write(line or b"\n")  # Gửi keep-alive để phát hiện tab đóng khi worker chưa có sự kiện mới.
                 self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError):
-            pass  # the observer left; the run goes on
+            pass
         finally:
             stream.close()
 
@@ -281,7 +244,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
-    # ---- POST ----
 
     def do_POST(self):
         if not self._origin_ok():
@@ -381,7 +343,12 @@ class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Workbench server: static UI of web/simulation and the run API (replaces "
+            "web/simulation/server.py)."
+        ),
+    )
     parser.add_argument("--port", type=int, default=PORT)
     parser.add_argument("--runs", type=Path, default=RUNS)
     parser.add_argument("--max-running", type=int, default=2, help="N_max: runs at the same time (8 GB: 2)")

@@ -1,12 +1,9 @@
-"""VehicleStateEstimate (Software Qualification Test Specification 4.5; Interface Control
-Document 5.4): true v_y at base_link. Noise (sigma 0.05 m/s) is fault injection later;
-the reported variance is that sigma.
-"""
+"""VehicleStateEstimate lấy v_y thật tại base_link. Nhiễu được tiêm ở bước sau (SQTS 4.5)."""
 
 from interfaces import FrameId, Header, VehicleStateEstimate
 
-PERIOD_US = 20_000  # 50 Hz (Interface Control Document 5.4)
-SIGMA_VY = 0.05  # [m/s] 4.5
+PERIOD_US = 20_000
+SIGMA_VY = 0.05
 
 
 class StateEstimator:

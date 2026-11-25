@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Path Planner – flow xử lý một tick</title>
 <style>
-/* Nền trắng, bề mặt xám nhạt, một màu nhấn tím; token theo hệ SAI */
 :root{
   --bg:#FFFFFF; --surface-1:#F5F5F7; --surface-2:#E8E8ED; --line:#D2D2D7; --hair:#0000001A;
   --text:#1D1D1F; --text-2:#6E6E73; --text-3:#86868B;
@@ -22,7 +21,6 @@ code,.mono{font-family:var(--mono)}
 code{color:var(--violet);font-size:.92em}
 b{font-weight:600}
 
-/* header */
 .page-title{display:flex;align-items:center;gap:20px}
 #back-home{color:var(--violet);font-size:18px;font-weight:600;text-decoration:none}
 #back-home:hover{text-decoration:underline}
@@ -39,13 +37,11 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 #exs{position:absolute;left:560px;top:32px;height:44px;padding:0 20px;border-radius:22px;background:var(--warn-tint);
   color:var(--warn);font-size:19px;font-weight:600;line-height:44px;white-space:nowrap}
 
-/* reveal */
 .rv{opacity:0;transform:translate(var(--tx,0),var(--ty,0)) scale(var(--sc,1));
   transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
 .rv.in{opacity:1;transform:none}
 .abs{position:absolute}
 
-/* intro */
 #intro{position:absolute;left:0;right:0;top:110px;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   opacity:0;pointer-events:none;transition:opacity .6s}
 #intro.show{opacity:1}
@@ -53,7 +49,6 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 #intro .mid{font-size:34px;color:var(--text-2)}
 #intro .help{margin-top:10px;font-size:20px;color:var(--text-2)}
 
-/* inputs */
 .colh{position:absolute;font-size:16px;letter-spacing:.12em;font-weight:600;color:var(--text-2)}
 .inp{position:absolute;left:40px;width:520px;height:56px;border-radius:14px;background:var(--surface-1);padding:6px 16px 0 16px}
 .inp.fn{background:var(--bg);border:1.5px dashed var(--line);padding-top:5px}
@@ -69,7 +64,6 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 #state .chips{display:flex;flex-wrap:wrap;gap:6px}
 #state .chips span{font-size:14.5px;background:var(--surface-1);color:var(--text);border-radius:7px;padding:3px 10px}
 
-/* core */
 #core{left:690px;top:118px;width:640px;height:574px;border-radius:24px;border:1.5px solid var(--line);background:var(--bg)}
 #core .chip{position:absolute;left:22px;top:-17px;display:flex;align-items:baseline;gap:12px;background:var(--bg);padding:0 10px;
   font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text)}
@@ -90,7 +84,6 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 .blk.done .tt{color:var(--text)}
 .arr{position:absolute;left:1003px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:9px solid var(--text-3)}
 
-/* outputs */
 .out{position:absolute;left:1400px;width:480px;height:182px;border-radius:16px;background:var(--surface-1);padding:20px 24px}
 .out .o1{display:flex;align-items:baseline;gap:10px}
 .out .o1 b{font-size:26px;font-weight:600}
@@ -98,7 +91,6 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 .out .o2{font-size:19px;color:var(--ok);margin-top:12px;font-weight:500}
 .out .o3{font-size:17px;color:var(--text-2);margin-top:10px;line-height:1.4}
 
-/* wires */
 #wires{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none}
 .wire{fill:none;stroke-width:2;opacity:0;transition:opacity .6s}
 .wire.in{opacity:1}
@@ -106,7 +98,6 @@ h1{font-size:38px;font-weight:700;letter-spacing:-.02em}
 .wlab{font-size:14.5px;fill:var(--warn);opacity:0;transition:opacity .6s}
 .wlab.in{opacity:1}
 
-/* detail */
 #detail{position:absolute;left:0;right:0;top:735px;bottom:0;transition:opacity .5s}
 #detail.hide{opacity:0}
 #txt{position:absolute;left:40px;top:2px;width:712px;height:330px}
@@ -124,7 +115,6 @@ ul.bl li.ex{color:var(--warn)}
 ul.bl li.ex::before{background:var(--warn)}
 @keyframes fup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-/* svg visual primitives */
 svg text{fill:var(--text);font-family:var(--sans);font-size:16px}
 .sm{fill:var(--text-2)}.md{font-size:18px}.lg{font-size:21px;font-weight:600}.cap{fill:var(--text-2);font-size:16px;letter-spacing:.05em;font-weight:600}
 .mono{font-family:var(--mono)}.amber{fill:var(--warn)}.blue{fill:var(--violet)}.green{fill:var(--ok)}.red{fill:var(--danger)}
@@ -141,7 +131,6 @@ svg text{fill:var(--text);font-family:var(--sans);font-size:16px}
   *{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important;transition-delay:0s!important}
 }
 
-/* Điều hướng từng nhịp tại khối đang trình bày. */
 header .st{font-family:inherit}
 .blk{cursor:pointer;text-align:left;color:inherit;font:inherit}
 .blk:not(.in),#detail.hide{visibility:hidden}
@@ -191,10 +180,6 @@ button:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
 </div>
 
 <script>
-/* =========================================================================================
-   Slide: Path Planner – flow xử lý một tick. Không phụ thuộc thư viện ngoài.
-   Flow 0–7, chi tiết PP-SDD 1.20 nằm trong khối đang trình bày.
-   ========================================================================================= */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let cur=-2;
 const D=s=>`style="--delay:${s}s"`;
@@ -203,7 +188,6 @@ const P=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).joi
 const mk=(id,c)=>`<marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${c}"/></marker>`;
 const dpath=(d,cls,delay,dur,extra='')=>`<path d="${d}" pathLength="1" class="draw ${cls}" style="--delay:${delay}s;--dur:${dur}s" fill="none" ${extra}/>`;
 
-/* ---------- Dữ liệu ---------- */
 const INPUTS=[
  ['LaneModel','20 Hz','Lane Model','vạch làn, mép đường (đa thức bậc 3)'],
  ['ObjectList','20 Hz','Perception','vật thể quanh xe'],
@@ -227,7 +211,6 @@ const OUTS=[
  ['LateralLimits','40 Hz','→ Khối dọc','tốc độ giới hạn trước cua'],
 ];
 
-/* ---------- Dựng sơ đồ ---------- */
 function build(){
   let h='';
   h+=`<div class="colh rv" data-step="1" style="left:40px;top:116px;--tx:-30px">INPUT MỖI TICK</div>`;
@@ -253,7 +236,6 @@ function build(){
   });
   $('#main').innerHTML=h;
 
-  // wires
   let w=`<defs>${mk('wb','#5B3DF5')}${mk('wa','#B25000')}${mk('wg','#1E7B34')}</defs>`;
   INPUTS.forEach((r,i)=>{const y=174+i*62; w+=`<path class="wire b" data-step="1" data-d="${.5+i*.1}" d="M560 ${y} L574 ${y}" marker-end="url(#wb)"/>`;});
   w+=`<path class="wire b" data-step="1" data-d="1.4" d="M650 360 L688 360" marker-end="url(#wb)"/>`;
@@ -267,13 +249,11 @@ function build(){
   w+=`<text class="wlab" data-step="7" data-d="1.6" x="830" y="727" text-anchor="middle">path vừa gửi là path cũ của tick sau</text>`;
   $('#wires').innerHTML=w;
 
-  // stepper
   let s='';
   for(let i=0;i<8;i++){ s+=(i?`<div class="sl" data-sl="${i}"></div>`:'')+`<button type="button" class="st" data-flow="${i}" data-st="${i}" aria-label="Bước ${i}: ${STEPS[i].t}">${i}</button>`; }
   $('#stepper').innerHTML=s;
 }
 
-/* Mỗi nhịp có một unit PP-SDD, diễn giải và hình minh họa ngay trong flow. */
 const scene=(unit,section,title,visual,...points)=>({unit,section,title,visual,points});
 const STEPS=[
  {t:'Một tick của Path Planner', frames:[
@@ -418,10 +398,8 @@ const STEPS=[
  ]}
 ];
 
-/* =========================== Hình minh hoạ (SVG 1110×312) =========================== */
 const W='<svg viewBox="0 0 1110 312" xmlns="http://www.w3.org/2000/svg">';
 
-/* 0. tick 25 ms và đường đi 3 s */
 function v0(){
   const bx=[100,270,440], nm=['tick n−2','tick n−1','tick n'], tl=['t0 − 50 ms','t0 − 25 ms','t0'];
   let s=W+`<defs>${mk('va','#5B3DF5')}${mk('vb','#B25000')}${mk('vm','#6E6E73')}</defs>`;
@@ -443,9 +421,7 @@ function v0(){
   });
   s+=`<g class="fade" ${D(2)}><path d="M270 276 L440 276" stroke="#6E6E73" stroke-width="1.8" marker-start="url(#vm)" marker-end="url(#vm)"/>
       <text class="sm" x="355" y="300" text-anchor="middle">25 ms = 40 Hz</text></g>`;
-  // chuyển sang vùng phải
   s+=dpath('M505 125 C575 125 590 160 596 205','','2.3','.8','stroke="#5B3DF5" stroke-width="2.4" marker-end="url(#va)"');
-  // path 31 điểm
   const x0=640,x1=1070,pt=u=>[x0+u*(x1-x0),214-100*sm(u)];
   const pts=[...Array(31)].map((_,k)=>pt(k/30));
   s+=dpath(P(pts),'', '2.9','1.2','stroke="#5B3DF5" stroke-width="3" stroke-linecap="round" opacity=".55"');
@@ -462,7 +438,6 @@ function v0(){
   return s+'</svg>';
 }
 
-/* 1. mỗi tick lấy message mới nhất */
 function v1(){
   const X0=282,K=4.4,T0=100,x=t=>X0+t*K;
   const rows=[['LaneModel','20 Hz',50,8],['VehicleStateEstimate','50 Hz',20,4],['FunctionRequests','40 Hz',25,12],['IMU_Data','100 Hz',10,3]];
@@ -497,7 +472,6 @@ function v1(){
   return s+'</svg>';
 }
 
-/* 2. stamp_us / rx_us / t0 và bù trễ bằng ego-motion */
 function v2(){
   let s=W+`<defs>${mk('va','#5B3DF5')}${mk('vb','#B25000')}</defs>`;
   s+=`<text class="cap" x="24" y="34">THỜI ĐIỂM CỦA MỘT LANE MODEL</text><text class="cap" x="606" y="34">VẠCH LÀN TRONG HỆ TOẠ ĐỘ CỦA XE</text>`;
@@ -514,7 +488,6 @@ function v2(){
       <text class="md" x="295" y="234" text-anchor="middle">tuổi = 105 ms</text></g>`;
   s+=`<g class="fade" ${D(2.5)}><rect x="30" y="256" width="520" height="40" rx="10" fill="#F5F5F7" stroke="#5B3DF5" stroke-width="1.6"/>
       <text class="mono" x="290" y="281" text-anchor="middle" style="font-size:17px">dx = 2,625 m · dy = 0 · dyaw = 0</text></g>`;
-  // nhìn từ trên xuống: vạch thẳng, xe tiến thẳng nên chỉ dời theo x
   const cx=792, ln=o=>`M${cx+o} 306 L${cx+o} 40`;
   s+=`<g class="fade" ${D(.4)}><path d="${ln(-62)}" fill="none" stroke="#8E8E93" stroke-width="3" stroke-dasharray="8 7"/><path d="${ln(62)}" fill="none" stroke="#8E8E93" stroke-width="3" stroke-dasharray="8 7"/></g>`;
   s+=`<g class="shift" style="--delay:1.8s"><path class="fade" ${D(.8)} d="${ln(-62)}" fill="none" stroke="#5B3DF5" stroke-width="4"/><path class="fade" ${D(.8)} d="${ln(62)}" fill="none" stroke="#5B3DF5" stroke-width="4"/></g>`;
@@ -528,7 +501,6 @@ function v2(){
   return s+'</svg>';
 }
 
-/* 4. arbitration: ứng viên qua các cổng, rồi chọn theo ưu tiên (planner/src/arbitration.c) */
 const ARB_GATES=['Đang REQUEST','Không bị chặn','Không ghi đè','Đủ điều kiện'];
 const ALL4=['ok','ok','ok','ok'], HWA_OK=['ok','na','na','ok'], OFF=[['no','STANDBY'],'skip','skip','skip'];
 const ARB_SCENES=[
@@ -568,7 +540,6 @@ function v4(sub){
     pass[n]=(row!=='done')&&row.every(c=>{const t=Array.isArray(c)?c[0]:c;return t==='ok'||t==='na'});
     if(n===sc.win)winY=y;
   });
-  // người thắng và các ứng viên đủ điều kiện nhưng thấp hơn
   NAMES.forEach((n,r)=>{ if(n!==sc.win&&pass[n]) s+=`<rect class="fade" ${D(2.1)} x="20" y="${RY[r]}" width="610" height="50" rx="12" fill="#F5F5F7" fill-opacity=".65"/>`; });
   s+=`<rect class="fade" ${D(2.1)} x="20" y="${winY}" width="610" height="50" rx="12" fill="none" stroke="#5B3DF5" stroke-width="2.5"/>`;
   s+=`<path class="fade" ${D(2.2)} d="M634 ${winY+25} L646 ${winY+25}" stroke="#5B3DF5" stroke-width="2.5" fill="none" marker-end="url(#va)"/>`;
@@ -583,7 +554,6 @@ function v4(sub){
   return s+'</svg>';
 }
 
-/* 5. Frenet: d(t), s(t), từng bước */
 const DEFS=`<defs>${mk('va','#5B3DF5')}${mk('vb','#B25000')}${mk('vm','#6E6E73')}${mk('vg','#1E7B34')}</defs>`;
 const car=(x,y,d)=>`<g class="fade" ${D(d)}><rect x="${x-28}" y="${y-15}" width="56" height="30" rx="9" fill="#1D1D1F"/><rect x="${x+2}" y="${y-10}" width="16" height="20" rx="4" fill="#FFFFFF"/></g>`;
 
@@ -616,7 +586,6 @@ function v5(sub){
           <text class="mono" x="540" y="${y+31}" text-anchor="middle" style="font-size:24px;font-weight:700">${r[3]}</text>
           <path d="M398 ${y+22} L442 ${y+22}" stroke="#AEAEB2" stroke-width="2" marker-end="url(#vm)" fill="none"/></g>`;});
     s+=`<text class="fade sm" ${D(1.6)} x="40" y="288" style="font-size:14px">Tick sau: điều kiện đầu có thể lấy từ path vừa gửi, nếu điểm đầu của nó gần trạng thái xe</text>`;
-    // đồ thị nhỏ với tiếp tuyến nằm ngang
     const ax=730,aw=320,y0=96,yb=232, X=u=>ax+u*aw, Y=u=>y0+(1-q5(u))*(yb-y0);
     s+=`<line x1="${ax}" y1="${y0}" x2="${ax+aw}" y2="${y0}" stroke="#C7C7CC" stroke-dasharray="5 6"/><text class="sm" x="${ax+aw}" y="${y0-8}" text-anchor="end" style="font-size:14px">tâm làn</text>`;
     s+=dpath(P([...Array(61)].map((_,i)=>[X(i/60),Y(i/60)])),'',.9,1.4,'stroke="#5B3DF5" stroke-width="4.5" stroke-linecap="round"');
@@ -679,7 +648,6 @@ function v5(sub){
   return s+'</svg>';
 }
 
-/* 6. 31 điểm, giới hạn, nối path cũ, từng bước */
 function kChart(ax,aw,A,d0){
   const ay=272,LIM=116,H=u=>38+A*Math.exp(-(((u-.62)/.17)**2)), X=u=>ax+u*aw, Y=h=>ay-h;
   let s=`<line x1="${ax}" y1="${ay}" x2="${ax+aw+6}" y2="${ay}" stroke="#AEAEB2" stroke-width="2"/><line x1="${ax}" y1="${ay}" x2="${ax}" y2="${ay-200}" stroke="#AEAEB2" stroke-width="2"/>
@@ -714,14 +682,12 @@ function v6(sub){
   return s+'</svg>';
 }
 
-/* 7. output (giá trị thật của ca ví dụ) */
 function v7(){
   let s=W;
   const NB=' ';
   const card=(x,w,i,n,r)=>`<rect x="${x}" y="14" width="${w}" height="240" rx="14" fill="#FFFFFF"/>
       <text class="lg" x="${x+24}" y="50" style="font-size:24px">${n}</text><text class="green" x="${x+24}" y="76" style="font-size:16px">${r}</text>`;
   const kv=(x,y,k,v,col)=>`<text class="mono" x="${x}" y="${y}" style="font-size:15.5px"><tspan class="sm">${k} = </tspan><tspan class="${col||'green'}" style="font-weight:700">${v}</tspan></text>`;
-  // Trajectory
   s+=`<g class="fade" ${D(.2)}>${card(24,360,0,'Trajectory','→ Lateral Controller')}
       ${kv(48,104,'valid','true')}<text class="mono sm" x="185" y="104" style="font-size:14px">31 điểm, bước 0,1 s</text>
       <g class="mono sm" style="font-size:14.5px"><text x="108" y="130" text-anchor="end">t [s]</text><text x="188" y="130" text-anchor="end">x [m]</text><text x="278" y="130" text-anchor="end">y [m]</text><text x="360" y="130" text-anchor="end">v [m/s]</text></g>`;
@@ -730,11 +696,9 @@ function v7(){
     s+=`<g class="mono" style="font-size:16px"><text x="108" y="${y}" text-anchor="end">${r[0]}</text><text x="188" y="${y}" text-anchor="end">${r[1]}</text><text x="278" y="${y}" text-anchor="end" class="blue">${r[2]}</text><text x="360" y="${y}" text-anchor="end">25,0</text></g>`;
   });
   s+=`${kv(48,246,'observed_horizon_s','3,0')}</g>`;
-  // PathStatus
   s+=`<g class="fade" ${D(.55)}>${card(404,360,1,'PathStatus','→ ADAS, Lateral Controller')}
       ${kv(428,112,'path_valid','true')}${kv(428,140,'active_function','HWA','blue')}${kv(428,168,'lka_phase','NONE','sm')}${kv(428,196,'elk_phase','NONE','sm')}
       ${kv(428,224,'lateral_limit_reached','false','sm')}${kv(428,250,'lane_too_narrow','false','sm')}</g>`;
-  // LateralLimits
   s+=`<g class="fade" ${D(.9)}>${card(784,302,2,'LateralLimits','→ Khối dọc')}
       ${kv(808,112,'valid','true')}${kv(808,140,'lateral_limit_reached','false','sm')}${kv(808,168,'v_max','500 m/s','amber')}
       </g>`;
@@ -744,7 +708,6 @@ function v7(){
 }
 
 
-/* Đồ thị và sơ đồ kỹ thuật trong khung minh họa 1110 × 312 của slide gốc. */
 const flowSvg=()=>W+DEFS;
 const svgText=(x,y,t,cls='',size=18,anchor='start')=>`<text x="${x}" y="${y}" class="${cls}" font-size="${size}" style="font-size:${size}px" text-anchor="${anchor}">${t}</text>`;
 const fade=(s,t)=>`<g class="fade" ${D(t)}>${s}</g>`;
@@ -907,7 +870,6 @@ function vHorizon(){
   return s+fade(svgText(24,287,'Ca HWA chính: view_end = 77,375 m, vượt x(3 s) = 75 m nên observed_horizon_s = 3 s.','sm',17),1.25)+'</svg>';
 }
 
-/* Điều khiển theo khối và nhịp, không có luồng riêng cho phần chi tiết. */
 let sub=0;
 const lastStep=STEPS.length-1;
 const lastSub=n=>n<0?0:STEPS[n].frames.length-1;

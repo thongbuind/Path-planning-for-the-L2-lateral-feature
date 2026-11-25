@@ -1,18 +1,5 @@
-"""Supervision of worker processes: one run per process, owned by the supervisor, not by the
-observers that watch it (SIM-REQ-002 to 012).
-
-A worker is `command + [run_folder]`. It reads <run_folder>/request.json, writes its files
-into the folder, prints one JSON object per line on stdout and reads control lines on stdin.
-The supervisor numbers the lines (`seq`), keeps them in <run_folder>/frames.ndjson (gzip at the
-end), routes stderr and non-JSON stdout to worker.log, and finalizes the bundle with the state:
-
-    QUEUED -> RUNNING <-> PAUSED -> COMPLETED | FAILED | CANCELLED | TIMED_OUT
-
-A FAILED run has one class (`classify`): SUT_EXECUTION (native crash inside the SUT adapter, or
-reported by the worker), SIM_ERROR, EVAL_ERROR, INFRA. Lines a worker may print: {"type":
-"phase", "phase": ...}, {"type": "error", "class": ..., "message": ...} and {"type": "budget",
-"timeout_s": ...} (its own time limit, wall clock without pauses; not passed to observers); any
-other line is an event for the observers. The supervisor adds {"type": "state", ...} events.
+"""Supervisor sở hữu run và truyền đường dẫn bundle cho worker. Hai bên trao đổi NDJSON qua
+stdin/stdout.
 """
 
 import json
@@ -45,16 +32,15 @@ class Settings:
     command: list[str]
     cwd: Path | None = None
     env: dict | None = None
-    max_running: int = 2  # N_max
-    cancel_grace_s: float = 2.0  # T_cancel
-    keep: int | None = 50  # N_keep; None: never delete
-    max_bytes: int | None = 2_000_000_000  # S_max
-    sut_marker: str = "adapters/sil"  # in the stack of a native crash: the crash is the SUT's
+    max_running: int = 2
+    cancel_grace_s: float = 2.0
+    keep: int | None = 50  # N_keep; None giữ mọi bundle.
+    max_bytes: int | None = 2_000_000_000
+    sut_marker: str = "adapters/sil"  # Nếu worker chết do tín hiệu native, marker trong log_tail dùng để nhận diện lỗi từ SUT.
 
 
 def classify(returncode: int | None, *, cancelled: bool, timed_out: bool, reported: str | None,
              log_tail: str, sut_marker: str) -> tuple[str, str | None]:
-    """(state, failure class) of a finished worker."""
     if timed_out:
         return "TIMED_OUT", None
     if cancelled:
@@ -64,7 +50,7 @@ def classify(returncode: int | None, *, cancelled: bool, timed_out: bool, report
     if returncode is not None and returncode < 0 and -returncode in NATIVE_SIGNALS:
         return "FAILED", "SUT_EXECUTION" if sut_marker and sut_marker in log_tail else "SIM_ERROR"
     if returncode is not None and returncode < 0:
-        return "FAILED", "INFRA"  # killed from outside
+        return "FAILED", "INFRA"
     if reported in CLASSES:
         return "FAILED", reported
     return "FAILED", "INFRA"
@@ -125,15 +111,14 @@ class Supervisor:
         self._monitor = threading.Thread(target=self._watch, daemon=True)
         self._monitor.start()
 
-    # ---- recovery and retention ---------------------------------------------------------
 
     def recover(self) -> list[str]:
-        """Finalize the folders left by a supervisor that stopped during a run (INFRA)."""
+        """Đóng bundle dở từ lần supervisor trước với lỗi INFRA."""
         done = []
         for tmp in sorted(self.s.root.glob(B.TMP_PREFIX + "*")):
             owner = tmp / OWNER
             if not owner.is_file():
-                continue  # written by another tool (eval.runner): not ours
+                continue  # Bundle do eval.runner tạo nằm ngoài vòng đời của supervisor.
             pid = json.loads(owner.read_text(encoding="utf-8")).get("pid")
             if isinstance(pid, int) and pid != os.getpid() and _alive(pid):
                 continue
@@ -167,7 +152,6 @@ class Supervisor:
             ids = [r for r in self.pinned() if r != run_id] + ([run_id] if on else [])
             B.write_json(self.s.root / ".pinned.json", ids)
 
-    # ---- control ------------------------------------------------------------------------
 
     def submit(self, request: dict, *, timeout_s: float | None = None, idempotency_key: str | None = None,
                label: str = "", parent: str | None = None) -> str:
@@ -201,7 +185,7 @@ class Supervisor:
         run.bundle = B.Bundle.create(self.s.root, run.run_id)
         run.bundle.write_json("request.json", {"run_id": run.run_id, "parent_run_id": run.parent, **run.request})
         run.bundle.write_json(OWNER, {"pid": os.getpid()})
-        run.bundle.path(EVENTS).write_bytes(b"".join(run.events or []))  # events from before the folder existed
+        run.bundle.path(EVENTS).write_bytes(b"".join(run.events or []))
         log = run.bundle.path(LOG).open("ab")
         try:
             run.proc = subprocess.Popen([*self.s.command, str(run.bundle.tmp)], cwd=self.s.cwd, env=self.s.env,
@@ -252,7 +236,7 @@ class Supervisor:
         return "CANCELLING"
 
     def _stop(self, proc: subprocess.Popen | None) -> None:
-        """SIGTERM, then SIGKILL after the grace period (T_cancel)."""
+        """Gửi SIGTERM, sau T_cancel mới gửi SIGKILL."""
         if proc is None or proc.poll() is not None:
             return
         proc.terminate()
@@ -278,10 +262,8 @@ class Supervisor:
             while any(r.state not in TERMINAL for r in active) and time.time() < deadline:
                 self._changed.wait(0.2)
 
-    # ---- worker output ------------------------------------------------------------------
 
     def _emit(self, run: Run, obj: dict) -> None:
-        """Numbers an event, keeps it for observers and in the event log of the run folder."""
         with self._lock:
             if run.events is None:
                 return
@@ -309,7 +291,7 @@ class Supervisor:
                     log.write(b"[stdout] " + raw)
                 continue
             kind = obj.get("type")
-            if kind == "budget":  # the worker knows how long its run may take (T_timeout)
+            if kind == "budget":
                 try:
                     run.timeout_s = float(obj["timeout_s"])
                 except (KeyError, TypeError, ValueError):
@@ -326,7 +308,6 @@ class Supervisor:
             self._finish(run, returncode, run.reported)
 
     def _finish(self, run: Run, returncode: int | None, reported: str | None) -> None:
-        """Terminal state, final event, bundle finalized; next queued run starts."""
         tail = ""
         if run.bundle is not None and run.bundle.path(LOG).is_file():
             tail = run.bundle.path(LOG).read_bytes()[-20000:].decode("utf-8", "replace")
@@ -337,7 +318,7 @@ class Supervisor:
                                       reported=reported, log_tail=tail, sut_marker=self.s.sut_marker)
         run.failure = failure
         run.ended = time.time()
-        if run.bundle is None:  # cancelled while queued: still one bundle per run (SIM-REQ-020)
+        if run.bundle is None:  # Run bị hủy trong hàng đợi vẫn có bundle (SIM-REQ-020).
             run.bundle = B.Bundle.create(self.s.root, run.run_id)
             run.bundle.write_json("request.json", {"run_id": run.run_id, "parent_run_id": run.parent, **run.request})
             run.bundle.path(EVENTS).write_bytes(b"".join(run.events or []))
@@ -354,7 +335,7 @@ class Supervisor:
                 "created": run.created, "started": run.started, "ended": run.ended, "paused_s": round(run.paused_total, 3),
                 "timeout_s": run.timeout_s, "cancelled": run.cancel_requested, "label": run.label,
                 "parent_run_id": run.parent})
-        run.events = None  # served from the bundle from now on
+        run.events = None
         self._changed.notify_all()
         self._start_queued()
         try:
@@ -363,7 +344,7 @@ class Supervisor:
             pass
 
     def _watch(self) -> None:
-        """Timeouts, wall clock without paused time (SIM-REQ-007)."""
+        """Thời gian pause không tính vào timeout (SIM-REQ-007)."""
         while True:
             time.sleep(0.25)
             with self._lock:
@@ -378,7 +359,6 @@ class Supervisor:
             for proc in late:
                 self._stop(proc)
 
-    # ---- queries ------------------------------------------------------------------------
 
     def _get(self, run_id: str) -> Run:
         run = self._runs.get(run_id)
@@ -419,8 +399,9 @@ class Supervisor:
         return {k: v for k, v in data.items() if k not in ("run_id", "parent_run_id")}
 
     def events(self, run_id: str, after: int = 0, idle_s: float = 15.0):
-        """Event lines with seq > after, live until the run ends. Yields b"" every idle_s
-        without news, so the caller can notice a closed connection."""
+        """Gửi các sự kiện có seq > after. Khi rảnh, phát b"" mỗi idle_s để phát hiện kết nối đã
+        đóng.
+        """
         nxt = after + 1
         while True:
             with self._lock:

@@ -1,8 +1,3 @@
-"""Call contract of the two C planners through the SIL adapter (Interface Control Document section 4).
-
-Needs build/planner/libpp_lcc and libpp_lkaelk; skipped otherwise.
-"""
-
 import pytest
 
 import interfaces as I
@@ -11,9 +6,8 @@ from adapters.sil.sil_planner import LCC, LKAELK, SilPlanner, library_path, load
 pytestmark = pytest.mark.skipif(not (library_path("pp_lcc").exists() and library_path("pp_lkaelk").exists()),
                                 reason="planner libraries not built: build/planner/libpp_lcc, libpp_lkaelk")
 
-VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)  # Software Qualification Test Specification 4.4
+VP0 = I.VehicleConfig(2.9, 1.45, 1.9, 15.0, 0.61, 6.0, 0.05)
 
-# family, inputs type, name of the status in the outputs
 PLANNERS = [pytest.param(LCC, I.LccInputs, "lcc_status", id="lcc"),
             pytest.param(LKAELK, I.LkaElkInputs, "intervention_status", id="lkaelk")]
 
@@ -32,10 +26,10 @@ def test_init_with_valid_vehicle_config(family, inputs, status):
 
 
 @pytest.mark.parametrize("config", [
-    None,                                                     # missing (PP-SWR-146)
-    I.VehicleConfig(2.9, 1.45, 2.51, 15.0, 0.61, 6.0, 0.05),  # wider than 2.5 m (PP-ASM-016)
-    I.VehicleConfig(0.0, 0.0, 1.9, 15.0, 0.61, 6.0, 0.05),    # no wheelbase
-    I.VehicleConfig(2.9, 3.0, 1.9, 15.0, 0.61, 6.0, 0.05),    # centre of gravity outside wheelbase
+    None,
+    I.VehicleConfig(2.9, 1.45, 2.51, 15.0, 0.61, 6.0, 0.05),
+    I.VehicleConfig(0.0, 0.0, 1.9, 15.0, 0.61, 6.0, 0.05),
+    I.VehicleConfig(2.9, 3.0, 1.9, 15.0, 0.61, 6.0, 0.05),
     I.VehicleConfig(2.9, 1.45, 1.9, float("nan"), 0.61, 6.0, 0.05),
 ])
 @pytest.mark.parametrize("family, inputs, status", PLANNERS)
@@ -43,8 +37,8 @@ def test_bad_vehicle_config_is_rejected(family, inputs, status, config):
     planner = make(family, config)
     assert planner.init_result is I.InitResult.BAD_VEHICLE_CONFIG
     out = planner.step(inputs(t0_us=25_000), no_motion)
-    assert out.trajectory is None                  # PP-SWR-146
-    assert getattr(out, status) is not None        # PP-SWR-010
+    assert out.trajectory is None
+    assert getattr(out, status) is not None
     assert not getattr(out, status).path_valid
 
 
@@ -56,9 +50,9 @@ def test_status_every_cycle_with_counter_and_stamp(family, inputs, status):
         out = planner.step(inputs(t0_us=k * I.PLANNER_PERIOD_US), no_motion)
         assert getattr(out, status).header.stamp_us == k * I.PLANNER_PERIOD_US
         counters.append(getattr(out, status).header.counter)
-        assert out.trajectory.planner_id == (I.PlannerId.LCC if family is LCC else I.PlannerId.LKA_ELK)  # PP-SWR-019
+        assert out.trajectory.planner_id == (I.PlannerId.LCC if family is LCC else I.PlannerId.LKA_ELK)
     assert counters[:3] == [0, 1, 2]
-    assert counters[256] == 0  # wraps at 256 (Interface Control Document section 4)
+    assert counters[256] == 0
 
 
 @pytest.mark.parametrize("family, inputs, status", PLANNERS)
@@ -74,7 +68,6 @@ def test_inputs_cross_into_c(family, inputs, status):
 
 
 def test_lka_elk_trajectory_is_not_valid_without_a_request():
-    """PP-SWR-180: LKA/ELK sends its Trajectory but it is valid only while it intervenes."""
     out = make(LKAELK, VP0).step(I.LkaElkInputs(t0_us=25_000), no_motion)
     assert out.trajectory is not None and not out.trajectory.header.valid
     assert out.intervention_status.active_function is I.InterventionFunction.NONE
@@ -82,5 +75,5 @@ def test_lka_elk_trajectory_is_not_valid_without_a_request():
 
 def test_lcc_reports_no_mode_without_inputs():
     out = make(LCC, VP0).step(I.LccInputs(t0_us=25_000), no_motion)
-    assert out.lcc_status.lcc_mode is I.LccMode.NONE and not out.lcc_status.path_valid   # PP-SWR-043
+    assert out.lcc_status.lcc_mode is I.LccMode.NONE and not out.lcc_status.path_valid
     assert out.lateral_limits is not None

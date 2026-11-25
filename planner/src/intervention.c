@@ -8,9 +8,9 @@
 #include "pp_math.h"
 
 #define PP_US_PER_S (1.0e6)
-#define PP_ELK_LATE_M (0.3)       /* PP-SWR-089 */
-#define PP_MARK_DTLE_ALLOW_M (0.3) /* PP-SWR-086 */
-#define PP_CUT_PENALTY (1.0e3)    /* [m] ranks a candidate T10 would cut after every uncut one */
+#define PP_ELK_LATE_M (0.3)
+#define PP_MARK_DTLE_ALLOW_M (0.3)
+#define PP_CUT_PENALTY (1.0e3)  /* [m] Candidate bị T10 cắt xếp sau mọi candidate giữ được hình dạng. */
 
 static const uint32_t EGO_LINES[PP_ROAD_EDGES] = {PP_LINE_L1, PP_LINE_R1};
 static const uint32_t OUTER_LINES[PP_ROAD_EDGES] = {PP_LINE_L2, PP_LINE_R2};
@@ -36,7 +36,6 @@ double pp_intervention_vy_at_t0(pp_lateral_velocity_history_t *history,
         history->stamp_us = stamp_us;
         history->value = value;
     } else {
-        /* Another planner cycle reading the same received estimate. */
     }
     return history->value + history->rate * (double)(t0_us - stamp_us) / PP_US_PER_S;
 }
@@ -86,7 +85,7 @@ void pp_road_edge_references(pp_edge_memory_t *mem, const pp_lane_at_t0_t *lane,
         const pp_boundary_t *edge = &lane->boundary[PP_LANE_LINES + side];
         const bool outer_seen = measured_at(&lane->boundary[OUTER_LINES[side]], front, cal->conf_ego);
         if (!measured_at(edge, front, cal->conf_edge) || outer_seen) {
-            mem->edge[side].present = false;                            /* F21 */
+            mem->edge[side].present = false;
             continue;
         }
         pp_reference_line_t *ref = &refs[side];
@@ -111,7 +110,6 @@ void pp_road_edge_references(pp_edge_memory_t *mem, const pp_lane_at_t0_t *lane,
             ref->view_start = edge->view_start;
             ref->view_end = edge->view_end;
         } else {
-            /* No association of this edge to the ego-lane corridor. */
         }
         ref->valid = (ref->width >= (double)vehicle->vehicle_width) && (ref->width <= PP_LANE_WIDTH_MAX_M);
         if (ref->valid) {
@@ -154,7 +152,7 @@ bool pp_elk_past_marking(const pp_lane_at_t0_t *lane, pp_side_t side,
     const double sign = (side == PP_SIDE_LEFT) ? 1.0 : -1.0;
     const double dlc = sign * pp_cubic_value(&mark->poly, x) * normal_scale(&mark->poly, x)
                        - 0.5 * (double)vehicle->vehicle_width;
-    return dlc < -PP_ELK_LATE_M;                                         /* PP-SWR-089 */
+    return dlc < -PP_ELK_LATE_M;
 }
 
 bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_state_t *ego,
@@ -176,16 +174,25 @@ bool pp_intervention_settled(const pp_reference_line_t *ref, const pp_lateral_st
     pp_ref_project(ref, applied.x, applied.y, &ref_at_path, &d_path);
     const double ay_add = applied.v * applied.v * (applied.kappa - ref_at_path.kappa);
     return fabs(d_front) <= 0.5 * (ref->width - (double)vehicle->vehicle_width)
-           && fabs(ego->d) <= (double)cal->d_end                          /* PP-SWR-032, PP-ASM-028 */
+           && fabs(ego->d) <= (double)cal->d_end
            && fabs(v_lat) <= (double)cal->v_lat_end && fabs(ego->heading) <= (double)cal->heading_end
-           && fabs(ay_add) <= (double)cal->ay_add_end;                    /* PP-SWR-032, 090 */
+           && fabs(ay_add) <= (double)cal->ay_add_end;
 }
 
 static void sample_profile(const pp_intervention_path_t *path, double elapsed, pp_lateral_path_t *out)
 {
     for (uint32_t i = 0U; i < PP_TRAJECTORY_POINTS; i++) {
         const double t = elapsed + (double)i * PP_GRID_STEP_S;
-        if (path->two_phase && (t >= path->profile.duration)) {
+        if (path->two_phase && path->two_speed && (t >= path->profile.duration)
+            && ((t - path->profile.duration) < path->fast_reversed.duration)) {
+            /* Đoạn về nhanh: q(T − τ), nên vận tốc đổi dấu. */
+            const double tau = path->fast_reversed.duration - (t - path->profile.duration);
+            pp_quintic_eval(&path->fast_reversed, tau, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+            out->d_dot[i] = -out->d_dot[i];
+        } else if (path->two_phase && path->two_speed && (t >= path->profile.duration)) {
+            pp_quintic_eval(&path->back, t - path->profile.duration - path->fast_reversed.duration,
+                            &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
+        } else if (path->two_phase && (t >= path->profile.duration)) {
             pp_quintic_eval(&path->back, t - path->profile.duration, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
         } else {
             pp_quintic_eval(&path->profile, t, &out->d[i], &out->d_dot[i], &out->d_ddot[i]);
@@ -193,21 +200,37 @@ static void sample_profile(const pp_intervention_path_t *path, double elapsed, p
     }
 }
 
-/* Car moving outward: an arrest in `duration` that ends with zero speed, acceleration and jerk,
- * then a slow return in T_return, so the car does not swing through the centre (PP-TS-026).
- * Car already moving back: the return alone. */
+/* Hãm chuyển động ra ngoài về vận tốc, gia tốc và jerk bằng không, rồi về tâm chậm để tránh vượt
+ * tâm (PP-TS-026). */
+/* Tỉ lệ giữa vận tốc ở điểm chuyển và vận tốc trung bình của đoạn về chậm (PP-TS-030). */
+#define PP_TWO_SPEED_HANDOVER (1.5)
+
 static void build_path(pp_intervention_path_t *path, const pp_lateral_state_t *start, double sign,
-                       double target, double duration, double t_return)
+                       double target, double duration, double t_return, double t_fast, double d_mid)
 {
     path->two_phase = false;
+    path->two_speed = false;
     if ((sign * start->d_dot) <= 0.0) {
-        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_return, &path->profile);
+        /* Xe đã đi về phía tâm: một quintic, cùng thời lượng như V0 (T_return_object khi có xe
+         * làn bên). */
+        const double t_single = (t_fast > 0.0) ? t_fast : t_return;
+        (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, target, t_single, &path->profile);
     } else {
         const double peak = start->d + (0.4 * start->d_dot * duration)
                             + (0.05 * start->d_ddot * duration * duration);
         (void)pp_quintic_solve(start->d, start->d_dot, start->d_ddot, peak, duration, &path->profile);
-        (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
         path->two_phase = true;
+        const double mid = target + (sign * d_mid);
+        if ((t_fast > 0.0) && (d_mid > 0.0) && ((sign * (peak - mid)) > 0.0)) {
+            /* Về nhanh tới mid, giữ vận tốc hướng về tâm, rồi về chậm tới tâm: rời phía có xe làn
+             * bên sớm (PP-SWR-088) mà không vượt qua tâm (PP-SWR-094). */
+            const double v_mid = -sign * PP_TWO_SPEED_HANDOVER * d_mid / t_return;
+            (void)pp_quintic_solve(mid, -v_mid, 0.0, peak, t_fast, &path->fast_reversed);
+            (void)pp_quintic_solve(mid, v_mid, 0.0, target, t_return, &path->back);
+            path->two_speed = true;
+            return;
+        }
+        (void)pp_quintic_solve(peak, 0.0, 0.0, target, t_return, &path->back);
     }
 }
 
@@ -230,9 +253,8 @@ static double candidate_score(const pp_intervention_path_t *profile, const pp_re
     if (authority > 1.0) {
         return INFINITY;
     }
-    /* Within the limits means T10 step 2 leaves the path as it is: T10 cuts jerk per
-     * 0.1 s step and the steering wheel rate, stricter than the 0.5 s mean above. A cut
-     * candidate no longer ends parallel to the lane (PP-PR-041), so it is only a fallback. */
+    /* Candidate đã bị T10 cắt không còn giữ điều kiện biên đã tối ưu. Kiểm jerk từng bước và tốc
+     * độ vô lăng trước khi chọn. */
     pp_trajectory_point_t limited[PP_TRAJECTORY_POINTS];
     (void)memcpy(limited, points, sizeof(limited));
     const double cut = pp_feasibility_limit(limited, &refs, limits, vehicle) ? PP_CUT_PENALTY : 0.0;
@@ -258,18 +280,19 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
 {
     const double sign = (req->side == PP_SIDE_LEFT) ? 1.0 : -1.0;
     const double half = 0.5 * (ref->width - (double)vehicle->vehicle_width);
-    const double target = 0.0;                                         /* Lane centre (PP-SWR-084) */
-    const double max_duration = (double)cal->intervention_T_max;      /* Software Detailed Design 15 */
+    const double target = 0.0;
+    const double max_duration = (double)cal->intervention_T_max;
     const double step = (double)cal->intervention_T_step;
     const double duration = fmin(elk ? (double)cal->T_elk : (double)cal->T_lka, max_duration);
-    /* A vehicle in the adjacent lane is coming abreast: the car leaves its side sooner (PP-SWR-088). */
+    /* Khi xe làn bên sắp ngang hàng, ưu tiên rời phía đó sớm hơn (PP-SWR-088). */
     const bool object = elk && ((req->reason == PP_ELK_REASON_ONCOMING) || (req->reason == PP_ELK_REASON_OVERTAKING));
-    const double t_return = object ? (double)cal->T_return_object : (double)cal->T_return;
+    /* Đoạn chậm luôn dài T_return; xe làn bên chỉ rút ngắn đoạn nhanh (PP-TS-030 V2). */
+    const double t_return = (double)cal->T_return;
+    const double t_fast = object ? (double)cal->T_return_object : 0.0;
+    const double d_mid = (double)cal->d_return_object;
     path->start_us = t0_us;
-    build_path(path, start, sign, target, duration, t_return);
+    build_path(path, start, sign, target, duration, t_return, t_fast, d_mid);
     const double allowed_crossing = elk ? 0.0 : PP_MARK_DTLE_ALLOW_M;
-    /* When the ADAS block estimates a nearer crossing, favour candidates that
-     * reverse the outward motion earlier (Software Detailed Design 10). */
     pp_ref_point_t front;
     double front_d;
     pp_ref_project(ref, vehicle->wheelbase, 0.0, &front, &front_d);
@@ -282,7 +305,7 @@ void pp_intervention_begin(pp_intervention_path_t *path, const pp_intervention_r
     for (uint32_t n = 1U; (n <= count) && (best > 0.0); n++) {
         const double t = (double)n * step;
         pp_intervention_path_t candidate = *path;
-        build_path(&candidate, start, sign, target, t, t_return);
+        build_path(&candidate, start, sign, target, t, t_return, t_fast, d_mid);
         const double score = candidate_score(&candidate, ref, speed, limits, vehicle, sign, allowed_crossing, crossing_d);
         if (score < best) {
             best = score;
@@ -303,7 +326,6 @@ void pp_corridor_reset(pp_corridor_t *c)
     (void)memset(c, 0, sizeof(*c));
 }
 
-/* y of the hazard-side edge of a reference line at x. */
 static double hazard_edge_y(const pp_reference_line_t *ref, double sign, double x)
 {
     return pp_cubic_value(&ref->centre, x)
@@ -319,8 +341,7 @@ static void adopt(pp_corridor_t *c, const pp_reference_line_t *live)
     c->pending_s = 0.0;
 }
 
-/* Lane model noise must not steer the car: a consistent frame corrects the moved corridor
- * little by little (time constant corridor_tau) instead of replacing it. */
+/* Sửa corridor đã bù ego-motion từ từ theo corridor_tau để nhiễu một frame không làm xe đánh lái. */
 static void correct(pp_corridor_t *c, const pp_reference_line_t *live, double alpha)
 {
     pp_reference_line_t blended = *live;
@@ -352,10 +373,10 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
         }
     }
     if (!moved) {
-        adopt(c, live);                                  /* Start, or nothing to compare with */
+        adopt(c, live);
         return &c->ref;
     }
-    /* No fresh lane: the corridor goes on by ego-motion, not on the memory of T2. */
+    /* Khi không có frame làn mới, dịch corridor bằng ego-motion thay vì lấy lại dữ liệu nhớ T2. */
     c->ref.coasting = !live->valid || live->coasting;
     if (c->ref.coasting) {
 #ifdef PP_REF_SAMPLED
@@ -372,23 +393,23 @@ const pp_reference_line_t *pp_corridor_update(pp_corridor_t *c, const pp_referen
     const double alpha = fmin(1.0, dt / fmax(dt, (double)cal->corridor_tau));
     c->toward_s = (away < -tol) ? (c->toward_s + dt) : 0.0;
     if (c->toward_s >= (double)cal->corridor_toward) {
-        correct(c, live, fmin(1.0, 4.0 * alpha));   /* The edge really moved toward the car: fast */
+        correct(c, live, fmin(1.0, 4.0 * alpha));
     } else if (away <= tol) {
-        correct(c, live, alpha);   /* Consistent, or one noisy frame toward the car */
+        correct(c, live, alpha);
     } else {
-        /* The hazard edge is reported farther out: held until that has lasted T_confirm, also
-         * when its position moves meanwhile, so noise cannot keep a wrong corridor alive. */
+        /* Mép nguy hiểm báo xa hơn chỉ được chấp nhận sau T_confirm, kể cả khi vị trí dao động
+         * trong thời gian đợi. */
         c->pending_s = c->pending ? (c->pending_s + dt) : 0.0;
         c->pending = true;
         if (c->pending_s >= (double)cal->T_confirm) {
             if (opposite > tol) {
                 const double held_s = c->pending_s;
-                correct(c, live, alpha);                 /* The whole lane moved: not a jump */
+                correct(c, live, alpha);
                 c->pending = true;
                 c->pending_s = held_s;
             } else {
                 const double shift = fmin(away, (double)cal->ref_rate * dt);
-                c->ref.centre.c[0] += sign * 0.5 * shift;        /* Hazard edge only slides */
+                c->ref.centre.c[0] += sign * 0.5 * shift;
                 c->ref.width += shift;
             }
         }

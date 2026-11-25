@@ -1,5 +1,3 @@
-/* One full cycle of the LKA/ELK planner through the public API (pp_lkaelk_init, pp_lkaelk_step), white box. */
-
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -11,10 +9,8 @@
 
 #define T0 (10000000ULL)
 
-static uint64_t memory[8192];   /* 64 KB; the state is about 37 KB with the T7 C workspace */
+static uint64_t memory[8192];
 
-/* A new delivery of a pub/sub input carries the next counter, as on the real interface
- * (Interface Control Document 4); the tests only refresh rx_us. */
 static uint64_t delivered_rx[5];
 static bool delivered[5];
 
@@ -44,7 +40,6 @@ static void step(pp_lka_elk_inputs_t *in, pp_ego_motion_fn motion, pp_lka_elk_ou
 
 static const pp_vehicle_config_t VP0 = {2.9F, 1.45F, 1.9F, 15.0F, 0.61F, 6.0F, 0.05F};
 
-/* Straight motion at 25 m/s. */
 static void ego_motion(void *context, const pp_ego_motion_request_t *request,
                        pp_ego_motion_response_t *response)
 {
@@ -64,7 +59,6 @@ static void set_line(pp_lane_line_t *line, float c0)
     line->status = PP_LINE_STATUS_MEASURED;
 }
 
-/* Straight lane 3.5 m; the car 0.3 m right of the centre; no LKA or ELK requested. */
 static pp_lka_elk_inputs_t inputs(void)
 {
     pp_lka_elk_inputs_t in;
@@ -73,7 +67,7 @@ static pp_lka_elk_inputs_t inputs(void)
 
     in.lane_model.present = true;
     in.lane_model.rx_us = T0 - 5000U;
-    in.lane_model.message.header.stamp_us = T0 - 105000U;   /* captured 105 ms ago */
+    in.lane_model.message.header.stamp_us = T0 - 105000U;
     in.lane_model.message.header.valid = true;
     for (unsigned i = 0U; i < PP_LANE_LINES; i++) {
         in.lane_model.message.lines[i].status = PP_LINE_STATUS_LOST;
@@ -81,8 +75,8 @@ static pp_lka_elk_inputs_t inputs(void)
     for (unsigned i = 0U; i < PP_ROAD_EDGES; i++) {
         in.lane_model.message.road_edges[i].status = PP_LINE_STATUS_LOST;
     }
-    set_line(&in.lane_model.message.lines[1], 0.3F + 1.75F);  /* L1 */
-    set_line(&in.lane_model.message.lines[2], 0.3F - 1.75F);  /* R1 */
+    set_line(&in.lane_model.message.lines[1], 0.3F + 1.75F);
+    set_line(&in.lane_model.message.lines[2], 0.3F - 1.75F);
     in.lane_model.message.lane_width = 3.5F;
 
     in.speed.present = true;
@@ -114,10 +108,10 @@ static void test_no_lane_model_means_no_path(void)
     pp_lka_elk_inputs_t in = inputs();
     in.lane_model.present = false;
     step(&in, ego_motion, &out);
-    PP_CHECK(out.trajectory_sent);                          /* every cycle (PP-SWR-010) */
+    PP_CHECK(out.trajectory_sent);
     PP_CHECK(!out.trajectory.header.valid);
     PP_CHECK(!out.intervention_status.path_valid);
-    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);  /* PP-SWR-043 */
+    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);
 }
 
 static void test_stale_lane_model(void)
@@ -125,7 +119,7 @@ static void test_stale_lane_model(void)
     pp_lka_elk_outputs_t out;
     PP_CHECK(pp_lkaelk_init(memory, sizeof(memory), &VP0) == PP_INIT_RESULT_OK);
     pp_lka_elk_inputs_t in = inputs();
-    in.lane_model.message.header.stamp_us = T0 - 260000U;   /* older than 250 ms (PP-SWR-131) */
+    in.lane_model.message.header.stamp_us = T0 - 260000U;
     step(&in, ego_motion, &out);
     PP_CHECK(!out.intervention_status.path_valid);
 }
@@ -149,7 +143,7 @@ static void fresh_chassis(pp_lka_elk_inputs_t *in, uint64_t t0)
     in->steering.message.header = (pp_basic_header_t){t0, 0U, true};
     in->vehicle_state.present = true;
     in->vehicle_state.rx_us = t0;
-    in->vehicle_state.message.header.stamp_us = t0;     /* counter kept: step() advances it per delivery */
+    in->vehicle_state.message.header.stamp_us = t0;
     in->vehicle_state.message.header.valid = true;
     in->vehicle_state.message.header.frame_id = PP_FRAME_ID_BASE_LINK;
 }
@@ -160,8 +154,8 @@ static void fresh_requests(pp_lka_elk_inputs_t *in)
     in->function_requests.message.header.stamp_us = in->t0_us;
 }
 
-/* No request: inputs are fine, so path_valid is true, nothing drives, and the Trajectory is
- * sent but not valid (PP-SWR-037, 180, 019). */
+/* Khi chưa có yêu cầu, InterventionStatus.path_valid vẫn báo khả dụng, còn Trajectory được phát
+ * với header.valid = false. */
 static void test_no_request_sends_an_invalid_trajectory(void)
 {
     pp_lka_elk_outputs_t out;
@@ -195,14 +189,14 @@ static void test_chassis_fault_blocks_a_request_until_it_is_made_again(void)
     fresh_requests(&in);
     in.imu.present = false;
     step(&in, ego_motion, &out);
-    PP_CHECK(!out.intervention_status.path_valid && !out.trajectory.header.valid);   /* PP-SWR-142 */
-    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);  /* PP-SWR-043 */
+    PP_CHECK(!out.intervention_status.path_valid && !out.trajectory.header.valid);
+    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);
 
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     step(&in, ego_motion, &out);
     PP_CHECK(out.intervention_status.path_valid);
-    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);  /* PP-SWR-045 */
+    PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);
 
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
@@ -227,7 +221,7 @@ static void test_function_requests_timeout_invalidates_the_path(void)
     fresh_chassis(&in, T0 + PP_FUNCTION_REQUESTS_TIMEOUT_US + PP_PLANNER_PERIOD_US);
     step(&in, ego_motion, &out);
     PP_CHECK(out.intervention_status_sent && out.intervention_status.header.valid && out.trajectory_sent);
-    PP_CHECK(!out.intervention_status.path_valid && !out.trajectory.header.valid);     /* PP-SWR-145 */
+    PP_CHECK(!out.intervention_status.path_valid && !out.trajectory.header.valid);
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     step(&in, ego_motion, &out);
@@ -275,7 +269,7 @@ static void test_interventions_can_switch_and_cancel_in_one_cycle(void)
     r[0].state = PP_REQUEST_STATE_STANDBY;
     r[1].state = PP_REQUEST_STATE_STANDBY;
     step(&in, ego_motion, &out);
-    PP_CHECK(out.intervention_status.path_valid && !out.trajectory.header.valid);   /* PP-SWR-037, 180 */
+    PP_CHECK(out.intervention_status.path_valid && !out.trajectory.header.valid);
     PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);
     PP_CHECK(out.intervention_status.lka_phase == PP_INTERVENTION_PHASE_NONE);
 }
@@ -295,8 +289,8 @@ static void test_active_lka_can_coast_on_last_ego_reference(void)
     step(&in, ego_motion, &out);
     PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_LKA);
 
-    /* The two ego lines jump while a previously unseen outer line is measured.
-     * T2 can only coast on the ego reference during the confirmation window. */
+    /* Vạch ego cùng nhảy khi một outer line lần đầu được đo. T2 chỉ có thể COAST trên đường ego
+     * trong thời gian xác nhận. */
     fresh_chassis(&in, in.t0_us + PP_PLANNER_PERIOD_US);
     fresh_requests(&in);
     in.lane_model.message.lines[1].c0 += 0.7F;
@@ -341,7 +335,7 @@ static void test_elk_road_edge_keeps_path_on_cancellation_tick(void)
     step(&in, ego_motion, &out);
     PP_CHECK(out.intervention_status.active_function == PP_INTERVENTION_FUNCTION_NONE);
     PP_CHECK(out.intervention_status.elk_phase == PP_INTERVENTION_PHASE_NONE);
-    PP_CHECK(out.intervention_status.path_valid && !out.trajectory.header.valid); /* PP-SWR-037, 180 */
+    PP_CHECK(out.intervention_status.path_valid && !out.trajectory.header.valid);
 }
 
 int main(void)

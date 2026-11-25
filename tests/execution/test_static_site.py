@@ -1,5 +1,3 @@
-"""The public static site carries no workbench and no internal plan codes (SIM-REQ-106)."""
-
 import re
 from pathlib import Path
 

@@ -1,5 +1,3 @@
-/* T9 intervention selection: request ownership, completion, and preemption (PP-SWR-030 to 047). */
-
 #include "pp_core.h"
 #include "selection.h"
 #include "pp_test.h"
@@ -75,7 +73,6 @@ static void test_late_request_needs_a_new_one_and_long_ones_go_on(void)
     in.requests_rx_us = in.t0_us;
     pp_select(&mem, &in, &out);
     PP_CHECK(out.starting && out.active_function == PP_INTERVENTION_FUNCTION_ELK);
-    /* No 10 s cut-off (PP-TS-016): the intervention goes on while REQUEST and the conditions hold. */
     in.t0_us = in.requests_rx_us + 10000000U + PP_PLANNER_PERIOD_US;
     pp_select(&mem, &in, &out);
     PP_CHECK(!out.cancelled && out.active_function == PP_INTERVENTION_FUNCTION_ELK);

@@ -1,21 +1,4 @@
-"""LeadTarget sensor: perception gives the planner the vehicle that is the ACC target
-(Interface Control Document 5.9; Software Qualification Test Specification 4.5).
-
-The target is the vehicle the stand-in ACC follows; its `id` is the `target_id` of
-LongitudinalPlan. Position, heading and velocity come from ground truth in base_link at the
-measurement time, with these errors:
-
-| Choice | Value | Source |
-|---|---|---|
-| Position x, y | as the ObjectList: 0.2 m + 1 %, 0.1 m + 0.5 % of range | Software Qualification Test Specification 4.5 |
-| Heading | sigma 0.02 rad, times the noise scale | nhóm tự thống nhất |
-| Relative velocity vx, vy | sigma 0.3 and 0.2 m/s, as ObjectList | Software Qualification Test Specification 4.5 |
-| existence_probability | 0.95 | nhóm tự thống nhất |
-| Class | as the scenario says (TrafficSpec.kind) | scenario |
-
-No target, or a target that is not a vehicle of the scenario (a ghost): valid = false.
-Same period and latency as the ObjectList (PP-ASM-002).
-"""
+"""LeadTarget mô phỏng đầu ra perception của đúng xe ACC đang bám (ICD 5.9)."""
 
 from math import atan2, cos, hypot, sin
 
@@ -34,15 +17,14 @@ _CLASSES = {"CAR": LeadClass.CAR, "TRUCK": LeadClass.TRUCK, "MOTORCYCLE": LeadCl
 class LeadSensor:
     def __init__(self, rng: np.random.Generator, front_m: float, noise_scale: float = 1.0) -> None:
         self.rng = rng
-        self.front = front_m  # [m] front bumper of the ego vehicle in base_link
+        self.front = front_m
         self.scale = noise_scale
         self.counter = 0
 
     def capture(self, now_us: int, ego: tuple[float, float, float], ego_velocity: tuple[float, float],
                 vehicles: list[TrafficState], target_id: int | None) -> LeadTarget:
-        """`ego_velocity`: (v_x, v_y) of the ego vehicle in base_link."""
         self.counter = (self.counter + 1) % 256
-        draws = self.rng.standard_normal(5)       # drawn every time: no other draw depends on the target
+        draws = self.rng.standard_normal(5)       # Lấy mẫu kể cả lúc thiếu target để giữ chuỗi nhiễu tái lặp.
         target = next((v for v in vehicles if target_id is not None and v.id == target_id), None)
         header = Header(now_us, self.counter, target is not None, FrameId.BASE_LINK)
         if target is None:

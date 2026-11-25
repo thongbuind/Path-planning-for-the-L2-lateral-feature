@@ -1,17 +1,3 @@
-"""ObjectList sensor: camera and radar fusion as seen by the planner (Interface Control
-Document 5.2; Software Qualification Test Specification 4.5).
-
-Vehicles of the scenario moved into base_link at the measurement time, with the noise of
-section 4.5: x sigma 0.2 m + 1 % of range, y sigma 0.1 m + 0.5 %, vx 0.3 and vy 0.2 m/s,
-size 0.1 m; 2 % of the object reports of a frame missed; ghosts at 0.05 per second that
-live 0.2 s. Same period and latency as the lane camera (PP-ASM-002).
-
-| Choice | Value | Source |
-|---|---|---|
-| Detection range | 150 m ahead, 80 m behind (corner radars) | nhóm tự thống nhất |
-| existence_probability | 0.95 real, 0.6 ghost | nhóm tự thống nhất |
-"""
-
 from math import atan2, cos, hypot, sin
 
 import numpy as np
@@ -32,16 +18,16 @@ GHOST_RATE_PER_S = 0.05
 GHOST_LIFE_S = 0.2
 P_REAL, P_GHOST = 0.95, 0.6
 GHOST_ID_BASE = 1_000_000
-UNUSED = Object(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)  # Fills the fixed array
+UNUSED = Object(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
 
 class ObjectSensor:
     def __init__(self, rng: np.random.Generator, noise_scale: float = 1.0, *, ideal: bool = False) -> None:
         self.rng = rng
-        self.scale = noise_scale  # rain: 1.5 (section 4.5)
-        self.ideal = ideal  # SQTS 4.1 mode B: retain visibility, omit measurement errors
+        self.scale = noise_scale
+        self.ideal = ideal  # Mode B giữ giới hạn tầm nhìn nhưng bỏ sai số đo (SQTS 4.1).
         self.counter = 0
-        self.ghosts: list[tuple[int, float, float, float]] = []  # id, x, y, end time
+        self.ghosts: list[tuple[int, float, float, float]] = []
         self.next_ghost = GHOST_ID_BASE
 
     def capture(self, now_us: int, ego: tuple[float, float, float], ego_speed: float,

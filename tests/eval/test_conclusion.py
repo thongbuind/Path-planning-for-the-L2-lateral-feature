@@ -1,5 +1,3 @@
-"""Conclusion and severity of a report (Software Qualification Test Specification 8.4, 10)."""
-
 import math
 from dataclasses import dataclass
 
@@ -43,7 +41,7 @@ def test_case_issues_execution_and_not_judged():
                              {"case": "S3a", "seed": 1, "error": "KeyError"}])
     assert c["verdict"] == conclusion.BLOCKED
     assert {f["requirement"] for f in c["failures"]} == {"PP-SWR-030", "execution"}
-    assert len(c["not_judged"]) == 2  # precondition, evaluator error
+    assert len(c["not_judged"]) == 2
     text = "\n".join(conclusion.markdown(c, "lib"))
     assert text.startswith("# Kết luận: Không đạt\n") and "## Trượt BLOCKER" in text and "## Ca không được chấm" in text
 
@@ -75,7 +73,6 @@ def test_nan_in_an_output_is_an_execution_fault():
 
 
 def test_nonfinite_matches_reference_walk():
-    """eval.metrics._nonfinite with cached field names gives the path of the old walk."""
     from dataclasses import dataclass, field
     import numpy as np
     from eval import metrics

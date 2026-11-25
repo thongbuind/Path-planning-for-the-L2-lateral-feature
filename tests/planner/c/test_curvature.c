@@ -1,5 +1,3 @@
-/* Unit tests of T5 Curvature fusion (planner/src/curvature.c). */
-
 #include <string.h>
 
 #include "curvature.h"
@@ -17,10 +15,10 @@ static void test_first_measurement_initialises(void)
     pp_curvature_reset(&c);
     const pp_cubic_t centre = centre_with_kappa(0.001, 1e-5);
     pp_curvature_update_camera(&c, &centre, 0.0, 0.0, 0.0, 80.0, &pp_calibration);
-    PP_CHECK(c.valid[0] && c.valid[40] && !c.valid[41]);          /* 0 to 80 m */
+    PP_CHECK(c.valid[0] && c.valid[40] && !c.valid[41]);
     PP_CHECK_NEAR(c.kappa[10], 0.001 + (1e-5 * 20.0), 1e-12);
     const double floor_var = (double)pp_calibration.sigma_kappa_min * (double)pp_calibration.sigma_kappa_min;
-    PP_CHECK_NEAR(c.var[10], floor_var, 1e-15);                   /* reported 0: floor */
+    PP_CHECK_NEAR(c.var[10], floor_var, 1e-15);
 }
 
 static void test_outlier_gets_a_tenth_of_the_weight(void)
@@ -28,13 +26,13 @@ static void test_outlier_gets_a_tenth_of_the_weight(void)
     pp_curvature_t c;
     pp_curvature_reset(&c);
     const pp_cubic_t right = centre_with_kappa(0.001, 0.0);
-    const pp_cubic_t wrong = centre_with_kappa(0.002, 0.0);       /* +0.001: c2 +0.0005 (F06) */
+    const pp_cubic_t wrong = centre_with_kappa(0.002, 0.0);
     pp_curvature_update_camera(&c, &right, 0.0, 0.0, 0.0, 80.0, &pp_calibration);
     const double prior = c.kappa[5];
     const double var = c.var[5];
     const double r = (double)pp_calibration.sigma_kappa_min * (double)pp_calibration.sigma_kappa_min;
     pp_curvature_update_camera(&c, &wrong, 0.0, 0.0, 0.0, 80.0, &pp_calibration);
-    /* |innovation| = 0.001 > k_jump sigma (3 * 1.4e-4): gain / 10. */
+    /* 0,001 vượt ngưỡng k_jump × sigma, nên gain giảm còn một phần mười. */
     const double gain = 0.1 * var / (var + r);
     PP_CHECK_NEAR(c.kappa[5], prior + (gain * 0.001), 1e-12);
 }
@@ -43,12 +41,12 @@ static void test_predict_shifts_by_distance(void)
 {
     pp_curvature_t c;
     pp_curvature_reset(&c);
-    const pp_cubic_t centre = centre_with_kappa(0.0, 1e-5);       /* kappa = 1e-5 s */
+    const pp_cubic_t centre = centre_with_kappa(0.0, 1e-5);
     pp_curvature_update_camera(&c, &centre, 0.0, 0.0, 0.0, 80.0, &pp_calibration);
-    pp_curvature_predict(&c, 3.0, &pp_calibration);               /* 1.5 grid steps */
+    pp_curvature_predict(&c, 3.0, &pp_calibration);
     PP_CHECK_NEAR(c.kappa[0], 1e-5 * 3.0, 1e-12);
     PP_CHECK_NEAR(c.kappa[10], 1e-5 * 23.0, 1e-12);
-    PP_CHECK(!c.valid[40]);                                       /* no prior beyond 80 m */
+    PP_CHECK(!c.valid[40]);
     PP_CHECK(c.var[10] > (double)pp_calibration.sigma_kappa_min * (double)pp_calibration.sigma_kappa_min);
 }
 

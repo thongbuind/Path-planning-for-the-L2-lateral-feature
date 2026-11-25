@@ -1,16 +1,3 @@
-/*
- * Chuyển Markdown <-> HTML cho trang tài liệu. Chỉ hỗ trợ phần Markdown mà tài liệu dùng:
- * tiêu đề #..###, đoạn văn, danh sách - và 1., bảng kiểu GitHub, **đậm**, *nghiêng*,
- * `code`, [link](url), hình PNG từ research/studies, xuống dòng cứng (hai dấu cách cuối dòng
- * hoặc " <br> " trong ô bảng), ký tự thoát \x, ---.
- * Không dùng thư viện ngoài, để web chạy được khi offline.
- *
- * toHtml(md)  : chuỗi Markdown -> chuỗi HTML (chạy được cả trong Node để kiểm tra).
- * toMd(node)  : phần tử DOM của trang (contenteditable) -> chuỗi Markdown.
- *
- * Ô bảng chỉ chứa đúng một nhãn nguồn ở một trong hai ngôn ngữ được vẽ
- * thành nhãn màu; khi lưu lại ghi đúng chữ cũ.
- */
 (function (root) {
   "use strict";
 
@@ -19,7 +6,6 @@
     "agreed": "da-chot", "assignment": "de-bai", "proposed": "de-xuat", "to be agreed": "can-chot"
   };
 
-  // ---------- Markdown -> HTML ----------
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
@@ -160,14 +146,13 @@
     return { html: "<" + tag + ">" + items.join("") + "</" + tag + ">", next: i };
   }
 
-  // ---------- HTML (DOM) -> Markdown ----------
   function escText(s, inTable) {
     s = s.replace(/\\/g, "\\\\").replace(/\*/g, "\\*").replace(/`/g, "\\`");
     if (inTable) s = s.replace(/\|/g, "\\|");
     return s;
   }
 
-  // Đặt dấu ** hoặc * sát chữ: dời dấu cách ở mép ra ngoài, nếu không Markdown không nhận.
+  // Đưa khoảng trắng ra ngoài dấu nhấn mạnh để Markdown nhận nội dung.
   function wrap(mark, inner) {
     var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(inner);
     return m[2] ? m[1] + mark + m[2] + mark + m[3] : inner;
@@ -178,7 +163,7 @@
     node.childNodes.forEach(function (n) {
       if (n.nodeType === 3) { out += escText(n.nodeValue.replace(/\u00a0/g, " ").replace(/\s+/g, " "), ctx.table); return; }
       if (n.nodeType !== 1) return;
-      if (n.hasAttribute("data-ui")) return; // phần tử chỉ để hiển thị (ví dụ nút Xem thêm), không ghi vào md
+      if (n.hasAttribute("data-ui")) return; // Không ghi phần tử data-ui vào Markdown.
       var t = n.tagName.toLowerCase();
       if (n.classList.contains("tag")) { out += n.getAttribute("data-md") || n.textContent; return; }
       if (t === "br") {

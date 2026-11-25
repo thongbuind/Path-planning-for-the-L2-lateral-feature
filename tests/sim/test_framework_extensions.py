@@ -1,7 +1,3 @@
-"""Test-side mechanisms of the benchmark framework: faults started by a planner-output event,
-traffic speed profiles, repeated driver steering, lane re-indexing on a lane change
-(Software Qualification Test Specification 4, 6)."""
-
 import pytest
 
 from interfaces import (
@@ -26,7 +22,6 @@ LKA_FROM_S = 0.5
 
 
 class _LkaAfterHalfSecond:
-    """Reports LKA ACTIVE from 0.5 s on; no path."""
     init_result = InitResult.OK
 
     def __init__(self, _config):
@@ -55,7 +50,7 @@ def test_triggered_fault_starts_after_the_event_and_is_logged():
     injected = log.scenario.lane_faults[0]
     assert injected.start_s == pytest.approx(t_event * 1e-6 + 0.2)
     lost = [c for c in log.cycles if c.lane_boundaries is not None and c.lane_boundaries[1][0].name == "LOST"]
-    assert lost  # the line was really lost after the event
+    assert lost
 
 
 def test_triggered_fault_without_its_event_is_never_injected():
@@ -99,7 +94,7 @@ def test_camera_reindexes_lines_and_flags_one_frame_on_lane_change():
     assert same.lane_change == Side.NONE and same.lines[1].c0 == pytest.approx(1.75 - 0.3, abs=1e-6)
     moved = camera.capture(50_000, CameraPose(52.0, 1.9, 0.0, 52.0))
     assert moved.lane_change == Side.LEFT and camera.lane_index == 1
-    # New ego lane: its right line is the old left line, its left line the old L2.
+    # Khi xe sang trái, vạch phải mới là vạch trái cũ; vạch trái mới là L2 cũ.
     assert moved.lines[2].c0 == pytest.approx(1.75 - 1.9, abs=1e-6)
     assert moved.lines[1].c0 == pytest.approx(5.25 - 1.9, abs=1e-6)
     assert moved.lines[0].status.name == "LOST"
@@ -123,7 +118,6 @@ def test_evaluator_measures_from_the_lane_the_car_changed_to():
     log = SimpleNamespace(road=road, t_us=[0, 1_000_000], rear=[(10.0, 0.0, 0.0), (30.0, 3.4, 0.0)],
                           lane_index_changes=[(1_000_000, 1)])
     import dataclasses
-    # A plain namespace: lane_relative uses dataclasses.replace, so give it a dataclass.
     @dataclasses.dataclass
     class _Log:
         road: object
@@ -131,8 +125,8 @@ def test_evaluator_measures_from_the_lane_the_car_changed_to():
         rear: list
         lane_index_changes: list
     rel = lane_relative(_Log(road, log.t_us, log.rear, log.lane_index_changes)).road
-    assert rel.project(20.0, 0.2).d == pytest.approx(0.2)  # before the change: reference lane
-    assert rel.project(40.0, 3.6).d == pytest.approx(0.1)  # after: from the new lane centre
+    assert rel.project(20.0, 0.2).d == pytest.approx(0.2)
+    assert rel.project(40.0, 3.6).d == pytest.approx(0.1)
     assert rel.pose_at(40.0, 0.0)[1] == pytest.approx(3.5)
 
 
@@ -161,7 +155,6 @@ def test_event_counter_counts_each_start_of_a_phase():
 
 
 class _LkaCycles:
-    """LKA ACTIVE 0.5-1.0 s, COMPLETED 1.0-1.2 s, again ACTIVE 2.0-2.5 s, COMPLETED 2.5-2.7 s."""
     init_result = InitResult.OK
 
     def __init__(self, _config):

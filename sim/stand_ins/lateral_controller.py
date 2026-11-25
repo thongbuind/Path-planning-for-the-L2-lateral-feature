@@ -1,25 +1,3 @@
-"""Stand-in Lateral Controller of the evaluation side.
-
-Software Qualification Test Specification 4.6 (`#sim-controller`). It is a closed-loop
-test tool, fixed for every planner version. It is not a G1 deliverable: the real
-Lateral Controller is out of scope (Software Requirements Specification section 1).
-
-Control law, per front wheel:
-
-    delta = L * kappa_ff + K * v^2 * kappa_ff + k_y * e_y + k_psi * e_psi
-
-- kappa_ff is read at now + actuator_delay, so the controller compensates the delay
-  after the planner (PP-ADR-010, PP-ASM-017).
-- e_y, e_psi are read at a 0.5 s preview: the path point at now + 0.5 s against the
-  ego pose predicted 0.5 s ahead.
-- Path yaw is the direction of travel of base_link (Interface Control Document 6.1),
-  so e_psi compares it with the car's direction of travel: body heading plus
-  atan(v_y / v) at base_link. In a curve the two differ by the rear-axle slip angle.
-- K comes from the simulator vehicle model, not from VehicleConfig.
-
-Output is a steering wheel angle request (the stand-in EPS takes an angle).
-"""
-
 from dataclasses import dataclass
 from math import atan2, cos, isfinite, pi, sin
 
@@ -29,6 +7,7 @@ from interfaces import (
     TRAJECTORY_TIMEOUT_US,
     EgoMotionQuery,
     EgoMotionRequest,
+    PlannerId,
     Pose2D,
     Trajectory,
     VehicleConfig,
@@ -38,26 +17,22 @@ from sim.stand_ins.arbitrator import PATH_STATUS_TIMEOUT_US, ActiveFunction, Sys
 
 US_PER_S = 1_000_000
 
-# Fixed values of Software Qualification Test Specification 4.6.
-CONTROLLER_PERIOD_US = 10_000  # 100 Hz
-PREVIEW_S = 0.5  # Look-ahead for e_y, e_psi
+CONTROLLER_PERIOD_US = 10_000
+PREVIEW_S = 0.5
 
-# k_y, k_psi are tuned once and then kept fixed (Software Qualification Test
-# Specification 4.6). Start values from the closed-loop prototype, nhóm tự thống nhất.
 LATERAL_GAIN_RAD_PER_M = 0.025
-HEADING_GAIN = 0.16  # [rad/rad]
+HEADING_GAIN = 0.16
 
-_YAW_RATE_EPS = 1e-6  # [rad/s], below this the ego prediction is a straight line
-_SLIP_MIN_SPEED_MPS = 1.0  # Below this the direction of travel is not defined well
+_YAW_RATE_EPS = 1e-6  # Yaw rate dưới ngưỡng này dùng dự báo đường thẳng.
+_SLIP_MIN_SPEED_MPS = 1.0  # Ở tốc độ rất nhỏ, hướng chuyển động từ vận tốc không còn ổn định.
 
 
 @dataclass(frozen=True, slots=True)
 class EgoState:
-    """Ego motion now, as the controller sees it from chassis signals."""
-
-    speed_mps: float  # Longitudinal speed
-    lateral_speed_mps: float  # v_y at base_link
+    speed_mps: float
+    lateral_speed_mps: float
     yaw_rate_rps: float
+    driver_override: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,20 +41,31 @@ class _PathSample:
     curvature: float
 
 
+@dataclass(slots=True)
+class HwaCommandStats:
+    samples: int = 0
+    limited: int = 0
+    squared_tracking_error_m2: float = 0.0
+    peak_tracking_error_m: float = 0.0
+
+    def observe(self, tracking_error_m: float, limited: bool) -> None:
+        self.samples += 1
+        self.limited += int(limited)
+        self.squared_tracking_error_m2 += tracking_error_m ** 2
+        self.peak_tracking_error_m = max(self.peak_tracking_error_m, abs(tracking_error_m))
+
+
 def wrap_angle(angle: float) -> float:
-    """Wrap to [-pi, pi)."""
     return (angle + pi) % (2 * pi) - pi
 
 
 def to_frame(pose: Pose2D, frame: Pose2D) -> Pose2D:
-    """Express `pose` in the frame whose origin and heading are `frame`."""
     dx, dy = pose.x - frame.x, pose.y - frame.y
     c, s = cos(frame.yaw), sin(frame.yaw)
     return Pose2D(c * dx + s * dy, -s * dx + c * dy, wrap_angle(pose.yaw - frame.yaw))
 
 
 def predict_pose(state: EgoState, horizon_s: float) -> Pose2D:
-    """Ego pose after `horizon_s` with constant speed, lateral speed and yaw rate."""
     r = state.yaw_rate_rps
     v, vy = state.speed_mps, state.lateral_speed_mps
     yaw = r * horizon_s
@@ -91,10 +77,7 @@ def predict_pose(state: EgoState, horizon_s: float) -> Pose2D:
 
 
 def sample_trajectory(trajectory: Trajectory, time_s: float) -> _PathSample | None:
-    """Linear interpolation in time between two points (Interface Control Document 6.1).
-
-    Returns None outside the 0-3 s horizon.
-    """
+    """Nội suy theo thời gian giữa hai điểm. Ngoài khoảng 0–3 s của ICD thì trả None."""
     if not 0.0 <= time_s <= TRAJECTORY_HORIZON_S:
         return None
     index = time_s / TRAJECTORY_STEP_S
@@ -110,8 +93,6 @@ def sample_trajectory(trajectory: Trajectory, time_s: float) -> _PathSample | No
 
 
 class LateralController:
-    """Receiver keeps the newest message of each input and runs every 10 ms."""
-
     def __init__(
         self,
         vehicle: VehicleConfig,
@@ -119,7 +100,6 @@ class LateralController:
         lateral_gain: float = LATERAL_GAIN_RAD_PER_M,
         heading_gain: float = HEADING_GAIN,
     ) -> None:
-        """`understeer_gradient` K [rad/(m/s^2)] comes from the simulator vehicle model."""
         if not isfinite(understeer_gradient):
             raise ValueError("understeer_gradient must be finite")
         self.vehicle = vehicle
@@ -131,6 +111,7 @@ class LateralController:
         self._status: SystemStatus | None = None
         self._status_rx_us = 0
         self._last_angle = 0.0
+        self.hwa_command_stats = HwaCommandStats()
 
     def on_trajectory(self, message: Trajectory, rx_us: int) -> None:
         self._trajectory, self._trajectory_rx_us = message, rx_us
@@ -146,7 +127,6 @@ class LateralController:
         return SteeringRequest(now_us, angle, active=True)
 
     def _usable_trajectory(self, now_us: int) -> Trajectory | None:
-        """Path is usable only when both messages are fresh and a function is driving."""
         trajectory, status = self._trajectory, self._status
         if trajectory is None or status is None:
             return None
@@ -160,6 +140,15 @@ class LateralController:
             return None
         return trajectory
 
+    def _controlling_hwa(self, state: EgoState) -> bool:
+        status, trajectory = self._status, self._trajectory
+        return (not state.driver_override and status is not None and trajectory is not None
+                and status.active_function == ActiveFunction.LCC and status.chosen == PlannerId.LCC
+                and trajectory.planner_id == PlannerId.LCC)
+
+    def _limit_wheel_angle(self, now_us: int, state: EgoState, wheel_angle: float) -> float:
+        return wheel_angle
+
     def _command(self, now_us: int, state: EgoState, ego_motion: EgoMotionQuery) -> float | None:
         trajectory = self._usable_trajectory(now_us)
         if trajectory is None:
@@ -168,7 +157,6 @@ class LateralController:
         if now_us < stamp_us:
             return None
 
-        # Motion since the path stamp: brings path points into the current base_link.
         motion = ego_motion(EgoMotionRequest(stamp_us, now_us))
         if not motion.valid:
             return None
@@ -180,12 +168,12 @@ class LateralController:
         if feedforward is None or target is None:
             return None
 
-        # Errors of the preview point in the predicted ego frame.
+        # Yaw của path là hướng chuyển động, nên so với hướng vận tốc của xe thay vì hướng thân
+        # xe.
         target_now = to_frame(target.pose, ego_now)
         error = to_frame(target_now, predict_pose(state, PREVIEW_S))
 
         v = state.speed_mps
-        # Path yaw is a direction of travel: compare with the car's, not its body heading.
         slip = atan2(state.lateral_speed_mps, v) if v > _SLIP_MIN_SPEED_MPS else 0.0
         heading_error = wrap_angle(error.yaw - slip)
         kappa = feedforward.curvature
@@ -198,5 +186,11 @@ class LateralController:
         if not isfinite(wheel_angle):
             return None
         limit = self.vehicle.max_wheel_angle
-        wheel_angle = min(limit, max(-limit, wheel_angle))
+        physical_angle = min(limit, max(-limit, wheel_angle))
+        if self._controlling_hwa(state):
+            bounded = self._limit_wheel_angle(now_us, state, wheel_angle)
+            wheel_angle = min(limit, max(-limit, bounded))
+            self.hwa_command_stats.observe(error.y, wheel_angle != physical_angle)
+        else:
+            wheel_angle = physical_angle
         return self.vehicle.steering_ratio * wheel_angle

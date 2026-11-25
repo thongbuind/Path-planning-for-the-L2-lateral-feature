@@ -1,0 +1,26 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md.
+name: qp_jerk_admm_mlp_weights
+base: qp_jerk_admm          # Cùng bài toán QP, warm start, đúng qp_iters vòng; chỉ khác ba trọng số
+study: PP-TS-031
+telemetry:
+  work: số vòng ADMM            # Luôn đúng qp_iters
+  # fallback: lý do không dùng MLP; khi đó đích là trọng số mặc định (qp_w_dev, qp_w_jerk, qp_a_comfort).
+  fallback:
+    1: MLP_NOT_FINITE (đặc trưng không hữu hạn)
+    2: MLP_OUT_OF_DOMAIN (một đặc trưng lệch quá 5 σ so với train)
+# Tham số calibration riêng: tên bắt đầu bằng calibration_prefix + "_", cùng định dạng với
+# planner/calibration/calibration.yaml (value, unit, min, max, source).
+calibration_prefix: mlpw
+calibration:
+  # Dải kẹp đầu ra MLP; trùng dải lưới của nhãn (notes.md).
+  mlpw_w_dev_min: {value: 0.15, unit: "-", gt: 0, source: "PP-TS-031 plan.yaml, lưới qp_jerk_admm (×0,5 của 0,30)"}
+  mlpw_w_dev_max: {value: 0.60, unit: "-", gt: 0, gt_param: mlpw_w_dev_min, source: "PP-TS-031 plan.yaml, lưới qp_jerk_admm (×2 của 0,30)"}
+  mlpw_w_jerk_min: {value: 0.5, unit: "-", gt: 0, source: "nhóm tự thống nhất; ×0,5 của qp_w_jerk mặc định (notes.md)"}
+  mlpw_w_jerk_max: {value: 2.0, unit: "-", gt: 0, gt_param: mlpw_w_jerk_min, source: "nhóm tự thống nhất; ×2 của qp_w_jerk mặc định (notes.md)"}
+  mlpw_a_comfort_min: {value: 1.0, unit: m/s^2, min: 0, source: "nhóm tự thống nhất; ×0,5 của qp_a_comfort mặc định (notes.md)"}
+  mlpw_a_comfort_max: {value: 2.5, unit: m/s^2, max: 2.5, gt_param: mlpw_a_comfort_min, source: "PP-SWR-001; trần của qp_a_comfort"}
+  # Giới hạn tốc độ đổi trọng số mỗi chu kỳ: đi hết dải trong khoảng 1 s (40 chu kỳ), dải 0–1 s của PP-SWR-100.
+  mlpw_rate_log: {value: 0.035, unit: "-", gt: 0, source: "PP-SWR-100; nhóm tự thống nhất (ln 4 / 40)"}
+  mlpw_rate_ac: {value: 0.0375, unit: m/s^2, gt: 0, source: "PP-SWR-100; nhóm tự thống nhất (1,5 / 40)"}
+  # Hệ số điều chuẩn l2 khi huấn luyện; chọn model đã xuất có log10 gần nhất. Lưới PP-TS-031: 1e-4 / 1e-3 / 1e-2.
+  mlpw_regularisation: {value: 1.0e-3, unit: "-", gt: 0, source: "PP-TS-031 plan.yaml mlpw_regularisation (tâm lưới)"}

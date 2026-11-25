@@ -1,5 +1,3 @@
-"""Simulator identity and model validation state in every report (SIM-REQ-120, 121)."""
-
 import re
 from pathlib import Path
 
@@ -13,7 +11,7 @@ def test_models_are_unique_and_say_their_validation():
     ids = [m.id for m in credibility.MODELS]
     assert len(ids) == len(set(ids))
     assert all(m.validation for m in credibility.MODELS)
-    assert not any(m.validated for m in credibility.MODELS)  # no real vehicle data exists yet
+    assert not any(m.validated for m in credibility.MODELS)
 
 
 def test_simulator_text_names_version_and_validation_state():

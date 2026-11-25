@@ -1,12 +1,8 @@
-/* Workbench: khung điều hướng theo không gian làm việc, router theo hash, helper dùng chung.
-   Trang "Chạy mới" là màn hình mô phỏng sẵn có (ui.js); các màn khác dựng ở wb-runs.js, wb-evidence.js.
-   Chỉ nói chuyện với server qua HTTP. Dữ liệu từ server luôn vào DOM bằng textContent. */
 (() => {
   'use strict';
   const PP = window.PP;
   const WB = (window.WB = { views: {}, leave: [] });
 
-  // ---------- DOM ----------
   const SVGNS = 'http://www.w3.org/2000/svg';
   WB.h = (tag, attrs, ...kids) => {
     const e = document.createElement(tag);
@@ -39,8 +35,6 @@
   WB.card = (cls, ...kids) => h('section', { class: 'wb-card ' + (cls || '') }, kids);
   WB.page = (...kids) => h('div', { class: 'wb-col' }, kids);
 
-  // ---------- Số, giờ ----------
-  /** Số kiểu Việt, ba chữ số có nghĩa với số nhỏ, hai chữ số thập phân với số từ 1 trở lên. */
   WB.num = (v) => {
     if (v == null || typeof v !== 'number' || !isFinite(v)) return '—';
     if (Number.isInteger(v)) return String(v).replace('-', '−');
@@ -58,7 +52,6 @@
   };
   WB.dur = (s) => (s == null || !isFinite(s) ? '—' : PP.f(Math.max(0, s), 1) + ' s');
   WB.short = (hash, n) => (hash ? String(hash).slice(0, n || 8) : '—');
-  /** "S1 c F01c F04a VP-0 seed 1" -> "S1 c · F01 c + F04 a · VP-0 · seed 1". */
   WB.prettyLabel = (label) => {
     const t = String(label || '').split(/\s+/).filter(Boolean);
     if (t.length < 2) return label || '—';
@@ -77,11 +70,10 @@
     setTimeout(() => { btn.textContent = old; }, 1400);
   };
 
-  // ---------- Gọi server ----------
   WB.api = async (path, opts) => {
     const r = await fetch('api/' + path, opts);
     let body = null;
-    try { body = await r.json(); } catch (e) { /* không phải JSON */ }
+    try { body = await r.json(); } catch (e) {   }
     if (!r.ok) throw new Error((body && body.error) || 'HTTP ' + r.status);
     return body;
   };
@@ -94,8 +86,6 @@
     return d;
   };
 
-  // ---------- Màn hình backlog ----------
-  /** Mẫu dùng chung: phần chưa cam kết nói rõ sẽ có gì và hôm nay dùng được gì. */
   WB.cho = (o) => {
     const planned = o.planned || [];
     const avail = o.available || [];
@@ -130,7 +120,6 @@
       ghost);
   };
 
-  // ---------- Điều hướng ----------
   const GROUPS = [
     { title: 'Thực thi', items: [
       { key: 'chay', label: 'Chạy mới', href: '#/chay', st: 'done' },
@@ -180,12 +169,11 @@
     try { await WB.runs(); } catch (e) { paintFoot(null); }
   }
 
-  // ---------- Router ----------
   const chay = document.getElementById('v-chay');
   const page = document.getElementById('v-page');
   let token = 0;
   WB.onLeave = (fn) => WB.leave.push(fn);
-  const leaveAll = () => { WB.leave.splice(0).forEach((fn) => { try { fn(); } catch (e) { /* bỏ qua */ } }); };
+  const leaveAll = () => { WB.leave.splice(0).forEach((fn) => { try { fn(); } catch (e) {   } }); };
 
   async function route(quiet) {
     const parts = (location.hash || '#/chay').replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -193,7 +181,7 @@
     const my = ++token;
     leaveAll();
     markNav(key === 'phat' ? 'runs' : ['chay', 'runs', 'suite', 'review', 'tincay', 'nentang'].includes(key) ? key : 'chay');
-    if (key === 'phat' && parts[1]) {   // #/phat/<run_id>[/<t>]: phát lại từ bundle, không chạy planner
+    if (key === 'phat' && parts[1]) {
       chay.hidden = false; page.hidden = true;
       document.title = 'Phát lại · Path Planner Workbench';
       window.dispatchEvent(new Event('resize'));
@@ -236,6 +224,6 @@
   pollFoot();
   setInterval(() => { if (!document.hidden) pollFoot(); }, 5000);
   WB.catalog().then((cat) => { document.getElementById('wb-ver').textContent = cat.pp.replace(/ calibration.*/, '').replace('commit ', '· '); }).catch(() => {});
-  // wb-runs.js, wb-evidence.js đăng ký màn hình; chạy route sau khi cả hai đã nạp.
+  // Chỉ dispatch route sau khi các mô-đun màn hình đã đăng ký.
   window.addEventListener('load', () => route());
 })();

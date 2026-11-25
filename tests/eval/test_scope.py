@@ -1,5 +1,3 @@
-"""Scope of a run (Software Qualification Test Specification 8.1; PP-TS-015 V1)."""
-
 import yaml
 
 from eval import matrix, sweep
@@ -7,7 +5,7 @@ from eval import matrix, sweep
 
 def test_base_is_owned_by_scope_file_and_equals_p1_start():
     p1 = sweep.load_suite("P1")["scope"]
-    obsolete = {"PP-SWR-083"}  # PP-TS-016
+    obsolete = {"PP-SWR-083"}
     assert ({k: sorted(v) for k, v in matrix.SCOPE["base"].items()}
             == {k: sorted(set(v) - obsolete) for k, v in p1.items()})
     for name in ("Q1", "Q2", "Q3", "Q4", "M1"):
@@ -27,8 +25,8 @@ def test_scenario_variant_named_as_another_anchor_gets_its_scope():
     assert matrix.scope(matrix.SCOPE, ["S1", "c"]) <= rain
     assert "PP-SWR-032" in matrix.scope(matrix.SCOPE, ["S12", "b"])
     assert "PP-SWR-005" in matrix.scope(matrix.SCOPE, ["S14", "a"])
-    assert "PP-SWR-005" not in matrix.scope(matrix.SCOPE, ["S14", "e"])  # not an anchor of S1b
-    assert "PP-SWR-051" not in matrix.scope(matrix.SCOPE, ["S12", None])  # sampled case
+    assert "PP-SWR-005" not in matrix.scope(matrix.SCOPE, ["S14", "e"])
+    assert "PP-SWR-051" not in matrix.scope(matrix.SCOPE, ["S12", None])
 
 
 def test_case_scope_uses_the_real_host():

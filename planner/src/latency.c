@@ -1,13 +1,11 @@
-/* T1 Latency compensation (latency.h). PP-SWR-012, 128. */
-
 #include "latency.h"
 
 #include <math.h>
 #include <string.h>
 
-#define PP_SAMPLE_STEP_M (1.0)        /* Software Detailed Design 4, step 3 */
-#define PP_MAX_FIT_SAMPLES (256U)     /* Bounds the work per boundary */
-#define PP_MIN_FIT_RANGE_M (3.0)      /* Shorter ranges are not refitted (latency.h) */
+#define PP_SAMPLE_STEP_M (1.0)
+#define PP_MAX_FIT_SAMPLES (256U)
+#define PP_MIN_FIT_RANGE_M (3.0)
 #define PP_RANGE_TOLERANCE_M (1.0e-9)
 
 typedef struct {
@@ -37,9 +35,7 @@ bool pp_cubic_move(const pp_cubic_t *in, double x_start, double x_end, const pp_
     double step = PP_SAMPLE_STEP_M;
     uint32_t samples = PP_MAX_FIT_SAMPLES;
     const double whole = floor(range / step);
-    /* The last sample is always x_end, so the moved range ends where the observed one does.
-     * Ending at the last whole step lost up to one step per call: 1 m in every cycle while
-     * the car yaws, for a cubic moved cycle after cycle (PP-PR-058). */
+    /* Luôn lấy mẫu tại x_end. Bỏ mẫu cuối có thể làm mất gần 1 m tầm nhìn mỗi chu kỳ (PP-PR-058). */
     bool end_sample = false;
     bool ok = (isfinite(range) != 0) && (range >= (PP_MIN_FIT_RANGE_M - PP_RANGE_TOLERANCE_M));
     if (ok) {

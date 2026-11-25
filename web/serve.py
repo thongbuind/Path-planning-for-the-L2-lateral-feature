@@ -1,20 +1,3 @@
-"""Server nhỏ cho web: phục vụ file tĩnh và đồng bộ tài liệu với file Markdown.
-
-Chạy:  python3 serve.py            (mặc định http://127.0.0.1:8770/)
-       python3 serve.py --port 8771
-
-Tài liệu gốc nằm trong docs/vi/<id>.md. Bản dịch trong docs/en/ chỉ đọc:
-
-GET /api/docs/<id>  trả nội dung md, kèm ETag theo thời điểm sửa file. Gửi If-None-Match
-                    trùng ETag thì nhận 304 (web hỏi định kỳ để biết md vừa đổi).
-PUT /api/docs/<id>  thân là md mới. Gửi If-Match là ETag lúc web tải; nếu file đã bị sửa ở
-                    ngoài sau đó thì trả 409 và không ghi đè.
-
-GET/POST/PUT /api/reviews/<id> đọc, tạo và sửa nhận xét trong web/data/review-comments/<id>.json.
-/simulation/api/* chuyển tiếp qua HTTP tới workbench (python3 -m workbench.server, mặc định
-http://127.0.0.1:8793, đổi bằng PP_WORKBENCH_URL). Web không nạp mã nguồn của simulator.
-Chỉ nghe trên 127.0.0.1 và dùng thư viện chuẩn.
-"""
 import argparse
 import http.client
 import json
@@ -82,7 +65,7 @@ class Handler(SimpleHTTPRequestHandler):
         return origin is None or origin in (f"http://127.0.0.1:{port}", f"http://localhost:{port}")
 
     def proxy(self, method):
-        """/simulation/api/* -> workbench /api/*, streamed line by line (events of a run)."""
+        """Chuyển tiếp /simulation/api/* sang Workbench; stream từng dòng sự kiện."""
         if method == "POST" and not self._origin_ok():
             return self.send_json(403, {"error": "origin không được phép"})
         body = None
@@ -112,7 +95,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self.wfile.write(chunk)
                 self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError):
-            pass  # the tab left; the run goes on in the workbench
+            pass
         finally:
             conn.close()
 
@@ -143,7 +126,6 @@ class Handler(SimpleHTTPRequestHandler):
         return super().translate_path(path)
 
     def send_head(self):
-        # Chỉ phục vụ trang, tài nguyên và bản xuất. Nhận xét đi qua API.
         target = Path(self.translate_path(self.path)).resolve()
         if self.path.partition("?")[0] == "/" + STUDY_FIGURE:
             if target != Path(PROJECT).resolve() / STUDY_FIGURE:
@@ -167,13 +149,12 @@ class Handler(SimpleHTTPRequestHandler):
         return super().send_head()
 
     def end_headers(self):
-        # Không cache, để sửa file xong tải lại là thấy ngay.
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
     def log_message(self, fmt, *args):
         if len(args) >= 2 and "/api/docs/" in str(args[0]) and str(args[1]) == "304":
-            return  # bỏ log của các lần hỏi định kỳ không có gì mới
+            return
         super().log_message(fmt, *args)
 
     def do_GET(self):
@@ -184,7 +165,6 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.path.startswith("/api/"):
             return super().do_GET()
         if self.path == "/api/ping":
-            # Cho trang mở thẳng từ file:// (origin "null") biết serve.py đang chạy để chuyển sang.
             self.send_response(200)
             self.send_header("Access-Control-Allow-Origin", "null")
             self.send_header("Content-Length", "0")
@@ -216,7 +196,7 @@ class Handler(SimpleHTTPRequestHandler):
         if length <= 0 or length > MAX_BODY:
             return self.send_error(413)
         data = self.rfile.read(length)
-        data.decode("utf-8")  # từ chối nếu không phải UTF-8
+        data.decode("utf-8")
         expected = self.headers.get("If-Match")
         if expected and expected != etag(p):
             self.send_response(409)
@@ -225,7 +205,7 @@ class Handler(SimpleHTTPRequestHandler):
         tmp = p + ".tmp"
         with open(tmp, "wb") as f:
             f.write(data)
-        os.replace(tmp, p)  # ghi nguyên tử: không bao giờ để lại file dở
+        os.replace(tmp, p)  # Ghi qua tệp tạm để request khác không đọc phải nội dung chưa hoàn tất.
         self.send_response(204)
         self.send_header("ETag", etag(p))
         self.end_headers()

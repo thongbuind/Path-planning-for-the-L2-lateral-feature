@@ -1,5 +1,3 @@
-"""Road ground truth (sim/world/road.py)."""
-
 from math import isclose, pi
 
 import pytest
@@ -17,7 +15,6 @@ def test_straight_then_arc_geometry():
 
 
 def test_clothoid_heading_is_half_of_arc_with_same_length():
-    # Clothoid from 0 to 1/R over L turns by L / (2R).
     road = Road([Segment("clothoid", 100.0, 1 / 500.0)], 3.5)
     assert isclose(road.theta[-1], 100.0 / (2 * 500.0), rel_tol=1e-3)
     assert isclose(road.kappa[-1], 1 / 500.0, rel_tol=1e-9)
@@ -39,7 +36,7 @@ def test_line_offsets_left_to_right():
 
 
 def _project_reference(road, x, y, s_hint=None, window_m=20.0):
-    """Projection as written with np.clip and np.argmin, before the scalar fast path."""
+    """Phép chiếu tham chiếu dùng np.clip và np.argmin để so với cách tính vô hướng."""
     import numpy as np
     from math import cos, sin
     from sim.world.road import SAMPLE_STEP_M, LaneProjection

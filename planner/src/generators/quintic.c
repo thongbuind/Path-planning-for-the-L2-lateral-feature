@@ -1,5 +1,3 @@
-/* T7 Path generation, technique A (quintic.h). */
-
 #include "quintic.h"
 
 #include <string.h>
@@ -13,7 +11,6 @@ bool pp_quintic_solve(double d0, double v0, double a0, double d1, double duratio
     if (ok) {
         const double T2 = T * T;
         const double T3 = T2 * T;
-        /* Remaining position, velocity and acceleration to reach (d1, 0, 0). */
         const double h = d1 - (d0 + (v0 * T) + (0.5 * a0 * T2));
         const double dv = -(v0 + (a0 * T));
         const double da = -a0;
@@ -38,7 +35,7 @@ void pp_quintic_eval(const pp_quintic_t *q, double t, double *d, double *d_dot,
              + (tc * 5.0 * a[5])))))));
     *d_ddot = (2.0 * a[2]) + (tc * ((6.0 * a[3]) + (tc * ((12.0 * a[4]) + (tc * 20.0 * a[5])))));
     if (t >= q->duration) {
-        /* End state is (d1, 0, 0): hold it. */
+        /* Hết duration, giữ (d1, 0, 0). */
         *d_dot = 0.0;
         *d_ddot = 0.0;
     }

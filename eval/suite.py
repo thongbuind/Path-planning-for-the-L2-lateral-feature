@@ -1,22 +1,15 @@
-"""Run a generated ASAM suite, one SIL log per worker at a time (8 GB machines).
+"""B0 chạy trước. C1/C2 trượt sẽ dừng suite trừ khi bật chế độ chạy tiếp để lập báo cáo."""
 
-    python3 -m eval.suite build/concrete/smoke/manifest.json [--jobs 2] [--planner LIB] [--mcap all]
-
-B0 conformance runs first; C1 or C2 failed stops the suite (Software Qualification Test
-Specification 11) unless --continue-after-b0. Every run is its own process: a planner that crashes or hangs is an
-execution fault of that run. Results are written in manifest order, one line per run,
-whatever the number of workers; report.md starts with the conclusion of section 8.4 and
-lists every failure by level (section 10). MCAP logs: runs with a failure (default) or all.
-"""
 import argparse
 from dataclasses import replace
 import json
 from pathlib import Path
 from shlex import join
+import sys
 
-from eval import aspects, conclusion, conformance, isolation, labels, loader, matrix, openx, planner_choice, provenance, report
+from eval import aspects, conclusion, conformance, isolation, labels, loader, matrix, openx, planner_choice, provenance, report, run_artifacts
 
-RUN_TIMEOUT_S = 1800  # wall clock of one run in its process; beyond it the planner did not return
+RUN_TIMEOUT_S = 1800
 
 
 def verify_manifest(path):
@@ -50,7 +43,6 @@ def verify_manifest(path):
     return manifest, cases
 
 
-# Scope rule of every run: benchmark/suites/scope.yaml (Software Qualification Test Specification 8.1).
 SCOPE = matrix.SCOPE
 
 
@@ -99,7 +91,6 @@ def execute_case(case, directory, seed, planner, mcap_dir=None, mcap='failed'):
 
 
 def run_safely(case, directory, run, planner, mcap_dir=None, mcap='failed'):
-    """One run in its process; an evaluator error is reported, never lost or fatal to the suite."""
     try:
         return execute_case(case, directory, run['seed'], planner, mcap_dir, mcap)
     except Exception as exc:
@@ -107,7 +98,7 @@ def run_safely(case, directory, run, planner, mcap_dir=None, mcap='failed'):
 
 
 def from_isolated(run, status, value, timeout_s=RUN_TIMEOUT_S):
-    """Record of one run from eval.isolation: crash and hang are execution faults (8.4)."""
+    """Crash và timeout của một run được ghi thành lỗi thực thi (SQTS 8.4)."""
     if status == 'ok':
         return value
     if status == 'crash':
@@ -118,19 +109,16 @@ def from_isolated(run, status, value, timeout_s=RUN_TIMEOUT_S):
 
 
 def results(tasks, jobs, fn=run_safely, timeout_s=RUN_TIMEOUT_S):
-    """Records in task order; each task (case, directory, run, planner, ...) in its own process."""
     for task, (status, value) in zip(tasks, isolation.map_isolated(fn, tasks, jobs, timeout_s)):
         yield from_isolated(task[2], status, value, timeout_s)
 
 
 def case_aspects(case, directory):
-    """Aspects of a concrete case before running it (its labels come from the case file)."""
     scenario = loader.load_file(directory / case['file'])
     return aspects.members(case['family'], case['anchor'], case.get('methods', []), labels.of(scenario))
 
 
 def aspect_table(records, b0):
-    """One line per aspect suite: runs and failures by level (Software Qualification Test Specification 5.3)."""
     lines = ['', '## Bộ theo khía cạnh', '', '| Bộ | Khía cạnh | Lần chạy | Kết luận | BLOCKER | MAJOR | MINOR |',
              '|---|---|---|---|---|---|---|']
     if b0 is not None:
@@ -158,11 +146,14 @@ def write_report(out, records, b0, planner_text, extra=()):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description="Run a generated ASAM suite, one SIL log per worker at a time (8 GB machines).",
+    )
     parser.add_argument('manifest', type=Path)
     parser.add_argument('--out', type=Path)
     parser.add_argument('--max-runs', type=int, help='Exploratory prefix only; reported as partial, never official')
     parser.add_argument('--record', action='store_true')
+    parser.add_argument('--artifact-dir', type=Path, help='Shared directory for official suite artifacts')
     parser.add_argument('--jobs', type=int, default=1, help='Worker processes (each holds one SIL log)')
     parser.add_argument('--mcap', choices=('failed', 'all', 'none'), default='failed',
                         help='MCAP log for runs with an in-scope failure (default), for every run, or none')
@@ -178,6 +169,8 @@ def main():
         parser.error('--record needs B0')
     if args.max_runs is not None and (args.max_runs <= 0 or args.record):
         parser.error('--max-runs must be positive and cannot be combined with --record')
+    if args.record and not args.artifact_dir:
+        parser.error('--record requires --artifact-dir')
     source, cases = verify_manifest(args.manifest)
     planner = planner_choice.from_args(args)
     manifest = provenance.make('suite', source['suite'], {'jobs': args.jobs, 'start_method': isolation.START_METHOD})
@@ -188,6 +181,10 @@ def main():
         provenance.preflight(manifest)
         if source['inputs'] != manifest['inputs']:
             raise SystemExit('Benchmark inputs changed since generation; regenerate before an official run')
+        try:
+            run_artifacts.prepare_store(args.artifact_dir)
+        except (OSError, ValueError) as exc:
+            parser.error(f'cannot use --artifact-dir: {exc}')
     runs = source['runs']
     if args.aspect:
         unknown = set(args.aspect) - set(aspects.definitions())
@@ -196,7 +193,7 @@ def main():
         chosen = {cid for cid, case in cases.items() if set(args.aspect) & set(case_aspects(case, args.manifest.parent))}
         runs = [r for r in runs if r['case'] in chosen]
         manifest['aspects'] = args.aspect
-    selected = len(runs)  # an aspect subset is complete when every run of it is executed
+    selected = len(runs)  # Suite theo nhóm aspect hoàn tất khi chạy hết tập con đã chọn.
     runs = runs[:args.max_runs] if args.max_runs else runs
     out = args.out or openx.ROOT / 'build' / 'suites' / source['suite']
     out.mkdir(parents=True, exist_ok=False)
@@ -243,15 +240,22 @@ def main():
     counts['verdict'] = c['verdict']
     summary = out / 'summary.json'
     summary.write_text(json.dumps(counts, indent=2, ensure_ascii=False) + '\n')
-    provenance.write({**manifest, 'summary': counts}, out)
-    # Freeze the exact generation definition with the results.
+    manifest = {**manifest, 'summary': counts, 'finished': provenance.now()}
+    provenance.write(manifest, out)
+    # Lưu định nghĩa sinh ca đã dùng để có thể đối chiếu với kết quả chi tiết.
     generation_path = out / 'generation.json'
     generation_path.write_text(json.dumps(source, indent=2, ensure_ascii=False) + '\n')
     if args.record:
-        provenance.record(manifest, {'results.jsonl': result_path, 'summary.json': summary,
-                                     'generation.json': generation_path, 'report.md': out / 'report.md',
-                                     'conclusion.json': out / 'conclusion.json'},
-                          f"{c['verdict']}; {json.dumps({k: counts[k] for k in ('executed', 'failed', 'errors')})}")
+        try:
+            artifact = run_artifacts.pack(args.artifact_dir, manifest, out, args.manifest)
+            official = {**manifest, 'artifact': artifact}
+            provenance.record(official, {'summary.json': summary, 'report.md': out / 'report.md',
+                                         'conclusion.json': out / 'conclusion.json'},
+                              f"{c['verdict']}; {json.dumps({k: counts[k] for k in ('executed', 'failed', 'errors')})}")
+            provenance.write(official, out)
+        except (OSError, ValueError) as exc:
+            print(f'Cannot record official suite: {exc}', file=sys.stderr)
+            raise SystemExit(2) from exc
     print('\n'.join(conclusion.markdown(c, planner_text)[:6]))
     print(json.dumps(counts, ensure_ascii=False))
     if counts['errors'] or counts['failed']:

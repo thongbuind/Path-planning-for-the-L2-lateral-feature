@@ -13,11 +13,10 @@
   var language = "vi";
   try {
     if (localStorage.getItem(LANGUAGE_KEY) === "en") language = "en";
-  } catch (err) { /* vẫn dùng được khi trình duyệt tắt lưu trữ */ }
+  } catch (err) {   }
   var requestedLanguage = route.get("lang");
   if (requestedLanguage === "vi" || requestedLanguage === "en") language = requestedLanguage;
 
-  // Giữ nguyên văn bản gốc khi cập nhật giao diện nhiều lần.
   var interfaceText = Array.from(document.querySelectorAll("[data-i18n], [data-i18n-aria]"), function (node) {
     var attribute = node.hasAttribute("data-i18n-aria") ? "aria-label" : null;
     return { node: node, attribute: attribute, text: attribute ? node.getAttribute(attribute) : node.textContent };
@@ -30,7 +29,7 @@
 
   var MIN_K = 0.02;
   var MAX_K = 3;
-  var DRAG_THRESHOLD = 5; // px: dưới ngưỡng này coi là bấm, không phải kéo
+  var DRAG_THRESHOLD = 5;
   var GRID = 24;
 
   var view = { x: 0, y: 0, k: 1 };
@@ -38,7 +37,6 @@
   var autoFit = true;
   var cards = window.SPEC_CARDS || [];
 
-  // ---------- Hiển thị ----------
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -87,7 +85,6 @@
     '<path d="M5 2h13l8 8v22a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/>' +
     '<path d="M18 2v8h8M8 14h13M8 18h9" fill="none"/></svg>';
 
-  // Thẻ báo cáo là liên kết tới trang riêng.
   function renderDocCard(c, number) {
     var b = el("a", c.main ? "card doc doc-main" : "card doc");
     b.href = reportHref(c.doc);
@@ -107,7 +104,7 @@
     world.appendChild(b);
   }
 
-  // Khi chạy cục bộ, bản gốc tiếng Việt đồng bộ qua API. Bản xuất đọc hai file Markdown tĩnh.
+  // Bản cục bộ đồng bộ tài liệu VI qua API; bản xuất đọc các tệp Markdown tĩnh.
   var page = document.getElementById("doc-page");
   var backLink = document.getElementById("report-back");
   var reportCatalog = document.getElementById("report-catalog");
@@ -136,19 +133,18 @@
     }
   }
 
-  // Khi mở file HTML trực tiếp, chuyển sang serve.py nếu server đang chạy.
   if (localFile && !staticSite) {
     fetch(SERVE_URL + "api/ping", { cache: "no-store" })
       .then(function (r) {
         if (r.ok) location.replace(SERVE_URL + (page ? DOCUMENTS_PATH : HOME_PATH) + location.search + location.hash);
       })
-      .catch(function () { /* serve.py chưa chạy: trang tài liệu sẽ hướng dẫn */ });
+      .catch(function () {   });
   }
   var docState = { vi: {}, en: {} };
   var versionRecords = null;
   var pendingVersionRecords = null;
   var currentDoc = page && docCards().find(function (c) { return c.doc === requestedDoc; });
-  var pageVersion = null; // Nội dung và ETag đã dùng để dựng trang đang sửa.
+  var pageVersion = null; // ETag phải ứng với bản Markdown đang mở để lần lưu phát hiện xung đột.
   var saveTimer = null;
   var saving = null;
   var dirty = false;
@@ -190,7 +186,6 @@
     return DOCUMENTS_PATH + (localFile ? "index.html" : "") + "?" + params.toString() + (section ? "#" + section : "");
   }
 
-  // Liên kết theo mục dùng cùng ngôn ngữ với tài liệu.
   function docLanguage(c) {
     return language === "en" && !st(c.doc, "en").missing ? "en" : "vi";
   }
@@ -284,7 +279,7 @@
         return r.arrayBuffer().then(async function (bytes) {
           var md = new TextDecoder().decode(bytes);
           var revision = await docRevision(bytes);
-          // Phản hồi bắt đầu trước lần lưu không được ghi lùi phiên bản trong bộ nhớ.
+          // Phản hồi của lần đọc cũ không được ghi đè trạng thái đã lưu mới hơn.
           if (s.etag !== previousTag) return false;
           var changed = md !== s.md || tag !== s.etag || s.ok !== true;
           s.md = md;
@@ -321,7 +316,6 @@
     heads.forEach(function (h, i) {
       var row = el(world ? "span" : "a", "doc-toc-row");
       var href = reportHref(c.doc, h.id || null);
-      // Bấm một dòng mục lục thì mở thẳng mục đó (xử lý ở pointerup của bản đồ).
       if (world) row.dataset.href = href;
       else row.href = href;
       row.lang = lang;
@@ -342,10 +336,7 @@
     if (heading && page.contains(heading)) heading.scrollIntoView();
   }
 
-  // Bảng trong trang tài liệu: cột ngắn không xuống dòng, tên code dài ngắt ở dấu _ . [ /,
-  // mỗi bảng chỉ hiện 2 hàng đầu, các hàng còn lại mở bằng nút "Xem thêm" dưới bảng.
-  // Nội dung trong ô luôn hiện đủ. Nút không có chữ (nhãn lấy từ data-label) và mang
-  // data-ui, nên không lọt vào md khi lưu và không làm lệch vị trí neo của nhận xét.
+  // data-ui đánh dấu nút chỉ dùng để hiển thị, giúp không lọt vào Markdown hoặc làm lệch neo nhận xét.
   var TIGHT_CELL_CHARS = 18, VISIBLE_ROWS = 2, ID_COLUMN_EM = 6.2;
   function breakCode(code) {
     var text = code.textContent;
@@ -356,8 +347,6 @@
       code.appendChild(document.createTextNode(part));
     });
   }
-  // Cột ngắn lấy đúng độ rộng cần; phần còn lại chia cho các cột chữ theo lượng chữ trung bình,
-  // để cột nhiều chữ nhất (thường là cột Yêu cầu hay Nội dung) rộng nhất.
   function sizeColumns(table) {
     var rows = Array.prototype.slice.call(table.rows);
     var group = table.querySelector(":scope > colgroup");
@@ -402,7 +391,7 @@
     b.setAttribute("aria-expanded", String(!table.classList.contains("table-collapsed")));
     return b;
   }
-  // Mã như PP-SWR-013, SG-01, VP-1 không được ngắt ở dấu gạch nối.
+  // Giữ nguyên mã như PP-SWR-013, SG-01 khi chia dòng, trừ chế độ bảng hẹp.
   var ID_TOKEN = /\b(?:PP-(?:SWR|ASM|ADR)-\d{3}|[A-Z]{1,3}-\d{1,3}[a-z]?)\b/g;
   function keepIdsTogether(cell) {
     var walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT), nodes = [];
@@ -431,11 +420,9 @@
       var rows = Array.prototype.slice.call(table.rows);
       if (!rows.length) return;
       var columns = Math.max.apply(null, rows.map(function (r) { return r.cells.length; }));
-      // Bảng chật: nhiều cột và nhiều chữ mỗi hàng. Chỉ khi đó mới cho cột ID ngắt dòng.
       var textPerRow = rows.slice(1).reduce(function (n, r) { return n + r.textContent.trim().length; }, 0) / Math.max(1, rows.length - 1);
       var crowded = columns >= 4 && textPerRow > 60;
       for (var k = 0; k < columns; k++) {
-        // Cột ID được ngắt ở dấu gạch nối (PP-SWR- / 001) để cột hẹp lại.
         if (rows[0].cells[k] && rows[0].cells[k].textContent.trim() === "ID" && crowded) {
           rows.forEach(function (r) { r.cells[k]?.classList.add("cell-id"); });
           continue;
@@ -459,7 +446,6 @@
     });
     requestAnimationFrame(function () { layoutTables(root); });
   }
-  // Chạy khi trang đã hiện: cần độ rộng thật để chia cột.
   function layoutTables(root) { root.querySelectorAll("table").forEach(sizeColumns); }
   function toggleTable(table) {
     table.classList.toggle("table-collapsed");
@@ -528,7 +514,7 @@
     saving = fetch(docUrl(c.doc, "vi"), { method: "PUT", headers: headers, body: md })
       .then(async function (r) {
         if (r.status === 409) {
-          // Tải phiên bản ngoài editor, kể cả khi một lần poll cũ còn đang chạy.
+          // Lấy snapshot ngoài editor để phản hồi poll không ghi đè nội dung đang sửa.
           if (s.pending) await s.pending;
           s.etag = null;
           await loadDoc(c.doc, "vi");
@@ -599,7 +585,6 @@
     return Promise.all(jobs);
   }
 
-  // ---------- Sơ đồ vẽ từ bảng trong tài liệu ----------
   function diagramCards() { return cards.filter(function (c) { return c.kind === "diagram"; }); }
 
   function renderDiagramCard(c) {
@@ -619,7 +604,7 @@
     world.appendChild(b);
   }
 
-  // Sơ đồ đọc dữ liệu từ bản gốc và lấy nhãn từ bản dịch đã đối chiếu.
+  // Sơ đồ lấy dữ liệu từ bản gốc và dùng nhãn EN khi bản dịch đã đối chiếu.
   function diagramSource(ref) {
     var vi = st(ref.doc, "vi");
     var en = st(ref.doc, "en");
@@ -653,7 +638,6 @@
         });
         if (out.node) {
           body.replaceChildren(out.node);
-          // Bản dịch chưa đối chiếu với bảng gốc thì sơ đồ dùng nhãn tiếng Việt; nói rõ cho người đọc.
           if (language === "en" && !out.translated) {
             body.appendChild(el("span", "diagram-note", tr("Nhãn đang hiện bằng tiếng Việt vì bản dịch chưa cập nhật theo bảng gốc.")));
           }
@@ -670,14 +654,13 @@
     setSaveNote(tr("Chưa lưu…"), "busy");
     saveTimer = setTimeout(saveDoc, 700);
   });
-  // Dán chỉ lấy chữ, để định dạng lạ từ nơi khác không làm hỏng trang.
+  // Dán dưới dạng chữ để tránh đưa định dạng ngoài vào Markdown khi lưu.
   page?.addEventListener("paste", function (e) {
     if (!page.isContentEditable) return;
     e.preventDefault();
     var text = (e.clipboardData || window.clipboardData).getData("text/plain");
     document.execCommand("insertText", false, text);
   });
-  // Lưu bản đang sửa trước khi mở báo cáo được liên kết.
   page?.addEventListener("click", function (e) {
     var more = e.target.closest(".table-more");
     if (more) { e.preventDefault(); toggleTable(more.previousElementSibling); return; }
@@ -691,14 +674,13 @@
       e.preventDefault();
       location.hash = href;
     } else if (page.isContentEditable) {
-      // Trong vùng contenteditable, trình duyệt không tự mở link khi bấm.
+      // Contenteditable không tự mở liên kết khi bấm; xử lý riêng để vẫn lưu bản đang sửa.
       e.preventDefault();
       window.open(link.href, "_blank", "noopener");
     }
   });
   if (currentDoc) window.addEventListener("hashchange", scrollToSection);
 
-  // Lưu bản tiếng Việt trước khi chuyển tài liệu hoặc về bản đồ.
   document.getElementById("report-navigation")?.addEventListener("click", function (e) {
     var link = e.target.closest("a[href]");
     if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (!dirty && !saving)) return;
@@ -714,7 +696,7 @@
   }
 
   function renderCards() {
-    var reportNumber = -1; // Tài liệu đầu tiên (Báo cáo cho mentor) mang số 00.
+    var reportNumber = -1;
     cards.forEach(function (c) {
       if (c.kind === "doc") { renderDocCard(c, ++reportNumber); return; }
       if (c.kind === "diagram") { renderDiagramCard(c); return; }
@@ -780,7 +762,7 @@
     frame.style.width = width + "px";
   }
 
-  // Giữ tọa độ các khối có đường nối. Các hàng thẻ còn lại tự giãn theo nội dung VI/EN.
+  // Giữ vị trí các khối có kết nối. Thẻ tài liệu bên dưới tự giãn theo chiều cao chữ VI/EN.
   function layoutRegions() {
     var gap = 38, inset = 32, cardGap = 24;
     var frames = Object.fromEntries(Array.from(regionLayer.children, function (frame) {
@@ -849,7 +831,6 @@
     frames.simulation.style.height = simBottom + dynamicsShift - simTop + "px";
   }
 
-  // ---------- Đường dữ liệu ----------
   var edges = window.SPEC_EDGES || [];
   var SVGNS = "http://www.w3.org/2000/svg";
   var edgeLayer = document.createElementNS(SVGNS, "svg");
@@ -869,7 +850,6 @@
     return n && { x: n.offsetLeft, y: n.offsetTop, w: n.offsetWidth, h: n.offsetHeight };
   }
 
-  // Điểm trên mép hình chữ nhật r theo hướng (ux, uy) tính từ tâm, lùi ra thêm margin px.
   function boundary(r, ux, uy, margin) {
     var tx = ux ? (r.w / 2) / Math.abs(ux) : Infinity;
     var ty = uy ? (r.h / 2) / Math.abs(uy) : Infinity;
@@ -894,7 +874,6 @@
       var out = e.from === "path-planner";
       var d, lx, ly;
       if (e.from === e.to) {
-        // Vòng tự nối ở góc trên bên phải thẻ.
         var p0 = { x: a.x + a.w - 90, y: a.y - 8 }, p1 = { x: a.x + a.w + 8, y: a.y + 45 };
         d = "M" + p0.x + " " + p0.y + " C" + p0.x + " " + (p0.y - 170) + " " + (p1.x + 170) + " " + p1.y + " " + p1.x + " " + p1.y;
         lx = a.x + a.w + 60;
@@ -903,7 +882,6 @@
         var ax = a.x + a.w / 2, ay = a.y + a.h / 2, bx = b.x + b.w / 2, by = b.y + b.h / 2;
         var L = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / L, uy = (by - ay) / L;
         var s = boundary(a, ux, uy, 6), t = boundary(b, -ux, -uy, 12);
-        // Hai chiều giữa cùng hai thẻ: tách hai đường song song, nhãn nằm hai bên.
         var paired = edges.some(function (f) { return f.from === e.to && f.to === e.from; });
         var nx = -uy, ny = ux, off = paired ? 12 : 0, loff = paired ? 36 : 0;
         s.x += nx * off; s.y += ny * off; t.x += nx * off; t.y += ny * off;
@@ -931,12 +909,10 @@
 
 
 
-  // ---------- Pan / zoom ----------
   function clampK(k) { return Math.min(MAX_K, Math.max(MIN_K, k)); }
 
   function apply() {
     world.style.transform = "translate(" + view.x + "px," + view.y + "px) scale(" + view.k + ")";
-    // Giữ khoảng cách chấm lưới trong 16–48 px để lưới không quá dày khi thu nhỏ.
     var g = GRID * view.k;
     while (g < 16) g *= 2;
     while (g > 48) g /= 2;
@@ -945,7 +921,7 @@
     zoomLabel.textContent = Math.round(view.k * 100) + "%";
   }
 
-  // Phóng to/thu nhỏ quanh điểm (sx, sy) trên màn hình, điểm đó đứng yên.
+  // Đổi zoom nhưng giữ điểm dưới con trỏ ở nguyên tọa độ màn hình.
   function zoomAt(sx, sy, k) {
     k = clampK(k);
     var wx = (sx - view.x) / view.k;
@@ -1019,12 +995,9 @@
     else { cancelAnimationFrame(viewAnimation); view = target; apply(); }
   }
 
-  // Trackpad: chụm hai ngón (trình duyệt gửi wheel kèm ctrlKey) = zoom,
-  //           hai ngón di chuyển cùng nhau (wheel thường) = di chuyển bản đồ.
-  // Chuột có bánh lăn: lăn = zoom như Google Maps.
+  // Pinch trên trackpad được gửi dưới dạng wheel + ctrlKey. Wheel thường từ trackpad dùng để pan.
   function looksLikeMouseWheel(e) {
-    if (e.deltaMode !== 0) return true; // cuộn theo dòng/trang: chuột
-    // Bánh lăn chuột thường cho bước lớn, nguyên, chỉ theo trục dọc.
+    if (e.deltaMode !== 0) return true;
     return e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 50;
   }
 
@@ -1046,10 +1019,9 @@
     }
   }, { passive: false });
 
-  // Kéo bằng chuột/chạm, chụm hai ngón để zoom.
   var pointers = new Map();
-  var drag = null;   // { startX, startY, viewX, viewY, moved, hit }
-  var pinch = null;  // { dist, k, wx, wy }
+  var drag = null;
+  var pinch = null;
 
   function midpoint() {
     var pts = Array.from(pointers.values());
@@ -1073,7 +1045,7 @@
     } else if (pointers.size === 2) {
       var m = midpoint();
       pinch = { dist: m.d, k: view.k, wx: (m.x - view.x) / view.k, wy: (m.y - view.y) / view.k };
-      if (drag) drag.moved = true; // đang chụm thì không tính là bấm thẻ
+      if (drag) drag.moved = true;
     }
   });
 
@@ -1111,7 +1083,7 @@
     pointers.delete(e.pointerId);
     if (pointers.size < 2) pinch = null;
     if (pointers.size === 1 && drag) {
-      // Còn một ngón: tiếp tục kéo từ vị trí hiện tại.
+      // Sau khi nhấc một ngón khỏi pinch, tiếp tục kéo từ vị trí ngón còn lại.
       var p = Array.from(pointers.values())[0];
       var r = viewport.getBoundingClientRect();
       drag = { startX: p.x + r.left, startY: p.y + r.top, viewX: view.x, viewY: view.y, moved: true, hit: null };
@@ -1128,7 +1100,6 @@
   viewport?.addEventListener("pointerup", endPointer);
   viewport?.addEventListener("pointercancel", endPointer);
 
-  // Phím tắt khi bản đồ đang được focus.
   viewport?.addEventListener("keydown", function (e) {
     if (e.target !== viewport) return;
     var step = 80;
@@ -1230,9 +1201,9 @@
 
     if (!world) return renderReport();
     document.title = tr("Bản đồ yêu cầu");
-    world.replaceChildren(regionLayer, edgeLayer); // khung và đường nằm dưới thẻ
+    world.replaceChildren(regionLayer, edgeLayer);
     renderCards();
-    world.appendChild(labelLayer);   // nhãn nằm trên thẻ
+    world.appendChild(labelLayer);
     docCards().forEach(function (c) { fillDocToc(c); renderDocVersions(c); });
     renderRegions();
     drawEdges();
@@ -1245,7 +1216,7 @@
       if (button.lang === language) return;
       afterDocSaved(function () {
         language = button.lang;
-        try { localStorage.setItem(LANGUAGE_KEY, language); } catch (err) { /* vẫn đổi trong tab hiện tại */ }
+        try { localStorage.setItem(LANGUAGE_KEY, language); } catch (err) {   }
         if (location.protocol !== "file:" && (page || route.has("lang"))) {
           var url = new URL(location.href);
           url.searchParams.set("lang", language);
@@ -1264,11 +1235,11 @@
   if (world) {
     fit(false);
     new ResizeObserver(function () { if (autoFit) fit(false); }).observe(viewport);
-    // Font tải xong có thể đổi chiều cao thẻ, vẽ lại đường cho khớp mép thẻ.
+    // Font tải xong có thể đổi chiều cao thẻ; đo lại trước khi vẽ đường nối.
     document.fonts?.ready.then(drawEdges);
   }
   if (currentDoc && !staticSite) {
-    try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch (err) { /* bỏ qua */ }
+    try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch (err) {   }
   }
   if (!staticSite && (world || currentDoc)) {
     setInterval(function () {

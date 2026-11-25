@@ -1,12 +1,4 @@
-// Sơ đồ trên bản đồ, vẽ từ bảng trong tài liệu kỹ thuật, theo khung hồ sơ phê duyệt của R79 Annex 6.
-// File này không giữ dữ liệu riêng: sửa bảng trong tài liệu thì sơ đồ đổi theo.
-//   sequence : Software Architectural Design, planner-sequence (cột #, Lúc, Từ → tới, Nội dung, Requirement) và dòng **Deadline.**
-//   latency  : Software Architectural Design, latency-chain (cột #, Đoạn, Xấu nhất (ms), Gây ra, Bù); dòng có "song song" là chuỗi song song
-//   states   : Software Architectural Design, arbitration-states (cột Sự kiện, Đang ở …, Requirement)
-//   modes    : ADAS Function Specification, adas-modes (cột Từ, Tới, Khi, Chức năng)
-//   curve    : Software Architectural Design, curve-strategy (cột Pha, Bắt đầu khi, Tốc độ, Path planner, Khối dọc, Requirement)
-//   limits   : Software Architectural Design, design-limits (cột Chức năng, a_y, a_y thêm vào, Jerk) và dòng "Tốc độ" ở adas-availability
-//   ladder   : Software Architectural Design, degradation (cột Bậc, Khi, Hệ thống làm gì, Chức năng còn, Tài xế, Requirement)
+// Sơ đồ đọc các bảng kỹ thuật theo ID mục và tên cột; cấu trúc trang theo R79 Phụ lục 6.
 (function (root) {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
@@ -15,7 +7,7 @@
     violet: "#5B3DF5", violetTint: "#5B3DF51F", teal: "#0F7B6C", tealTint: "#0F7B6C26",
     gray: "#86868B", grayTint: "#86868B26", amber: "#B25000"
   };
-  var CHAR = 6.6; // bề rộng ước lượng của một ký tự cỡ 12 px
+  var CHAR = 6.6;
 
   function node(tag, attrs, parent, text) {
     var n = document.createElementNS(NS, tag);
@@ -24,7 +16,7 @@
     if (parent) parent.appendChild(n);
     return n;
   }
-  // Lỗi mang câu gốc tiếng Việt và giá trị riêng, để render() dịch bằng tr().
+  // Giữ riêng câu tiếng Việt và giá trị để tr() dịch thông báo khi render.
   function fail(message, values) {
     var err = new Error(message);
     err.key = message;
@@ -57,7 +49,6 @@
     return t;
   }
 
-  // Các bảng trong mục có ID cho trước, tính tới tiêu đề kế tiếp.
   function section(md, id) {
     var lines = md.split("\n"), start = -1, i;
     for (i = 0; i < lines.length; i++) {
@@ -105,7 +96,6 @@
     });
   }
 
-  // ---------- Tuần tự một chu kỳ ----------
   function sequence(sec, opts, tr) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -123,7 +113,6 @@
     steps.forEach(function (s) { [s.from, s.to].forEach(function (n) { if (lanes.indexOf(n) < 0) lanes.push(n); }); });
     var own = opts.own || ["Planner"];
 
-    // **Deadline.** Gửi xong bước a đến b trước t0 + X.
     var dl = /\*\*Deadline\.\*\*([^\n]*)/.exec(sec.text), deadline = null;
     if (dl) {
       var body = plain(dl[1]);
@@ -134,7 +123,6 @@
     var LEFT = 132, LANE = 156, TOP = 70, GAP = deadline ? 34 : 0;
     var W = LEFT + lanes.length * LANE + 16;
     var laneX = function (name) { return LEFT + lanes.indexOf(name) * LANE + LANE / 2; };
-    // Chiều cao mỗi hàng theo số dòng chữ của nội dung.
     steps.forEach(function (s) {
       if (s.from === s.to) s.lines = wrap(s.text, 34, 4);
       else s.lines = wrap(s.text, Math.max(14, Math.floor((Math.abs(laneX(s.to) - laneX(s.from)) - 12) / CHAR)), 4);
@@ -189,7 +177,6 @@
     return svg;
   }
 
-  // ---------- Chuỗi trễ ----------
   function latency(sec, opts, tr) {
     var t = sec.tables.filter(function (x) { return x.header.indexOf("Xấu nhất (ms)") >= 0; })[0];
     if (!t) throw fail("Mục {id} không có bảng có cột \"Xấu nhất (ms)\"", { id: opts.section });
@@ -215,7 +202,7 @@
     var total = t0, boundary = 0, sum = { planner: 0, controller: 0, none: 0 };
     for (var i = 0; i < main.length && main[i].who === "planner"; i++) boundary = main[i].start + main[i].ms;
     main.forEach(function (r) { sum[r.who] += r.ms; });
-    // Chuỗi song song là tuổi của input khi planner đọc ở t0, nên kết thúc tại t0.
+    // Thanh trễ song song thể hiện tuổi input tại lúc planner đọc, nên kết thúc ở t0.
     parallel.forEach(function (r) { r.start = boundary - r.ms; r.endAtT0 = true; });
     var missing = main.filter(function (r) { return !r.known; }).map(function (r) { return r.no; });
 
@@ -241,7 +228,6 @@
       if (w) node("rect", { x: x, y: y - 9, width: w, height: 18, rx: 3, fill: f[0], stroke: f[1] }, g);
       var left = x, right = x + w;
       if (r.unknown) {
-        // Phần chưa biết vẽ nối tiếp phía xa t0 của thanh.
         var hx = r.endAtT0 ? x - HW - (w ? 2 : 0) : right + (w ? 2 : 0);
         node("rect", { x: hx, y: y - 9, width: HW, height: 18, rx: 3, fill: "url(#hatch)", stroke: C.faint }, g);
         left = Math.min(left, hx); right = Math.max(right, hx + HW);
@@ -286,7 +272,6 @@
     return svg;
   }
 
-  // ---------- Arbitration state ----------
   function states(sec, opts, tr) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -305,13 +290,12 @@
       while ((m = pattern.exec(plain(text)))) if (out.indexOf(m[1]) < 0) out.push(m[1]);
       return out;
     }
-    var resolved = []; // resolved[row][state] = [đích]
+    var resolved = [];
     t.rows.forEach(function (r, ri) {
       var raw = {};
       cols.forEach(function (c) { raw[c.name] = plain(r[c.i] || ""); });
       var res = {};
-      // Đọc một ô theo cột name. "Như HWA" là dùng chữ của ô HWA nhưng hiểu cho cột name;
-      // "Như dòng trên" và như dòng "X" (dòng gần nhất phía trên có sự kiện chứa X) lấy kết quả của dòng đó, cùng cột.
+      // “Như HWA” lấy chữ cột HWA rồi diễn giải theo cột đang đọc. Tham chiếu dòng khác giữ nguyên cột.
       function read(text, name, seen) {
         var list = targets(text);
         var like = likeRe.exec(text);
@@ -334,7 +318,6 @@
       resolved.push(res);
     });
 
-    // Sự kiện đưa mọi trạng thái khác về cùng một đích thì vẽ một lần, "từ mọi trạng thái".
     var globals = [], edges = {}, moves = [];
     resolved.forEach(function (res, ri) {
       var list = [];
@@ -356,9 +339,8 @@
       });
     });
 
-    var ladder = names.slice().reverse(); // cột cuối (ưu tiên cao nhất) ở trên cùng
+    var ladder = names.slice().reverse();
     var edgeList = Object.keys(edges).map(function (k) { return edges[k]; });
-    // Cung cùng phía, cùng khoảng cách thì dàn ra xa dần để không chồng nhau.
     var slots = {};
     edgeList.forEach(function (e) {
       var a = ladder.indexOf(e.from), b = ladder.indexOf(e.to);
@@ -396,7 +378,6 @@
       var list = byTarget[to], fromAbove = to === ladder[0];
       var edgeY = yOf(to) + (fromAbove ? -NODE_H / 2 : NODE_H / 2), farY = edgeY + (fromAbove ? -STUB : STUB);
       list.forEach(function (gl, i) {
-        // Dàn mũi tên trong bề ngang của ô đích; nhãn nằm phía ngoài của mũi tên.
         var off = list.length === 1 ? 0 : -NODE_W / 2 + 22 + i * (NODE_W - 44) / (list.length - 1);
         var x = CX + off, left = list.length > 1 && i < list.length / 2, g = node("g", {}, svg);
         tip(g, tr("Từ mọi trạng thái") + " → " + gl.to + "\n" + gl.event + ". " + events[gl.event - 1]);
@@ -440,13 +421,11 @@
     return svg;
   }
 
-  // ---------- Chung cho các sơ đồ mô tả chức năng ----------
   var W_FN = 760;
   function num(text) {
     var m = /(\d+(?:,\d+)?)/.exec(plain(text));
     return m ? parseFloat(m[1].replace(",", ".")) : null;
   }
-  // Điểm trên mép hộp b (x, y, w, h) theo hướng (ux, uy) từ tâm, lùi thêm margin.
   function rim(b, ux, uy, margin) {
     var tx = ux ? (b.w / 2) / Math.abs(ux) : Infinity, ty = uy ? (b.h / 2) / Math.abs(uy) : Infinity;
     var t = Math.min(tx, ty) + (margin || 0);
@@ -462,7 +441,6 @@
     return hwa && other ? C.gray : hwa ? C.violet : C.teal;
   }
 
-  // ---------- Trạng thái của từng chức năng ----------
   function modes(sec, opts, tr) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -481,7 +459,6 @@
       return boxes[name];
     }
     rows.forEach(function (r) { if (r.from !== ANY) box(r.from); box(r.to); });
-    // Gom các dòng cùng cặp trạng thái vào một cung.
     var arcs = [];
     rows.forEach(function (r, i) {
       var a = arcs.filter(function (x) { return x.from === r.from && x.to === r.to; })[0];
@@ -540,7 +517,6 @@
     return svg;
   }
 
-  // ---------- Chiến lược tốc độ trong cua ----------
   function curve(sec, opts, tr) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -570,7 +546,6 @@
       badge(svg, x + 16, 20, String(i + 1), C.violet);
       multiline(svg, x + 30, 24, wrap(p.name, chars - 4, 2), { "font-weight": 700, fill: C.text, "font-size": 12 }, 13);
     });
-    // Đường v minh hoạ: Cao, Giảm, Thấp, Giữ, Tăng.
     var hi = HEAD + 18, lo = HEAD + PLOT - 18, level = hi, pts = [];
     phases.forEach(function (p, i) {
       var x0 = LEFT + i * colW + 6, x1 = LEFT + (i + 1) * colW - 6, k = p.speed.toLowerCase(), end = level;
@@ -604,7 +579,6 @@
     return svg;
   }
 
-  // ---------- Dải tốc độ và giới hạn quyền lái ----------
   function limits(sec, opts, tr, extra) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -614,7 +588,6 @@
       return { name: plain(r[iFn]), ay: num(r[iAy]), add: num(r[iAdd]), jerk: num(r[iJ]),
         ayText: plain(labels[iAy]), addText: plain(labels[iAdd]), jerkText: plain(labels[iJ]) };
     });
-    // Dải tốc độ: dòng "Tốc độ" của bảng điều kiện khả dụng (ADAS Function Specification mục 7).
     var speedRow, speedLabels, speedTable;
     (extra[0]?.tables || []).forEach(function (tb) {
       tb.rows.forEach(function (r, i) {
@@ -689,7 +662,6 @@
     return svg;
   }
 
-  // ---------- Bậc suy giảm ----------
   function ladder(sec, opts, tr) {
     var t = sec.tables[0];
     if (!t) throw fail("Mục {id} không có bảng", { id: opts.section });
@@ -751,7 +723,6 @@
     return allTranslated;
   }
 
-  // Trả về { node } khi vẽ được, { error } khi bảng không đọc được.
   function render(kind, md, opts) {
     opts = opts || {};
     var tr = opts.tr || function (s, v) {

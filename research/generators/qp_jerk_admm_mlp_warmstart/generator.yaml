@@ -1,0 +1,22 @@
+# Mô tả generator lab. Quy tắc ở research/generators/README.md.
+name: qp_jerk_admm_mlp_warmstart
+base: qp_jerk_admm          # Cùng bài toán QP, trọng số mặc định, đúng qp_iters vòng; chỉ khác điểm xuất phát
+study: PP-TS-031
+telemetry:
+  work: số vòng ADMM            # Luôn đúng qp_iters
+  # fallback: lý do không dùng MLP; khi đó warm start là bản dịch thời gian của luồng A nếu áp dụng được,
+  # không thì warm start của qp_jerk_admm.
+  fallback:
+    1: MLP_NOT_FINITE (đặc trưng không hữu hạn)
+    2: MLP_OUT_OF_DOMAIN (một đặc trưng lệch quá 5 σ so với train)
+    3: SHIFT_PREFERRED (qmw_seed_mode = 1, nghiệm trước dịch được nên không suy luận; dùng bản dịch của luồng A)
+# Tham số calibration riêng: tên bắt đầu bằng calibration_prefix + "_", cùng định dạng với
+# planner/calibration/calibration.yaml (value, unit, min, max, source).
+calibration_prefix: qmw
+calibration:
+  # Khi dùng MLP và nghiệm trước dịch được: 0 giữ hai khối biến nới (a_y, hành lang) như pp_generate_qp_seeded;
+  # 1 dịch chúng theo thời gian bằng hàm của luồng A. Biến đối ngẫu y không bao giờ dịch. Chọn theo notes.md.
+  qmw_slack_shift: {value: 0, unit: "-", min: 0, max: 1, source: "nhóm tự thống nhất; quick bench, notes.md"}
+  # 0: luôn dùng jerk MLP làm warm start (thiết kế của PP-TS-031). 1: chỉ dùng MLP khi không có nghiệm trước dịch
+  # được; còn lại dùng bản dịch của luồng A. Biến thể dò sau quick bench (notes.md), không phải lựa chọn.
+  qmw_seed_mode: {value: 0, unit: "-", min: 0, max: 1, source: "nhóm tự thống nhất; quick bench, notes.md"}

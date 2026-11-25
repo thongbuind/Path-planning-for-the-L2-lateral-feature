@@ -1,10 +1,5 @@
-"""Road ground truth: centre line of the ego lane from a curvature profile.
-
-The road is a chain of segments (straight, clothoid, arc), each given by its length
-and the curvature at its end. Curvature is positive to the left. Lane markings and
-road edges are expressed as offsets from the road reference line.
-
-Lines, left to right, as in Interface Control Document 5.1: L2, L1, R1, R2.
+"""Mặt đường dùng chuỗi đoạn thẳng, clothoid và cung tròn. Độ cong dương về trái; vạch và mép lấy
+offset từ đường tham chiếu.
 """
 
 from bisect import bisect_right
@@ -15,16 +10,14 @@ import numpy as np
 
 from interfaces import LANE_LINES, ROAD_EDGES, LineType, RoadEdgeType
 
-SAMPLE_STEP_M = 0.1  # Integration and storage step along the centre line
+SAMPLE_STEP_M = 0.1
 
 
 @dataclass(frozen=True, slots=True)
 class Segment:
-    """`kind`: straight, clothoid (curvature changes linearly) or arc (constant)."""
-
     kind: str
-    length: float  # [m]
-    curvature_end: float = 0.0  # [1/m], left positive; ignored for straight
+    length: float
+    curvature_end: float = 0.0
 
     def __post_init__(self) -> None:
         if self.kind not in ("straight", "clothoid", "arc"):
@@ -35,29 +28,27 @@ class Segment:
 
 @dataclass(frozen=True, slots=True)
 class LaneProjection:
-    s: float  # [m] arc length of the foot point on the ego-lane centre
-    d: float  # [m] lateral offset from the centre, left positive
-    heading: float  # [rad] centre-line heading at s
-    curvature: float  # [1/m] centre-line curvature at s
+    s: float
+    d: float  # [m] Lệch khỏi tâm làn, dương về trái.
+    heading: float
+    curvature: float
 
 
 @dataclass(frozen=True, slots=True)
 class Marking:
-    offset_m: float  # From the ego-lane centre to the near edge of the paint
+    offset_m: float  # Khoảng cách từ tâm làn ego tới cạnh sơn gần xe.
     type: LineType
-    crossable: bool  # From the ego side, including mixed double markings
+    crossable: bool
 
 
 @dataclass(frozen=True, slots=True)
 class RoadEdgeSpec:
-    offset_m: float  # From the ego-lane centre to the physical edge
+    offset_m: float
     type: RoadEdgeType
 
 
 @dataclass(frozen=True, slots=True)
 class WidthPolynomial:
-    """One OpenDRIVE width record, relative to the start of its lane section."""
-
     start_m: float
     a: float
     b: float
@@ -102,7 +93,7 @@ class Lane:
 
 
 def lane_boundaries(lane_id: int) -> tuple[int, int]:
-    """Boundary IDs in right-to-left order. Boundary zero is at laneOffset."""
+    """ID biên theo thứ tự phải sang trái. Biên 0 ở laneOffset."""
     return (lane_id, lane_id + 1) if lane_id < 0 else (lane_id - 1, lane_id)
 
 
@@ -172,7 +163,6 @@ class LaneGeometry:
         return section.bounds(self.lane_id(section, index), s)
 
     def widening_sides(self, s: float) -> tuple[bool, bool]:
-        """Left and right sides that are wider than the entry cross section."""
         entry = self.sections[0]
         section = self.section_at(s)
         entry_r, entry_l = entry.extent(0.0)
@@ -194,8 +184,8 @@ class LaneGeometry:
 
 @dataclass(frozen=True, slots=True)
 class RoadLayout:
-    markings: tuple[Marking | None, ...]  # L2, L1, R1, R2
-    edges: tuple[RoadEdgeSpec | None, ...] = (None, None)  # left, right
+    markings: tuple[Marking | None, ...]
+    edges: tuple[RoadEdgeSpec | None, ...] = (None, None)
     geometry: LaneGeometry | None = None
 
     def __post_init__(self) -> None:
@@ -216,13 +206,12 @@ class Road:
             raise ValueError("a road needs at least one segment")
         self.lane_width = lane_width
         if layout is None:
-            # Legacy three-lane geometry (the old nominal offsets already describe
-            # the boundaries seen by the camera).
+            # Định dạng hình học cũ đã lưu offset từ vạch mà camera nhìn thấy.
             types = (LineType.SOLID, LineType.DASHED, LineType.DASHED, LineType.SOLID)
             layout = RoadLayout(tuple(Marking(offset, kind, kind == LineType.DASHED)
                                       for offset, kind in zip(self.line_offsets(), types)))
         self.layout = layout
-        kappa_at = []  # curvature at each sample
+        kappa_at = []
         k_prev = 0.0
         for seg in segments:
             n = max(1, round(seg.length / SAMPLE_STEP_M))
@@ -240,7 +229,6 @@ class Road:
         kappa = np.concatenate([[0.0], np.concatenate(kappa_at)])
         n = len(kappa)
         s = np.arange(n) * SAMPLE_STEP_M
-        # Heading and position by the midpoint rule on the curvature samples.
         theta = np.zeros(n)
         theta[1:] = np.cumsum(0.5 * (kappa[1:] + kappa[:-1]) * SAMPLE_STEP_M)
         mid = 0.5 * (theta[1:] + theta[:-1])
@@ -251,13 +239,11 @@ class Road:
         self.s, self.x, self.y, self.theta, self.kappa = s, x, y, theta, kappa
         self.length = float(s[-1])
 
-    # Lateral offsets of the lane lines from the ego-lane centre: L2, L1, R1, R2.
     def line_offsets(self) -> tuple[float, float, float, float]:
         w = self.lane_width
         return (1.5 * w, 0.5 * w, -0.5 * w, -1.5 * w)
 
     def pose_at(self, s: float, d: float = 0.0) -> tuple[float, float, float]:
-        """World (x, y, heading) of the point at arc length s and offset d."""
         i = int(np.clip(round(s / SAMPLE_STEP_M), 0, len(self.s) - 1))
         ds = s - self.s[i]
         th = self.theta[i]
@@ -266,7 +252,6 @@ class Road:
         return x, y, th + ds * self.kappa[i]
 
     def parallel(self, d: float, s_from: float, s_to: float) -> tuple[np.ndarray, np.ndarray]:
-        """World points of the parallel at offset d between two arc lengths."""
         i0 = int(np.clip(np.floor(s_from / SAMPLE_STEP_M), 0, len(self.s) - 1))
         i1 = int(np.clip(np.ceil(s_to / SAMPLE_STEP_M), 0, len(self.s) - 1)) + 1
         th = self.theta[i0:i1]
@@ -274,7 +259,6 @@ class Road:
 
     def marking_parallel(self, boundary: int, side: int, s_from: float,
                          s_to: float) -> tuple[np.ndarray, np.ndarray]:
-        """Points on the near edge of a paint line, clipped to sections where it exists."""
         geometry = self.layout.geometry
         assert geometry is not None
         i0 = int(np.clip(np.floor(s_from / SAMPLE_STEP_M), 0, len(self.s) - 1))
@@ -304,12 +288,11 @@ class Road:
 
     def project(self, x: float, y: float, s_hint: float | None = None,
                 window_m: float = 20.0) -> LaneProjection:
-        """Foot of the perpendicular on the ego-lane centre, searched near s_hint."""
         n = len(self.s)
         if s_hint is None:
             lo, hi = 0, n
         else:
-            # Scalar min/max: same values as np.clip, without its per-call cost (hot path).
+            # Dùng min/max vô hướng để tránh chi phí np.clip ở mỗi lần chiếu điểm.
             a = (s_hint - window_m) / SAMPLE_STEP_M
             b = (s_hint + window_m) / SAMPLE_STEP_M
             if a != a or b != b:

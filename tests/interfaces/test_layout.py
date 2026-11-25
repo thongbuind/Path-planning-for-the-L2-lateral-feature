@@ -1,7 +1,4 @@
-"""The ctypes mirror has the same size and field offsets as the C structs.
-
-Needs the layout probe built with the planner (planner/CMakeLists.txt); skipped otherwise.
-"""
+"""So sizeof và offsetof của ctypes với probe C từ bản build planner."""
 
 import ctypes
 

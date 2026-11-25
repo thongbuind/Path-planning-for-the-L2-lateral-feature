@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""PP-TS-013 dashboard: comfort line in a corridor vs lane centre. Reads results.json.
-
-Run:  python3 research/studies/PP-TS-013-comfort-line/dashboard.py
-Writes dashboard.png next to this file.
-"""
 
 from __future__ import annotations
 
@@ -25,15 +20,14 @@ HERE = Path(__file__).resolve().parent
 R = json.loads((HERE / "results.json").read_text())
 META = R["meta"]
 
-# Reference palette (dataviz skill), light mode; validated all-pairs for 3 slots.
 SURF = "#fcfcfb"
 INK = "#0b0b0b"
 INK2 = "#52514e"
 INK3 = "#8a8984"
 GRID = "#e6e5e1"
-C_RC = "#2a78d6"  # slot 1: R-cam (candidate)
-C_B0 = "#eb6834"  # slot 2: B0 (lane centre)
-C_RG = "#1baf7a"  # slot 3: R-glob (upper bound) - low contrast: dashed + direct label
+C_RC = "#2a78d6"
+C_B0 = "#eb6834"
+C_RG = "#1baf7a"
 CORR = "#dce9f8"
 DIV = LinearSegmentedColormap.from_list("div", ["#2a78d6", "#f0efec", "#e34948"])
 
@@ -55,7 +49,6 @@ plt.rcParams.update({
 
 
 def vn(x, nd=2):
-    """Vietnamese decimal comma."""
     return f"{x:.{nd}f}".replace(".", ",")
 
 
@@ -84,7 +77,6 @@ def lane_panel(ax, axk, name, title):
     sn = arr(road["sn"])
     m = focus_mask(road, sn)
     kr = arr(road["kr"])
-    # curvature strip (reference only)
     axk.fill_between(sn[m], kr[m] * 1000, 0, color="#c9c8c2", lw=0)
     axk.axhline(0, color=INK3, lw=0.6)
     axk.set_ylabel("κ tâm làn\n(1/km)", fontsize=8.5)
@@ -93,7 +85,7 @@ def lane_panel(ax, axk, name, title):
     axk.set_title(title)
     axk.grid(False)
     lim = META["corridor"]
-    body = (META["lane_width"] - 1.90) / 2  # path offset at which the body (mirrors) touches the line
+    body = (META["lane_width"] - 1.90) / 2  # Offset tại đó thân xe tính cả gương vừa chạm vạch.
     ax.axhspan(-lim, lim, color=CORR, lw=0, zorder=0)
     for y in (body, -body):
         ax.axhline(y, color=INK2, lw=1.0, ls=(0, (2, 2)))
@@ -180,7 +172,7 @@ def sweep_panel(ax):
         ax.plot(xs, y, color=INK2, lw=1.4, marker="o", ms=4.5, mfc=SURF, mec=INK2, mew=1.2)
         ends.append((y[-1], n))
     ends.sort()
-    groups = []  # merge lines that end within 2 % of each other into one label
+    groups = []
     for y, n in ends:
         if groups and abs(y - groups[-1][0][-1]) < 2.0:
             groups[-1][0].append(y)

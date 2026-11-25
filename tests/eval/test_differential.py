@@ -1,6 +1,3 @@
-"""PP-SWR-129, 130 by a reference twin of the same seed (Software Qualification Test
-Specification 6: F15, F16, F17), on a short run with the stub planner library."""
-
 from adapters.sil.sil_planner import PlannerLibraries
 from eval import differential
 from sim.faults.channel import ChannelFault
@@ -16,7 +13,7 @@ def test_twin_drops_exactly_the_messages_hit_and_outputs_are_compared(build_stub
     scenario = Scenario(name="short", segments=(Segment("straight", 200.0),), lane_width=3.5, speed_mps=20.0,
                         duration_s=1.5, channel_faults=faults)
     log = Harness(scenario, planner, seed=1).run()
-    assert log.fault_hits[0] == [] and len(log.fault_hits[1]) == 10  # 0.2 s of 20 ms speed frames
+    assert log.fault_hits[0] == [] and len(log.fault_hits[1]) == 10
     twin, requirements = differential.twin_of(scenario, log)
     assert requirements == {"PP-SWR-129", "PP-SWR-130"}
     assert [f.kind for f in twin.channel_faults] == ["drop_listed"]

@@ -1,5 +1,3 @@
-/* Unit tests of planner/src/generators/qp.c (T7 technique C). */
-
 #include <math.h>
 #include <string.h>
 
@@ -9,7 +7,7 @@
 
 #define N PP_QP_N
 
-static pp_qp_ws_t ws;   /* test only: the planner keeps it in the caller's state */
+static pp_qp_ws_t ws;
 
 static void problem(pp_qp_problem_t *pb, double d0, double kappa, double half)
 {
@@ -25,7 +23,7 @@ static void problem(pp_qp_problem_t *pb, double d0, double kappa, double half)
     }
 }
 
-/* a_y as T11 writes the path (s_dot = v): d''/q^2 + v^2 kappa / q, q = 1 - kappa d. */
+/* Công thức a_y của T11 với q = 1 - kappa d: d''/q² + v² kappa/q. */
 static double ay(const pp_qp_problem_t *pb, const pp_lateral_path_t *p, size_t k)
 {
     const double q = 1.0 - (pb->kappa[k - 1U] * p->d[k]);
@@ -46,16 +44,16 @@ static void test_recentre_without_overshoot(void)
         a_max = fmax(a_max, fabs(p.d_ddot[k]));
     }
     PP_CHECK_NEAR(p.d[0], 0.5, 1e-12);
-    PP_CHECK(p.d[N] < 0.1);                 /* back near the centre within 3 s */
-    PP_CHECK(d_min > -0.03);                /* no overshoot */
-    PP_CHECK(a_max <= 0.5);                 /* ay_add_max_hwa */
+    PP_CHECK(p.d[N] < 0.1);
+    PP_CHECK(d_min > -0.03);
+    PP_CHECK(a_max <= 0.5);
 }
 
 static void test_curve_at_limit_keeps_the_hard_limit(void)
 {
     pp_qp_problem_t pb;
     pp_lateral_path_t p;
-    problem(&pb, 0.0, 1.0 / 250.0, 0.5);    /* needs 2.5 m/s^2 */
+    problem(&pb, 0.0, 1.0 / 250.0, 0.5);
     pp_qp_reset(&ws);
     PP_CHECK(pp_generate_qp(&ws, &pp_calibration, &pb, &p));
     for (size_t k = 1U; k < PP_TRAJECTORY_POINTS; k++) {
@@ -67,15 +65,15 @@ static void test_curve_beyond_limit_assists_at_the_limit(void)
 {
     pp_qp_problem_t pb;
     pp_lateral_path_t p;
-    problem(&pb, 0.0, 1.0 / 200.0, 0.5);    /* needs 3.1 m/s^2 */
-    pb.start.d_ddot = pb.ay_limit - (25.0 * 25.0 / 200.0);  /* previous path already at the limit */
+    problem(&pb, 0.0, 1.0 / 200.0, 0.5);
+    pb.start.d_ddot = pb.ay_limit - (25.0 * 25.0 / 200.0);
     pp_qp_reset(&ws);
     PP_CHECK(pp_generate_qp(&ws, &pp_calibration, &pb, &p));
     for (size_t k = 1U; k < PP_TRAJECTORY_POINTS; k++) {
         PP_CHECK(fabs(ay(&pb, &p, k)) <= (pb.ay_limit + 1e-2));
     }
-    PP_CHECK(ay(&pb, &p, 10U) > (2.5 - 0.2));  /* PP-SWR-006: within epsilon_ay of aysmax */
-    PP_CHECK(p.d[N] < -0.5);                    /* drifts out, as R79 allows */
+    PP_CHECK(ay(&pb, &p, 10U) > (2.5 - 0.2));
+    PP_CHECK(p.d[N] < -0.5);
 }
 
 static void test_continuity_with_old_path(void)
@@ -85,12 +83,12 @@ static void test_continuity_with_old_path(void)
     problem(&pb, 0.3, 0.0, 0.5);
     for (size_t k = 0U; k < N; k++) {
         pb.has_old[k] = true;
-        pb.d_old[k] = 0.3;                      /* old path stays off centre */
+        pb.d_old[k] = 0.3;
     }
     pp_qp_reset(&ws);
     PP_CHECK(pp_generate_qp(&ws, &pp_calibration, &pb, &p));
     for (size_t k = 1U; k < PP_TRAJECTORY_POINTS; k++) {
-        PP_CHECK(fabs(p.d[k] - 0.3) <= 0.05);  /* soft: T4 still blends */
+        PP_CHECK(fabs(p.d[k] - 0.3) <= 0.05);
     }
 }
 
@@ -107,8 +105,39 @@ static void test_deterministic(void)
     PP_CHECK(memcmp(a.d, b.d, sizeof(a.d)) == 0);
 }
 
+/* Seed NULL giữ đúng lời giải cũ. Seed bằng nghiệm hội tụ cho nghiệm gần nghiệm đó ngay cả với ít vòng. */
+static void test_seed(void)
+{
+    pp_qp_problem_t pb;
+    pp_lateral_path_t plain;
+    pp_lateral_path_t seeded;
+    problem(&pb, 0.3, 1.0 / 300.0, 0.5);
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp(&ws, &pp_calibration, &pb, &plain));
+    PP_CHECK(ws.iterations == (uint32_t)pp_calibration.qp_iters);
+    double residual = 0.0;
+    double slack = -1.0;
+    pp_qp_stats(&ws, &residual, &slack);
+    PP_CHECK(isfinite(residual) && (residual >= 0.0) && (residual < 0.05));
+    PP_CHECK(isfinite(slack) && (slack >= 0.0));
+    double solution[N];
+    (void)memcpy(solution, ws.x, sizeof(solution));
+
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp_seeded(&ws, &pp_calibration, &pb, NULL, &seeded));
+    PP_CHECK(memcmp(plain.d, seeded.d, sizeof(plain.d)) == 0);
+
+    pp_qp_reset(&ws);
+    PP_CHECK(pp_generate_qp_seeded(&ws, &pp_calibration, &pb, solution, &seeded));
+    PP_CHECK_NEAR(seeded.d[0], 0.3, 1e-12);
+    for (size_t k = 0U; k < PP_TRAJECTORY_POINTS; k++) {
+        PP_CHECK_NEAR(seeded.d[k], plain.d[k], 0.01);
+    }
+}
+
 int main(void)
 {
+    test_seed();
     test_recentre_without_overshoot();
     test_curve_at_limit_keeps_the_hard_limit();
     test_curve_beyond_limit_assists_at_the_limit();

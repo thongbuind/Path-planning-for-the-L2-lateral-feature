@@ -1,19 +1,7 @@
-"""Conclusion of a benchmark report (Software Qualification Test Specification 8.4, 10).
-
-Every failure gets the level of its requirement (eval.severity). A requirement counts only
-in the cases its Kiểm chứng column names (section 8.1, the run's scope); failures outside
-are listed as information. B0 (section 11) comes first: C1 or C2 failed blocks the planner,
-C3 decides the Integrable flag.
-
-A run record, as eval.suite and eval.matrix keep them:
-  {"case", "profile", "seed", "result": metrics.Result.to_dict() or None,
-   "scope": [ids] or None (None: every criterion), "execution": text or None,
-   "error": text or None (evaluator side), "mcap": path or None, "rerun": command}
-"""
+"""Chấm requirement theo phạm vi cột Kiểm chứng của SRS. Lỗi ngoài phạm vi được ghi để tra cứu."""
 
 from eval import credibility, severity
 
-# Names of Software Qualification Test Specification 8.4 (renamed in 1.30).
 BLOCKED = "Không đạt"
 NOT_APPROVED = "Không đạt quy định"
 NO_BLOCKER = "Đạt trong phạm vi đã thử"
@@ -31,14 +19,13 @@ def _level(requirement: str) -> str | None:
     try:
         return severity.level(requirement)
     except KeyError:
-        return severity.BLOCKER  # unknown to the specification: never hidden
+        return severity.BLOCKER  # Requirement chưa có trong đặc tả vẫn hiện dưới mức BLOCKER.
 
 
-level_of = _level  # public name for other report sections
+level_of = _level
 
 
 def run_failures(run: dict) -> tuple[list[dict], list[dict], list[str]]:
-    """(failures in scope, failures out of scope, reasons the case was not judged)."""
     if run.get("execution"):
         return [_row(severity.BLOCKER, severity.EXECUTION_FAULT, run, text=run["execution"])], [], []
     if run.get("error"):
@@ -56,7 +43,7 @@ def run_failures(run: dict) -> tuple[list[dict], list[dict], list[str]]:
                    limit=c["limit"], text=c["metric"])
         (inside if scope is None or c["id"] in scope else outside).append(row)
     issues = result.get("issues")
-    if issues is None:  # result written before issues were classified
+    if issues is None:  # Hồ sơ cũ chỉ có case_failures; chuyển sang định dạng issues để đọc chung.
         issues = [{"kind": "requirement", "requirement": None, "text": t, "first_fail_s": None}
                   for t in result.get("case_failures", [])]
     for issue in issues:
@@ -108,11 +95,6 @@ def _fmt(value) -> str:
 
 
 def markdown(c: dict, planner: str = "", simulator: str | None = None) -> list[str]:
-    """Head of a report: conclusion, Integrable flag, every failure by level.
-
-    `simulator` is the version of the simulator and the validation state of its models
-    (eval.credibility.simulator_text, SIM-REQ-121); a report always has it, so None means the
-    current checkout."""
     integrable = {None: "chưa chạy B0", True: "có", False: "không"}[c["integrable"]]
     lines = [f"# Kết luận: {c['verdict']}", ""]
     if planner:

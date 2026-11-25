@@ -1,7 +1,3 @@
-/* Màn So sánh và campaign.
-   So sánh: hai lần chạy suite, hoặc hai campaign, ghép theo ca và seed; môi trường của hai bên hiện trước kết quả.
-   Campaign: một danh sách run đóng băng, chạy cùng nhau qua supervisor, tiến độ và độ phủ, hủy, lặp lại.
-   Giao diện không tự tính kết luận: mọi số lấy từ /api/compare và /api/campaigns. */
 (() => {
   'use strict';
   const WB = window.WB;
@@ -28,7 +24,6 @@
     return h('span', { class: 'dim' }, '—');
   };
 
-  // ============================== So sánh ==============================
 
   const KIND = { suite: 'Lần chạy suite', campaign: 'Campaign' };
   const KIND_NOTE = {
@@ -158,7 +153,6 @@
 
   const fmt = (v) => (v == null ? '—' : Array.isArray(v) ? (v.length ? v.map(fmt).join(' | ') : '—') : typeof v === 'boolean' ? (v ? 'có' : 'không') : String(v));
 
-  // ============================== Campaign ==============================
 
   const when = (epoch) => WB.time(epoch);
   const cell = (n, total, cls) => h('span', { class: cls || '' }, n + (total != null ? '/' + total : ''));

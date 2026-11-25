@@ -1,5 +1,3 @@
-"""Lane camera and ego-motion (Software Qualification Test Specification 4.5)."""
-
 from math import cos, isclose, sin
 
 import pytest
@@ -21,7 +19,7 @@ def test_lane_camera_on_arc_centre():
     assert isclose(l1.c0, 1.75, abs_tol=1e-3) and isclose(r1.c0, -1.75, abs_tol=1e-3)
     assert isclose(l2.c0, 5.25, abs_tol=1e-3) and isclose(r2.c0, -5.25, abs_tol=1e-3)
     assert isclose(l1.c1, 0.0, abs_tol=1e-4)
-    # Parallel at +1.75 m of a left curve has radius R - 1.75.
+    # Vạch ở offset +1,75 m trong cua trái có bán kính R - 1,75 m.
     assert isclose(2 * l1.c2, 1 / (radius - 1.75), rel_tol=1e-2)
     assert l1.view_range_end <= 80.0 and l1.view_range_end > 79.0
     assert all(edge.status == LineStatus.LOST for edge in lane.road_edges)
@@ -70,7 +68,6 @@ def test_ego_motion_constant_turn():
 
 
 def test_ego_motion_includes_lateral_slip():
-    """ICD 5.5: true motion of base_link, lateral slip included."""
     v, r, vy = 25.0, 0.025, -0.11
     motion = EgoMotion()
     _feed(motion, v, r, 600_000)
@@ -89,14 +86,14 @@ def test_ego_motion_includes_lateral_slip():
 
 
 def test_ego_motion_rejects_unknown_past():
-    assert not EgoMotion().query(EgoMotionRequest(0, 10_000)).valid   # nothing received yet
+    assert not EgoMotion().query(EgoMotionRequest(0, 10_000)).valid
     motion = EgoMotion()
     for t in range(100_000, 200_001, 10_000):
         motion.on_yaw_rate(0.0, t)
         motion.on_speed(25.0, t)
     assert motion.query(EgoMotionRequest(120_000, 180_000)).valid
-    assert not motion.query(EgoMotionRequest(50_000, 180_000)).valid  # before the first sample
-    assert not motion.query(EgoMotionRequest(180_000, 120_000)).valid  # t2 before t1
+    assert not motion.query(EgoMotionRequest(50_000, 180_000)).valid
+    assert not motion.query(EgoMotionRequest(180_000, 120_000)).valid
 
 
 def test_lane_camera_view_start_hides_the_near_road():

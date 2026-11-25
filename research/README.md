@@ -66,10 +66,12 @@ Thư mục này giữ dấu vết của mọi lựa chọn kỹ thuật: câu h�
 |---|---|---|
 | Lệnh | Thêm `--record` | Không có `--record` |
 | Điều kiện | Cây làm việc sạch (đã commit); thư viện planner build từ đúng commit đó (`pp_version()`) | Không |
-| Kết quả | `runs/<run-id>/`: `manifest.json`, `summary.md`, `results.json`; một dòng ở `runs/INDEX.md` | Chỉ trong `build/` |
+| Kết quả | Hồ sơ trong `runs/<run-id>/` và một dòng ở `runs/INDEX.md` | Chỉ trong `build/` |
 | Được trích trong study, tài liệu, báo cáo | Có | Không |
 
 `manifest.json` ghi: run ID, loại lần chạy, lệnh, commit và nhánh, thư viện (đường dẫn, sha256, chuỗi `pp_version()`), sha256 của calibration, suite và mọi file kịch bản, lỗi đã dùng, seed, phiên bản Python và numpy, máy, thời điểm. Log thô của simulator ở `build/`, không commit; chạy lại từ manifest để có lại.
+
+Trade study và matrix giữ báo cáo cùng kết quả theo định dạng riêng. Suite chính thức dùng thêm `--artifact-dir` để ghi ZIP vào kho dùng chung. Hồ sơ suite giữ manifest, tóm tắt, báo cáo và kết luận. Trường `artifact` trong manifest ghi tên ZIP và SHA-256. Xem [Simulation Runbook](../docs/vi/simulation-runbook.md) để khôi phục suite và mở báo cáo.
 
 Run ID: `<yyyymmdd-hhmm>-<loại>-<đối tượng>-<commit 7 ký tự>`.
 
@@ -83,7 +85,9 @@ research/
   studies/PP-TS-nnn-<tên>/study.md, plan.yaml
   problems/PP-PR-nnn-<tên>.md
   runs/INDEX.md        mọi lần chạy chính thức
-  runs/<run-id>/       manifest.json, summary.md, results.json
+  runs/<run-id>/       manifest, báo cáo và kết luận theo loại run
+  generators/          generator lab T7 của LCC (PP-TS-031), xem generators/README.md
+  t7_potential.py      nguyên mẫu T7 của PP-TS-024, 025; đã có generators/ thay thế
 ```
 
 ## Liên hệ với tài liệu kỹ thuật

@@ -1,29 +1,11 @@
-"""Faults started by an event in the planner output (Software Qualification Test
-Specification 6: at LKA or ELK activation, and during the intervention).
-
-A fault with `trigger` set starts `start_s` seconds after the first planner cycle whose
-SystemStatus shows the event; before that it is inactive. `duration_s` keeps its meaning.
-The event is read from the planner output only, as the evaluator sees it.
-
-| trigger | Event |
-|---|---|
-| lka_active | first SystemStatus with path_valid and lka_phase ACTIVE |
-| elk_active | first SystemStatus with path_valid and elk_phase ACTIVE |
-| intervention_active | first SystemStatus with path_valid and lka_phase or elk_phase ACTIVE |
-| lka_completed, elk_completed, intervention_completed | as above with phase COMPLETED |
-
-A trigger that never happens leaves its fault uninjected; the run log says so. The scripted
-driver and FunctionRequests use the same events (sim.stand_ins.driver repeats,
-sim.stand_ins.scripted RequestEvent): a driver repeat waits for the next occurrence, so
-repeated interventions (S16) are counted by EventCounter.
-"""
+"""Mốc tiêm lỗi tính từ chu kỳ planner đầu tiên xuất hiện sự kiện tương ứng (SQTS 6)."""
 
 from interfaces import InterventionPhase, LccMode
 from sim.stand_ins.arbitrator import SystemStatus
 
 EVENTS = ("lka_active", "elk_active", "intervention_active",
           "lka_completed", "elk_completed", "intervention_completed", "lcc_follow")
-NEVER_S = 1e9  # start of a fault whose event has not happened yet
+NEVER_S = 1e9  # Giá trị mốc khi sự kiện kích hoạt lỗi chưa xảy ra.
 
 
 def check(trigger: str | None) -> None:
@@ -44,14 +26,11 @@ def happened(event: str, status: SystemStatus) -> bool:
 
 
 class EventCounter:
-    """Occurrences of each event: the planner t0 of every cycle where it starts to hold."""
-
     def __init__(self) -> None:
         self.times: dict[str, list[int]] = {e: [] for e in EVENTS}
         self._held = {e: False for e in EVENTS}
 
     def update(self, status: SystemStatus, t_us: int) -> list[str]:
-        """Events that started at this cycle."""
         started = []
         for event in EVENTS:
             now = happened(event, status)
