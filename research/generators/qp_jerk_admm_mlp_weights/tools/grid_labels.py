@@ -1,4 +1,4 @@
-"""Nhãn "trọng số tốt nhất" cho qp_jerk_admm_mlp_weights (IMPLEMENTATION-PLAN.md luồng C mục 6, cách i).
+"""Nhãn "trọng số tốt nhất" cho qp_jerk_admm_mlp_weights (PP-TS-031 mục 2, cách i).
 
 Mỗi cửa sổ của dataset.npz (luồng C, vòng 1): giải lại QP ở mọi ô của resolve.GRID, chấm bằng resolve.score, nhãn là
 resolve.pick. Ô có nghiệm không đạt ngưỡng chất lượng bị bỏ (S = +inf); ô mặc định không đạt thì cửa sổ không có nhãn.

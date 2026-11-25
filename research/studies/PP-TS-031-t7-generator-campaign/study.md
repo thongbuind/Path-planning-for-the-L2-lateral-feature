@@ -43,7 +43,7 @@ Lưới calibration (tối đa 9 cấu hình mỗi kỹ thuật, `research/READM
 | `quintic_ay_sampling` | Cặp vị trí đỉnh (0,35; 0,55)/(0,40; 0,60)/(0,45; 0,65) × biên độ 0,10/0,20/0,30 m |
 | `qp_jerk_admm_mlp_weights` | Hệ số điều chuẩn khi huấn luyện, 3 mức |
 
-Tổng: 53 cấu hình, chạy trên cả tuning và test.
+Tổng: 54 cấu hình, gồm nghiệm tham chiếu 1000 vòng (chỉ chạy vòng hở), chạy trên cả tuning và test. Hai giá trị CMake cũ `quintic` và `qp` giữ làm alias của `quintic_duration` và `qp_jerk_admm`; mã V0, V1… trong PP-TS-024, 025 giữ ở hai study đó.
 
 Dữ liệu MLP theo mục 2 của PP-TS-025: sinh riêng (seed từ 100, tốc độ đến 100 km/h, VP-0/1/2), toàn bộ PP-T7 ngoài train; vùng ngoài miền từ 110 km/h và VP-3/5. Nhãn của `qp_jerk_admm_mlp_weights` bằng lưới offline với hàm mục tiêu thay thế chốt trước (jerk RMS của path, lệch đích, biên DLC).
 
@@ -77,6 +77,82 @@ Báo kèm, không so với mốc:
 | Chi phí vận hành | p99 kèm % chu kỳ 25 ms; thời gian lớn nhất; khối lượng việc mỗi chu kỳ (telemetry); `pp_lcc_state_size()`; kích thước thư viện và weights |
 | Độ tin | Digest đầu vào ở vòng hở; số cặp và điều kiện áp dụng; tỉ lệ chu kỳ path khác `quintic_duration` ở vòng hở; chênh lệch tuning và test |
 | Chẩn đoán | Jerk path lớn nhất (bị T10 kẹp); tỉ lệ chu kỳ output chạm trần a_y hoặc jerk; telemetry của T7 và T10; thời gian a_y xe vượt aysmax + 0,3 m/s² |
+
+### 3.1 Nguyên tắc
+
+- Dashboard so khả năng, không chấm ai thắng: không có hạng tổng, điểm tổng hay luật chọn generator.
+- Một thông tin được giữ khi nó phục vụ một khía cạnh của dashboard, một giả thuyết, hoặc độ tin của kết quả; thông tin chỉ giải thích vì sao thì ở mục chẩn đoán.
+- Chỉ số của xe đo trên chuyển động thật so với làn thật, ở vòng kín. Chỉ số của path đọc ở vòng hở, vì ở đó đầu vào trùng nhau từng chu kỳ giữa các build.
+- Mốc là `quintic_duration` mặc định (`T_hwa` 3,0 s, `T_recenter` 3,5 s), tức bản đang giao. Dòng đại diện của mỗi thuật toán là cấu hình mặc định, không phải cấu hình tốt nhất của lưới (chọn như thế là chọn trên chính dữ liệu dùng để so).
+- QP chạy đủ `qp_iters` vòng, không dừng sớm. Bản QP ít vòng, bản dịch thời gian, bản MLP warm start và teacher của MLP dùng trọng số mặc định của `qp_jerk_admm`, để chỉ có số vòng và điểm xuất phát thay đổi.
+- Lab không dùng luật thắng, Copeland hay cửa loại của SQTS 9.1, 9.2 để chọn generator. Hai mục đó giữ nguyên làm quy tắc chung khi người dùng quyết định đưa một kỹ thuật vào planner.
+
+### 3.2 Cờ cảnh báo
+
+Cờ không loại thuật toán nào; cờ hiện cạnh chỉ số để người đọc không hiểu sai một ô trông tốt.
+
+| Cờ | Bật khi | Hiện trên dashboard |
+|---|---|---|
+| B0 (C1, C2), lỗi thực thi | Lượt trượt C1, C2 hoặc lỗi chạy | Cờ đỏ ở cấu hình đó; lượt đó không vào hiệu ghép cặp |
+| Trượt mới | Requirement trong scope PP-T7 trượt mà mốc đạt ở cùng ca, profile, seed | Cờ kèm danh sách lượt; lỗi chung (mốc cũng trượt) liệt kê riêng |
+| LCC lái ít hơn | Tỉ lệ thời gian LCC lái (`path_valid`, `lcc_mode`) thấp hơn mốc quá một chu kỳ (25 ms) ở một lượt | Cờ cạnh các chỉ số độ êm: generator không tạo được path, LCC ngừng lái nên trông êm hơn |
+
+PP-SWR-006 (sàn hỗ trợ) là chỗ dễ có trượt mới với generator cắt cua.
+
+### 3.3 Chỉ số và dung sai
+
+Nhóm theo SQTS 9.1; cột Bước chỉ để sắp các nhóm trên dashboard, không phải thứ tự xếp hạng. Đại lượng an toàn là khoảng cách tới biên làn (DLC), không phải lệch khỏi tâm làn.
+
+| Bước | Nhóm | Chỉ số | Dung sai |
+|---|---|---|---|
+| 2 | An toàn | PP-SWR-070 DLC nhỏ nhất của xe, hai phía | 0,01 m |
+| 2 | An toàn | PP-SWR-057 khoảng hở khi dời tâm | 0,01 m |
+| 3 | Bám làn và cảm nhận | PP-SWR-050 lệch ngang path 0–1 s | 0,005 m |
+| 3 | Bám làn và cảm nhận | PP-SWR-068 a_y đỉnh của xe (R79 Annex 8, 2.4) | 0,10 m/s² |
+| 3 | Bám làn và cảm nhận | PP-SWR-069 jerk của xe | 0,10 m/s³ |
+| 3 | Bám làn và cảm nhận | PP-SWR-004 jerk path RMS | 0,10 m/s³ |
+| 3 | Bám làn và cảm nhận | PP-SWR-004 tốc độ quay vô lăng RMS, vòng kín | 5 % |
+| 3 | Bám làn và cảm nhận | PP-SWR-002 a_y thêm vào | 0,05 m/s² |
+| 3 | Bám làn và cảm nhận | PP-SWR-053 thời gian đưa về giữa; PP-SWR-059 thời gian trả về | 0,1 s |
+| 4 | Flexibility | Độ chênh các chỉ số bước 2–3 giữa VP-0, VP-3, VP-5 | Như chỉ số gốc |
+| 5 | Chi phí vận hành | PP-SWR-016 p99 thời gian CPU | 10 % |
+
+- Mỗi ô là trung bình hiệu ghép cặp so với mốc, kèm CI 95 % bootstrap, n và ca xấu nhất. Ô là "khác có ý nghĩa" (tốt hơn hoặc xấu hơn) khi CI không chứa 0 và |trung bình hiệu| ≥ dung sai; không thì "trong dung sai". Chỉ số có n < 4 cặp: "ít dữ liệu".
+- Dung sai là `nhóm tự thống nhất`. Nguồn: ba mức trong plan của PP-TS-024 (050, DLC, 002); ngưỡng giả thuyết của PP-TS-024 (a_y, jerk); 0,1 s là 4 chu kỳ; 5 % và 10 % là tương đối vì chưa có thang tuyệt đối hoặc vì nhiễu đo trên laptop.
+- Chi phí vận hành so phần cứng cần cho mỗi generator. Phần cứng chọn theo trường hợp xấu nhất và thời gian đo trên laptop không chuyển thẳng sang ECU, nên bảng có thêm thước đo không phụ thuộc máy (khối lượng việc, kích thước state, thư viện, weights).
+
+### 3.4 Không đưa vào bảng
+
+| Thông tin | Lý do |
+|---|---|
+| Thời gian tính trung bình | p99 và max đã đủ |
+| PP-SWR-064, 008 | Generator không đổi logic cờ |
+| PP-SWR-081, 082, 087, Euro NCAP LSS | Chỉ LKA và ELK dùng, PP-T7 không có |
+| PP-SWR-013 | PP-T7 không chạy quét Q1 |
+
+### 3.5 Bài kiểm
+
+| Phần | Dòng PP-T7 | Seed | Lượt mỗi cấu hình |
+|---|---|---|---|
+| Tuning | 14 | 1, 2 | 28 |
+| Test | 32 (28 và 4 dòng thêm) | 3, 4 | 64 |
+
+Dòng thêm vào test trước lần chạy đầu:
+
+| Dòng | Lý do |
+|---|---|
+| `[S1, a, F01, c]` | Cua R = 1000 m gần thẳng, camera nhiễu ban đêm ×2,5; bắt dao động ngang do generator tự tạo khi không có cua |
+| `[S1b, f, {acc: ignore_limits}]` | Cua R = 230 m, a_y trong dải aysmax + 0,1 đến + 0,4; cho thấy cắt cua giúp hay hại |
+| `[S2, e]` | Đưa về giữa ở 130 km/h; nâng n của 002 và 053 từ 2 lên 4 |
+| `[S3, a]` | Dời tâm khi xe tải chậm hơn 5 m/s; nâng n của 057 và 059 từ 2 lên 4 |
+
+Dòng thêm vào tuning ngày 2026-11-24, trước lần chạy chính thức đầu: `[S24, a]` (110 km/h, R = 450 m; ngắn theo mét nhưng đỉnh a_y dài 4,25 s) và `[S24, b]` (72 km/h, R = 180 m; cả cua 2,5 s). Lý do: tuning chưa có cua ngắn nên các generator cắt cua không chỉnh được (S1 f, S14 e chỉ ở test); b thêm sau khi quick bench cho thấy a dài hơn tầm nhìn 3 s của generator.
+
+### 3.6 Quy tắc của lab
+
+- Dữ liệu MLP và quick bench không dùng seed 3–4 hay dòng chỉ có ở test.
+- Từ lần chạy chính thức đầu, không đổi suite, lưới, cấu hình mặc định, cờ, dung sai, giả thuyết, seed; buộc phải đổi thì ghi lý do và chạy lại mọi phương án.
+- Ca trượt thì sửa cơ chế chung của generator, không sửa riêng cho ca đó.
 
 ## 4. Lần chạy
 

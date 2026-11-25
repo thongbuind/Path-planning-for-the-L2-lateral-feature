@@ -47,7 +47,7 @@ def _same(a, b) -> bool:
 
 
 def grid_name(vid: str, values: dict) -> str:
-    """Tên cấu hình của lưới (IMPLEMENTATION-PLAN.md mục 1): <tên>-<tham số><giá trị>-..."""
+    """Tên cấu hình của lưới (PP-TS-031 mục 2): <tên>-<tham số><giá trị>-..."""
     return vid + "".join(f"-{name}{float(value)}" for name, value in values.items())
 
 

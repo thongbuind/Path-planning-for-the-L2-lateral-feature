@@ -1,6 +1,6 @@
 """Telemetry nghiên cứu của generator T7 (PP-TS-031), chỉ có ở bản build lab với PP_T7_TELEMETRY.
 
-Đây là chẩn đoán và khối lượng việc (IMPLEMENTATION-PLAN.md mục 2.4, 2.7), không phải chỉ số so với mốc.
+Đây là chẩn đoán và khối lượng việc (PP-TS-031 mục 3.3), không phải chỉ số so với mốc.
 Bản build không có telemetry thì không bọc gì, nên lượt chạy và vùng đo thời gian giữ nguyên.
 Bản có telemetry đọc state sau mỗi bước, trong vùng đo thời gian: không dùng để đo thời gian.
 """

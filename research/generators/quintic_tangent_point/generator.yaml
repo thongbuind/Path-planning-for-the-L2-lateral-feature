@@ -34,4 +34,4 @@ calibration:
   qtp_amplitude_rate:  {value: 0.1, unit: m/s, gt: 0, max: 1.0, source: "bằng ref_rate (PP-SWR-120, tốc độ đổi offset mục tiêu); chặn path đổi đột ngột giữa các chu kỳ"}
   qtp_dlc_margin_m:    {value: 0.01, unit: m, min: 0, max: 0.5, source: "cận 070 của H1 PP-TS-031 (DLC giảm ≤ 0,01 m); đỉnh không vào trong hơn path quintic tại đỉnh lúc bắt đầu quá mức này"}
   qtp_peak_check:      {value: 0, unit: "-", min: 0, max: 1, source: "nhóm tự thống nhất (bật 1, tắt 0); tắt vì quick bench: lane model bậc ba vẫn thấy cua sau đỉnh trên S24b, còn S1d thì tầm nhìn không đủ (notes.md)"}
-  qtp_amplitude_min_m: {value: 0.01, unit: m, min: 0, max: 0.1, source: "nhóm tự thống nhất; 2 lần dung sai 0,005 m của PP-SWR-050 (IMPLEMENTATION-PLAN 2.3)"}
+  qtp_amplitude_min_m: {value: 0.01, unit: m, min: 0, max: 0.1, source: "nhóm tự thống nhất; 2 lần dung sai 0,005 m của PP-SWR-050 (PP-TS-031 mục 3.3)"}

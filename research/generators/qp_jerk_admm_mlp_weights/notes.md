@@ -10,7 +10,7 @@ Sổ tay phát triển, không phải kết quả. Kết quả chính thức ch�
 - Giả thuyết H5 (plan.yaml): ít nhất một ô nhóm 2–3 tốt hơn có ý nghĩa so với `qp_jerk_admm` mặc định, không ô nào xấu
   hơn có ý nghĩa, trên toàn bộ test.
 
-## Nhãn: lưới offline (cách i, IMPLEMENTATION-PLAN.md luồng C mục 6)
+## Nhãn: lưới offline (cách i, PP-TS-031 mục 2)
 
 Chốt ngày 2026-11-24, trước khi tạo nhãn. Không đổi sau khi đã thấy nhãn.
 
@@ -46,7 +46,7 @@ S = J / 0,10 + E / 0,005 − D / 0,01 (nhỏ hơn là tốt hơn)
 
 | Thành phần | Định nghĩa | Chia cho | Nguồn |
 |---|---|---|---|
-| J: jerk path RMS | RMS của j_k + v_k³κ'_k trên 10 bước đầu (0–1 s) | 0,10 m/s³ | PP-SWR-004 (RMS path 0–1 s, eval); dung sai IMPLEMENTATION-PLAN.md 2.3 |
+| J: jerk path RMS | RMS của j_k + v_k³κ'_k trên 10 bước đầu (0–1 s) | 0,10 m/s³ | PP-SWR-004 (RMS path 0–1 s, eval); dung sai PP-TS-031 mục 3.3 |
 | E: lệch đích | RMS của d(t_k) − d_target, t_k = 0,1 … 1,0 s | 0,005 m | PP-SWR-050 (0–1 s); dung sai 2.3 |
 | D: biên DLC | min trên t_1 … t_30 của khoảng từ thân xe tới vạch hai bên: d_max + 0,3 − d và d − d_min + 0,3 | 0,01 m | PP-SWR-070, 051; dung sai 2.3; 0,3 m là `qp_corridor_margin` mặc định |
 

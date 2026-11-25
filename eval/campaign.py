@@ -1,4 +1,4 @@
-"""Dữ liệu dashboard so sánh generator T7 của PP-TS-031 (research/generators/IMPLEMENTATION-PLAN.md mục 2, GĐ 5).
+"""Dữ liệu dashboard so sánh generator T7 của PP-TS-031 (PP-TS-031 mục 3).
 
 Chỉ mô tả: không xếp hạng, không điểm tổng, không loại. Mỗi ô là hiệu ghép cặp so với mốc kèm CI 95 %, n và
 nhãn "tốt hơn", "xấu hơn" (CI không chứa 0 và |hiệu| ≥ dung sai SQTS 9.2), "trong dung sai" hoặc "ít dữ liệu".

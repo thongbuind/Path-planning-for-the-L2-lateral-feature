@@ -1,4 +1,4 @@
-"""Phiên đo thời gian tính của PP-TS-031 (IMPLEMENTATION-PLAN.md GĐ 5.2).
+"""Phiên đo thời gian tính của PP-TS-031 (PP-TS-031).
 
 1 job, các dòng vòng kín S1f và S1c của phần test, seed của phần test, lặp 3 lần; mỗi lượt chạy mọi cấu hình
 theo thứ tự xoay vòng để nhiễu của máy (nhiệt, tiến trình khác) không dồn vào một cấu hình. Chỉ cấu hình mặc

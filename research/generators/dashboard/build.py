@@ -1,4 +1,4 @@
-"""Sinh dashboard so sánh generator T7 (PP-TS-031, IMPLEMENTATION-PLAN.md GĐ 5.4) từ techniques.json.
+"""Sinh dashboard so sánh generator T7 (PP-TS-031) từ techniques.json.
 
 Một file HTML tự chứa: CSS, JS và dữ liệu nằm trong file, không tải gì từ mạng, có chế độ sáng và tối.
 Không có hạng, điểm tổng hay ô "tốt nhất": màu ô chỉ cho biết hiệu so với mốc tốt hơn, xấu hơn hay trong

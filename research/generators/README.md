@@ -6,7 +6,7 @@ Nơi nghiên cứu song song các họ generator T7 của LCC planner cho [PP-TS
 - Chọn generator là việc của người dùng. Đưa một generator vào `planner/src/generators/` là việc riêng, ngoài lab.
 
 - Contract chung: [`planner/src/generators/pp_t7.h`](../../planner/src/generators/pp_t7.h), input ở [`pp_t7_input.h`](../../planner/src/generators/pp_t7_input.h), hàm dùng chung ở [`t7_common.h`](../../planner/src/generators/t7_common.h).
-- Bộ chạy: [PP-T7](../../benchmark/suites/PP-T7.yaml). Chỉ số và dung sai: Software Qualification Test Specification mục 9.1, 9.2. Cờ cảnh báo, giả thuyết và các khía cạnh của dashboard: mục 2 và GĐ 5 của [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md), `plan.yaml` của PP-TS-031. Tiêu chí không chép sang đây.
+- Bộ chạy: [PP-T7](../../benchmark/suites/PP-T7.yaml). Chỉ số và dung sai: Software Qualification Test Specification mục 9.1, 9.2. Cờ cảnh báo, giả thuyết và các khía cạnh của dashboard: mục 3 của [PP-TS-031](../studies/PP-TS-031-t7-generator-campaign/study.md) và `plan.yaml` của nó. Tiêu chí không chép sang đây.
 - Danh sách generator, trạng thái và session phụ trách: [registry.yaml](registry.yaml).
 
 ## Thư mục

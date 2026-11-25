@@ -1,4 +1,4 @@
-"""Bộ sinh kịch bản riêng cho dữ liệu MLP luồng C (PP-TS-031, IMPLEMENTATION-PLAN GĐ 3 luồng C bước 1).
+"""Bộ sinh kịch bản riêng cho dữ liệu MLP luồng C (PP-TS-031).
 
 - Họ hình học đường riêng (FAMILIES), không lấy từ benchmark. Cấu hình nhiễu lane model riêng (NOISE).
 - Trong miền: tốc độ 40–100 km/h, VP-0/1/2, seed harness từ 100. Ngoài miền (chỉ để kiểm, báo riêng):
