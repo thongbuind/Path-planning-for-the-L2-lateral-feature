@@ -22,7 +22,7 @@ research/generators/
   bench/quick.py         quick bench (L1)
   <tên>/                 một generator lab
   mlp/                   luồng C: sinh dữ liệu, teacher, huấn luyện, xuất weights, data card; mã C đặc trưng dùng chung
-  dashboard/             build.py sinh index.html (dashboard so sánh) từ các lần chạy --record
+  dashboard/             build.py sinh index.html (10 trang A4 ngang, giá trị tuyệt đối từng thuật toán, không so với mốc) từ các lần chạy --record
 ```
 
 ## Thêm một generator

@@ -2,6 +2,7 @@
 lệch output vòng hở và dữ liệu dashboard của eval.campaign (cờ, nhãn từng ô, giả thuyết; không xếp hạng)."""
 
 import json
+import re
 from dataclasses import replace
 from types import SimpleNamespace
 
@@ -235,15 +236,37 @@ def test_campaign_cells_flags_and_hypotheses_without_ranking(tmp_path):
     assert h["H5"]["rows"][0]["holds"] is True
     qp = {r["config"]: r for r in data["parts"]["test"]["qp_iterations"]}
     assert qp["qp_jerk_admm_it010"]["iterations"] == 10 and "qp_jerk_admm_it1000_ref" not in qp
+    # Giá trị tuyệt đối của chính cấu hình, kể cả mốc (không có ô so sánh); worst theo hướng của chỉ số.
+    key = next(k for k in rows["quintic_duration"]["absolute"] if k.startswith("PP-SWR-068"))
+    base_abs, tp_abs = rows["quintic_duration"]["absolute"][key], rows["quintic_tangent_point"]["absolute"][key]
+    assert base_abs["mean"] == pytest.approx(2.625) and tp_abs["mean"] == pytest.approx(2.425)
+    assert base_abs["worst"] == pytest.approx(2.65) and base_abs["n"] == 6
+    assert rows["qp_jerk_admm_it010"]["failed_runs"] == {"runs": 7, "by_requirement": {"PP-SWR-006": 1}}  # 6 vòng kín và 1 vòng hở
+    assert rows["quintic_duration"]["failed_runs"]["by_requirement"] == {}
+    # Trang báo cáo: 10 trang, chỉ giá trị tuyệt đối, hàng của biểu đồ chấm sắp theo giá trị.
+    build = _dashboard_module()
+    out = build.page(data)
+    assert out.count('class="page') == 10
+    assert "<script" not in out and "<button" not in out and "<select" not in out
+    assert "mốc" not in out.lower().replace("quintic_duration", "")  # Không có từ "mốc" ngoài tên thuật toán.
+    names = ["quintic_duration", "quintic_tangent_point", "qp_jerk_admm"]
+    figure = build.dot_figure(data, data["parts"]["test"], key, names, "t", "s", "m/s²")
+    order = [n for n in re.findall(r'class="lbl"[^>]*>([^<]+)<', figure)]
+    assert order == sorted(order, key=lambda n: data["parts"]["test"]["configs"][n]["absolute"][key]["mean"])
 
 
-def test_dashboard_page_is_self_contained_and_marks_drafts():
+def _dashboard_module():
     import importlib.util
     from pathlib import Path
     spec = importlib.util.spec_from_file_location(
         "dashboard_build", Path(__file__).resolve().parents[2] / "research/generators/dashboard/build.py")
     build = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(build)
+    return build
+
+
+def test_dashboard_page_is_self_contained_and_marks_drafts():
+    build = _dashboard_module()
     data = {"study": "PP-TS-T", "baseline": "quintic_duration", "draft": True, "parts": {}, "grid_warnings": [],
             "note": "</script><b>"}
     html = build.page(data)

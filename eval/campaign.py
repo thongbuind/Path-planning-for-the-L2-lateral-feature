@@ -247,6 +247,33 @@ def by_profile(t: dict, metrics: list[dict]) -> dict:
     return out
 
 
+def absolute(t: dict, metrics: list[dict]) -> dict:
+    """Giá trị của chính cấu hình, không so với mốc: trung bình trên các lượt, lượt xấu nhất và trung bình theo profile."""
+    out = {}
+    for m in metrics:
+        metric = (m["id"], m["metric"])
+        values, per = [], {}
+        for r in t["records"].values():
+            v = compare._targets(r).get(metric)
+            if v is not None and math.isfinite(v):
+                values.append(v)
+                per.setdefault(r.get("profile"), []).append(v)
+        if values:
+            out[f"{m['id']}|{m['metric']}"] = {
+                "mean": float(np.mean(values)), "worst": float(min(values) if m["larger_is_better"] else max(values)),
+                "n": len(values), "by_profile": {k: float(np.mean(v)) for k, v in sorted(per.items(), key=lambda x: str(x[0]))}}
+    return out
+
+
+def failed_runs(t: dict) -> dict:
+    """Số lượt trượt của từng requirement (tuyệt đối, không so mốc)."""
+    counts: dict[str, int] = {}
+    for r in t["records"].values():
+        for req in techniques.failures(r):
+            counts[req] = counts.get(req, 0) + 1
+    return {"runs": len(t["records"]), "by_requirement": dict(sorted(counts.items()))}
+
+
 def credibility(t: dict, base: dict, diffs: dict, part: str, metrics: list[dict], baseline: str) -> dict:
     d = output_diff.lookup(diffs, t["name"], baseline, part) if t["name"] != baseline else None
     few = sum(1 for m in metrics if cell(t, base, (m["id"], m["metric"]))["label"] == FEW) if t["name"] != baseline else 0
@@ -475,7 +502,8 @@ def build(study_id: str, plan_path: Path, folders: list[Path]) -> dict:
                           "cost": {**cost(t, info.get("cmake", {})), "timing_1job": loaded["timing"].get(name)},
                           "credibility": credibility(t, base, diffs, part, metrics, baseline)
                           if info["compared"] else None,
-                          "diagnostics": diagnostics(t), "by_profile": by_profile(t, metrics)}
+                          "diagnostics": diagnostics(t), "by_profile": by_profile(t, metrics),
+                          "absolute": absolute(t, metrics), "failed_runs": failed_runs(t)}
         parts_out[part] = {"metrics": metrics, "flex_metrics": [list(m) for m in flex], "configs": rows,
                            "qp_iterations": qp_iterations(by_name, configs, diffs, part, reference)}
         hypotheses[part] = {}

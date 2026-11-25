@@ -219,5 +219,5 @@ p99 lớn nhất của mọi cấu hình là 3,2 ms (12,9 % chu kỳ 25 ms). Th�
 
 - Study chỉ mô tả, không đề xuất chọn. Chọn generator và đưa vào planner là việc riêng của người dùng.
 - Ngày đóng: 2026-11-25.
-- Dashboard: [`research/generators/dashboard/index.html`](../../generators/dashboard/index.html), sinh từ ba run ID ở mục 4 (`python3 -m eval.campaign`, rồi `python3 research/generators/dashboard/build.py`).
+- Dashboard: [`research/generators/dashboard/index.html`](../../generators/dashboard/index.html), sinh từ ba run ID ở mục 4 (`python3 -m eval.campaign`, rồi `python3 research/generators/dashboard/build.py`). Dashboard là 10 trang A4 ngang, chỉ hiện giá trị tuyệt đối của từng thuật toán trên phần test (biểu đồ chấm, hàng sắp theo giá trị, không phải xếp hạng); không có hiệu so với mốc, CI hay giả thuyết. Số liệu đối chiếu và giả thuyết ở mục 5 của file này.
 - Problem report mở từ study: PP-PR-085, PP-PR-086.
